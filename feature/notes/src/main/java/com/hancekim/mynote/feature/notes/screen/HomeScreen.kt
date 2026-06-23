@@ -26,7 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hancekim.mynote.core.data.model.Note
+import com.hancekim.mynote.core.domain.model.Note
 import com.hancekim.mynote.core.designsystem.component.NoteCard
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.NotesIntent

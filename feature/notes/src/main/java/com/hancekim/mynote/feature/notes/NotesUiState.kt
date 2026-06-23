@@ -2,8 +2,8 @@ package com.hancekim.mynote.feature.notes
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
-import com.hancekim.mynote.core.data.model.Category
-import com.hancekim.mynote.core.data.model.Note
+import com.hancekim.mynote.core.domain.model.Category
+import com.hancekim.mynote.core.domain.model.Note
 import com.hancekim.mynote.core.designsystem.theme.MyNoteFontScale
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap

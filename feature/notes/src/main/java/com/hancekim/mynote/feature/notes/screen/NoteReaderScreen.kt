@@ -18,11 +18,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.hancekim.mynote.core.data.model.Note
-import com.hancekim.mynote.core.data.model.NoteBlock
-import com.hancekim.mynote.core.data.model.NoteListItem
-import com.hancekim.mynote.core.data.model.NoteSpan
-import com.hancekim.mynote.core.data.model.SpanStyle
+import com.hancekim.mynote.core.domain.model.Note
+import com.hancekim.mynote.core.domain.model.NoteBlock
+import com.hancekim.mynote.core.domain.model.NoteListItem
+import com.hancekim.mynote.core.domain.model.NoteSpan
+import com.hancekim.mynote.core.domain.model.SpanStyle
 import com.hancekim.mynote.core.designsystem.block.NoteContent
 import com.hancekim.mynote.core.designsystem.component.CategoryChip
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
@@ -84,15 +84,15 @@ private val previewNote = Note(
         NoteBlock.Paragraph(
             listOf(
                 NoteSpan("Composable 은 "),
-                NoteSpan("상태를 직접 들지 않고", SpanStyle.BOLD),
+                NoteSpan("상태를 직접 들지 않고", SpanStyle.Bold),
                 NoteSpan(" 상위로 끌어올린다."),
             ),
         ),
         NoteBlock.Quote(listOf(NoteSpan("상태는 단방향으로 흐른다."))),
         NoteBlock.BulletList(
             listOf(
-                NoteListItem(listOf(NoteSpan("단순 UI 상태는 "), NoteSpan("remember", SpanStyle.CODE))),
-                NoteListItem(listOf(NoteSpan("복원이 필요하면 "), NoteSpan("rememberSaveable", SpanStyle.CODE))),
+                NoteListItem(listOf(NoteSpan("단순 UI 상태는 "), NoteSpan("remember", SpanStyle.Code))),
+                NoteListItem(listOf(NoteSpan("복원이 필요하면 "), NoteSpan("rememberSaveable", SpanStyle.Code))),
             ),
         ),
         NoteBlock.Code("var text by rememberSaveable { mutableStateOf(\"\") }"),

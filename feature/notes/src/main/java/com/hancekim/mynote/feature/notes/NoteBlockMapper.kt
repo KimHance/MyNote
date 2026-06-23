@@ -1,9 +1,9 @@
 package com.hancekim.mynote.feature.notes
 
-import com.hancekim.mynote.core.data.model.NoteBlock
-import com.hancekim.mynote.core.data.model.NoteListItem
-import com.hancekim.mynote.core.data.model.NoteSpan
-import com.hancekim.mynote.core.data.model.SpanStyle
+import com.hancekim.mynote.core.domain.model.NoteBlock
+import com.hancekim.mynote.core.domain.model.NoteListItem
+import com.hancekim.mynote.core.domain.model.NoteSpan
+import com.hancekim.mynote.core.domain.model.SpanStyle
 import com.hancekim.mynote.core.designsystem.block.NoteContentBlock
 import com.hancekim.mynote.core.designsystem.block.NoteContentSpan
 import com.hancekim.mynote.core.designsystem.block.NoteSpanStyle
@@ -33,7 +33,7 @@ private fun List<NoteSpan>.toContentSpans(): ImmutableList<NoteContentSpan> =
     map { NoteContentSpan(it.text, it.style.toUi()) }.toImmutableList()
 
 private fun SpanStyle.toUi(): NoteSpanStyle = when (this) {
-    SpanStyle.TEXT -> NoteSpanStyle.Normal
-    SpanStyle.BOLD -> NoteSpanStyle.Bold
-    SpanStyle.CODE -> NoteSpanStyle.Code
+    SpanStyle.Text -> NoteSpanStyle.Normal
+    SpanStyle.Bold -> NoteSpanStyle.Bold
+    SpanStyle.Code -> NoteSpanStyle.Code
 }

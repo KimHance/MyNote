@@ -1,11 +1,11 @@
-package com.hancekim.mynote.core.data.model
+package com.hancekim.mynote.core.data.dto
 
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class NoteBlockSerializationTest {
+class NoteDtoSerializationTest {
 
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -20,20 +20,20 @@ class NoteBlockSerializationTest {
             ]
         """.trimIndent()
 
-        val blocks = json.decodeFromString<List<NoteBlock>>(text)
+        val blocks = json.decodeFromString<List<NoteBlockDto>>(text)
 
         assertEquals(4, blocks.size)
-        assertTrue(blocks[0] is NoteBlock.Heading)
-        assertEquals(2, (blocks[0] as NoteBlock.Heading).level)
-        val paragraph = blocks[1] as NoteBlock.Paragraph
-        assertEquals(SpanStyle.BOLD, paragraph.spans[1].style)
-        assertTrue(blocks[2] is NoteBlock.Code)
-        assertTrue(blocks[3] is NoteBlock.BulletList)
+        assertTrue(blocks[0] is NoteBlockDto.Heading)
+        assertEquals(2, (blocks[0] as NoteBlockDto.Heading).level)
+        val paragraph = blocks[1] as NoteBlockDto.Paragraph
+        assertEquals(SpanStyleDto.BOLD, paragraph.spans[1].style)
+        assertTrue(blocks[2] is NoteBlockDto.Code)
+        assertTrue(blocks[3] is NoteBlockDto.BulletList)
     }
 
     @Test
     fun `style 을 생략하면 TEXT 로 역직렬화된다`() {
-        val span = json.decodeFromString<NoteSpan>("""{"text":"hi"}""")
-        assertEquals(SpanStyle.TEXT, span.style)
+        val span = json.decodeFromString<NoteSpanDto>("""{"text":"hi"}""")
+        assertEquals(SpanStyleDto.TEXT, span.style)
     }
 }

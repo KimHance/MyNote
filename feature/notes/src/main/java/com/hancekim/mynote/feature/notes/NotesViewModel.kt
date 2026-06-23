@@ -2,7 +2,7 @@ package com.hancekim.mynote.feature.notes
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hancekim.mynote.core.data.model.Category
+import com.hancekim.mynote.core.domain.model.Category
 import com.hancekim.mynote.core.designsystem.theme.MyNoteFontScale
 import com.hancekim.mynote.core.domain.GetCategoriesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel

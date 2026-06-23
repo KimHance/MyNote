@@ -39,8 +39,8 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
-import com.hancekim.mynote.core.data.model.Category
-import com.hancekim.mynote.core.data.model.Note
+import com.hancekim.mynote.core.domain.model.Category
+import com.hancekim.mynote.core.domain.model.Note
 import com.hancekim.mynote.core.designfoundation.window.MyNoteWindowClass
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.navigation.NoteDetailKey

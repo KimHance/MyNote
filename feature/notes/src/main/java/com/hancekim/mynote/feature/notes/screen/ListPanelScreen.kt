@@ -13,8 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.hancekim.mynote.core.data.model.Category
-import com.hancekim.mynote.core.data.model.Note
+import com.hancekim.mynote.core.domain.model.Category
+import com.hancekim.mynote.core.domain.model.Note
 import com.hancekim.mynote.core.designsystem.component.CategoryRow
 import com.hancekim.mynote.core.designsystem.component.NoteRow
 import com.hancekim.mynote.core.designsystem.component.SearchField

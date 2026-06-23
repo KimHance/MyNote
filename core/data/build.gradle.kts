@@ -9,7 +9,9 @@ android {
 }
 
 dependencies {
-    // 직렬화 모델은 순수하게 유지(Compose 의존 없음). stability 는 UI 레이어(NotesUiState 등)에서 보증.
+    // data 는 domain 을 의존해 그 Repository 인터페이스를 구현한다(DIP). 의존 방향: data → domain.
+    implementation(projects.core.domain)
+
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.javax.inject)
