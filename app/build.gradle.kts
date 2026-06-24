@@ -1,8 +1,18 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.billboard.android.application)
     alias(libs.plugins.billboard.android.application.compose)
     alias(libs.plugins.billboard.android.hilt)
 }
+
+// local.properties 에서 노트 레포 좌표/토큰을 읽는다(토큰은 gitignore 됨).
+// APK 내장은 임시 — 다음 작업에서 런타임 입력 + 암호화 저장으로 교체한다.
+val localProps = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+fun prop(key: String, default: String): String = localProps.getProperty(key, default)
 
 android {
     namespace = "com.hancekim.mynote"
@@ -11,6 +21,15 @@ android {
         applicationId = "com.hancekim.mynote"
         versionCode = 1
         versionName = "1.0"
+
+        buildConfigField("String", "GITHUB_OWNER", "\"${prop("github.owner", "KimHance")}\"")
+        buildConfigField("String", "GITHUB_REPO", "\"${prop("github.repo", "MyNote")}\"")
+        buildConfigField("String", "GITHUB_BRANCH", "\"${prop("github.branch", "main")}\"")
+        buildConfigField("String", "GITHUB_TOKEN", "\"${prop("github.token", "")}\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {
