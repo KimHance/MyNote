@@ -1,0 +1,18 @@
+{
+  "id": "sealed",
+  "title": "sealed interface 활용",
+  "date": "2026.05.14",
+  "blocks": [
+    { "type": "heading", "level": 2, "spans": [ { "text": "봉인 계층" } ] },
+    { "type": "paragraph", "spans": [
+      { "text": "sealed interface 로 상태/이벤트를 표현하면 " },
+      { "text": "when 이 모든 분기를 강제", "style": "bold" },
+      { "text": " 한다." }
+    ] },
+    { "type": "orderedList", "items": [
+      { "spans": [ { "text": "Loading" } ] },
+      { "spans": [ { "text": "Success(data)" } ] },
+      { "spans": [ { "text": "Error(message)" } ] }
+    ] }
+  ]
+}

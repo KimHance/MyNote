@@ -1,0 +1,43 @@
+{
+  "android": [
+    {
+      "id": "nav3",
+      "title": "Navigation 3 첫인상",
+      "date": "2026.06.18",
+      "path": "notes/android/nav3.json",
+      "hash": "8970b722237cec2c6ca5207135ec78af0966bd92163074eec203f3ddd5c9e9ca"
+    },
+    {
+      "id": "compose-state",
+      "title": "Compose 상태 관리 정리",
+      "date": "2026.06.12",
+      "path": "notes/android/compose-state.json",
+      "hash": "fe4023c89b0f020728dbb495de30db22b783998d520ce7798546c12b0bd5e787"
+    }
+  ],
+  "cs": [
+    {
+      "id": "http-cache",
+      "title": "HTTP 캐싱 기초",
+      "date": "2026.04.22",
+      "path": "notes/cs/http-cache.json",
+      "hash": "5344b30cfc017aa698fa86a0234a7b0c0e71616adc636759e2285d63e9956c35"
+    }
+  ],
+  "kotlin": [
+    {
+      "id": "coroutines",
+      "title": "코루틴 디스패처 메모",
+      "date": "2026.05.30",
+      "path": "notes/kotlin/coroutines.json",
+      "hash": "ecd49d50a6ad07142edab333dfacdeae8d8fbfecfcd85302b3cc4a546e8c4bb0"
+    },
+    {
+      "id": "sealed",
+      "title": "sealed interface 활용",
+      "date": "2026.05.14",
+      "path": "notes/kotlin/sealed.json",
+      "hash": "c886584452773768593a29fc6bdde5ee8da574ebf8e24f13314d7da6a0e5411a"
+    }
+  ]
+}
