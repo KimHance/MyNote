@@ -1,8 +1,9 @@
 package com.hancekim.mynote.core.network.di
 
 import com.hancekim.mynote.core.data.datasource.RemoteNotesDataSource
-import com.hancekim.mynote.core.network.api.GithubRawApi
+import com.hancekim.mynote.core.network.api.GithubContentsApi
 import com.hancekim.mynote.core.network.datasource.RemoteNotesDataSourceImpl
+import com.hancekim.mynote.core.network.interceptor.AuthInterceptor
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -21,20 +22,23 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder().build()
+    fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient =
+        OkHttpClient.Builder()
+            .addInterceptor(authInterceptor) // 토큰을 매 요청에 Bearer 로 주입
+            .build()
 
     @Provides
     @Singleton
     fun provideRetrofit(client: OkHttpClient, json: Json): Retrofit = Retrofit.Builder()
-        .baseUrl(GithubRawApi.BASE_URL)
+        .baseUrl(GithubContentsApi.BASE_URL)
         .client(client)
         .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
         .build()
 
     @Provides
     @Singleton
-    fun provideGithubRawApi(retrofit: Retrofit): GithubRawApi =
-        retrofit.create(GithubRawApi::class.java)
+    fun provideGithubContentsApi(retrofit: Retrofit): GithubContentsApi =
+        retrofit.create(GithubContentsApi::class.java)
 }
 
 @Module
