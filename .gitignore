@@ -12,6 +12,10 @@ local.properties
 # 작업 스크래치(진행 ledger 등)
 .superpowers/
 
+# Python (notes/gen_index.py 캐시)
+__pycache__/
+*.pyc
+
 # Log/OS Files
 *.log
 
