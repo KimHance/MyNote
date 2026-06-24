@@ -37,6 +37,7 @@ data class NotesUiState(
     val expanded: ImmutableMap<String, Boolean> = persistentMapOf(),
     val fontScale: MyNoteFontScale = MyNoteFontScale.Normal,
     val isLoading: Boolean = true,
+    val errorMessage: String? = null,
 ) {
     val totalCount: Int get() = categories.sumOf { it.notes.size }
 

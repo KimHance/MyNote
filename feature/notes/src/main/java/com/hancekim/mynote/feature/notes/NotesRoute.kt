@@ -23,6 +23,7 @@ import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
@@ -85,6 +86,11 @@ fun NotesScreen(
     val windowClass = MyNoteWindowClass.fromWidth(widthDp)
 
     MyNoteTheme(windowClass = windowClass, fontScale = uiState.fontScale) {
+        // 에러 발생 시 스낵바로 안내 (Toast 금지, 룰 05). errorMessage 가 바뀔 때마다 발동.
+        LaunchedEffect(uiState.errorMessage) {
+            uiState.errorMessage?.let { snackbarHostState.showSnackbar(it) }
+        }
+
         if (windowClass == MyNoteWindowClass.Compact) {
             CompactScaffold(uiState, onIntent, snackbarHostState)
         } else {
@@ -146,7 +152,7 @@ private fun CompactScaffold(
             Box(Modifier.padding(padding)) {
                 val note = uiState.activeNote
                 if (note == null) {
-                    HomeScreen(uiState.recentNotes, onIntent)
+                    HomeScreen(uiState.recentNotes, uiState.isLoading, onIntent)
                 } else {
                     NoteReaderScreen(note, uiState.categoryNameOf(note.id) ?: "")
                 }
@@ -198,6 +204,7 @@ private fun ListDetailScaffold(
                         detailPlaceholder = {
                             HomeScreen(
                                 recentNotes = uiState.recentNotes,
+                                isLoading = uiState.isLoading,
                                 onIntent = { intent ->
                                     if (intent is NotesIntent.SelectNote) openNote(intent.id) else onIntent(intent)
                                 },
@@ -217,7 +224,7 @@ private fun ListDetailScaffold(
                     if (note != null) {
                         NoteReaderScreen(note, uiState.categoryNameOf(key.id) ?: "")
                     } else {
-                        HomeScreen(uiState.recentNotes, onIntent)
+                        HomeScreen(uiState.recentNotes, uiState.isLoading, onIntent)
                     }
                 }
             },

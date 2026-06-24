@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -37,47 +38,72 @@ import kotlinx.collections.immutable.persistentListOf
 /**
  * 시작 화면(노트 미선택). hero → "최근 노트" 라벨 → 카드 그리드.
  * 그리드 열 수·간격·여백·최대폭은 모두 어댑티브 토큰을 따른다.
+ *
+ * [recentNotes] 가 비어있을 때:
+ * - [isLoading] == true → 로딩 스피너(초기 동기화 진행 중)
+ * - [isLoading] == false → 빈 상태 메시지(노트 없음 혹은 오프라인)
  */
 @Composable
 fun HomeScreen(
     recentNotes: ImmutableList<RecentNote>,
+    isLoading: Boolean,
     onIntent: (NotesIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val adaptive = MyNoteTheme.adaptive
     val reading = adaptive.readingMaxWidth
+    val colors = MyNoteTheme.colors
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(MyNoteTheme.colors.bg),
+            .background(colors.bg),
         contentAlignment = Alignment.TopCenter,
     ) {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(adaptive.homeGridColumns),
-            modifier = if (reading != null) Modifier.widthIn(max = reading) else Modifier,
-            contentPadding = PaddingValues(adaptive.page),
-            horizontalArrangement = Arrangement.spacedBy(adaptive.cardGap),
-            verticalArrangement = Arrangement.spacedBy(adaptive.cardGap),
-        ) {
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                Hero(modalDrawer = adaptive.useModalDrawer)
-            }
-            item(span = { GridItemSpan(maxLineSpan) }) {
+        // 노트가 없을 때: 로딩 중이면 스피너, 완료 후 비어있으면 안내 메시지
+        if (recentNotes.isEmpty()) {
+            if (isLoading) {
+                // 동기화 진행 중 — 중앙 스피너
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = colors.accent,
+                )
+            } else {
+                // 동기화 완료 후 빈 상태 — 안내 텍스트
                 Text(
-                    text = "최근 노트",
-                    style = MyNoteTheme.textStyles.overline,
-                    color = MyNoteTheme.colors.text3,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+                    text = "표시할 노트가 없어요",
+                    style = MyNoteTheme.textStyles.body,
+                    color = colors.text2,
+                    modifier = Modifier.align(Alignment.Center),
                 )
             }
-            items(recentNotes, key = { it.note.id }) { recent ->
-                NoteCard(
-                    category = recent.categoryName,
-                    date = recent.note.date,
-                    title = recent.note.title,
-                    onClick = { onIntent(NotesIntent.SelectNote(recent.note.id)) },
-                )
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(adaptive.homeGridColumns),
+                modifier = if (reading != null) Modifier.widthIn(max = reading) else Modifier,
+                contentPadding = PaddingValues(adaptive.page),
+                horizontalArrangement = Arrangement.spacedBy(adaptive.cardGap),
+                verticalArrangement = Arrangement.spacedBy(adaptive.cardGap),
+            ) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Hero(modalDrawer = adaptive.useModalDrawer)
+                }
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Text(
+                        text = "최근 노트",
+                        style = MyNoteTheme.textStyles.overline,
+                        color = colors.text3,
+                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+                    )
+                }
+                items(recentNotes, key = { it.note.id }) { recent ->
+                    NoteCard(
+                        category = recent.categoryName,
+                        date = recent.note.date,
+                        title = recent.note.title,
+                        onClick = { onIntent(NotesIntent.SelectNote(recent.note.id)) },
+                    )
+                }
             }
         }
     }
@@ -125,7 +151,7 @@ private val previewRecent = persistentListOf(
 @Composable
 private fun HomeScreenCompactPreview() {
     MyNoteTheme {
-        HomeScreen(recentNotes = previewRecent, onIntent = {})
+        HomeScreen(recentNotes = previewRecent, isLoading = false, onIntent = {})
     }
 }
 
@@ -133,6 +159,22 @@ private fun HomeScreenCompactPreview() {
 @Composable
 private fun HomeScreenMediumPreview() {
     MyNoteTheme(windowClass = com.hancekim.mynote.core.designfoundation.window.MyNoteWindowClass.Medium) {
-        HomeScreen(recentNotes = previewRecent, onIntent = {})
+        HomeScreen(recentNotes = previewRecent, isLoading = false, onIntent = {})
+    }
+}
+
+@Preview(name = "Home · 로딩 중", showBackground = true, widthDp = 360, heightDp = 640)
+@Composable
+private fun HomeScreenLoadingPreview() {
+    MyNoteTheme {
+        HomeScreen(recentNotes = persistentListOf(), isLoading = true, onIntent = {})
+    }
+}
+
+@Preview(name = "Home · 빈 상태", showBackground = true, widthDp = 360, heightDp = 640)
+@Composable
+private fun HomeScreenEmptyPreview() {
+    MyNoteTheme {
+        HomeScreen(recentNotes = persistentListOf(), isLoading = false, onIntent = {})
     }
 }
