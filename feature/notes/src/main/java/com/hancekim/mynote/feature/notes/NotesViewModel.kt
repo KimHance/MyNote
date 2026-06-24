@@ -5,10 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.hancekim.mynote.core.domain.model.Category
 import com.hancekim.mynote.core.designsystem.theme.MyNoteFontScale
 import com.hancekim.mynote.core.domain.GetCategoriesUseCase
-import com.hancekim.mynote.core.domain.ObserveTokenUseCase
+import com.hancekim.mynote.core.domain.ObserveAppliedTokenUseCase
 import com.hancekim.mynote.core.domain.SaveTokenUseCase
 import com.hancekim.mynote.core.domain.SyncNotesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -30,7 +31,7 @@ class NotesViewModel @Inject constructor(
     getCategories: GetCategoriesUseCase,
     private val syncNotes: SyncNotesUseCase,
     private val saveToken: SaveTokenUseCase,
-    observeToken: ObserveTokenUseCase,
+    observeAppliedToken: ObserveAppliedTokenUseCase,
 ) : ViewModel() {
 
     private val activeNoteId = MutableStateFlow<String?>(null)
@@ -39,6 +40,8 @@ class NotesViewModel @Inject constructor(
     private val fontScale = MutableStateFlow(MyNoteFontScale.Normal)
     private val syncStatus = MutableStateFlow(SyncStatus())
     private val hasToken = MutableStateFlow(false)
+    // 같은 메시지가 반복될 때도 스낵바가 재발동하도록 단조 증가 카운터
+    private val errorTick = MutableStateFlow(0)
 
     private val categoriesFlow = getCategories().catch { emit(emptyList()) }
 
@@ -52,8 +55,8 @@ class NotesViewModel @Inject constructor(
         buildState(categories, active, q, exp, scale)
     }
 
-    val uiState: StateFlow<NotesUiState> = combine(contentState, syncStatus, hasToken) { state, sync, token ->
-        state.copy(isLoading = sync.loading, errorMessage = sync.error, hasToken = token)
+    val uiState: StateFlow<NotesUiState> = combine(contentState, syncStatus, hasToken, errorTick) { state, sync, token, tick ->
+        state.copy(isLoading = sync.loading, errorMessage = sync.error, errorId = tick, hasToken = token)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
@@ -61,20 +64,26 @@ class NotesViewModel @Inject constructor(
     )
 
     init {
-        // 토큰이 로드/변경될 때마다 재동기화(앱 시작, 런타임 입력 포함)
+        // 홀더에 적용된 토큰이 바뀔 때마다 재동기화(앱 시작, 런타임 입력 포함). 레이스 없음 — 인터셉터가 읽는 것과 같은 값.
         viewModelScope.launch {
-            observeToken().distinctUntilChanged().collect { token ->
+            observeAppliedToken().distinctUntilChanged().collect { token ->
                 hasToken.value = !token.isNullOrBlank()
                 sync()
             }
         }
     }
 
-    /** 동기화 진입점. 토큰 관찰 흐름에서 자동 호출됨. */
+    private var syncJob: Job? = null
+
+    /** 동기화 진입점. 토큰 관찰 흐름에서 자동 호출됨. 중복 실행 시 이전 job 취소. */
     private fun sync() {
-        viewModelScope.launch {
+        syncJob?.cancel()
+        syncJob = viewModelScope.launch {
             syncStatus.update { it.copy(loading = true, error = null) }
             val result = syncNotes()
+            if (result.isFailure) {
+                errorTick.update { it + 1 }
+            }
             syncStatus.update {
                 it.copy(
                     loading = false,

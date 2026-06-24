@@ -1,5 +1,6 @@
 package com.hancekim.mynote.core.data.dto
 
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -35,5 +36,15 @@ class NoteDtoSerializationTest {
     fun `style 을 생략하면 TEXT 로 역직렬화된다`() {
         val span = json.decodeFromString<NoteSpanDto>("""{"text":"hi"}""")
         assertEquals(SpanStyleDto.TEXT, span.style)
+    }
+
+    @Test
+    fun `divider 와 spacer 는 type 만으로 라운드트립된다`() {
+        val text = """[{"type":"divider"},{"type":"spacer"}]"""
+        val blocks = json.decodeFromString<List<NoteBlockDto>>(text)
+        assertTrue(blocks[0] is NoteBlockDto.Divider)
+        assertTrue(blocks[1] is NoteBlockDto.Spacer)
+        val reDecoded = json.decodeFromString<List<NoteBlockDto>>(json.encodeToString(blocks))
+        assertEquals(blocks, reDecoded)
     }
 }

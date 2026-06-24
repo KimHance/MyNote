@@ -1,6 +1,5 @@
 package com.hancekim.mynote.feature.notes
 
-import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import com.hancekim.mynote.core.domain.model.Category
 import com.hancekim.mynote.core.domain.model.Note
@@ -11,7 +10,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 
 /** 홈 "최근 노트" 카드 한 장에 필요한 정보(노트 + 소속 카테고리명). */
-@Immutable
+@Stable
 data class RecentNote(
     val note: Note,
     val categoryName: String,
@@ -38,6 +37,7 @@ data class NotesUiState(
     val fontScale: MyNoteFontScale = MyNoteFontScale.Normal,
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
+    val errorId: Int = 0,
     val hasToken: Boolean = false,
 ) {
     val totalCount: Int get() = categories.sumOf { it.notes.size }

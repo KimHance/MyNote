@@ -3,6 +3,7 @@ package com.hancekim.mynote.core.designsystem.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -38,7 +39,7 @@ fun NoteRow(
             .fillMaxWidth()
             .clip(RoundedCornerShape(MyNoteRadius.chip))
             .then(if (active) Modifier.background(colors.accentSoft) else Modifier)
-            .clickable(onClick = onClick)
+            .clickable(onClick = onClick, role = Role.Button)
             .padding(start = 29.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
     )
 }

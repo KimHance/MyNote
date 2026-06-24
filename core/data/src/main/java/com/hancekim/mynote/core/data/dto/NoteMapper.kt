@@ -34,10 +34,11 @@ private fun SpanStyleDto.toDomain(): SpanStyle = when (this) {
     SpanStyleDto.CODE -> SpanStyle.Code
 }
 
-/** 캐시 목록 → 카테고리. group 으로 묶고 각 노트의 blocksJson 을 파싱한다. */
+/** 캐시 목록 → 카테고리. 파싱 실패(손상/미지 타입) 노트는 조용히 제외(전체 목록 보호). */
 fun List<CachedNote>.toCategories(json: Json): List<Category> =
-    groupBy { it.group }.map { (group, cached) ->
-        Category(name = group, notes = cached.map { it.toDomainNote(json) })
+    groupBy { it.group }.mapNotNull { (group, cached) ->
+        val notes = cached.mapNotNull { runCatching { it.toDomainNote(json) }.getOrNull() }
+        if (notes.isEmpty()) null else Category(name = group, notes = notes)
     }
 
 /** 캐시 1건 → 도메인 Note. blocksJson(원본) → List<NoteBlockDto> → 도메인 블록. */

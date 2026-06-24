@@ -27,6 +27,9 @@ object NetworkModule {
     fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient =
         OkHttpClient.Builder()
             .addInterceptor(authInterceptor) // 토큰을 매 요청에 Bearer 로 주입
+            .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+            .writeTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
             .build()
 
     @Provides
@@ -54,4 +57,8 @@ abstract class RemoteDataSourceModule {
     @Binds
     @Singleton
     abstract fun bindGithubTokenProvider(impl: GithubTokenHolder): GithubTokenProvider
+
+    @Binds
+    @Singleton
+    abstract fun bindAppliedTokenSource(impl: GithubTokenHolder): com.hancekim.mynote.core.domain.repository.AppliedTokenSource
 }

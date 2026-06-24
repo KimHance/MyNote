@@ -40,7 +40,7 @@ fun NoteReaderScreen(
 ) {
     val adaptive = MyNoteTheme.adaptive
     val reading = adaptive.readingMaxWidth
-    val blocks = remember(note.blocks) { note.blocks.toContentBlocks() }
+    val blocks = remember(note.id) { note.blocks.toContentBlocks() }
 
     Box(
         modifier = modifier

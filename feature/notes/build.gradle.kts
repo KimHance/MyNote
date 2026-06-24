@@ -9,7 +9,7 @@ android {
 }
 
 dependencies {
-    // feature convention 이 :core:design-system, :core:data, lifecycle, coroutines 를 이미 추가함
+    // feature convention 이 :core:design-system, :core:domain, lifecycle, coroutines 를 이미 추가함
 
     // Navigation 3 + Material3 adaptive (목록-상세)
     implementation(libs.androidx.navigation3.runtime)

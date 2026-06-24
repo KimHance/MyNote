@@ -99,8 +99,8 @@ fun NotesScreen(
     var showTokenDialog by rememberSaveable { mutableStateOf(false) }
 
     MyNoteTheme(windowClass = windowClass, fontScale = uiState.fontScale) {
-        // 에러 발생 시 스낵바로 안내 (Toast 금지, 룰 05). errorMessage 가 바뀔 때마다 발동.
-        LaunchedEffect(uiState.errorMessage) {
+        // 에러 발생 시 스낵바로 안내 (Toast 금지, 룰 05). errorId 가 바뀔 때마다 발동(같은 메시지 재알림 포함).
+        LaunchedEffect(uiState.errorId) {
             uiState.errorMessage?.let { snackbarHostState.showSnackbar(it) }
         }
 

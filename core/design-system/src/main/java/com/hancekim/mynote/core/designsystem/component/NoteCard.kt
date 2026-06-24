@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -44,7 +45,7 @@ fun NoteCard(
             .clip(RoundedCornerShape(MyNoteRadius.card))
             .background(if (active) colors.surface2 else colors.surface)
             .border(1.dp, colors.border, RoundedCornerShape(MyNoteRadius.card))
-            .clickable(onClick = onClick)
+            .clickable(onClick = onClick, role = Role.Button)
             .padding(horizontal = 16.dp, vertical = 15.dp),
     ) {
         Row(
