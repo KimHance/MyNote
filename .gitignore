@@ -9,6 +9,9 @@ build/
 # Local configuration file (sdk path, etc)
 local.properties
 
+# 작업 스크래치(진행 ledger 등)
+.superpowers/
+
 # Log/OS Files
 *.log
 
