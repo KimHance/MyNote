@@ -1,6 +1,9 @@
 package com.hancekim.mynote.core.network.di
 
+import com.hancekim.mynote.core.data.datasource.RemoteNotesDataSource
 import com.hancekim.mynote.core.network.api.GithubRawApi
+import com.hancekim.mynote.core.network.datasource.RemoteNotesDataSourceImpl
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,10 +21,6 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideJson(): Json = Json { ignoreUnknownKeys = true }
-
-    @Provides
-    @Singleton
     fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder().build()
 
     @Provides
@@ -36,4 +35,13 @@ object NetworkModule {
     @Singleton
     fun provideGithubRawApi(retrofit: Retrofit): GithubRawApi =
         retrofit.create(GithubRawApi::class.java)
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class RemoteDataSourceModule {
+
+    @Binds
+    @Singleton
+    abstract fun bindRemoteNotesDataSource(impl: RemoteNotesDataSourceImpl): RemoteNotesDataSource
 }
