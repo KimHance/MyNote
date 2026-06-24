@@ -9,8 +9,10 @@
 
 ## Project Overview
 
-GitHub raw JSON 을 읽어 "블로그 글처럼" 읽는 **읽기 전용** 안드로이드 학습 노트 앱.
-앱에서 write 없음. 모든 콘텐츠는 원격 JSON(현재는 로컬 더미). 다크 단일 테마, 멀티 폼팩터(반응형).
+GitHub 의 JSON 노트를 읽어 "블로그 글처럼" 보는 **읽기 전용** 안드로이드 학습 노트 앱.
+앱에서 write 없음. 콘텐츠는 **서버드리븐**: 레포 루트 `notes/` 의 `index.json`(group→노트, 해시) +
+노트별 JSON 을 **GitHub Contents API**(private 레포 + 토큰)로 받아 **Room 에 캐싱**하고 해시로 reconcile.
+다크 단일 테마, 멀티 폼팩터(반응형). 토큰은 런타임 입력(release) / `local.properties`(debug).
 
 **Package root:** `com.hancekim.mynote`
 **SDK:** compileSdk 37 · targetSdk 36 · minSdk 32
@@ -32,12 +34,14 @@ GitHub raw JSON 을 읽어 "블로그 글처럼" 읽는 **읽기 전용** 안드
 
 | Module | Role |
 |--------|------|
-| `:app` | Application(Hilt), MainActivity, edge-to-edge, `NotesRoute` 호스트 |
-| `:core:design-foundation` | 색/타이포/radius/spacing 토큰, `AdaptiveTokens`(5단계), 마크다운 파서 |
-| `:core:design-system` | `MyNoteTheme`(토큰 CompositionLocal), 공용 컴포넌트, 마크다운 렌더 |
-| `:core:data` | `Note`/`Category` 모델(순수 직렬화), `NotesRepository` + 더미 구현, Hilt 모듈 |
-| `:core:domain` | `GetCategoriesUseCase` 등 UseCase. `api(:core:data)` |
-| `:feature:notes` | 3화면(Home·Reader·ListPanel), `NotesViewModel`(MVI), Nav3 그래프 |
+| `:app` | Application(Hilt), MainActivity, edge-to-edge, `NotesRoute` 호스트. 레포좌표 BuildConfig·앱스코프·`TokenSync` 제공 |
+| `:core:design-foundation` | 색/타이포/radius/spacing 토큰, `AdaptiveTokens`(5단계). (leaf, 파서 없음) |
+| `:core:design-system` | `MyNoteTheme`(토큰 CompositionLocal), 공용 컴포넌트, `NoteContent` 블록 렌더(UI 모델 `NoteContentBlock`) |
+| `:core:domain` | 모델(`Category`/`Note`/`NoteBlock`), `NotesRepository`/`TokenRepository` 인터페이스(DIP 소유), UseCase |
+| `:core:data` | DataSource 인터페이스(Remote/Local/Token), DTO·Mapper, `NotesRepositoryImpl`(reconcile)·`TokenRepositoryImpl`, Hilt |
+| `:core:network` | GitHub Contents API(Retrofit), `RemoteNotesDataSourceImpl`, `AuthInterceptor`+`GithubTokenHolder`(클라 토큰 주입) |
+| `:core:database` | Room3 노트 캐시(`NoteEntity`/DAO/DB), `LocalNotesDataSourceImpl`, DataStore 토큰 저장(`DataStoreTokenStore`) |
+| `:feature:notes` | 3화면(Home·Reader·ListPanel), `NotesViewModel`(MVI), Nav3 그래프, 토큰 입력 다이얼로그 |
 
 ---
 
@@ -49,7 +53,10 @@ GitHub raw JSON 을 읽어 "블로그 글처럼" 읽는 **읽기 전용** 안드
 | Navigation | **Navigation 3** (`NavDisplay`) + **Material3 adaptive** (`ListDetailSceneStrategy`) |
 | Presentation | **MVI** — `UiState` + `Intent` + ViewModel `onIntent()`, Hilt `@HiltViewModel` |
 | DI | Hilt |
-| Serialization | kotlinx.serialization |
+| Network | Retrofit · OkHttp(`AuthInterceptor`) · GitHub Contents API |
+| Local cache | **Room 3**(`androidx.room3`, KSP) — 노트 SSOT |
+| Local prefs | **DataStore Preferences** — 토큰 저장 |
+| Serialization | kotlinx.serialization (polymorphic `NoteBlockDto`, discriminator `type`) |
 | Async | Coroutines / Flow |
 | Collections | kotlinx-collections-immutable |
 | Build | AGP 9.2.1 · Gradle 9.4.1 · convention plugins (`:build-logic`) |
@@ -61,7 +68,9 @@ GitHub raw JSON 을 읽어 "블로그 글처럼" 읽는 **읽기 전용** 안드
 | Task | Command |
 |---|---|
 | Compile (검증) | `./gradlew :app:compileDebugKotlin` |
-| Unit tests | `./gradlew :core:design-foundation:testDebugUnitTest` |
+| Unit tests | `./gradlew :core:data:testDebugUnitTest` (reconcile·DTO 직렬화) |
 | Build APK | `./gradlew :app:assembleDebug` |
+| 노트 index 재생성 | `python3 notes/gen_index.py` (노트 수정 후 — 스키마 검증 + hash) |
 
-> 깃 작업은 사용자가 직접 수행(현재 git 미초기화). 임의 커밋 금지.
+> 깃 작업은 사용자가 직접 수행. **임의 커밋 금지**(요청 시에만). 커밋은 사용자 신원으로, AI 공동저자 푸터 없이.
+> 토큰은 `local.properties`(gitignore)에만 — debug 전용 내장, release 는 런타임 입력.

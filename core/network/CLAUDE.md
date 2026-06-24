@@ -10,4 +10,7 @@
 - `Json` 직렬화 설정은 **`:core:data` 가 단일 제공**한다. 네트워크는 그 `Json` 을 주입받아
   Retrofit 컨버터에 쓴다(중복 제공 금지 — Hilt 중복 바인딩).
 - 에러는 삼키지 않고 호출자(`:core:data` reconcile)까지 예외로 전파한다. 사용자 노출/폴백은 상위에서.
-- private repo + 토큰(Contents API) 분기는 후속. 지금은 `BASE_URL` 설정값만 두고 구조 유지.
+- **토큰 주입:** OkHttp 에 `AuthInterceptor` 등록 → 매 요청에 `GithubTokenProvider.currentToken()` 을 읽어 `Authorization: Bearer`.
+  `GithubTokenProvider` 구현은 인메모리 `GithubTokenHolder`(@Volatile) — `:app` 의 `TokenSync` 가 DataStore 토큰으로 갱신.
+  토큰을 OkHttp 빌드 시점에 박지 않는다(런타임 가변) → 인터셉터가 매 요청 최신값을 읽는다.
+- URL 은 `repos/{owner}/{repo}/contents/{path}?ref={branch}` 동적 조립(좌표 = config). index/note 동일 패턴.

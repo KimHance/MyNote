@@ -3,24 +3,27 @@
 ## 모듈 그래프 (→ = 의존)
 
 ```
-:app
-  → :core:design-foundation, :core:design-system, :core:domain, :feature:notes
+:app   → :core:{design-foundation, design-system, domain, data, network, database}, :feature:notes
+         (composition root: 구현체 모듈을 모두 포함해 Hilt 그래프를 완성)
 
-:feature:notes
-  → :core:design-system, :core:domain      (feature convention 이 자동 주입)
+:feature:notes → :core:design-system, :core:domain      (feature convention 이 자동 주입)
 
-:core:domain
-  → api(:core:data)                          (모델 + Repository 인터페이스 전파)
-
+:core:domain   — 가장 안쪽. 모델(Category/Note/NoteBlock) + 인터페이스(NotesRepository/TokenRepository) + UseCase. 의존 없음.
+:core:data     → :core:domain   (도메인 인터페이스 구현 + Remote/Local/Token DataSource 인터페이스 소유)
+:core:network  → :core:data     (RemoteNotesDataSource 구현 = Contents API, AuthInterceptor + GithubTokenHolder)
+:core:database → :core:data     (Local/Token DataSource 구현 = Room 노트캐시 + DataStore 토큰)
 :core:design-system → api(:core:design-foundation)
-:core:data — 모델 + Repository + 더미 구현 + Hilt 모듈
 ```
 
+> **DIP 핵심:** 인터페이스는 안쪽(domain/data)이 소유하고, 바깥(network/database)이 구현한다.
+> 의존 화살표는 항상 바깥→안쪽. `:app` 만 구현체 모듈을 알고 Hilt 로 바인딩한다. **SSOT 는 Room.**
+
 ## 하드 룰
-- **feature 모듈은 `:core:data` 를 직접 의존하지 않는다.** `:core:domain` UseCase 를 경유한다(데이터 모델은 domain 의 `api(:core:data)` 로 transitive).
-- 역방향 의존 금지: `:core:design-foundation` 은 `:core:design-system` 을 의존하지 않는다.
-- feature ↔ feature 직접 의존 금지.
-- 버전은 `/gradle/libs.versions.toml` 에만. `build.gradle.kts` 에 하드코딩 금지.
+- **feature 모듈은 `:core:data`/`:core:network`/`:core:database` 를 직접 의존하지 않는다.** `:core:domain` UseCase 만 경유(도메인 모델은 domain 소유).
+- **`:core:network`/`:core:database` 는 `:core:data` 의 DataSource 인터페이스를 구현**하고, `:core:data` 는 그 구현체를 모른다.
+- Room `@Entity`·Retrofit·DataStore 타입은 각 모듈 밖으로 새지 않는다(경계 교차 타입: `CachedNote` 등 data 소유 타입).
+- 역방향 의존 금지: `:core:design-foundation` 은 `:core:design-system` 을 의존하지 않는다. feature ↔ feature 직접 의존 금지.
+- 버전은 `/gradle/libs.versions.toml` 에만. `build.gradle.kts` 에 하드코딩 금지(의존성도 `libs.*` alias).
 
 ## 프레젠테이션: MVI
 - 상태: `XxxUiState` (`@Immutable`), 단일 소스. 컬렉션은 `ImmutableList`/`ImmutableMap`.
