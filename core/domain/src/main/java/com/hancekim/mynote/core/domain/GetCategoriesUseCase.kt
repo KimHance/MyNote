@@ -14,5 +14,5 @@ import javax.inject.Inject
 class GetCategoriesUseCase @Inject constructor(
     private val repository: NotesRepository,
 ) {
-    operator fun invoke(): Flow<List<Category>> = repository.getCategories()
+    operator fun invoke(): Flow<List<Category>> = repository.observeCategories()
 }

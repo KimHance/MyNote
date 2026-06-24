@@ -4,9 +4,11 @@ import com.hancekim.mynote.core.domain.model.Category
 import kotlinx.coroutines.flow.Flow
 
 /**
- * 노트 데이터 소스 추상화(읽기 전용). **인터페이스는 domain 이 소유**한다(DIP).
- * 구현체(`:core:data`)가 이 인터페이스를 구현하며 domain 을 의존한다.
+ * 노트 읽기 + 동기화 추상화(인터페이스는 domain 소유, DIP). 구현은 :core:data.
+ * - [observeCategories] : 로컬 SSOT 관찰(Room Flow)
+ * - [sync]              : 원격 index 와 로컬 해시 비교 후 reconcile
  */
 interface NotesRepository {
-    fun getCategories(): Flow<List<Category>>
+    fun observeCategories(): Flow<List<Category>>
+    suspend fun sync(): Result<Unit>
 }
