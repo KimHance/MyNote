@@ -16,4 +16,7 @@ sealed interface NotesIntent {
 
     /** 현재 노트를 닫고 홈으로(Compact 뒤로가기) */
     data object CloseNote : NotesIntent
+
+    /** 런타임 토큰 입력 저장 */
+    data class SaveToken(val token: String) : NotesIntent
 }

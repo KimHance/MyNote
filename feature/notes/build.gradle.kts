@@ -22,4 +22,7 @@ dependencies {
 
     // NavKey @Serializable
     implementation(libs.kotlinx.serialization.json)
+
+    // 토큰 다이얼로그 아이콘(Lock) — compose BOM 관리, material-icons-core
+    implementation(libs.androidx.compose.material.icons.core)
 }

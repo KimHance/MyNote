@@ -38,6 +38,7 @@ data class NotesUiState(
     val fontScale: MyNoteFontScale = MyNoteFontScale.Normal,
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
+    val hasToken: Boolean = false,
 ) {
     val totalCount: Int get() = categories.sumOf { it.notes.size }
 

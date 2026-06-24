@@ -2,6 +2,8 @@ package com.hancekim.mynote.core.network.di
 
 import com.hancekim.mynote.core.data.datasource.RemoteNotesDataSource
 import com.hancekim.mynote.core.network.api.GithubContentsApi
+import com.hancekim.mynote.core.network.config.GithubTokenHolder
+import com.hancekim.mynote.core.network.config.GithubTokenProvider
 import com.hancekim.mynote.core.network.datasource.RemoteNotesDataSourceImpl
 import com.hancekim.mynote.core.network.interceptor.AuthInterceptor
 import dagger.Binds
@@ -48,4 +50,8 @@ abstract class RemoteDataSourceModule {
     @Binds
     @Singleton
     abstract fun bindRemoteNotesDataSource(impl: RemoteNotesDataSourceImpl): RemoteNotesDataSource
+
+    @Binds
+    @Singleton
+    abstract fun bindGithubTokenProvider(impl: GithubTokenHolder): GithubTokenProvider
 }

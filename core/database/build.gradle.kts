@@ -14,4 +14,7 @@ dependencies {
 
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.javax.inject)
+
+    // DataStore Preferences — 토큰 저장(DataStoreTokenStore)
+    implementation(libs.androidx.datastore)
 }

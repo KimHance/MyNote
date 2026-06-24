@@ -6,16 +6,23 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
@@ -26,12 +33,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -85,6 +95,9 @@ fun NotesScreen(
     val widthDp = LocalWindowInfo.current.containerDpSize.width
     val windowClass = MyNoteWindowClass.fromWidth(widthDp)
 
+    // 토큰 입력 다이얼로그 표시 상태 — 두 Scaffold 에서 공유한다.
+    var showTokenDialog by rememberSaveable { mutableStateOf(false) }
+
     MyNoteTheme(windowClass = windowClass, fontScale = uiState.fontScale) {
         // 에러 발생 시 스낵바로 안내 (Toast 금지, 룰 05). errorMessage 가 바뀔 때마다 발동.
         LaunchedEffect(uiState.errorMessage) {
@@ -92,9 +105,20 @@ fun NotesScreen(
         }
 
         if (windowClass == MyNoteWindowClass.Compact) {
-            CompactScaffold(uiState, onIntent, snackbarHostState)
+            CompactScaffold(uiState, onIntent, snackbarHostState, onShowTokenDialog = { showTokenDialog = true })
         } else {
-            ListDetailScaffold(uiState, onIntent, snackbarHostState)
+            ListDetailScaffold(uiState, onIntent, snackbarHostState, onShowTokenDialog = { showTokenDialog = true })
+        }
+
+        // 토큰 입력 다이얼로그
+        if (showTokenDialog) {
+            TokenDialog(
+                onDismiss = { showTokenDialog = false },
+                onSave = { token ->
+                    onIntent(NotesIntent.SaveToken(token))
+                    showTokenDialog = false
+                },
+            )
         }
     }
 }
@@ -104,6 +128,7 @@ private fun CompactScaffold(
     uiState: NotesUiState,
     onIntent: (NotesIntent) -> Unit,
     snackbarHostState: SnackbarHostState,
+    onShowTokenDialog: () -> Unit,
 ) {
     val colors = MyNoteTheme.colors
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -146,6 +171,7 @@ private fun CompactScaffold(
                     showMenu = true,
                     onMenu = { scope.launch { drawerState.open() } },
                     onToggleFont = { onIntent(NotesIntent.ToggleFontScale) },
+                    onTokenDialog = onShowTokenDialog,
                 )
             },
         ) { padding ->
@@ -167,6 +193,7 @@ private fun ListDetailScaffold(
     uiState: NotesUiState,
     onIntent: (NotesIntent) -> Unit,
     snackbarHostState: SnackbarHostState,
+    onShowTokenDialog: () -> Unit,
 ) {
     val colors = MyNoteTheme.colors
     val backStack = rememberNavBackStack(NotesListKey)
@@ -190,6 +217,7 @@ private fun ListDetailScaffold(
                 showMenu = false,
                 onMenu = {},
                 onToggleFont = { onIntent(NotesIntent.ToggleFontScale) },
+                onTokenDialog = onShowTokenDialog,
             )
         },
     ) { padding ->
@@ -261,7 +289,7 @@ private fun rememberDoubleBackToExit(snackbarHostState: SnackbarHostState): () -
 private const val EXIT_WINDOW_MILLIS = 1000L
 
 /**
- * 핸드오프 헤더: (Compact) ☰ + 현재 노트 제목 + 글자 크기 토글.
+ * 핸드오프 헤더: (Compact) ☰ + 현재 노트 제목 + 글자 크기 토글 + 토큰 설정 아이콘.
  * Material3 `TopAppBar` 를 써 상태바 인셋은 `windowInsets` 기본값이 처리한다.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -271,6 +299,7 @@ private fun NotesTopBar(
     showMenu: Boolean,
     onMenu: () -> Unit,
     onToggleFont: () -> Unit,
+    onTokenDialog: () -> Unit,
 ) {
     val colors = MyNoteTheme.colors
     TopAppBar(
@@ -291,6 +320,14 @@ private fun NotesTopBar(
             }
         },
         actions = {
+            // 토큰 설정 아이콘(자물쇠) — Icons.Default.Lock 은 material-icons-core 에 포함됨
+            IconButton(onClick = onTokenDialog) {
+                Icon(
+                    imageVector = Icons.Default.Lock,
+                    contentDescription = "토큰 설정",
+                    tint = colors.accent,
+                )
+            }
             IconButton(onClick = onToggleFont) {
                 Text(text = "가", style = MyNoteTheme.textStyles.treeLabel, color = colors.accent)
             }
@@ -301,6 +338,72 @@ private fun NotesTopBar(
             navigationIconContentColor = colors.text,
             actionIconContentColor = colors.accent,
         ),
+    )
+}
+
+/**
+ * GitHub 토큰 입력 다이얼로그. feature 전용 Composable — design-system 재사용 컴포넌트 아님.
+ * PasswordVisualTransformation 으로 토큰 값을 가린다.
+ */
+@Composable
+private fun TokenDialog(
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit,
+) {
+    val colors = MyNoteTheme.colors
+    var text by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.Lock,
+                contentDescription = null,
+                tint = colors.accent,
+            )
+        },
+        title = {
+            Text(
+                text = "GitHub 토큰 설정",
+                style = MyNoteTheme.textStyles.sectionTitle,
+                color = colors.text,
+            )
+        },
+        text = {
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it },
+                label = {
+                    Text(
+                        text = "토큰 입력",
+                        style = MyNoteTheme.textStyles.treeLabel,
+                        color = colors.text2,
+                    )
+                },
+                singleLine = true,
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions.Default,
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { onSave(text) }) {
+                Text(
+                    text = "저장",
+                    style = MyNoteTheme.textStyles.treeLabel,
+                    color = colors.accent,
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    text = "취소",
+                    style = MyNoteTheme.textStyles.treeLabel,
+                    color = colors.text2,
+                )
+            }
+        },
+        containerColor = colors.surface,
     )
 }
 

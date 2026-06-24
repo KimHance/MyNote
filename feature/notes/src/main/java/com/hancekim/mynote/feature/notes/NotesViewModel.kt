@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.hancekim.mynote.core.domain.model.Category
 import com.hancekim.mynote.core.designsystem.theme.MyNoteFontScale
 import com.hancekim.mynote.core.domain.GetCategoriesUseCase
+import com.hancekim.mynote.core.domain.ObserveTokenUseCase
+import com.hancekim.mynote.core.domain.SaveTokenUseCase
 import com.hancekim.mynote.core.domain.SyncNotesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,6 +14,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -26,6 +29,8 @@ private data class SyncStatus(val loading: Boolean = true, val error: String? = 
 class NotesViewModel @Inject constructor(
     getCategories: GetCategoriesUseCase,
     private val syncNotes: SyncNotesUseCase,
+    private val saveToken: SaveTokenUseCase,
+    observeToken: ObserveTokenUseCase,
 ) : ViewModel() {
 
     private val activeNoteId = MutableStateFlow<String?>(null)
@@ -33,6 +38,7 @@ class NotesViewModel @Inject constructor(
     private val expanded = MutableStateFlow<Map<String, Boolean>>(emptyMap())
     private val fontScale = MutableStateFlow(MyNoteFontScale.Normal)
     private val syncStatus = MutableStateFlow(SyncStatus())
+    private val hasToken = MutableStateFlow(false)
 
     private val categoriesFlow = getCategories().catch { emit(emptyList()) }
 
@@ -46,8 +52,8 @@ class NotesViewModel @Inject constructor(
         buildState(categories, active, q, exp, scale)
     }
 
-    val uiState: StateFlow<NotesUiState> = combine(contentState, syncStatus) { state, sync ->
-        state.copy(isLoading = sync.loading, errorMessage = sync.error)
+    val uiState: StateFlow<NotesUiState> = combine(contentState, syncStatus, hasToken) { state, sync, token ->
+        state.copy(isLoading = sync.loading, errorMessage = sync.error, hasToken = token)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
@@ -55,10 +61,16 @@ class NotesViewModel @Inject constructor(
     )
 
     init {
-        sync()
+        // 토큰이 로드/변경될 때마다 재동기화(앱 시작, 런타임 입력 포함)
+        viewModelScope.launch {
+            observeToken().distinctUntilChanged().collect { token ->
+                hasToken.value = !token.isNullOrBlank()
+                sync()
+            }
+        }
     }
 
-    /** 앱 startup/수동 새로고침 진입점. */
+    /** 동기화 진입점. 토큰 관찰 흐름에서 자동 호출됨. */
     private fun sync() {
         viewModelScope.launch {
             syncStatus.update { it.copy(loading = true, error = null) }
@@ -86,6 +98,8 @@ class NotesViewModel @Inject constructor(
             }
 
             NotesIntent.CloseNote -> activeNoteId.value = null
+
+            is NotesIntent.SaveToken -> viewModelScope.launch { saveToken(intent.token) }
         }
     }
 

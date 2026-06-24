@@ -25,7 +25,8 @@ android {
         buildConfigField("String", "GITHUB_OWNER", "\"${prop("github.owner", "KimHance")}\"")
         buildConfigField("String", "GITHUB_REPO", "\"${prop("github.repo", "MyNote")}\"")
         buildConfigField("String", "GITHUB_BRANCH", "\"${prop("github.branch", "main")}\"")
-        buildConfigField("String", "GITHUB_TOKEN", "\"${prop("github.token", "")}\"")
+        // 토큰 기본값은 빈 문자열 → release 는 토큰 미내장(런타임 입력 전용).
+        buildConfigField("String", "GITHUB_TOKEN", "\"\"")
     }
 
     buildFeatures {
@@ -33,6 +34,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            // 디버그 빌드만 local.properties 토큰을 내장(개발 편의). release 는 빈 값 유지.
+            buildConfigField("String", "GITHUB_TOKEN", "\"${prop("github.token", "")}\"")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
