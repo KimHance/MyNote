@@ -21,6 +21,8 @@ fun NoteBlockDto.toDomain(): NoteBlock = when (this) {
     is NoteBlockDto.Quote -> NoteBlock.Quote(spans.toDomainSpans())
     is NoteBlockDto.BulletList -> NoteBlock.BulletList(items.map { NoteListItem(it.spans.toDomainSpans()) })
     is NoteBlockDto.OrderedList -> NoteBlock.OrderedList(items.map { NoteListItem(it.spans.toDomainSpans()) })
+    NoteBlockDto.Divider -> NoteBlock.Divider
+    NoteBlockDto.Spacer -> NoteBlock.Spacer
 }
 
 private fun List<NoteSpanDto>.toDomainSpans(): List<NoteSpan> =

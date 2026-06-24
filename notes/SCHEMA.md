@@ -40,7 +40,7 @@ notes/
 
 ## 3. Block — discriminator `"type"`
 
-각 블록은 `"type"` 으로 구분되는 닫힌 집합. **허용 type 6종**:
+각 블록은 `"type"` 으로 구분되는 닫힌 집합. **허용 type 8종**:
 
 | type | 필드 | 의미 |
 |---|---|---|
@@ -50,6 +50,8 @@ notes/
 | `quote` | `spans` (Span[]) | 인용 |
 | `bulletList` | `items` (ListItem[]) | 글머리 목록 |
 | `orderedList` | `items` (ListItem[]) | 번호 목록 |
+| `divider` | (없음) | 섹션 구분선(`---`). 가로선 + 위아래 여백 |
+| `spacer` | (없음) | 단순 줄바꿈/여백 |
 
 ```jsonc
 { "type": "heading", "level": 2, "spans": [ { "text": "제목" } ] }
@@ -58,6 +60,8 @@ notes/
 { "type": "quote", "spans": [ { "text": "인용문" } ] }
 { "type": "bulletList", "items": [ { "spans": [ { "text": "항목" } ] } ] }
 { "type": "orderedList", "items": [ { "spans": [ { "text": "1번" } ] } ] }
+{ "type": "divider" }
+{ "type": "spacer" }
 ```
 
 - `ListItem` = `{ "spans": Span[] }`.

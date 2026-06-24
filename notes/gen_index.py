@@ -22,7 +22,7 @@ NOTES_DIR = Path(__file__).resolve().parent
 INDEX_PATH = NOTES_DIR / "index.json"
 
 # 닫힌 집합 — 앱 DTO 의 @SerialName 과 일치해야 한다(바뀌면 SCHEMA.md·DTO 동시 갱신).
-BLOCK_TYPES = {"heading", "paragraph", "code", "quote", "bulletList", "orderedList"}
+BLOCK_TYPES = {"heading", "paragraph", "code", "quote", "bulletList", "orderedList", "divider", "spacer"}
 SPAN_STYLES = {"text", "bold", "code"}
 HEADING_LEVELS = {2, 3}
 ENVELOPE_KEYS = {"id", "title", "date", "blocks"}

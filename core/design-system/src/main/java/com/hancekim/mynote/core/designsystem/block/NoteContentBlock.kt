@@ -29,6 +29,13 @@ sealed interface NoteContentBlock {
 
     @Immutable
     data class OrderedList(val items: ImmutableList<ImmutableList<NoteContentSpan>>) : NoteContentBlock
+
+    // object 는 본래 stable 이라 @Immutable 을 붙이지 않는다.
+    /** 섹션 구분선(`---`). 필드 없음. */
+    data object Divider : NoteContentBlock
+
+    /** 단순 줄바꿈/여백. 필드 없음. */
+    data object Spacer : NoteContentBlock
 }
 
 /** 인라인 조각(UI). */

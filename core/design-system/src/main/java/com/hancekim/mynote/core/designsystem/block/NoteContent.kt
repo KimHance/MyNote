@@ -1,11 +1,14 @@
 package com.hancekim.mynote.core.designsystem.block
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -65,6 +69,9 @@ fun NoteContent(
                 is NoteContentBlock.Quote -> QuoteBlock(block.spans)
                 is NoteContentBlock.BulletList -> ListBlock(block.items, ordered = false)
                 is NoteContentBlock.OrderedList -> ListBlock(block.items, ordered = true)
+                NoteContentBlock.Divider -> DividerBlock()
+                // 단순 줄바꿈: Column 의 기본 간격(12dp)에 더해 한 줄 여백을 준다.
+                NoteContentBlock.Spacer -> Spacer(Modifier.height(8.dp))
             }
         }
     }
@@ -100,6 +107,25 @@ private fun QuoteBlock(spans: ImmutableList<NoteContentSpan>) {
             .drawBehind { drawRect(color = accent, size = Size(3.dp.toPx(), size.height)) }
             .padding(start = 12.dp),
     )
+}
+
+/** 섹션 구분선(`---`). drawLine 으로 가는 가로선을 긋고 위아래 여백을 둔다. */
+@Composable
+private fun DividerBlock() {
+    val color = MyNoteTheme.colors.border
+    Canvas(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp) // 위아래 살짝 패딩
+            .height(1.dp),
+    ) {
+        drawLine(
+            color = color,
+            start = Offset(0f, center.y),
+            end = Offset(size.width, center.y),
+            strokeWidth = size.height,
+        )
+    }
 }
 
 @Composable
@@ -159,6 +185,10 @@ private val previewBlocks: ImmutableList<NoteContentBlock> = persistentListOf(
         ),
     ),
     NoteContentBlock.Quote(persistentListOf(NoteContentSpan("인용 한 줄", NoteSpanStyle.Normal))),
+    NoteContentBlock.Spacer,
+    NoteContentBlock.Paragraph(persistentListOf(NoteContentSpan("spacer 로 한 줄 띄운 단락.", NoteSpanStyle.Normal))),
+    NoteContentBlock.Divider,
+    NoteContentBlock.Heading(3, persistentListOf(NoteContentSpan("divider 아래 새 섹션", NoteSpanStyle.Normal))),
     NoteContentBlock.BulletList(
         persistentListOf(
             persistentListOf(NoteContentSpan("첫째", NoteSpanStyle.Normal)),

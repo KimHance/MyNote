@@ -24,6 +24,8 @@ private fun NoteBlock.toContentBlock(): NoteContentBlock = when (this) {
     is NoteBlock.Quote -> NoteContentBlock.Quote(spans.toContentSpans())
     is NoteBlock.BulletList -> NoteContentBlock.BulletList(items.toItemSpans())
     is NoteBlock.OrderedList -> NoteContentBlock.OrderedList(items.toItemSpans())
+    NoteBlock.Divider -> NoteContentBlock.Divider
+    NoteBlock.Spacer -> NoteContentBlock.Spacer
 }
 
 private fun List<NoteListItem>.toItemSpans(): ImmutableList<ImmutableList<NoteContentSpan>> =

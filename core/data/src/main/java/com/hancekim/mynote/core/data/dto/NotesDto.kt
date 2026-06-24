@@ -46,6 +46,16 @@ sealed interface NoteBlockDto {
     @Serializable
     @SerialName("orderedList")
     data class OrderedList(val items: List<NoteListItemDto>) : NoteBlockDto
+
+    /** 섹션 구분선(`---`). 필드 없음. */
+    @Serializable
+    @SerialName("divider")
+    data object Divider : NoteBlockDto
+
+    /** 단순 줄바꿈/여백. 필드 없음. */
+    @Serializable
+    @SerialName("spacer")
+    data object Spacer : NoteBlockDto
 }
 
 @Serializable

@@ -11,6 +11,12 @@ sealed interface NoteBlock {
     data class Quote(val spans: List<NoteSpan>) : NoteBlock
     data class BulletList(val items: List<NoteListItem>) : NoteBlock
     data class OrderedList(val items: List<NoteListItem>) : NoteBlock
+
+    /** 섹션 구분선(`---`). 필드 없음. */
+    data object Divider : NoteBlock
+
+    /** 단순 줄바꿈/여백. 필드 없음. */
+    data object Spacer : NoteBlock
 }
 
 data class NoteListItem(val spans: List<NoteSpan>)
