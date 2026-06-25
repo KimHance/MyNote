@@ -28,7 +28,8 @@
 ## 프레젠테이션: MVI
 - 상태: `XxxUiState` (`@Immutable`), 단일 소스. 컬렉션은 `ImmutableList`/`ImmutableMap`.
 - 인텐트: `sealed interface XxxIntent` (UI → ViewModel 단방향).
-- ViewModel: `@HiltViewModel`, 단일 진입점 `fun onIntent(intent: XxxIntent)`. 내부 `MutableStateFlow` 들을 `combine` → `stateIn` 으로 `uiState` 노출.
+- ViewModel: `@HiltViewModel`, 단일 진입점 `fun onIntent(intent)`. 상태 생산은 **Molecule** — `MoleculeViewModel<Event, Model>` 을 상속해 `@Composable present(events)` 프레젠터에서 선언적으로 조립한다(`combine`/`stateIn` 대신 `remember`/`collectAsState`/`LaunchedEffect`). `onIntent` → `take(intent)` → events Flow. 상태 노출은 `models: StateFlow`.
+- **상태홀더(예: `SnackbarHostState`)도 프레젠터(`present`)가 소유**하고 발동까지 담당한다(Circuit/Molecule 철학). UI 는 `SnackbarHost(uiState.snackbarHostState)` 렌더만.
 - 화면 Composable 은 콜백을 `onIntent: (XxxIntent) -> Unit` **하나만** 받는다. design-system 의 재사용 컴포넌트는 MVI 를 모르고 순수 콜백(`onClick` 등)을 받는다.
 
 ### Route / Screen 분리 (필수)
@@ -38,7 +39,7 @@
 
 ```kotlin
 @Composable fun XxxRoute(vm: XxxViewModel = hiltViewModel()) {
-    val uiState by vm.uiState.collectAsStateWithLifecycle()
+    val uiState by vm.models.collectAsStateWithLifecycle()   // Molecule: models: StateFlow
     XxxScreen(uiState, onIntent = vm::onIntent)
 }
 @Composable fun XxxScreen(uiState: XxxUiState, onIntent: (XxxIntent) -> Unit) {

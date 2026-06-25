@@ -44,6 +44,9 @@ lifecycleViewmodelNav3 = "2.11.0-beta01"
 # coroutine
 coroutine = "1.11.0"
 
+# molecule (Compose 런타임 프레젠터 — 실험)
+molecule = "2.1.0"
+
 # ksp
 ksp = "2.3.4"
 kotlinPoet = "2.3.0"
@@ -168,6 +171,7 @@ androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navig
 
 androidx-annotation-experimental = { group = "androidx.annotation", name = "annotation-experimental", version.ref = "androidxAnnotaion" }
 
+app-cash-molecule-runtime = { group = "app.cash.molecule", name = "molecule-runtime", version.ref = "molecule" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutine" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutine" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutine" }

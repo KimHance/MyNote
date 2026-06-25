@@ -70,11 +70,9 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun NotesRoute(viewModel: NotesViewModel = hiltViewModel()) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
+    val uiState by viewModel.models.collectAsStateWithLifecycle()
     NotesScreen(
         uiState = uiState,
-        snackbarHostState = snackbarHostState,
         onIntent = viewModel::onIntent,
     )
 }
@@ -89,26 +87,19 @@ fun NotesRoute(viewModel: NotesViewModel = hiltViewModel()) {
 @Composable
 fun NotesScreen(
     uiState: NotesUiState,
-    snackbarHostState: SnackbarHostState,
     onIntent: (NotesIntent) -> Unit,
 ) {
     // containerDpSize 는 이미 Dp 단위라 density 변환이 필요 없다.
     val widthDp = LocalWindowInfo.current.containerDpSize.width
     val windowClass = MyNoteWindowClass.fromWidth(widthDp)
 
+    // 스낵바 호스트는 프레젠터(present)가 소유 — 에러/안내 발동도 거기서. UI 는 렌더만.
+    val snackbarHostState = uiState.snackbarHostState
+
     // 토큰 입력 다이얼로그 표시 상태 — 두 Scaffold 에서 공유한다.
     var showTokenDialog by rememberSaveable { mutableStateOf(false) }
 
     MyNoteTheme(windowClass = windowClass, fontScale = uiState.fontScale) {
-        // 에러 발생 시 스낵바로 안내 (Toast 금지, 룰 05). errorId 가 바뀔 때마다 발동(같은 메시지 재알림 포함).
-        LaunchedEffect(uiState.errorId) {
-            uiState.errorMessage?.let { snackbarHostState.showSnackbar(it) }
-        }
-        // 새로고침 변경 안내(갱신/삭제). infoId 가 바뀔 때마다 발동(변경 없으면 ViewModel 이 발동 안 함).
-        LaunchedEffect(uiState.infoId) {
-            uiState.infoMessage?.let { snackbarHostState.showSnackbar(it) }
-        }
-
         if (windowClass == MyNoteWindowClass.Compact) {
             CompactScaffold(uiState, onIntent, snackbarHostState, onShowTokenDialog = { showTokenDialog = true })
         } else {
@@ -458,7 +449,6 @@ private val previewUiState: NotesUiState = run {
 private fun NotesScreenCompactPreview() {
     NotesScreen(
         uiState = previewUiState,
-        snackbarHostState = remember { SnackbarHostState() },
         onIntent = {},
     )
 }
@@ -468,7 +458,6 @@ private fun NotesScreenCompactPreview() {
 private fun NotesScreenExpandedPreview() {
     NotesScreen(
         uiState = previewUiState,
-        snackbarHostState = remember { SnackbarHostState() },
         onIntent = {},
     )
 }
