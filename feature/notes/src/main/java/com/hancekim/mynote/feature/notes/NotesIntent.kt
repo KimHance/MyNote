@@ -19,4 +19,7 @@ sealed interface NotesIntent {
 
     /** 런타임 토큰 입력 저장 */
     data class SaveToken(val token: String) : NotesIntent
+
+    /** 상단 새로고침 — index 재조회 후 변경(갱신/삭제) 있으면 스낵바 안내 */
+    data object Refresh : NotesIntent
 }

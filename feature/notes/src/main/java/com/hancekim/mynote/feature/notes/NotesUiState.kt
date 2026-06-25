@@ -39,6 +39,9 @@ data class NotesUiState(
     val errorMessage: String? = null,
     val errorId: Int = 0,
     val hasToken: Boolean = false,
+    // 새로고침 변경 안내(갱신/삭제). infoId 가 바뀔 때마다 스낵바 발동.
+    val infoMessage: String? = null,
+    val infoId: Int = 0,
 ) {
     val totalCount: Int get() = categories.sumOf { it.notes.size }
 

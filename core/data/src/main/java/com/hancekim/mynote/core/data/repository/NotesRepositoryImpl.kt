@@ -5,6 +5,7 @@ import com.hancekim.mynote.core.data.datasource.LocalNotesDataSource
 import com.hancekim.mynote.core.data.datasource.RemoteNotesDataSource
 import com.hancekim.mynote.core.data.dto.toCategories
 import com.hancekim.mynote.core.domain.model.Category
+import com.hancekim.mynote.core.domain.model.SyncOutcome
 import com.hancekim.mynote.core.domain.repository.NotesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -28,14 +29,17 @@ class NotesRepositoryImpl @Inject constructor(
             .map { it.toCategories(json) }
             .flowOn(Dispatchers.Default)
 
-    override suspend fun sync(): Result<Unit> {
+    override suspend fun sync(): Result<SyncOutcome> {
         val index = runCatching { remote.getIndex() }.getOrElse { return Result.failure(it) }
         val localHashes = local.loadHashes()
         val indexIds = index.map { it.id }.toSet()
 
+        var added = 0
+        var updated = 0
         val errors = mutableListOf<Throwable>()
         for (entry in index) {
-            if (localHashes[entry.id] == entry.hash) continue
+            val existing = localHashes[entry.id]
+            if (existing == entry.hash) continue
             // 한 노트 실패(네트워크/미지 block type 역직렬화 등)가 전체 sync 를 끊지 않게 격리
             runCatching {
                 val note = remote.getNote(entry.path)
@@ -50,12 +54,14 @@ class NotesRepositoryImpl @Inject constructor(
                     ),
                 )
             }.onFailure { errors += it }
+                .onSuccess { if (existing == null) added++ else updated++ }
         }
 
         // 삭제 동기화는 fetch 실패와 무관하게 항상 적용(유령 노트 방지)
-        val toDelete = localHashes.keys - indexIds
-        if (toDelete.isNotEmpty()) local.deleteByIds(toDelete.toList())
+        val toDelete = (localHashes.keys - indexIds).toList()
+        if (toDelete.isNotEmpty()) local.deleteByIds(toDelete)
 
-        return if (errors.isEmpty()) Result.success(Unit) else Result.failure(errors.first())
+        return if (errors.isEmpty()) Result.success(SyncOutcome(added, updated, toDelete))
+        else Result.failure(errors.first())
     }
 }

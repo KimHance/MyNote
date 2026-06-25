@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -103,6 +104,10 @@ fun NotesScreen(
         LaunchedEffect(uiState.errorId) {
             uiState.errorMessage?.let { snackbarHostState.showSnackbar(it) }
         }
+        // 새로고침 변경 안내(갱신/삭제). infoId 가 바뀔 때마다 발동(변경 없으면 ViewModel 이 발동 안 함).
+        LaunchedEffect(uiState.infoId) {
+            uiState.infoMessage?.let { snackbarHostState.showSnackbar(it) }
+        }
 
         if (windowClass == MyNoteWindowClass.Compact) {
             CompactScaffold(uiState, onIntent, snackbarHostState, onShowTokenDialog = { showTokenDialog = true })
@@ -172,6 +177,7 @@ private fun CompactScaffold(
                     onMenu = { scope.launch { drawerState.open() } },
                     onToggleFont = { onIntent(NotesIntent.ToggleFontScale) },
                     onTokenDialog = onShowTokenDialog,
+                    onRefresh = { onIntent(NotesIntent.Refresh) },
                 )
             },
         ) { padding ->
@@ -208,6 +214,13 @@ private fun ListDetailScaffold(
         backStack.add(NoteDetailKey(id))
     }
 
+    // 보던 노트가 사라지면(새로고침 중 삭제) 상세 스택을 닫아 목록/홈으로 이동
+    LaunchedEffect(uiState.activeNoteId) {
+        if (uiState.activeNoteId == null) {
+            while (backStack.size > 1) backStack.removeLastOrNull()
+        }
+    }
+
     Scaffold(
         containerColor = colors.bg,
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -218,6 +231,7 @@ private fun ListDetailScaffold(
                 onMenu = {},
                 onToggleFont = { onIntent(NotesIntent.ToggleFontScale) },
                 onTokenDialog = onShowTokenDialog,
+                onRefresh = { onIntent(NotesIntent.Refresh) },
             )
         },
     ) { padding ->
@@ -300,6 +314,7 @@ private fun NotesTopBar(
     onMenu: () -> Unit,
     onToggleFont: () -> Unit,
     onTokenDialog: () -> Unit,
+    onRefresh: () -> Unit,
 ) {
     val colors = MyNoteTheme.colors
     TopAppBar(
@@ -320,6 +335,14 @@ private fun NotesTopBar(
             }
         },
         actions = {
+            // 새로고침 — index 재조회 후 변경 있으면 스낵바 안내
+            IconButton(onClick = onRefresh) {
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = "새로고침",
+                    tint = colors.accent,
+                )
+            }
             // 토큰 설정 아이콘(자물쇠) — Icons.Default.Lock 은 material-icons-core 에 포함됨
             IconButton(onClick = onTokenDialog) {
                 Icon(
