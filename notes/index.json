@@ -1,6 +1,13 @@
 {
   "android": [
     {
+      "id": "molecule-viewmodel",
+      "title": "Molecule 로 ViewModel 상태 만들기",
+      "date": "2026.06.29",
+      "path": "notes/android/molecule-viewmodel.json",
+      "hash": "3ca8d01ec7f69fb4d2fa63b3bc5c832139b11a575274f50c46f1047fbafc3163"
+    },
+    {
       "id": "nav3",
       "title": "Navigation 3 첫인상",
       "date": "2026.06.18",
