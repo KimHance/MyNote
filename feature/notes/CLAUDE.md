@@ -21,6 +21,9 @@
 - 데이터 DTO/도메인 → UI 모델(`NoteContentBlock`) 매핑은 **여기서** 단방향(`NoteBlockMapper`).
 - 화면 전용 Composable 만 — 재사용 위젯은 design-system 으로.
 - 폼팩터 판정은 `LocalWindowInfo.current.containerDpSize`(이미 Dp). `BoxWithConstraints` 로 윈도우 크기 재지 않음.
-- 내비: Nav3 `NavDisplay` + Material3 `ListDetailSceneStrategy`(Medium+ 2-pane), Compact 는 `ModalNavigationDrawer`.
+- 내비/레이아웃: 폼팩터를 `containerDpSize` 로 판정해 **목록 패널 표현만** 달리한다(콘텐츠는 `activeNote` 상태가 구동).
+  Compact 는 `ModalNavigationDrawer`(화면 위 오버레이), Medium+ 는 `Row` + `AnimatedVisibility` 접이식 사이드
+  패널(옆에서 미는 push). **둘 다 ☰ 토글이 살아 있다.** (Nav3 `NavDisplay`/`ListDetailSceneStrategy` 미사용 —
+  단일 상태 기반으로 통일.)
 - 인셋은 `Scaffold`/`TopAppBar`/`ModalDrawerSheet` 가 처리 — 수동 `statusBarsPadding` 추가 금지.
 - 복구 안내는 `SnackbarHostState`(Scaffold `snackbarHost`). **Toast 금지.** 빈/에러는 전용 상태 Composable.

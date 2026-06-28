@@ -16,7 +16,7 @@ GitHub 의 JSON 노트를 읽어 "블로그 글처럼" 보는 **읽기 전용** 
 
 **Package root:** `com.hancekim.mynote`
 **SDK:** compileSdk 37 · targetSdk 36 · minSdk 32
-**Base:** `Billboard 프로젝트` 의 Gradle/convention plugin 을 가져와 각색(Circuit·flavor 제거, Nav3·MVI 채택).
+**Base:** `Billboard 프로젝트` 의 Gradle/convention plugin 을 가져와 각색(Circuit·flavor 제거, MVI 채택).
 
 ---
 
@@ -42,7 +42,7 @@ GitHub 의 JSON 노트를 읽어 "블로그 글처럼" 보는 **읽기 전용** 
 | `:core:data` | DataSource 인터페이스(Remote/Local/Token), DTO·Mapper, `NotesRepositoryImpl`(reconcile)·`TokenRepositoryImpl`, Hilt |
 | `:core:network` | GitHub Contents API(Retrofit), `RemoteNotesDataSourceImpl`, `AuthInterceptor`+`GithubTokenHolder`(클라 토큰 주입) |
 | `:core:database` | Room3 노트 캐시(`NoteEntity`/DAO/DB), `LocalNotesDataSourceImpl`, DataStore 토큰 저장(`DataStoreTokenStore`) |
-| `:feature:notes` | 3화면(Home·Reader·ListPanel), `NotesViewModel`(MVI), Nav3 그래프, 토큰 입력 다이얼로그 |
+| `:feature:notes` | 3화면(Home·Reader·ListPanel), `NotesViewModel`(MVI), 상태기반 접이식 패널 레이아웃, 토큰 입력 다이얼로그 |
 
 ---
 
@@ -51,7 +51,7 @@ GitHub 의 JSON 노트를 읽어 "블로그 글처럼" 보는 **읽기 전용** 
 | Layer | Tech |
 |---|---|
 | Language / UI | Kotlin · Jetpack Compose · Material3 |
-| Navigation | **Navigation 3** (`NavDisplay`) + **Material3 adaptive** (`ListDetailSceneStrategy`) |
+| Navigation | 상태기반(`activeNote`) 화면 전환 + 폼팩터별 접이식 목록 패널(Compact 모달 오버레이 · Medium+ push 사이드) |
 | Presentation | **MVI** — `UiState` + `Intent` + ViewModel `onIntent()`, Hilt `@HiltViewModel` |
 | DI | Hilt |
 | Network | Retrofit · OkHttp(`AuthInterceptor`) · GitHub Contents API |

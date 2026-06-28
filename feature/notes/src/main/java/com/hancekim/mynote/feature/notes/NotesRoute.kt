@@ -3,7 +3,15 @@ package com.hancekim.mynote.feature.notes
 import android.app.Activity
 import android.os.SystemClock
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
@@ -26,12 +34,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
-import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
@@ -47,16 +53,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation3.runtime.NavKey
-import androidx.navigation3.runtime.entryProvider
-import androidx.navigation3.runtime.rememberNavBackStack
-import androidx.navigation3.ui.NavDisplay
 import com.hancekim.mynote.core.domain.model.Category
 import com.hancekim.mynote.core.domain.model.Note
 import com.hancekim.mynote.core.designfoundation.window.MyNoteWindowClass
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
-import com.hancekim.mynote.feature.notes.navigation.NoteDetailKey
-import com.hancekim.mynote.feature.notes.navigation.NotesListKey
 import com.hancekim.mynote.feature.notes.screen.HomeScreen
 import com.hancekim.mynote.feature.notes.screen.ListPanelScreen
 import com.hancekim.mynote.feature.notes.screen.NoteReaderScreen
@@ -81,7 +81,8 @@ fun NotesRoute(viewModel: NotesViewModel = hiltViewModel()) {
  * 상태 없는(stateless) 화면. `uiState` + `onIntent` 만 받아 프리뷰가 가능하다.
  * 테마 블록(`MyNoteTheme`)은 여기서 시작한다.
  *
- * 윈도우 폭으로 폼팩터를 판정해 Compact 는 모달 드로어, Medium+ 는 Nav3 `ListDetailSceneStrategy`(2-pane).
+ * 윈도우 폭으로 폼팩터를 판정한다. Compact 는 목록을 화면 위로 덮는 모달 드로어(오버레이),
+ * Medium+ 는 목록을 옆에서 밀어 넣는(push) 접이식 사이드 패널 — 둘 다 ☰ 토글이 살아 있다.
  * 시스템바 인셋은 Material3 `Scaffold` + `TopAppBar` + `ModalDrawerSheet` 가 처리한다.
  */
 @Composable
@@ -184,7 +185,6 @@ private fun CompactScaffold(
     }
 }
 
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 private fun ListDetailScaffold(
     uiState: NotesUiState,
@@ -193,23 +193,13 @@ private fun ListDetailScaffold(
     onShowTokenDialog: () -> Unit,
 ) {
     val colors = MyNoteTheme.colors
-    val backStack = rememberNavBackStack(NotesListKey)
-    val sceneStrategy = rememberListDetailSceneStrategy<NavKey>()
+    // 목록 패널은 옆에서 밀려 들어오는(push) 접이식 — 기본 펼침, ☰ 로 토글. 노트 선택해도 유지한다.
+    var listExpanded by rememberSaveable { mutableStateOf(true) }
     val exitOnDoubleBack = rememberDoubleBackToExit(snackbarHostState)
 
-    // 상세 스택이 있으면 NavDisplay 가 pop 을 처리하고, 루트(목록)에서만 더블탭 종료를 잡는다.
-    BackHandler(enabled = backStack.size <= 1) { exitOnDoubleBack() }
-
-    fun openNote(id: String) {
-        onIntent(NotesIntent.SelectNote(id))
-        backStack.add(NoteDetailKey(id))
-    }
-
-    // 보던 노트가 사라지면(새로고침 중 삭제) 상세 스택을 닫아 목록/홈으로 이동
-    LaunchedEffect(uiState.activeNoteId) {
-        if (uiState.activeNoteId == null) {
-            while (backStack.size > 1) backStack.removeLastOrNull()
-        }
+    // 뒤로가기: 노트가 열려 있으면 닫아 홈으로 → 아니면 더블탭 종료.
+    BackHandler {
+        if (uiState.activeNote != null) onIntent(NotesIntent.CloseNote) else exitOnDoubleBack()
     }
 
     Scaffold(
@@ -217,51 +207,51 @@ private fun ListDetailScaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             NotesTopBar(
-                title = "공부 기록",
-                showMenu = false,
-                onMenu = {},
+                title = uiState.activeNote?.title ?: "공부 기록",
+                showMenu = true,
+                onMenu = { listExpanded = !listExpanded },
                 onToggleFont = { onIntent(NotesIntent.ToggleFontScale) },
                 onTokenDialog = onShowTokenDialog,
                 onRefresh = { onIntent(NotesIntent.Refresh) },
             )
         },
     ) { padding ->
-        NavDisplay(
-            modifier = Modifier.padding(padding),
-            backStack = backStack,
-            onBack = { backStack.removeLastOrNull() },
-            sceneStrategies = listOf(sceneStrategy),
-            entryProvider = entryProvider {
-                entry<NotesListKey>(
-                    metadata = ListDetailSceneStrategy.listPane(
-                        detailPlaceholder = {
-                            HomeScreen(
-                                recentNotes = uiState.recentNotes,
-                                isLoading = uiState.isLoading,
-                                onIntent = { intent ->
-                                    if (intent is NotesIntent.SelectNote) openNote(intent.id) else onIntent(intent)
-                                },
-                            )
-                        },
-                    ),
-                ) {
-                    ListPanelScreen(
-                        uiState = uiState,
-                        onIntent = { intent ->
-                            if (intent is NotesIntent.SelectNote) openNote(intent.id) else onIntent(intent)
-                        },
-                    )
-                }
-                entry<NoteDetailKey>(metadata = ListDetailSceneStrategy.detailPane()) { key ->
-                    val note = uiState.noteById(key.id)
-                    if (note != null) {
-                        NoteReaderScreen(note, uiState.categoryNameOf(key.id) ?: "")
-                    } else {
-                        HomeScreen(uiState.recentNotes, uiState.isLoading, onIntent)
+        Row(
+            Modifier
+                .padding(padding)
+                .fillMaxSize(),
+        ) {
+            // 가로 expand/shrink 로 패널 폭이 0↔paneWidth 로 변하면 Row 가 reflow → 콘텐츠를 밀어내는 push 효과.
+            AnimatedVisibility(
+                visible = listExpanded,
+                enter = expandHorizontally(expandFrom = Alignment.Start) + fadeIn(),
+                exit = shrinkHorizontally(shrinkTowards = Alignment.Start) + fadeOut(),
+            ) {
+                Row {
+                    Box(
+                        Modifier
+                            .width(MyNoteTheme.adaptive.paneWidth)
+                            .fillMaxHeight(),
+                    ) {
+                        ListPanelScreen(uiState = uiState, onIntent = onIntent)
                     }
+                    VerticalDivider(color = colors.border)
                 }
-            },
-        )
+            }
+
+            Box(
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+            ) {
+                val note = uiState.activeNote
+                if (note == null) {
+                    HomeScreen(uiState.recentNotes, uiState.isLoading, onIntent)
+                } else {
+                    NoteReaderScreen(note, uiState.categoryNameOf(note.id) ?: "")
+                }
+            }
+        }
     }
 }
 

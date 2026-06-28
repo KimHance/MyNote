@@ -48,10 +48,12 @@
 @Preview @Composable private fun XxxScreenPreview() = XxxScreen(previewUiState, onIntent = {})
 ```
 
-## 내비게이션: Navigation 3 + Adaptive
-- `NavDisplay` + `rememberNavBackStack` + `entryProvider { entry<Key> { } }`. `entry` 는 `EntryProviderScope` 멤버(별도 import 불필요).
-- `NavKey` 는 `@Serializable`.
-- 목록-상세는 Material3 `ListDetailSceneStrategy`(Medium+ 2-pane). Compact 는 `ModalNavigationDrawer`(핸드오프 모달 드로어).
+## 내비게이션 / 레이아웃: 상태 기반 + 접이식 패널
+- 화면 전환은 **단일 상태(`activeNote`)** 가 구동한다 — `activeNote == null` 이면 홈, 아니면 리더. (Nav3
+  `NavDisplay`/`ListDetailSceneStrategy` 는 사용하지 않는다. 수동 토글이 필요한 push 패널과 맞지 않아 제거함.)
+- 폼팩터(`containerDpSize`)는 **목록 패널 표현만** 가른다: Compact = `ModalNavigationDrawer`(화면 위 오버레이),
+  Medium+ = `Row` + `AnimatedVisibility`(가로 expand/shrink) 접이식 사이드 패널(옆에서 미는 push).
+- **두 폼팩터 모두 ☰ 토글이 항상 살아 있다.** 패널 펼침 상태는 `rememberSaveable` 로 보존.
 - ViewModel 주입: `hiltViewModel()` (`androidx.hilt.lifecycle.viewmodel.compose`).
 
 ## Convention Plugins (항상 사용, 수동 설정 금지)
