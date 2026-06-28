@@ -1,0 +1,48 @@
+{
+  "id": "union-find",
+  "title": "유니온 파인드 / 분리집합 (Union-Find)",
+  "date": "2026.06.29",
+  "blocks": [
+    { "type": "paragraph", "spans": [
+      { "text": "원소들을 겹치지 않는 그룹으로 묶고, " },
+      { "text": "\"이 둘이 같은 그룹인가\"와 \"두 그룹 합치기\"", "style": "bold" },
+      { "text": " 를 거의 " },
+      { "text": "O(1)", "style": "code" },
+      { "text": " 에 한다. 사이클 판별·최소 신장 트리(MST)의 핵심." }
+    ] },
+
+    { "type": "heading", "level": 2, "spans": [ { "text": "구조 — 부모 배열로 만든 숲" } ] },
+    { "type": "paragraph", "spans": [
+      { "text": "각 원소가 부모를 가리키고, 루트가 그 그룹의 대표다. " },
+      { "text": "find", "style": "code" },
+      { "text": " 는 루트까지 따라가고, " },
+      { "text": "union", "style": "code" },
+      { "text": " 은 한 루트를 다른 루트 밑에 붙인다." }
+    ] },
+    { "type": "code", "code": "parent: [0,0,1,3,3]   (i 의 부모 = parent[i], 루트는 자기자신)\n\n   0        3        find(2): 2→1→0  루트 0\n   |       / \\       find(4): 4→3     루트 3\n   1      ?   4      0 과 3 은 다른 그룹\n   |\n   2\n\nunion(2,4): find(2)=0, find(4)=3 → parent[0]=3 (한 그룹으로)" },
+
+    { "type": "heading", "level": 3, "spans": [ { "text": "두 가지 최적화" } ] },
+    { "type": "bulletList", "items": [
+      { "spans": [ { "text": "경로 압축(path compression)", "style": "bold" }, { "text": " — " }, { "text": "find", "style": "code" }, { "text": " 중 거친 노드를 루트에 직접 매달아 다음 탐색을 평탄화." } ] },
+      { "spans": [ { "text": "랭크/크기 합치기(union by rank)", "style": "bold" }, { "text": " — 항상 작은 트리를 큰 트리 밑에 붙여 높이를 낮게 유지." } ] }
+    ] },
+    { "type": "paragraph", "spans": [
+      { "text": "둘을 함께 쓰면 연산당 " },
+      { "text": "거의 상수", "style": "bold" },
+      { "text": " — 정확히는 역아커만 함수 " },
+      { "text": "O(α(n))", "style": "code" },
+      { "text": " 으로, 실질적으로 O(1)." }
+    ] },
+
+    { "type": "heading", "level": 2, "spans": [ { "text": "Kotlin — 구현" } ] },
+    { "type": "code", "code": "class UnionFind(n: Int) {\n    private val parent = IntArray(n) { it }\n    private val rank = IntArray(n)\n\n    fun find(x: Int): Int {\n        if (parent[x] != x) parent[x] = find(parent[x])  // 경로 압축\n        return parent[x]\n    }\n\n    fun union(a: Int, b: Int): Boolean {\n        val ra = find(a); val rb = find(b)\n        if (ra == rb) return false            // 이미 같은 그룹 → 사이클!\n        if (rank[ra] < rank[rb]) parent[ra] = rb\n        else if (rank[ra] > rank[rb]) parent[rb] = ra\n        else { parent[rb] = ra; rank[ra]++ }\n        return true\n    }\n}" },
+    { "type": "bulletList", "items": [
+      { "spans": [ { "text": "union 이 false", "style": "code" }, { "text": " = 두 원소가 이미 연결됨 → 간선을 더하면 " }, { "text": "사이클", "style": "bold" }, { "text": ". 그래프 사이클 판별의 정석(형제 노트 " }, { "text": "그래프", "style": "code" }, { "text": ")." } ] },
+      { "spans": [ { "text": "크루스칼 MST", "style": "bold" }, { "text": " — 간선을 가중치순 정렬 후 사이클을 안 만드는 것만 union 으로 채택." } ] }
+    ] },
+
+    { "type": "quote", "spans": [
+      { "text": "요약: 부모 배열 숲으로 그룹을 관리. 경로 압축 + 랭크 합치기를 함께 쓰면 연산당 거의 O(1)(O(α(n))). 같은 그룹 union 시도 = 사이클 → 사이클 판별·크루스칼 MST 의 핵심.", "style": "bold" }
+    ] }
+  ]
+}
