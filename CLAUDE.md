@@ -27,6 +27,7 @@ GitHub 의 JSON 노트를 읽어 "블로그 글처럼" 보는 **읽기 전용** 
 @.claude/rules/04-design-system.md
 @.claude/rules/05-error-handling.md
 @.claude/rules/06-testing.md
+@.claude/rules/07-notes-authoring.md
 
 ---
 

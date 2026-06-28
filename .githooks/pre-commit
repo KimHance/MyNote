@@ -1,0 +1,18 @@
+#!/bin/sh
+# notes/<group>/<id>.json 이 스테이징되면 index.json 을 재생성해 같은 커밋에 포함한다(원자적).
+# gen_index.py 가 스키마 검증도 수행 → 깨진 노트면 커밋이 중단된다(로컬·즉시).
+# 역할 분담: 노트 작성/커밋은 write-note 스킬(LLM), index.json+hash 재생성은 이 훅(토큰 0).
+#
+# 설치(머신당 1회):  git config core.hooksPath .githooks
+
+# 노트 파일(그룹/파일 2단계)이 스테이징됐을 때만 동작. index.json(notes/index.json) 자체 변경은 트리거 아님.
+if git diff --cached --name-only --diff-filter=ACMRD | grep -Eq '^notes/[^/]+/[^/]+\.json$'; then
+    if ! python3 notes/gen_index.py; then
+        echo "✗ 노트 스키마 검증 실패 — 커밋 중단. 위 오류를 고친 뒤 다시 커밋하세요." >&2
+        exit 1
+    fi
+    # 재생성된 index.json 을 이번 커밋에 포함(내용 동일하면 no-op)
+    git add notes/index.json
+fi
+
+exit 0
