@@ -1,0 +1,46 @@
+{
+  "id": "array-list",
+  "title": "배열 & ArrayList",
+  "date": "2026.06.29",
+  "blocks": [
+    { "type": "paragraph", "spans": [
+      { "text": "연속된 메모리에 같은 타입을 줄세운 자료구조. " },
+      { "text": "인덱스로 즉시 접근", "style": "bold" },
+      { "text": " 해야 할 때 1순위. 고정 크기가 " },
+      { "text": "배열", "style": "bold" },
+      { "text": ", 자동으로 늘어나는 게 " },
+      { "text": "ArrayList", "style": "code" },
+      { "text": " (동적 배열)." }
+    ] },
+
+    { "type": "heading", "level": 2, "spans": [ { "text": "내부 구조 — 동적 배열" } ] },
+    { "type": "paragraph", "spans": [
+      { "text": "ArrayList", "style": "code" },
+      { "text": " 는 내부에 고정 배열을 두고, 꽉 차면 " },
+      { "text": "보통 1.5~2배 큰 배열을 새로 할당해 복사", "style": "bold" },
+      { "text": " 한다. 그래서 append 는 대부분 " },
+      { "text": "O(1)", "style": "code" },
+      { "text": " 이지만 가끔 리사이즈로 " },
+      { "text": "O(n)", "style": "code" },
+      { "text": " — 평균내면 " },
+      { "text": "분할상환(amortized) O(1)", "style": "bold" },
+      { "text": "." }
+    ] },
+    { "type": "code", "code": "용량(capacity) 4, 크기(size) 4 → 가득 참\n[ a ][ b ][ c ][ d ]\n\nadd(e): 용량 8 새 배열 할당 후 복사 (이 순간만 O(n))\n[ a ][ b ][ c ][ d ][ e ][ _ ][ _ ][ _ ]\n                         ▲ 이후 add 는 빈 칸에 O(1)\n\n  size = 논리적 개수,  capacity = 실제 배열 길이 (size 이하 구간만 사용)" },
+
+    { "type": "heading", "level": 3, "spans": [ { "text": "복잡도" } ] },
+    { "type": "code", "code": "연산              평균        최악\n──────────────────────────────────\n인덱스 접근 get/set O(1)        O(1)\n탐색 (값으로)      O(n)        O(n)\n끝에 추가 add      O(1)*       O(n)   *분할상환, 최악=리사이즈\n중간 삽입/삭제      O(n)        O(n)   뒤 원소 시프트\n끝에서 삭제         O(1)        O(1)" },
+
+    { "type": "heading", "level": 2, "spans": [ { "text": "Kotlin 사용" } ] },
+    { "type": "code", "code": "val list = ArrayList<Int>()      // 또는 mutableListOf<Int>()\nlist.add(1); list.add(2)         // 분할상환 O(1)\nval x = list[0]                  // O(1) 인덱스 접근\nlist.add(0, 99)                  // 맨 앞 삽입 → O(n) (전부 시프트)\n\n// 미리 용량을 알면 리사이즈를 피한다\nval sized = ArrayList<Int>(1_000)  // 초기 capacity 지정" },
+    { "type": "bulletList", "items": [
+      { "spans": [ { "text": "랜덤 접근·순회가 잦으면 ArrayList. " }, { "text": "앞/중간 삽입·삭제", "style": "bold" }, { "text": " 가 잦으면 " }, { "text": "LinkedList", "style": "code" }, { "text": " 고려(형제 노트)." } ] },
+      { "spans": [ { "text": "대략적 크기를 알면 초기 capacity 를 줘서 복사 비용을 없앤다." } ] },
+      { "spans": [ { "text": "안드로이드에서 작은 정수 키맵은 " }, { "text": "SparseArray", "style": "code" }, { "text": " · " }, { "text": "ArrayMap", "style": "code" }, { "text": " 가 메모리 효율적." } ] }
+    ] },
+
+    { "type": "quote", "spans": [
+      { "text": "요약: 연속 메모리라 인덱스 접근 O(1), 동적 배열은 리사이즈를 분할상환해 append O(1). 중간 삽입/삭제는 O(n) — 그 패턴이면 LinkedList 를 봐라.", "style": "bold" }
+    ] }
+  ]
+}
