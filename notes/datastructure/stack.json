@@ -1,0 +1,40 @@
+{
+  "id": "stack",
+  "title": "스택 (Stack)",
+  "date": "2026.06.29",
+  "blocks": [
+    { "type": "paragraph", "spans": [
+      { "text": "마지막에 넣은 게 먼저 나오는 " },
+      { "text": "LIFO", "style": "bold" },
+      { "text": " (Last In First Out) 구조. 한쪽 끝(top)에서만 넣고 뺀다. " },
+      { "text": "되돌리기·중첩 구조 처리·DFS", "style": "bold" },
+      { "text": " 에 쓴다." }
+    ] },
+
+    { "type": "heading", "level": 2, "spans": [ { "text": "동작 — push / pop / peek" } ] },
+    { "type": "code", "code": "push(c)            pop() → c\n  │                  │\n  ▼                  ▼\n┌───┐  ┌───┐  ┌───┐  ┌───┐\n│ c │  │   │  │ b │  │ b │   top 에서만 출입\n│ b │  │ b │  │ a │  │ a │\n│ a │  │ a │  └───┘  └───┘\n└───┘  └───┘\n\n  push: top 에 추가  ·  pop: top 제거+반환  ·  peek: top 확인만" },
+
+    { "type": "heading", "level": 3, "spans": [ { "text": "복잡도" } ] },
+    { "type": "code", "code": "연산        평균/최악\n──────────────────\npush       O(1)*    *동적배열 리사이즈 시 분할상환\npop        O(1)\npeek       O(1)\n탐색        O(n)     (스택답지 않은 사용)" },
+
+    { "type": "heading", "level": 2, "spans": [ { "text": "Kotlin 사용" } ] },
+    { "type": "paragraph", "spans": [
+      { "text": "예전 " },
+      { "text": "java.util.Stack", "style": "code" },
+      { "text": " 은 " },
+      { "text": "Vector", "style": "code" },
+      { "text": " 기반이라 동기화 오버헤드가 있다. " },
+      { "text": "ArrayDeque 를 스택으로 쓰는 게 권장", "style": "bold" },
+      { "text": "." }
+    ] },
+    { "type": "code", "code": "// 권장: ArrayDeque\nval stack = ArrayDeque<Int>()\nstack.addLast(1)          // push\nstack.addLast(2)\nval top = stack.removeLast()  // pop → 2\nval peek = stack.lastOrNull() // peek\n\n// 활용: 괄호 매칭\nfun balanced(s: String): Boolean {\n    val st = ArrayDeque<Char>()\n    val pair = mapOf(')' to '(', ']' to '[', '}' to '{')\n    for (c in s) when (c) {\n        '(', '[', '{' -> st.addLast(c)\n        ')', ']', '}' -> if (st.removeLastOrNull() != pair[c]) return false\n    }\n    return st.isEmpty()\n}" },
+    { "type": "bulletList", "items": [
+      { "spans": [ { "text": "괄호 매칭", "style": "bold" }, { "text": " · 수식 파싱 · 실행취소(undo) · 그래프 " }, { "text": "DFS", "style": "code" }, { "text": " (재귀 대신 명시적 스택)." } ] },
+      { "spans": [ { "text": "재귀 호출 자체가 콜 스택을 쓰는 것 — 깊은 재귀를 스택으로 풀면 " }, { "text": "StackOverflow", "style": "code" }, { "text": " 회피." } ] }
+    ] },
+
+    { "type": "quote", "spans": [
+      { "text": "요약: LIFO, 한쪽 끝에서만 출입해 push/pop 모두 O(1). Kotlin 에선 java.util.Stack 말고 ArrayDeque. DFS·괄호매칭·되돌리기의 기본 도구.", "style": "bold" }
+    ] }
+  ]
+}
