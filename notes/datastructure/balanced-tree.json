@@ -1,0 +1,41 @@
+{
+  "id": "balanced-tree",
+  "title": "균형 이진트리 (Red-Black / AVL)",
+  "date": "2026.06.29",
+  "blocks": [
+    { "type": "paragraph", "spans": [
+      { "text": "삽입/삭제마다 스스로 높이를 " },
+      { "text": "O(log n) 으로 유지", "style": "bold" },
+      { "text": " 하는 이진탐색트리. BST 의 편향 문제(형제 노트 " },
+      { "text": "이진탐색트리", "style": "code" },
+      { "text": ")를 회전으로 막는다." }
+    ] },
+
+    { "type": "heading", "level": 2, "spans": [ { "text": "핵심 아이디어 — 회전(rotation)" } ] },
+    { "type": "paragraph", "spans": [
+      { "text": "삽입으로 한쪽이 깊어지면 " },
+      { "text": "부분 트리를 회전해 높이를 재분배", "style": "bold" },
+      { "text": " 한다. 회전은 BST 순서를 보존하면서 모양만 바꾸는 국소 연산(정확한 케이스 분기는 구현마다 다르므로 개념으로 본다)." }
+    ] },
+    { "type": "code", "code": "좌회전(왼쪽으로): 오른쪽 자식을 끌어올린다\n     x                 y\n      \\               / \\\n       y    ──►      x   z\n        \\\n         z\n\n  중위순회 순서(x < y < z)는 그대로 유지된다 → 탐색 규칙 안전,\n  높이만 줄어든다.  (우회전은 대칭)" },
+
+    { "type": "heading", "level": 3, "spans": [ { "text": "AVL vs Red-Black — 개념 차이" } ] },
+    { "type": "bulletList", "items": [
+      { "spans": [ { "text": "AVL", "style": "bold" }, { "text": " — 모든 노드에서 좌우 높이차 ≤ 1 로 " }, { "text": "엄격히", "style": "bold" }, { "text": " 균형. 더 납작해 " }, { "text": "조회가 빠름", "style": "bold" }, { "text": ", 대신 삽입/삭제 시 회전이 잦다. 읽기 위주에 적합." } ] },
+      { "spans": [ { "text": "Red-Black", "style": "bold" }, { "text": " — 색(빨강/검정) 규칙으로 " }, { "text": "느슨하게", "style": "bold" }, { "text": " 균형(최장경로 ≤ 2×최단경로). 회전이 적어 " }, { "text": "삽입/삭제가 효율적", "style": "bold" }, { "text": ". 범용 기본값." } ] }
+    ] },
+
+    { "type": "heading", "level": 3, "spans": [ { "text": "복잡도" } ] },
+    { "type": "code", "code": "연산     보장(평균=최악)\n──────────────────────\n탐색     O(log n)\n삽입     O(log n)   (+ 상수 번 회전/재색칠)\n삭제     O(log n)\n\n  BST 와 달리 최악도 O(log n) 으로 \"보장\"되는 게 핵심 가치." },
+
+    { "type": "heading", "level": 2, "spans": [ { "text": "Kotlin — TreeMap 이 곧 Red-Black 트리" } ] },
+    { "type": "code", "code": "// java.util.TreeMap / TreeSet 의 내부가 Red-Black 트리\nval map = java.util.TreeMap<Int, String>()\nmap[5] = \"e\"; map[1] = \"a\"; map[3] = \"c\"\n\nmap.firstKey()          // 1   (최솟값 O(log n))\nmap.ceilingKey(2)       // 3   (2 이상 최소 키 — 범위질의)\nmap.headMap(4)          // {1,3} 미만 부분\nfor ((k, v) in map) { } // 항상 키 정렬 순서로 순회" },
+    { "type": "bulletList", "items": [
+      { "spans": [ { "text": "정렬 유지 + 범위/이웃 질의", "style": "bold" }, { "text": " (" }, { "text": "ceiling/floor/headMap/tailMap", "style": "code" }, { "text": ")가 필요하면 TreeMap/TreeSet. 단순 키-값이면 해시맵이 더 빠르다(형제 노트 " }, { "text": "해시맵 / 해시테이블", "style": "code" }, { "text": ")." } ] }
+    ] },
+
+    { "type": "quote", "spans": [
+      { "text": "요약: 회전으로 높이를 O(log n) 에 묶어 BST 편향을 막는다. AVL=엄격(읽기 빠름), RB=느슨(쓰기 효율, 범용). Kotlin/Java 의 TreeMap·TreeSet 이 곧 Red-Black 트리.", "style": "bold" }
+    ] }
+  ]
+}
