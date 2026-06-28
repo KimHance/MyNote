@@ -22,6 +22,15 @@
       "hash": "fe4023c89b0f020728dbb495de30db22b783998d520ce7798546c12b0bd5e787"
     }
   ],
+  "compose": [
+    {
+      "id": "snapshot-state",
+      "title": "Compose 스냅샷 상태 시스템 (Snapshot State / MVCC)",
+      "date": "2026.06.29",
+      "path": "notes/compose/snapshot-state.json",
+      "hash": "c3ee6b936585ba394619a7c608427144faa1d9fba64b2a516c547aae96f5bba0"
+    }
+  ],
   "cs": [
     {
       "id": "http-cache",
