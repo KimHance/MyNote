@@ -33,6 +33,13 @@
   ],
   "kotlin": [
     {
+      "id": "generics",
+      "title": "Kotlin 제네릭 (기초~심화)",
+      "date": "2026.06.29",
+      "path": "notes/kotlin/generics.json",
+      "hash": "b71c2453ddf0c7470b976558c6830d23b44162ee02a3fc2538caf7fc83e75bce"
+    },
+    {
       "id": "coroutines",
       "title": "코루틴 디스패처 메모",
       "date": "2026.05.30",
