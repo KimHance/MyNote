@@ -24,6 +24,13 @@
   ],
   "compose": [
     {
+      "id": "slot-table",
+      "title": "Compose SlotTable & 갭버퍼 (Composition 저장 구조)",
+      "date": "2026.06.29",
+      "path": "notes/compose/slot-table.json",
+      "hash": "17ee804f9f502370478889fbcd010a1809bda24aba9f32e36473e0e61e1e702c"
+    },
+    {
       "id": "snapshot-state",
       "title": "Compose 스냅샷 상태 시스템 (Snapshot State / MVCC)",
       "date": "2026.06.29",
