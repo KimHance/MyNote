@@ -1,7 +1,9 @@
 package com.hancekim.mynote.feature.notes
 
+import com.hancekim.mynote.core.common.mvi.MviEvent
+
 /** 노트 화면에서 발생하는 사용자 인텐트(단방향: UI → ViewModel). */
-sealed interface NotesIntent {
+sealed interface NotesIntent : MviEvent {
     /** 홈 카드/패널 노트 탭 → 해당 노트 열기 */
     data class SelectNote(val id: String) : NotesIntent
 

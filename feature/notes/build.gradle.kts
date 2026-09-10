@@ -25,7 +25,4 @@ dependencies {
 
     // 토큰 다이얼로그 아이콘(Lock) — compose BOM 관리, material-icons-core
     implementation(libs.androidx.compose.material.icons.core)
-
-    // Molecule — Compose 런타임으로 StateFlow 프레젠터(실험)
-    implementation(libs.app.cash.molecule.runtime)
 }

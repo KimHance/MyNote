@@ -19,8 +19,8 @@ android {
 
     defaultConfig {
         applicationId = "com.hancekim.mynote"
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = libs.versions.appVersionCode.get().toInt()
+        versionName = libs.versions.appVersionName.get()
 
         buildConfigField("String", "GITHUB_OWNER", "\"${prop("github.owner", "KimHance")}\"")
         buildConfigField("String", "GITHUB_REPO", "\"${prop("github.repo", "MyNote")}\"")
@@ -39,7 +39,8 @@ android {
             buildConfigField("String", "GITHUB_TOKEN", "\"${prop("github.token", "")}\"")
         }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",

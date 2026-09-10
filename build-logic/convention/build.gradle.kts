@@ -26,6 +26,7 @@ dependencies {
     implementation(libs.ksp.gradle.plugin)
     implementation(libs.androidx.room3.gradle.plugin)
     implementation(libs.hilt.android.gradle.plugin)
+    implementation(libs.ktlint.gradle.plugin)
 }
 
 tasks {
@@ -65,17 +66,9 @@ gradlePlugin {
             id = "hance.android.hilt"
             implementationClass = "HiltConventionPlugin"
         }
-        register("jvmLibrary") {
-            id = "hance.jvm.library"
-            implementationClass = "JvmLibraryConventionPlugin"
-        }
-        register("circuit") {
-            id = "hance.circuit"
-            implementationClass = "AndroidCircuitConventionPlugin"
-        }
-        register("androidTest") {
-            id = "hance.android.test"
-            implementationClass = "AndroidTestConventionPlugin"
+        register("ktlint") {
+            id = "hance.ktlint"
+            implementationClass = "KtlintConventionPlugin"
         }
     }
 }

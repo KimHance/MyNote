@@ -30,6 +30,9 @@ internal fun Project.configureAndroidCompose(
         add("androidTestImplementation", libs.findLibrary("androidx.compose.ui.test").get())
         add("debugImplementation", libs.findLibrary("androidx.compose.ui.tooling").get())
         add("debugImplementation", libs.findLibrary("androidx.compose.ui.testManifest").get())
+
+        // Slack compose-lints — Android Lint 경로의 Compose 설계 검사(ktlint 의 compose-rules 와 별개)
+        add("lintChecks", libs.findLibrary("compose.lint.checks").get())
     }
 
     extensions.getByType<ComposeCompilerGradlePluginExtension>().apply {

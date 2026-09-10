@@ -12,6 +12,7 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
             with(pluginManager) {
                 // AGP 9 는 Kotlin 이 빌트인이라 org.jetbrains.kotlin.android 적용이 불필요/금지.
                 apply("com.android.application")
+                apply("hance.ktlint")
             }
 
             extensions.configure<ApplicationExtension> {

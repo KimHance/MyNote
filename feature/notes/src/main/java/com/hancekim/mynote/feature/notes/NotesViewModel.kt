@@ -1,14 +1,8 @@
 package com.hancekim.mynote.feature.notes
 
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewModelScope
+import com.hancekim.mynote.core.common.mvi.MviViewModel
 import com.hancekim.mynote.core.designsystem.theme.MyNoteFontScale
 import com.hancekim.mynote.core.domain.GetCategoriesUseCase
 import com.hancekim.mynote.core.domain.ObserveAppliedTokenUseCase
@@ -16,139 +10,172 @@ import com.hancekim.mynote.core.domain.SaveTokenUseCase
 import com.hancekim.mynote.core.domain.SyncNotesUseCase
 import com.hancekim.mynote.core.domain.model.SyncOutcome
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.collections.immutable.toImmutableMap
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import com.hancekim.mynote.core.domain.model.Category
 import javax.inject.Inject
 
 /**
- * 노트 화면 MVI ViewModel — 상태 생산을 **Molecule** 프레젠터([present])로 한다([MoleculeViewModel]).
- * MVI 모양(UiState + Intent + 단방향)은 그대로. 이벤트는 [onIntent] → [take] → events Flow.
+ * 동기화처럼 **함께 움직이는 값**은 한 타입으로 묶어 trigger 하나에 담는다.
+ * 쪼개면 "로딩 끝 + 데이터 없음" 같은 존재하지 않는 조합이 잠깐 방출된다.
  */
+private data class SyncState(
+    val isLoading: Boolean = true,
+    val errorMessage: String? = null,
+    val errorId: Int = 0,
+    val infoMessage: String? = null,
+    val infoId: Int = 0,
+)
+
+/**
+ * 노트 화면 ViewModel — 전체 재조립형 MVI([MviViewModel]).
+ *
+ * 상태를 만드는 자리는 [build] 하나뿐이고, [onIntent] 는 trigger 값만 바꾼다.
+ * 파생 계산은 [build] 안이 아니라 `triggerIn` 으로 빼서 재료가 바뀔 때만 돌게 한다.
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class NotesViewModel @Inject constructor(
-    private val getCategories: GetCategoriesUseCase,
+    getCategories: GetCategoriesUseCase,
     private val syncNotes: SyncNotesUseCase,
     private val saveToken: SaveTokenUseCase,
-    private val observeAppliedToken: ObserveAppliedTokenUseCase,
-) : MoleculeViewModel<NotesIntent, NotesUiState>() {
+    observeAppliedToken: ObserveAppliedTokenUseCase,
+) : MviViewModel<NotesUiState, NotesIntent>() {
 
-    /** 단일 인텐트 진입점(MVI). */
-    fun onIntent(intent: NotesIntent) = take(intent)
+    // --- 이벤트가 직접 쓰는 값 ---
 
-    @Composable
-    override fun present(events: Flow<NotesIntent>): NotesUiState {
-        // 원격 SSOT(Room) 관찰 — 실패 시 빈 목록 폴백
-        val categories by remember { getCategories().catch { emit(emptyList()) } }
-            .collectAsState(initial = emptyList())
-        // 네트워크 클라에 적용된 토큰 관찰(인터셉터가 읽는 값과 동일) — 레이스 없음
-        val appliedToken by remember { observeAppliedToken() }.collectAsState(initial = null)
+    private val activeNoteId = trigger<String?>(null)
+    private val query = trigger("")
+    private val expanded = trigger(persistentMapOf<String, Boolean>())
+    private val fontScale = trigger(MyNoteFontScale.Normal)
 
-        var activeNoteId by remember { mutableStateOf<String?>(null) }
-        var query by remember { mutableStateOf("") }
-        var expanded by remember { mutableStateOf<Map<String, Boolean>>(emptyMap()) }
-        var fontScale by remember { mutableStateOf(MyNoteFontScale.Normal) }
+    /** 재조회 신호. [build] 가 읽지 않으므로 등록하지 않는다. 0 = 최초 진입(안내 없음). */
+    private val refreshTicks = MutableStateFlow(0)
 
-        var loading by remember { mutableStateOf(true) }
-        var error by remember { mutableStateOf<String?>(null) }
-        var errorId by remember { mutableIntStateOf(0) }
-        var infoMessage by remember { mutableStateOf<String?>(null) }
-        var infoId by remember { mutableIntStateOf(0) }
+    // --- 바깥 스트림. Room/DataStore 옵저버라 살려두는 편이 재진입에 유리하다 ---
 
-        // 새로고침 트리거 + 안내 플래그(자동 sync 와 구분)
-        var refreshTick by remember { mutableIntStateOf(0) }
-        var announceNext by remember { mutableStateOf(false) }
+    private val appliedToken = observeAppliedToken()
+        .triggerIn(null, started = SharingStarted.Lazily)
 
-        // 스낵바 호스트 상태도 프레젠터가 소유 — 에러/안내 발동까지 여기서(UI 는 SnackbarHost 만 렌더)
-        val snackbarHostState = remember { SnackbarHostState() }
+    private val categories: Flow<ImmutableList<Category>> = getCategories()
+        .catch { emit(emptyList()) }
+        .map { it.toImmutableList() }
 
-        // 토큰 변경(자동) 또는 새로고침 시 동기화. key 가 바뀌면 이전 실행을 취소(job-cancel 효과).
-        LaunchedEffect(appliedToken, refreshTick) {
-            val announce = announceNext
-            announceNext = false
-            loading = true
-            error = null
-            val result = syncNotes()
-            result.onSuccess { outcome ->
-                // 보던 노트가 삭제됐으면 홈으로
-                if (activeNoteId != null && activeNoteId in outcome.deleted) activeNoteId = null
-                // 수동 새로고침이고 변경이 있으면 안내(변경 없으면 무시)
-                if (announce && outcome.hasChanges) {
-                    infoMessage = buildChangeMessage(outcome)
-                    infoId++
-                }
-            }
-            if (result.isFailure) {
-                error = "노트를 불러오지 못했어요. 연결을 확인해 주세요."
-                errorId++
-            }
-            loading = false
-        }
+    private val categoryList = categories
+        .triggerIn(persistentListOf(), started = SharingStarted.Lazily)
 
-        // 이벤트 처리
-        LaunchedEffect(Unit) {
-            events.collect { intent ->
-                when (intent) {
-                    is NotesIntent.SelectNote -> activeNoteId = intent.id
-                    is NotesIntent.QueryChanged -> query = intent.query
-                    is NotesIntent.ToggleCategory ->
-                        expanded = expanded + (intent.name to !(expanded[intent.name] ?: false))
+    // --- 파생: build() 안에서 계산하지 않는다. 재료가 바뀔 때만 돌도록 triggerIn 으로 뺀다 ---
 
-                    NotesIntent.ToggleFontScale ->
-                        fontScale = if (fontScale == MyNoteFontScale.Normal) MyNoteFontScale.Large else MyNoteFontScale.Normal
-
-                    NotesIntent.CloseNote -> activeNoteId = null
-                    is NotesIntent.SaveToken -> saveToken(intent.token)
-                    NotesIntent.Refresh -> {
-                        announceNext = true
-                        refreshTick++
-                    }
-                }
-            }
-        }
-
-        // 에러/안내 스낵바 발동 — id 가 바뀔 때마다(같은 메시지 재알림 포함). 메시지 없으면 무시.
-        LaunchedEffect(errorId) { if (errorId > 0) error?.let { snackbarHostState.showSnackbar(it) } }
-        LaunchedEffect(infoId) { if (infoId > 0) infoMessage?.let { snackbarHostState.showSnackbar(it) } }
-
-        // 파생 상태 — combine 없이 평범한 계산(recomposition 이 갱신)
-        val recentNotes = remember(categories) {
-            categories
-                .flatMap { c -> c.notes.map { RecentNote(it, c.name) } }
+    private val recentNotes = categoryList
+        .map { list ->
+            list.flatMap { c -> c.notes.map { RecentNote(it, c.name) } }
                 .sortedByDescending { it.note.date }
                 .toImmutableList()
         }
-        val visibleCategories = remember(categories, query) {
-            val list = if (query.isBlank()) {
-                categories
-            } else {
-                categories.mapNotNull { c ->
-                    val matched = c.notes.filter { note ->
-                        note.title.contains(query, ignoreCase = true) ||
-                            c.name.contains(query, ignoreCase = true)
-                    }
-                    if (matched.isEmpty()) null else c.copy(notes = matched)
-                }
-            }
-            list.toImmutableList()
-        }
+        .triggerIn(persistentListOf())
 
-        return NotesUiState(
-            categories = remember(categories) { categories.toImmutableList() },
-            visibleCategories = visibleCategories,
-            recentNotes = recentNotes,
-            activeNoteId = activeNoteId,
-            query = query,
-            expanded = remember(expanded) { expanded.toImmutableMap() },
-            fontScale = fontScale,
-            isLoading = loading,
-            errorMessage = error,
-            errorId = errorId,
-            hasToken = !appliedToken.isNullOrBlank(),
-            infoMessage = infoMessage,
-            infoId = infoId,
-            snackbarHostState = snackbarHostState,
+    private val visibleCategories = combine(categoryList, query) { list, keyword ->
+        if (keyword.isBlank()) {
+            list
+        } else {
+            list.mapNotNull { c ->
+                val matched = c.notes.filter { note ->
+                    note.title.contains(keyword, ignoreCase = true) ||
+                        c.name.contains(keyword, ignoreCase = true)
+                }
+                if (matched.isEmpty()) null else c.copy(notes = matched)
+            }.toImmutableList()
+        }
+    }.triggerIn(persistentListOf())
+
+    private var errorSeq = 0
+    private var infoSeq = 0
+
+    /** 토큰이 바뀌거나 새로고침하면 동기화. 이전 동기화는 flatMapLatest 가 취소한다. */
+    private val sync = combine(appliedToken, refreshTicks) { _, tick -> tick }
+        .flatMapLatest { tick -> syncFlow(announce = tick > 0) }
+        .triggerIn(SyncState())
+
+    /** 스낵바 호스트는 ViewModel 이 소유한다 — build() 안에서 만들면 equals 가 깨져 conflate 가 무력화된다. */
+    private val snackbarHostState = SnackbarHostState()
+
+    override fun build() = NotesUiState(
+        categories = categoryList.value,
+        visibleCategories = visibleCategories.value,
+        recentNotes = recentNotes.value,
+        activeNoteId = activeNoteId.value,
+        query = query.value,
+        expanded = expanded.value,
+        fontScale = fontScale.value,
+        isLoading = sync.value.isLoading,
+        errorMessage = sync.value.errorMessage,
+        errorId = sync.value.errorId,
+        hasToken = !appliedToken.value.isNullOrBlank(),
+        infoMessage = sync.value.infoMessage,
+        infoId = sync.value.infoId,
+        snackbarHostState = snackbarHostState,
+    )
+
+    override fun onIntent(event: NotesIntent) {
+        when (event) {
+            is NotesIntent.SelectNote -> activeNoteId.value = event.id
+
+            is NotesIntent.QueryChanged -> query.value = event.query
+
+            // read-modify-write 는 유실되므로 반드시 update {} 로.
+            is NotesIntent.ToggleCategory ->
+                expanded.update { it.put(event.name, !(it[event.name] ?: false)) }
+
+            NotesIntent.ToggleFontScale -> fontScale.update {
+                if (it == MyNoteFontScale.Normal) MyNoteFontScale.Large else MyNoteFontScale.Normal
+            }
+
+            NotesIntent.CloseNote -> activeNoteId.value = null
+
+            is NotesIntent.SaveToken -> viewModelScope.launch { saveToken(event.token) }
+
+            NotesIntent.Refresh -> refreshTicks.update { it + 1 }
+        }
+    }
+
+    private fun syncFlow(announce: Boolean): Flow<SyncState> = flow {
+        emit(SyncState(isLoading = true))
+        emit(
+            syncNotes().fold(
+                onSuccess = { outcome ->
+                    // 보던 노트가 삭제됐으면 홈으로.
+                    activeNoteId.update { id -> if (id != null && id in outcome.deleted) null else id }
+                    if (announce && outcome.hasChanges) {
+                        SyncState(
+                            isLoading = false,
+                            infoMessage = buildChangeMessage(outcome),
+                            infoId = ++infoSeq,
+                        )
+                    } else {
+                        SyncState(isLoading = false)
+                    }
+                },
+                onFailure = {
+                    SyncState(
+                        isLoading = false,
+                        errorMessage = "노트를 불러오지 못했어요. 연결을 확인해 주세요.",
+                        errorId = ++errorSeq,
+                    )
+                },
+            ),
         )
     }
 

@@ -37,6 +37,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -70,7 +71,7 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun NotesRoute(viewModel: NotesViewModel = hiltViewModel()) {
-    val uiState by viewModel.models.collectAsStateWithLifecycle()
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
     NotesScreen(
         uiState = uiState,
         onIntent = viewModel::onIntent,
@@ -94,8 +95,15 @@ fun NotesScreen(
     val widthDp = LocalWindowInfo.current.containerDpSize.width
     val windowClass = MyNoteWindowClass.fromWidth(widthDp)
 
-    // 스낵바 호스트는 프레젠터(present)가 소유 — 에러/안내 발동도 거기서. UI 는 렌더만.
+    // 스낵바 호스트 인스턴스는 ViewModel 이 소유하고(재조립돼도 유지), 발동은 여기서 한다.
+    // id 가 바뀔 때마다 — 같은 메시지 재알림 포함.
     val snackbarHostState = uiState.snackbarHostState
+    LaunchedEffect(uiState.errorId) {
+        if (uiState.errorId > 0) uiState.errorMessage?.let { snackbarHostState.showSnackbar(it) }
+    }
+    LaunchedEffect(uiState.infoId) {
+        if (uiState.infoId > 0) uiState.infoMessage?.let { snackbarHostState.showSnackbar(it) }
+    }
 
     // 토큰 입력 다이얼로그 표시 상태 — 두 Scaffold 에서 공유한다.
     var showTokenDialog by rememberSaveable { mutableStateOf(false) }
