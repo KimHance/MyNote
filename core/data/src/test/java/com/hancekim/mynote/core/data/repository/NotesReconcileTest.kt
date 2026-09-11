@@ -9,8 +9,10 @@ import com.hancekim.mynote.core.data.dto.NoteDto
 import com.hancekim.mynote.core.data.dto.NoteSpanDto
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -29,21 +31,34 @@ private fun noteDto(id: String) =
 
 private class FakeRemote(
     var index: List<IndexEntryDto>,
-    val notes: Map<String, NoteDto>,
+    val notes: Map<String, NoteDto> = emptyMap(),
+    private val indexError: Throwable? = null,
+    private val failOn: String? = null,
+    private val gate: Int = 0,
 ) : RemoteNotesDataSource {
-    val fetched = mutableListOf<String>()
+    val fetched: MutableList<String> = java.util.Collections.synchronizedList(mutableListOf())
+    private val arrived = MutableStateFlow(0)
 
-    override suspend fun getIndex(): List<IndexEntryDto> = index
+    override suspend fun getIndex(): List<IndexEntryDto> {
+        indexError?.let { throw it }
+        return index
+    }
 
     override suspend fun getNote(path: String): NoteDto {
         fetched += path
         val id = path.removePrefix("notes/").removeSuffix(".json")
+        if (gate > 0) {
+            arrived.update { it + 1 }
+            withTimeout(2_000) { arrived.first { it >= gate } }
+        }
+        if (id == failOn) error("fetch 실패: $id")
         return notes.getValue(id)
     }
 }
 
 private class FakeLocal(
     initial: List<CachedNote> = emptyList(),
+    private val writeError: Throwable? = null,
 ) : LocalNotesDataSource {
     val store = MutableStateFlow(initial.associateBy { it.id })
 
@@ -51,9 +66,10 @@ private class FakeLocal(
 
     override suspend fun loadHashes(): Map<String, String> = store.value.mapValues { it.value.contentHash }
 
-    override suspend fun upsert(note: CachedNote) = store.update { it + (note.id to note) }
-
-    override suspend fun deleteByIds(ids: List<String>) = store.update { it - ids.toSet() }
+    override suspend fun applySync(upserts: List<CachedNote>, deleteIds: List<String>) {
+        writeError?.let { throw it }
+        store.update { current -> current + upserts.associateBy { it.id } - deleteIds.toSet() }
+    }
 }
 
 class NotesReconcileTest {
@@ -80,7 +96,7 @@ class NotesReconcileTest {
 
             assertTrue(result.isSuccess)
             assertEquals(setOf("a", "b"), local.store.value.keys)
-            assertEquals(listOf("notes/a.json", "notes/b.json"), remote.fetched)
+            assertEquals(setOf("notes/a.json", "notes/b.json"), remote.fetched.toSet())
         }
 
     @Test
@@ -123,5 +139,61 @@ class NotesReconcileTest {
             repo(remote, local).sync()
 
             assertEquals(setOf("a"), local.store.value.keys)
+        }
+
+    @Test
+    fun `노트 하나가 실패하면 아무것도 반영하지 않는다`() =
+        runTest {
+            val remote =
+                FakeRemote(
+                    index = listOf(entry("a", "h1"), entry("b", "h1")),
+                    notes = mapOf("a" to noteDto("a"), "b" to noteDto("b")),
+                    failOn = "b",
+                )
+            val local = FakeLocal()
+
+            val result = repo(remote, local).sync()
+
+            assertTrue(result.isFailure)
+            assertTrue(local.store.value.isEmpty())
+        }
+
+    @Test
+    fun `index 조회가 실패하면 Result 실패다`() =
+        runTest {
+            val remote = FakeRemote(index = emptyList(), indexError = IllegalStateException("network"))
+
+            val result = repo(remote, FakeLocal()).sync()
+
+            assertTrue(result.isFailure)
+            assertTrue(remote.fetched.isEmpty())
+        }
+
+    @Test
+    fun `로컬 쓰기가 실패해도 예외를 던지지 않고 Result 실패다`() =
+        runTest {
+            val remote = FakeRemote(index = listOf(entry("a", "h1")), notes = mapOf("a" to noteDto("a")))
+            val local = FakeLocal(writeError = IllegalStateException("disk"))
+
+            val result = repo(remote, local).sync()
+
+            assertTrue(result.isFailure)
+        }
+
+    @Test
+    fun `변경된 노트를 동시에 받는다`() =
+        runTest {
+            val ids = listOf("a", "b", "c")
+            val remote =
+                FakeRemote(
+                    index = ids.map { entry(it, "h1") },
+                    notes = ids.associateWith { noteDto(it) },
+                    gate = ids.size,
+                )
+
+            val result = repo(remote, FakeLocal()).sync()
+
+            assertTrue(result.isSuccess)
+            assertEquals(ids.size, remote.fetched.size)
         }
 }
