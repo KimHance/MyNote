@@ -24,7 +24,6 @@ abstract class DataModule {
     abstract fun bindTokenRepository(impl: TokenRepositoryImpl): TokenRepository
 
     companion object {
-        /** data·network·repository 가 공유하는 단일 Json 설정. */
         @Provides
         @Singleton
         fun provideJson(): Json = Json { ignoreUnknownKeys = true }

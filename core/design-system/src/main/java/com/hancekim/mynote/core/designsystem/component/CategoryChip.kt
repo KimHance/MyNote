@@ -12,7 +12,6 @@ import androidx.compose.ui.unit.dp
 import com.hancekim.mynote.core.designfoundation.token.MyNoteRadius
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 
-/** 노트 카테고리를 나타내는 accent 칩. */
 @Composable
 fun CategoryChip(
     text: String,

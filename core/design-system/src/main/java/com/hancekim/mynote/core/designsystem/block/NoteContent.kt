@@ -34,10 +34,6 @@ import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
-/**
- * 서버드리븐 콘텐츠 블록(UI 모델)을 타입별 컴포넌트로 조립해 한 편의 글처럼 렌더한다.
- * 입력은 design-system 의 [NoteContentBlock] 만 받는다(데이터 DTO 와 무관).
- */
 @Composable
 fun NoteContent(
     blocks: ImmutableList<NoteContentBlock>,
@@ -90,7 +86,6 @@ fun NoteContent(
                     DividerBlock()
                 }
 
-                // 단순 줄바꿈: Column 의 기본 간격(12dp)에 더해 한 줄 여백을 준다.
                 NoteContentBlock.Spacer -> {
                     Spacer(Modifier.height(8.dp))
                 }
@@ -108,7 +103,6 @@ private fun CodeBlock(code: String) {
         modifier =
             Modifier
                 .fillMaxWidth()
-                // clip 을 먼저 걸어 영역 자체를 둥글게 자른다(가로 스크롤 코드가 모서리 밖으로 안 삐져나가게).
                 .clip(RoundedCornerShape(MyNoteRadius.list))
                 .background(MyNoteTheme.colors.surface2)
                 .horizontalScroll(rememberScrollState())
@@ -127,13 +121,11 @@ private fun QuoteBlock(spans: ImmutableList<NoteContentSpan>) {
         modifier =
             Modifier
                 .fillMaxWidth()
-                // 왼쪽 3dp accent 세로선을 텍스트 전체 높이에 직접 그린다(빈 Column 대신 drawBehind).
                 .drawBehind { drawRect(color = accent, size = Size(3.dp.toPx(), size.height)) }
                 .padding(start = 12.dp),
     )
 }
 
-/** 섹션 구분선(`---`). drawLine 으로 가는 가로선을 긋고 위아래 여백을 둔다. */
 @Composable
 private fun DividerBlock() {
     val color = MyNoteTheme.colors.border
@@ -141,7 +133,7 @@ private fun DividerBlock() {
         modifier =
             Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp) // 위아래 살짝 패딩
+                .padding(vertical = 8.dp)
                 .height(1.dp),
     ) {
         drawLine(
@@ -173,7 +165,6 @@ private fun ListBlock(items: ImmutableList<ImmutableList<NoteContentSpan>>, orde
     }
 }
 
-/** 인라인 스팬 목록을 스타일이 입혀진 [AnnotatedString] 으로. */
 @Composable
 private fun ImmutableList<NoteContentSpan>.toAnnotatedString(): AnnotatedString {
     val colors = MyNoteTheme.colors

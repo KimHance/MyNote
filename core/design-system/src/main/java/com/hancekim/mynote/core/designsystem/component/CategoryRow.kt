@@ -19,12 +19,6 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 
-/**
- * 목록 패널의 카테고리 헤더 행. caret(▸) 은 펼침 시 90° 회전한다.
- *
- * @param count 카테고리에 속한 노트 개수
- * @param expanded 펼침 상태
- */
 @Composable
 fun CategoryRow(
     name: String,
@@ -47,8 +41,6 @@ fun CategoryRow(
             text = "▸",
             style = MyNoteTheme.textStyles.treeLabel,
             color = colors.text3,
-            // deferred read: 회전값은 graphicsLayer 람다(draw phase)에서 읽어 caret 애니메이션의
-            // 매 프레임 recomposition 을 피한다. Modifier.rotate(value) 는 composition 에서 읽혀 금지.
             modifier = Modifier.graphicsLayer { rotationZ = caretRotation },
         )
         Text(

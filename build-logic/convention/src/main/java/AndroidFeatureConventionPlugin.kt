@@ -13,7 +13,6 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
             dependencies {
                 add("implementation", project(":core:common"))
                 add("implementation", project(":core:design-system"))
-                // feature 는 :core:data 를 직접 모르고 :core:domain(UseCase)만 의존한다.
                 add("implementation", project(":core:domain"))
                 add("implementation", libs.findLibrary("androidx.lifecycle.runtime").get())
                 add("implementation", libs.findLibrary("androidx.lifecycle.runtimeCompose").get())

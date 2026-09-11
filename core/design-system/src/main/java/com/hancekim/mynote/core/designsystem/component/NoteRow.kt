@@ -18,9 +18,6 @@ import androidx.compose.ui.unit.dp
 import com.hancekim.mynote.core.designfoundation.token.MyNoteRadius
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 
-/**
- * 목록 패널의 노트 행(카테고리 아래 들여쓰기). 활성 노트는 accent 글자색 + accent-soft 배경.
- */
 @Composable
 fun NoteRow(
     title: String,
@@ -56,6 +53,8 @@ private class NoteRowPreviewProvider : PreviewParameterProvider<NoteRowPreviewSt
             NoteRowPreviewState(active = false),
             NoteRowPreviewState(active = true),
         )
+
+    override fun getDisplayName(index: Int): String? = if (index == 0) "inactive" else "active"
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF161C24, widthDp = 280)

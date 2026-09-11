@@ -65,10 +65,6 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.launch
 
-/**
- * 진입점(Route): ViewModel 을 주입받아 상태를 수집하고 [NotesScreen] 에 넘긴다.
- * ViewModel 의존 때문에 프리뷰 대상이 아니며, 프리뷰는 [NotesScreen] 에서 한다.
- */
 @Composable
 fun NotesRoute(viewModel: NotesViewModel = hiltViewModel()) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
@@ -91,7 +87,7 @@ fun NotesScreen(
     uiState: NotesUiState,
     onIntent: (NotesIntent) -> Unit,
 ) {
-    // containerDpSize 는 이미 Dp 단위라 density 변환이 필요 없다.
+    // containerDpSize 는 이미 Dp 단위라 density 변환이 필요 e없다.
     val widthDp = LocalWindowInfo.current.containerDpSize.width
     val windowClass = MyNoteWindowClass.fromWidth(widthDp)
 

@@ -26,7 +26,7 @@ object NetworkModule {
     fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient =
         OkHttpClient
             .Builder()
-            .addInterceptor(authInterceptor) // 토큰을 매 요청에 Bearer 로 주입
+            .addInterceptor(authInterceptor)
             .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
             .readTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
             .writeTimeout(10, java.util.concurrent.TimeUnit.SECONDS)

@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import com.hancekim.mynote.core.designfoundation.token.MyNoteRadius
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 
-/** 노트 검색 입력. 핸드오프 스펙: `surface-2` 배경, radius 10, 높이 40. */
 @Composable
 fun SearchField(
     query: String,

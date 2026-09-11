@@ -9,9 +9,7 @@ android {
 }
 
 dependencies {
-    // NotesDataSource 인터페이스 + DTO 를 구현/사용
     implementation(projects.core.data)
-    // AppliedTokenSource 인터페이스(domain) — GithubTokenHolder 가 구현
     implementation(projects.core.domain)
 
     implementation(libs.retrofit.core)

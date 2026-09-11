@@ -1,9 +1,5 @@
 package com.hancekim.mynote.core.domain.model
 
-/**
- * 노트 본문 블록(도메인 모델). 디자인 스펙이 정의한 타입만.
- * 직렬화 형식(DTO)·UI 모델과 분리된 순수 표현이다.
- */
 sealed interface NoteBlock {
     data class Heading(
         val level: Int,
@@ -30,10 +26,8 @@ sealed interface NoteBlock {
         val items: List<NoteListItem>,
     ) : NoteBlock
 
-    /** 섹션 구분선(`---`). 필드 없음. */
     data object Divider : NoteBlock
 
-    /** 단순 줄바꿈/여백. 필드 없음. */
     data object Spacer : NoteBlock
 }
 
