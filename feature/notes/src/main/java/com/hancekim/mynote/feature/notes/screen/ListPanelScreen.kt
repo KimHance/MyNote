@@ -19,14 +19,11 @@ import com.hancekim.mynote.core.designsystem.component.SearchField
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.CategoryUi
 import com.hancekim.mynote.feature.notes.NoteUi
-import com.hancekim.mynote.feature.notes.NotesIntent
-import com.hancekim.mynote.feature.notes.NotesUiState
+import com.hancekim.mynote.feature.notes.element.NotesIntent
+import com.hancekim.mynote.feature.notes.element.NotesUiState
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 
-/**
- * 카테고리/노트 트리 + 검색. Compact 에서는 모달 드로어, Medium+ 에서는 고정 list pane 으로 쓰인다.
- */
 @Composable
 fun ListPanelScreen(
     uiState: NotesUiState,

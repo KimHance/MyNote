@@ -56,6 +56,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hancekim.mynote.core.designfoundation.window.MyNoteWindowClass
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
+import com.hancekim.mynote.feature.notes.element.NotesIntent
+import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.screen.HomeScreen
 import com.hancekim.mynote.feature.notes.screen.ListPanelScreen
 import com.hancekim.mynote.feature.notes.screen.NoteReaderScreen
@@ -72,25 +74,14 @@ fun NotesRoute(viewModel: NotesViewModel = hiltViewModel()) {
     )
 }
 
-/**
- * 상태 없는(stateless) 화면. `uiState` + `onIntent` 만 받아 프리뷰가 가능하다.
- * 테마 블록(`MyNoteTheme`)은 여기서 시작한다.
- *
- * 윈도우 폭으로 폼팩터를 판정한다. Compact 는 목록을 화면 위로 덮는 모달 드로어(오버레이),
- * Medium+ 는 목록을 옆에서 밀어 넣는(push) 접이식 사이드 패널 — 둘 다 ☰ 토글이 살아 있다.
- * 시스템바 인셋은 Material3 `Scaffold` + `TopAppBar` + `ModalDrawerSheet` 가 처리한다.
- */
 @Composable
 fun NotesScreen(
     uiState: NotesUiState,
     onIntent: (NotesIntent) -> Unit,
 ) {
-    // containerDpSize 는 이미 Dp 단위라 density 변환이 필요 e없다.
     val widthDp = LocalWindowInfo.current.containerDpSize.width
     val windowClass = MyNoteWindowClass.fromWidth(widthDp)
 
-    // 스낵바 호스트 인스턴스는 ViewModel 이 소유하고(재조립돼도 유지), 발동은 여기서 한다.
-    // id 가 바뀔 때마다 — 같은 메시지 재알림 포함.
     val snackbarHostState = uiState.snackbarHostState
     LaunchedEffect(uiState.errorId) {
         if (uiState.errorId > 0) uiState.errorMessage?.let { snackbarHostState.showSnackbar(it) }
@@ -99,7 +90,6 @@ fun NotesScreen(
         if (uiState.infoId > 0) uiState.infoMessage?.let { snackbarHostState.showSnackbar(it) }
     }
 
-    // 토큰 입력 다이얼로그 표시 상태 — 두 Scaffold 에서 공유한다.
     var showTokenDialog by rememberSaveable { mutableStateOf(false) }
 
     MyNoteTheme(windowClass = windowClass, fontScale = uiState.fontScale) {
@@ -109,7 +99,6 @@ fun NotesScreen(
             ListDetailScaffold(uiState, onIntent, snackbarHostState, onShowTokenDialog = { showTokenDialog = true })
         }
 
-        // 토큰 입력 다이얼로그
         if (showTokenDialog) {
             TokenDialog(
                 onDismiss = { showTokenDialog = false },
@@ -134,7 +123,6 @@ private fun CompactScaffold(
     val scope = rememberCoroutineScope()
     val exitOnDoubleBack = rememberDoubleBackToExit(snackbarHostState)
 
-    // 뒤로가기 우선순위: 드로어 닫기 → 노트 닫기(홈) → 더블탭 종료
     BackHandler {
         when {
             drawerState.isOpen -> scope.launch { drawerState.close() }
@@ -146,7 +134,6 @@ private fun CompactScaffold(
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            // ModalDrawerSheet 가 windowInsets(기본 systemBars)로 드로어 콘텐츠 인셋을 처리한다.
             ModalDrawerSheet(
                 drawerContainerColor = colors.surface,
                 modifier = Modifier.width(MyNoteTheme.adaptive.paneWidth),
@@ -195,11 +182,9 @@ private fun ListDetailScaffold(
     onShowTokenDialog: () -> Unit,
 ) {
     val colors = MyNoteTheme.colors
-    // 목록 패널은 옆에서 밀려 들어오는(push) 접이식 — 기본 펼침, ☰ 로 토글. 노트 선택해도 유지한다.
     var listExpanded by rememberSaveable { mutableStateOf(true) }
     val exitOnDoubleBack = rememberDoubleBackToExit(snackbarHostState)
 
-    // 뒤로가기: 노트가 열려 있으면 닫아 홈으로 → 아니면 더블탭 종료.
     BackHandler {
         if (uiState.activeNote != null) onIntent(NotesIntent.CloseNote) else exitOnDoubleBack()
     }
@@ -223,7 +208,6 @@ private fun ListDetailScaffold(
                 .padding(padding)
                 .fillMaxSize(),
         ) {
-            // 가로 expand/shrink 로 패널 폭이 0↔paneWidth 로 변하면 Row 가 reflow → 콘텐츠를 밀어내는 push 효과.
             AnimatedVisibility(
                 visible = listExpanded,
                 enter = expandHorizontally(expandFrom = Alignment.Start) + fadeIn(),
@@ -318,7 +302,6 @@ private fun NotesTopBar(
             }
         },
         actions = {
-            // 새로고침 — index 재조회 후 변경 있으면 스낵바 안내
             IconButton(onClick = onRefresh) {
                 Icon(
                     imageVector = Icons.Default.Refresh,
@@ -326,7 +309,6 @@ private fun NotesTopBar(
                     tint = colors.accent,
                 )
             }
-            // 토큰 설정 아이콘(자물쇠) — Icons.Default.Lock 은 material-icons-core 에 포함됨
             IconButton(onClick = onTokenDialog) {
                 Icon(
                     imageVector = Icons.Default.Lock,
@@ -413,8 +395,6 @@ private fun TokenDialog(
         containerColor = colors.surface,
     )
 }
-
-// --- Preview ---
 
 private val previewUiState: NotesUiState =
     run {

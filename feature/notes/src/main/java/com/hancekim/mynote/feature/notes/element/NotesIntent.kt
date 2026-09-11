@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes
+package com.hancekim.mynote.feature.notes.element
 
 import com.hancekim.mynote.core.common.mvi.MviEvent
 

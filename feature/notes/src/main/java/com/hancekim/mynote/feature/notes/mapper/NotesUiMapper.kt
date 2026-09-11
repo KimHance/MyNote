@@ -1,7 +1,9 @@
-package com.hancekim.mynote.feature.notes
+package com.hancekim.mynote.feature.notes.mapper
 
 import com.hancekim.mynote.core.domain.model.Category
 import com.hancekim.mynote.core.domain.model.Note
+import com.hancekim.mynote.feature.notes.CategoryUi
+import com.hancekim.mynote.feature.notes.NoteUi
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 

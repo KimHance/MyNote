@@ -9,6 +9,9 @@ import com.hancekim.mynote.core.domain.ObserveAppliedTokenUseCase
 import com.hancekim.mynote.core.domain.SaveTokenUseCase
 import com.hancekim.mynote.core.domain.SyncNotesUseCase
 import com.hancekim.mynote.core.domain.model.SyncOutcome
+import com.hancekim.mynote.feature.notes.element.NotesIntent
+import com.hancekim.mynote.feature.notes.element.NotesUiState
+import com.hancekim.mynote.feature.notes.mapper.toUi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -27,10 +30,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * 동기화처럼 **함께 움직이는 값**은 한 타입으로 묶어 trigger 하나에 담는다.
- * 쪼개면 "로딩 끝 + 데이터 없음" 같은 존재하지 않는 조합이 잠깐 방출된다.
- */
 private data class SyncState(
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
@@ -39,12 +38,6 @@ private data class SyncState(
     val infoId: Int = 0,
 )
 
-/**
- * 노트 화면 ViewModel — 전체 재조립형 MVI([MviViewModel]).
- *
- * 상태를 만드는 자리는 [build] 하나뿐이고, [onIntent] 는 trigger 값만 바꾼다.
- * 파생 계산은 [build] 안이 아니라 `triggerIn` 으로 빼서 재료가 바뀔 때만 돌게 한다.
- */
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class NotesViewModel @Inject constructor(
@@ -53,17 +46,11 @@ class NotesViewModel @Inject constructor(
     private val saveToken: SaveTokenUseCase,
     observeAppliedToken: ObserveAppliedTokenUseCase,
 ) : MviViewModel<NotesUiState, NotesIntent>() {
-    // --- 이벤트가 직접 쓰는 값 ---
-
     private val activeNoteId = trigger<String?>(null)
     private val query = trigger("")
     private val expanded = trigger(persistentMapOf<String, Boolean>())
     private val fontScale = trigger(MyNoteFontScale.Normal)
-
-    /** 재조회 신호. [build] 가 읽지 않으므로 등록하지 않는다. 0 = 최초 진입(안내 없음). */
     private val refreshTicks = MutableStateFlow(0)
-
-    // --- 바깥 스트림. Room/DataStore 옵저버라 살려두는 편이 재진입에 유리하다 ---
 
     private val appliedToken =
         observeAppliedToken()
@@ -77,8 +64,6 @@ class NotesViewModel @Inject constructor(
     private val categoryList =
         categories
             .triggerIn(persistentListOf(), started = SharingStarted.Lazily)
-
-    // --- 파생: build() 안에서 계산하지 않는다. 재료가 바뀔 때만 돌도록 triggerIn 으로 뺀다 ---
 
     private val recentNotes =
         categoryList
@@ -109,13 +94,11 @@ class NotesViewModel @Inject constructor(
     private var errorSeq = 0
     private var infoSeq = 0
 
-    /** 토큰이 바뀌거나 새로고침하면 동기화. 이전 동기화는 flatMapLatest 가 취소한다. */
     private val sync =
         combine(appliedToken, refreshTicks) { _, tick -> tick }
             .flatMapLatest { tick -> syncFlow(announce = tick > 0) }
             .triggerIn(SyncState())
 
-    /** 스낵바 호스트는 ViewModel 이 소유한다 — build() 안에서 만들면 equals 가 깨져 conflate 가 무력화된다. */
     private val snackbarHostState = SnackbarHostState()
 
     override fun build() =
@@ -146,7 +129,6 @@ class NotesViewModel @Inject constructor(
                 query.value = event.query
             }
 
-            // read-modify-write 는 유실되므로 반드시 update {} 로.
             is NotesIntent.ToggleCategory -> {
                 expanded.update { it.putting(event.name, !(it[event.name] ?: false)) }
             }
@@ -177,7 +159,6 @@ class NotesViewModel @Inject constructor(
             emit(
                 syncNotes().fold(
                     onSuccess = { outcome ->
-                        // 보던 노트가 삭제됐으면 홈으로.
                         activeNoteId.update { id -> if (id != null && id in outcome.deleted) null else id }
                         if (announce && outcome.hasChanges) {
                             SyncState(

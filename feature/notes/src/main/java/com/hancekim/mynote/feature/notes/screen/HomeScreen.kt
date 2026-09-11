@@ -30,8 +30,8 @@ import androidx.compose.ui.unit.sp
 import com.hancekim.mynote.core.designsystem.component.NoteCard
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.NoteUi
-import com.hancekim.mynote.feature.notes.NotesIntent
 import com.hancekim.mynote.feature.notes.RecentNoteUi
+import com.hancekim.mynote.feature.notes.element.NotesIntent
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
