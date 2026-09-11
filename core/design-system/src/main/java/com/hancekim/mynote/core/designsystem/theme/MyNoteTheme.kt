@@ -27,12 +27,6 @@ private val LocalTextStyles =
     }
 private val LocalFontScale = staticCompositionLocalOf { MyNoteFontScale.Normal }
 
-/**
- * 앱 전역 테마. 핸드오프 토큰을 CompositionLocal 로 노출하고 Material3 ColorScheme 에 매핑한다.
- *
- * @param windowClass 반응형 토큰을 결정하는 폼팩터 단계
- * @param fontScale 본문 글자 크기 토글
- */
 @Composable
 fun MyNoteTheme(
     windowClass: MyNoteWindowClass = MyNoteWindowClass.Compact,
@@ -66,7 +60,6 @@ fun MyNoteTheme(
     }
 }
 
-/** 핸드오프 토큰 접근자. `MyNoteTheme.colors`, `MyNoteTheme.adaptive`, `MyNoteTheme.textStyles`. */
 object MyNoteTheme {
     val colors: MyNoteColors
         @Composable @ReadOnlyComposable
