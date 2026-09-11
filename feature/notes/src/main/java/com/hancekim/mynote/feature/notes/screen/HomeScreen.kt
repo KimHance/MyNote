@@ -29,15 +29,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hancekim.mynote.core.designsystem.component.NoteCard
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
-import com.hancekim.mynote.core.domain.model.Note
+import com.hancekim.mynote.feature.notes.NoteUi
 import com.hancekim.mynote.feature.notes.NotesIntent
-import com.hancekim.mynote.feature.notes.RecentNote
+import com.hancekim.mynote.feature.notes.RecentNoteUi
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
 @Composable
 fun HomeScreen(
-    recentNotes: ImmutableList<RecentNote>,
+    recentNotes: ImmutableList<RecentNoteUi>,
     isLoading: Boolean,
     onIntent: (NotesIntent) -> Unit,
     modifier: Modifier = Modifier,
@@ -144,9 +144,9 @@ private fun Hero(
 
 private val previewRecent =
     persistentListOf(
-        RecentNote(Note("a", "Compose 상태 관리 정리", "2026.06.12", emptyList()), "Android"),
-        RecentNote(Note("b", "코루틴 디스패처 메모", "2026.05.30", emptyList()), "Kotlin"),
-        RecentNote(Note("c", "HTTP 캐싱 기초", "2026.04.22", emptyList()), "CS"),
+        RecentNoteUi(NoteUi("a", "Compose 상태 관리 정리", "2026.06.12"), "Android"),
+        RecentNoteUi(NoteUi("b", "코루틴 디스패처 메모", "2026.05.30"), "Kotlin"),
+        RecentNoteUi(NoteUi("c", "HTTP 캐싱 기초", "2026.04.22"), "CS"),
     )
 
 @Preview(name = "Home Compact", showBackground = true, widthDp = 360, heightDp = 640)

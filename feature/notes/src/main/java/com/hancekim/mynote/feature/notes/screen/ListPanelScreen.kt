@@ -17,8 +17,8 @@ import com.hancekim.mynote.core.designsystem.component.CategoryRow
 import com.hancekim.mynote.core.designsystem.component.NoteRow
 import com.hancekim.mynote.core.designsystem.component.SearchField
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
-import com.hancekim.mynote.core.domain.model.Category
-import com.hancekim.mynote.core.domain.model.Note
+import com.hancekim.mynote.feature.notes.CategoryUi
+import com.hancekim.mynote.feature.notes.NoteUi
 import com.hancekim.mynote.feature.notes.NotesIntent
 import com.hancekim.mynote.feature.notes.NotesUiState
 import kotlinx.collections.immutable.persistentListOf
@@ -90,13 +90,13 @@ private val previewState =
     NotesUiState(
         categories =
             persistentListOf(
-                Category("Android", listOf(Note("a", "Compose 상태 관리 정리", "2026.06.12", emptyList()))),
-                Category("Kotlin", listOf(Note("b", "코루틴 디스패처 메모", "2026.05.30", emptyList()))),
+                CategoryUi("Android", persistentListOf(NoteUi("a", "Compose 상태 관리 정리", "2026.06.12"))),
+                CategoryUi("Kotlin", persistentListOf(NoteUi("b", "코루틴 디스패처 메모", "2026.05.30"))),
             ),
         visibleCategories =
             persistentListOf(
-                Category("Android", listOf(Note("a", "Compose 상태 관리 정리", "2026.06.12", emptyList()))),
-                Category("Kotlin", listOf(Note("b", "코루틴 디스패처 메모", "2026.05.30", emptyList()))),
+                CategoryUi("Android", persistentListOf(NoteUi("a", "Compose 상태 관리 정리", "2026.06.12"))),
+                CategoryUi("Kotlin", persistentListOf(NoteUi("b", "코루틴 디스패처 메모", "2026.05.30"))),
             ),
         activeNoteId = "a",
         expanded = persistentMapOf("Android" to true),

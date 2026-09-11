@@ -19,29 +19,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.hancekim.mynote.core.designsystem.block.NoteContent
+import com.hancekim.mynote.core.designsystem.block.NoteContentBlock
+import com.hancekim.mynote.core.designsystem.block.NoteContentSpan
+import com.hancekim.mynote.core.designsystem.block.NoteSpanStyle
 import com.hancekim.mynote.core.designsystem.component.CategoryChip
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
-import com.hancekim.mynote.core.domain.model.Note
-import com.hancekim.mynote.core.domain.model.NoteBlock
-import com.hancekim.mynote.core.domain.model.NoteListItem
-import com.hancekim.mynote.core.domain.model.NoteSpan
-import com.hancekim.mynote.core.domain.model.SpanStyle
-import com.hancekim.mynote.feature.notes.toContentBlocks
+import com.hancekim.mynote.feature.notes.NoteUi
+import kotlinx.collections.immutable.persistentListOf
 
-/**
- * 노트 상세(블로그 글처럼 읽기). 카테고리 칩 + 날짜 → 제목 → 서버드리븐 블록 본문.
- * 본문 폭은 `reading` 토큰 안에서 가운데 정렬.
- */
 @Composable
 fun NoteReaderScreen(
-    note: Note,
+    note: NoteUi,
     categoryName: String,
     modifier: Modifier = Modifier,
 ) {
     val adaptive = MyNoteTheme.adaptive
     val reading = adaptive.readingMaxWidth
-    val blocks = remember(note.id) { note.blocks.toContentBlocks() }
-
     Box(
         modifier =
             modifier
@@ -72,34 +65,42 @@ fun NoteReaderScreen(
                 style = MyNoteTheme.textStyles.noteTitle,
                 color = MyNoteTheme.colors.text,
             )
-            NoteContent(blocks = blocks)
+            NoteContent(blocks = note.blocks)
         }
     }
 }
 
 private val previewNote =
-    Note(
+    NoteUi(
         id = "compose-state",
         title = "Compose 상태 관리 정리",
         date = "2026.06.12",
         blocks =
-            listOf(
-                NoteBlock.Heading(2, listOf(NoteSpan("상태 호이스팅"))),
-                NoteBlock.Paragraph(
-                    listOf(
-                        NoteSpan("Composable 은 "),
-                        NoteSpan("상태를 직접 들지 않고", SpanStyle.Bold),
-                        NoteSpan(" 상위로 끌어올린다."),
+            persistentListOf(
+                NoteContentBlock.Heading(2, persistentListOf(NoteContentSpan("상태 호이스팅", NoteSpanStyle.Normal))),
+                NoteContentBlock.Paragraph(
+                    persistentListOf(
+                        NoteContentSpan("Composable 은 ", NoteSpanStyle.Normal),
+                        NoteContentSpan("상태를 직접 들지 않고", NoteSpanStyle.Bold),
+                        NoteContentSpan(" 상위로 끌어올린다.", NoteSpanStyle.Normal),
                     ),
                 ),
-                NoteBlock.Quote(listOf(NoteSpan("상태는 단방향으로 흐른다."))),
-                NoteBlock.BulletList(
-                    listOf(
-                        NoteListItem(listOf(NoteSpan("단순 UI 상태는 "), NoteSpan("remember", SpanStyle.Code))),
-                        NoteListItem(listOf(NoteSpan("복원이 필요하면 "), NoteSpan("rememberSaveable", SpanStyle.Code))),
+                NoteContentBlock.Quote(
+                    persistentListOf(NoteContentSpan("상태는 단방향으로 흐른다.", NoteSpanStyle.Normal)),
+                ),
+                NoteContentBlock.BulletList(
+                    persistentListOf(
+                        persistentListOf(
+                            NoteContentSpan("단순 UI 상태는 ", NoteSpanStyle.Normal),
+                            NoteContentSpan("remember", NoteSpanStyle.Code),
+                        ),
+                        persistentListOf(
+                            NoteContentSpan("복원이 필요하면 ", NoteSpanStyle.Normal),
+                            NoteContentSpan("rememberSaveable", NoteSpanStyle.Code),
+                        ),
                     ),
                 ),
-                NoteBlock.Code("var text by rememberSaveable { mutableStateOf(\"\") }"),
+                NoteContentBlock.Code("var text by rememberSaveable { mutableStateOf(\"\") }"),
             ),
     )
 

@@ -56,8 +56,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hancekim.mynote.core.designfoundation.window.MyNoteWindowClass
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
-import com.hancekim.mynote.core.domain.model.Category
-import com.hancekim.mynote.core.domain.model.Note
 import com.hancekim.mynote.feature.notes.screen.HomeScreen
 import com.hancekim.mynote.feature.notes.screen.ListPanelScreen
 import com.hancekim.mynote.feature.notes.screen.NoteReaderScreen
@@ -421,22 +419,22 @@ private fun TokenDialog(
 private val previewUiState: NotesUiState =
     run {
         val notes =
-            listOf(
-                Note("compose-state", "Compose 상태 관리 정리", "2026.06.12", emptyList()),
-                Note("nav3", "Navigation 3 첫인상", "2026.06.18", emptyList()),
+            persistentListOf(
+                NoteUi("compose-state", "Compose 상태 관리 정리", "2026.06.12"),
+                NoteUi("nav3", "Navigation 3 첫인상", "2026.06.18"),
             )
         val categories =
             persistentListOf(
-                Category("Android", notes),
-                Category("Kotlin", listOf(Note("coroutines", "코루틴 디스패처 메모", "2026.05.30", emptyList()))),
+                CategoryUi("Android", notes),
+                CategoryUi("Kotlin", persistentListOf(NoteUi("coroutines", "코루틴 디스패처 메모", "2026.05.30"))),
             )
         NotesUiState(
             categories = categories,
             visibleCategories = categories,
             recentNotes =
                 persistentListOf(
-                    RecentNote(notes[1], "Android"),
-                    RecentNote(notes[0], "Android"),
+                    RecentNoteUi(notes[1], "Android"),
+                    RecentNoteUi(notes[0], "Android"),
                 ),
             expanded = persistentMapOf("Android" to true),
             isLoading = false,

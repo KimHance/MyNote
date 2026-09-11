@@ -8,7 +8,6 @@ import com.hancekim.mynote.core.domain.GetCategoriesUseCase
 import com.hancekim.mynote.core.domain.ObserveAppliedTokenUseCase
 import com.hancekim.mynote.core.domain.SaveTokenUseCase
 import com.hancekim.mynote.core.domain.SyncNotesUseCase
-import com.hancekim.mynote.core.domain.model.Category
 import com.hancekim.mynote.core.domain.model.SyncOutcome
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
@@ -70,10 +69,10 @@ class NotesViewModel @Inject constructor(
         observeAppliedToken()
             .triggerIn(null, started = SharingStarted.Lazily)
 
-    private val categories: Flow<ImmutableList<Category>> =
+    private val categories: Flow<ImmutableList<CategoryUi>> =
         getCategories()
             .catch { emit(emptyList()) }
-            .map { it.toImmutableList() }
+            .map { it.toUi() }
 
     private val categoryList =
         categories
@@ -85,7 +84,7 @@ class NotesViewModel @Inject constructor(
         categoryList
             .map { list ->
                 list
-                    .flatMap { c -> c.notes.map { RecentNote(it, c.name) } }
+                    .flatMap { c -> c.notes.map { RecentNoteUi(it, c.name) } }
                     .sortedByDescending { it.note.date }
                     .toImmutableList()
             }.triggerIn(persistentListOf())
@@ -102,7 +101,7 @@ class NotesViewModel @Inject constructor(
                                 note.title.contains(keyword, ignoreCase = true) ||
                                     c.name.contains(keyword, ignoreCase = true)
                             }
-                        if (matched.isEmpty()) null else c.copy(notes = matched)
+                        if (matched.isEmpty()) null else c.copy(notes = matched.toImmutableList())
                     }.toImmutableList()
             }
         }.triggerIn(persistentListOf())
@@ -149,7 +148,7 @@ class NotesViewModel @Inject constructor(
 
             // read-modify-write 는 유실되므로 반드시 update {} 로.
             is NotesIntent.ToggleCategory -> {
-                expanded.update { it.put(event.name, !(it[event.name] ?: false)) }
+                expanded.update { it.putting(event.name, !(it[event.name] ?: false)) }
             }
 
             NotesIntent.ToggleFontScale -> {
