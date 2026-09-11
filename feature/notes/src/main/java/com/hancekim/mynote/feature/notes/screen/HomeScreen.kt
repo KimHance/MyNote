@@ -35,14 +35,6 @@ import com.hancekim.mynote.feature.notes.RecentNote
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
-/**
- * 시작 화면(노트 미선택). hero → "최근 노트" 라벨 → 카드 그리드.
- * 그리드 열 수·간격·여백·최대폭은 모두 어댑티브 토큰을 따른다.
- *
- * [recentNotes] 가 비어있을 때:
- * - [isLoading] == true → 로딩 스피너(초기 동기화 진행 중)
- * - [isLoading] == false → 빈 상태 메시지(노트 없음 혹은 오프라인)
- */
 @Composable
 fun HomeScreen(
     recentNotes: ImmutableList<RecentNote>,
@@ -61,16 +53,13 @@ fun HomeScreen(
                 .background(colors.bg),
         contentAlignment = Alignment.TopCenter,
     ) {
-        // 노트가 없을 때: 로딩 중이면 스피너, 완료 후 비어있으면 안내 메시지
         if (recentNotes.isEmpty()) {
             if (isLoading) {
-                // 동기화 진행 중 — 중앙 스피너
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center),
                     color = colors.accent,
                 )
             } else {
-                // 동기화 완료 후 빈 상태 — 안내 텍스트
                 Text(
                     text = "표시할 노트가 없어요",
                     style = MyNoteTheme.textStyles.body,
@@ -111,9 +100,13 @@ fun HomeScreen(
 }
 
 @Composable
-private fun Hero(modalDrawer: Boolean) {
+private fun Hero(
+    modalDrawer: Boolean,
+    modifier: Modifier = Modifier,
+) {
     val colors = MyNoteTheme.colors
-    Column(modifier = Modifier.padding(vertical = 8.dp)) {
+
+    Column(modifier = modifier.padding(vertical = 8.dp)) {
         Box(
             modifier =
                 Modifier
@@ -122,7 +115,12 @@ private fun Hero(modalDrawer: Boolean) {
                     .background(colors.accent),
             contentAlignment = Alignment.Center,
         ) {
-            Text(text = "N", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.W700)
+            Text(
+                text = "N",
+                color = Color.White,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.W700,
+            )
         }
         Spacer(Modifier.height(16.dp))
         Text(
