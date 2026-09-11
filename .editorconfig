@@ -19,6 +19,11 @@ ktlint_function_naming_ignore_when_annotated_with = Composable
 # 시그니처가 120자에 들어가면 한 줄로 합쳐버리는 규칙 — 선언이 읽기 나빠져서 끈다.
 ktlint_standard_function-signature = disabled
 
+# 애노테이션 달린 생성자를 세 줄로 쪼개고 클래스 본문 들여쓰기까지 한 단계 늘려서 끈다.
+# `class Foo @Inject constructor(...)` 를 한 줄로 유지하려면 둘 다 꺼야 한다.
+ktlint_standard_class-signature = disabled
+ktlint_standard_annotation = disabled
+
 # 테마 토큰 전파는 CompositionLocal 의 정당한 용례다(MyNoteTheme.colors/textStyles/adaptive).
 # compose-rules 가 경계하는 "암묵적 의존"의 전형적 예외라 끈다.
 # Android Lint 쪽(ComposeCompositionLocalUsage)은 build-logic 의 AndroidCompose.kt 에서 끈다.
