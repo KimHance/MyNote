@@ -11,5 +11,6 @@ import kotlinx.coroutines.flow.Flow
  */
 interface NotesRepository {
     fun observeCategories(): Flow<List<Category>>
+
     suspend fun sync(): Result<SyncOutcome>
 }

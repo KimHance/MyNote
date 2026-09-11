@@ -5,12 +5,30 @@ package com.hancekim.mynote.core.domain.model
  * 직렬화 형식(DTO)·UI 모델과 분리된 순수 표현이다.
  */
 sealed interface NoteBlock {
-    data class Heading(val level: Int, val spans: List<NoteSpan>) : NoteBlock
-    data class Paragraph(val spans: List<NoteSpan>) : NoteBlock
-    data class Code(val code: String) : NoteBlock
-    data class Quote(val spans: List<NoteSpan>) : NoteBlock
-    data class BulletList(val items: List<NoteListItem>) : NoteBlock
-    data class OrderedList(val items: List<NoteListItem>) : NoteBlock
+    data class Heading(
+        val level: Int,
+        val spans: List<NoteSpan>,
+    ) : NoteBlock
+
+    data class Paragraph(
+        val spans: List<NoteSpan>,
+    ) : NoteBlock
+
+    data class Code(
+        val code: String,
+    ) : NoteBlock
+
+    data class Quote(
+        val spans: List<NoteSpan>,
+    ) : NoteBlock
+
+    data class BulletList(
+        val items: List<NoteListItem>,
+    ) : NoteBlock
+
+    data class OrderedList(
+        val items: List<NoteListItem>,
+    ) : NoteBlock
 
     /** 섹션 구분선(`---`). 필드 없음. */
     data object Divider : NoteBlock
@@ -19,8 +37,13 @@ sealed interface NoteBlock {
     data object Spacer : NoteBlock
 }
 
-data class NoteListItem(val spans: List<NoteSpan>)
+data class NoteListItem(
+    val spans: List<NoteSpan>,
+)
 
-data class NoteSpan(val text: String, val style: SpanStyle = SpanStyle.Text)
+data class NoteSpan(
+    val text: String,
+    val style: SpanStyle = SpanStyle.Text,
+)
 
 enum class SpanStyle { Text, Bold, Code }

@@ -8,10 +8,12 @@ plugins {
 
 // local.properties 에서 노트 레포 좌표/토큰을 읽는다(토큰은 gitignore 됨).
 // APK 내장은 임시 — 다음 작업에서 런타임 입력 + 암호화 저장으로 교체한다.
-val localProps = Properties().apply {
-    val f = rootProject.file("local.properties")
-    if (f.exists()) f.inputStream().use { load(it) }
-}
+val localProps =
+    Properties().apply {
+        val f = rootProject.file("local.properties")
+        if (f.exists()) f.inputStream().use { load(it) }
+    }
+
 fun prop(key: String, default: String): String = localProps.getProperty(key, default)
 
 android {
@@ -19,7 +21,10 @@ android {
 
     defaultConfig {
         applicationId = "com.hancekim.mynote"
-        versionCode = libs.versions.appVersionCode.get().toInt()
+        versionCode =
+            libs.versions.appVersionCode
+                .get()
+                .toInt()
         versionName = libs.versions.appVersionName.get()
 
         buildConfigField("String", "GITHUB_OWNER", "\"${prop("github.owner", "KimHance")}\"")

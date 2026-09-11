@@ -27,9 +27,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hancekim.mynote.core.domain.model.Note
 import com.hancekim.mynote.core.designsystem.component.NoteCard
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
+import com.hancekim.mynote.core.domain.model.Note
 import com.hancekim.mynote.feature.notes.NotesIntent
 import com.hancekim.mynote.feature.notes.RecentNote
 import kotlinx.collections.immutable.ImmutableList
@@ -55,9 +55,10 @@ fun HomeScreen(
     val colors = MyNoteTheme.colors
 
     Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(colors.bg),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .background(colors.bg),
         contentAlignment = Alignment.TopCenter,
     ) {
         // 노트가 없을 때: 로딩 중이면 스피너, 완료 후 비어있으면 안내 메시지
@@ -114,10 +115,11 @@ private fun Hero(modalDrawer: Boolean) {
     val colors = MyNoteTheme.colors
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
         Box(
-            modifier = Modifier
-                .size(52.dp)
-                .clip(RoundedCornerShape(15.dp))
-                .background(colors.accent),
+            modifier =
+                Modifier
+                    .size(52.dp)
+                    .clip(RoundedCornerShape(15.dp))
+                    .background(colors.accent),
             contentAlignment = Alignment.Center,
         ) {
             Text(text = "N", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.W700)
@@ -130,22 +132,24 @@ private fun Hero(modalDrawer: Boolean) {
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = if (modalDrawer) {
-                "읽고 싶은 노트를 골라보세요. 왼쪽 위 ☰ 를 누르면 전체 목록이 열려요."
-            } else {
-                "왼쪽 목록에서 읽고 싶은 노트를 선택하세요."
-            },
+            text =
+                if (modalDrawer) {
+                    "읽고 싶은 노트를 골라보세요. 왼쪽 위 ☰ 를 누르면 전체 목록이 열려요."
+                } else {
+                    "왼쪽 목록에서 읽고 싶은 노트를 선택하세요."
+                },
             style = MyNoteTheme.textStyles.body,
             color = colors.text2,
         )
     }
 }
 
-private val previewRecent = persistentListOf(
-    RecentNote(Note("a", "Compose 상태 관리 정리", "2026.06.12", emptyList()), "Android"),
-    RecentNote(Note("b", "코루틴 디스패처 메모", "2026.05.30", emptyList()), "Kotlin"),
-    RecentNote(Note("c", "HTTP 캐싱 기초", "2026.04.22", emptyList()), "CS"),
-)
+private val previewRecent =
+    persistentListOf(
+        RecentNote(Note("a", "Compose 상태 관리 정리", "2026.06.12", emptyList()), "Android"),
+        RecentNote(Note("b", "코루틴 디스패처 메모", "2026.05.30", emptyList()), "Kotlin"),
+        RecentNote(Note("c", "HTTP 캐싱 기초", "2026.04.22", emptyList()), "CS"),
+    )
 
 @Preview(name = "Home Compact", showBackground = true, widthDp = 360, heightDp = 640)
 @Composable

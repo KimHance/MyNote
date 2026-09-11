@@ -3,13 +3,13 @@ package com.hancekim.mynote.core.designsystem.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -31,26 +31,31 @@ fun NoteRow(
     val colors = MyNoteTheme.colors
     Text(
         text = title,
-        style = MyNoteTheme.textStyles.treeLabel.copy(
-            fontWeight = if (active) FontWeight.W500 else FontWeight.W400,
-        ),
+        style =
+            MyNoteTheme.textStyles.treeLabel.copy(
+                fontWeight = if (active) FontWeight.W500 else FontWeight.W400,
+            ),
         color = if (active) colors.accent else colors.text2,
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(MyNoteRadius.chip))
-            .then(if (active) Modifier.background(colors.accentSoft) else Modifier)
-            .clickable(onClick = onClick, role = Role.Button)
-            .padding(start = 29.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(MyNoteRadius.chip))
+                .then(if (active) Modifier.background(colors.accentSoft) else Modifier)
+                .clickable(onClick = onClick, role = Role.Button)
+                .padding(start = 29.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
     )
 }
 
-private data class NoteRowPreviewState(val active: Boolean)
+private data class NoteRowPreviewState(
+    val active: Boolean,
+)
 
 private class NoteRowPreviewProvider : PreviewParameterProvider<NoteRowPreviewState> {
-    override val values = sequenceOf(
-        NoteRowPreviewState(active = false),
-        NoteRowPreviewState(active = true),
-    )
+    override val values =
+        sequenceOf(
+            NoteRowPreviewState(active = false),
+            NoteRowPreviewState(active = true),
+        )
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF161C24, widthDp = 280)

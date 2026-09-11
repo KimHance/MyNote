@@ -15,12 +15,12 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object RemoteConfigModule {
-
     @Provides
     @Singleton
-    fun provideGithubConfig(): GithubConfig = GithubConfig(
-        owner = BuildConfig.GITHUB_OWNER,
-        repo = BuildConfig.GITHUB_REPO,
-        branch = BuildConfig.GITHUB_BRANCH,
-    )
+    fun provideGithubConfig(): GithubConfig =
+        GithubConfig(
+            owner = BuildConfig.GITHUB_OWNER,
+            repo = BuildConfig.GITHUB_REPO,
+            branch = BuildConfig.GITHUB_BRANCH,
+        )
 }

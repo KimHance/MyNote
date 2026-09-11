@@ -21,11 +21,11 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
-
     @Provides
     @Singleton
     fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient =
-        OkHttpClient.Builder()
+        OkHttpClient
+            .Builder()
             .addInterceptor(authInterceptor) // 토큰을 매 요청에 Bearer 로 주입
             .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
             .readTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
@@ -34,11 +34,13 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideRetrofit(client: OkHttpClient, json: Json): Retrofit = Retrofit.Builder()
-        .baseUrl(GithubContentsApi.BASE_URL)
-        .client(client)
-        .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
-        .build()
+    fun provideRetrofit(client: OkHttpClient, json: Json): Retrofit =
+        Retrofit
+            .Builder()
+            .baseUrl(GithubContentsApi.BASE_URL)
+            .client(client)
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .build()
 
     @Provides
     @Singleton
@@ -49,7 +51,6 @@ object NetworkModule {
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class RemoteDataSourceModule {
-
     @Binds
     @Singleton
     abstract fun bindRemoteNotesDataSource(impl: RemoteNotesDataSourceImpl): RemoteNotesDataSource
@@ -60,5 +61,7 @@ abstract class RemoteDataSourceModule {
 
     @Binds
     @Singleton
-    abstract fun bindAppliedTokenSource(impl: GithubTokenHolder): com.hancekim.mynote.core.domain.repository.AppliedTokenSource
+    abstract fun bindAppliedTokenSource(
+        impl: GithubTokenHolder,
+    ): com.hancekim.mynote.core.domain.repository.AppliedTokenSource
 }

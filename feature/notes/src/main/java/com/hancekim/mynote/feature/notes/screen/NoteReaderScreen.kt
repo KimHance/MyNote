@@ -18,14 +18,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.hancekim.mynote.core.designsystem.block.NoteContent
+import com.hancekim.mynote.core.designsystem.component.CategoryChip
+import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.domain.model.Note
 import com.hancekim.mynote.core.domain.model.NoteBlock
 import com.hancekim.mynote.core.domain.model.NoteListItem
 import com.hancekim.mynote.core.domain.model.NoteSpan
 import com.hancekim.mynote.core.domain.model.SpanStyle
-import com.hancekim.mynote.core.designsystem.block.NoteContent
-import com.hancekim.mynote.core.designsystem.component.CategoryChip
-import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.toContentBlocks
 
 /**
@@ -43,15 +43,17 @@ fun NoteReaderScreen(
     val blocks = remember(note.id) { note.blocks.toContentBlocks() }
 
     Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MyNoteTheme.colors.bg),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .background(MyNoteTheme.colors.bg),
         contentAlignment = Alignment.TopCenter,
     ) {
         Column(
-            modifier = (if (reading != null) Modifier.widthIn(max = reading) else Modifier.fillMaxWidth())
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = adaptive.page, vertical = 24.dp),
+            modifier =
+                (if (reading != null) Modifier.widthIn(max = reading) else Modifier.fillMaxWidth())
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = adaptive.page, vertical = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Row(
@@ -75,29 +77,31 @@ fun NoteReaderScreen(
     }
 }
 
-private val previewNote = Note(
-    id = "compose-state",
-    title = "Compose 상태 관리 정리",
-    date = "2026.06.12",
-    blocks = listOf(
-        NoteBlock.Heading(2, listOf(NoteSpan("상태 호이스팅"))),
-        NoteBlock.Paragraph(
+private val previewNote =
+    Note(
+        id = "compose-state",
+        title = "Compose 상태 관리 정리",
+        date = "2026.06.12",
+        blocks =
             listOf(
-                NoteSpan("Composable 은 "),
-                NoteSpan("상태를 직접 들지 않고", SpanStyle.Bold),
-                NoteSpan(" 상위로 끌어올린다."),
+                NoteBlock.Heading(2, listOf(NoteSpan("상태 호이스팅"))),
+                NoteBlock.Paragraph(
+                    listOf(
+                        NoteSpan("Composable 은 "),
+                        NoteSpan("상태를 직접 들지 않고", SpanStyle.Bold),
+                        NoteSpan(" 상위로 끌어올린다."),
+                    ),
+                ),
+                NoteBlock.Quote(listOf(NoteSpan("상태는 단방향으로 흐른다."))),
+                NoteBlock.BulletList(
+                    listOf(
+                        NoteListItem(listOf(NoteSpan("단순 UI 상태는 "), NoteSpan("remember", SpanStyle.Code))),
+                        NoteListItem(listOf(NoteSpan("복원이 필요하면 "), NoteSpan("rememberSaveable", SpanStyle.Code))),
+                    ),
+                ),
+                NoteBlock.Code("var text by rememberSaveable { mutableStateOf(\"\") }"),
             ),
-        ),
-        NoteBlock.Quote(listOf(NoteSpan("상태는 단방향으로 흐른다."))),
-        NoteBlock.BulletList(
-            listOf(
-                NoteListItem(listOf(NoteSpan("단순 UI 상태는 "), NoteSpan("remember", SpanStyle.Code))),
-                NoteListItem(listOf(NoteSpan("복원이 필요하면 "), NoteSpan("rememberSaveable", SpanStyle.Code))),
-            ),
-        ),
-        NoteBlock.Code("var text by rememberSaveable { mutableStateOf(\"\") }"),
-    ),
-)
+    )
 
 @Preview(name = "Reader", showBackground = true, widthDp = 400, heightDp = 720)
 @Composable

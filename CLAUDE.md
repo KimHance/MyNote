@@ -1,3 +1,4 @@
+| 포맷/린트 | `./gradlew ktlintFormat --continue` · `./gradlew ktlintCheck` · `./gradlew lintDebug` |
 # MyNote — Claude Code Instructions
 
 ## Language Rules
@@ -78,4 +79,6 @@ GitHub 의 JSON 노트를 읽어 "블로그 글처럼" 보는 **읽기 전용** 
 | 노트 index 재생성 | `python3 notes/gen_index.py` (노트 수정 후 — 스키마 검증 + hash) |
 
 > 깃 작업은 사용자가 직접 수행. **임의 커밋 금지**(요청 시에만). 커밋은 사용자 신원으로, AI 공동저자 푸터 없이.
+> pre-commit 훅(`.githooks/pre-commit`)이 **스테이징된 Kotlin 파일만** ktlint 검사하고, 노트를 건드렸으면 `index.json` 을 재생성한다.
+> 설치는 머신당 1회: `git config core.hooksPath .githooks`
 > 토큰은 `local.properties`(gitignore)에만 — debug 전용 내장, release 는 런타임 입력.

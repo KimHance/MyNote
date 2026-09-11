@@ -3,9 +3,9 @@ package com.hancekim.mynote.feature.notes
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Stable
 import com.hancekim.mynote.core.common.mvi.MviState
+import com.hancekim.mynote.core.designsystem.theme.MyNoteFontScale
 import com.hancekim.mynote.core.domain.model.Category
 import com.hancekim.mynote.core.domain.model.Note
-import com.hancekim.mynote.core.designsystem.theme.MyNoteFontScale
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentListOf

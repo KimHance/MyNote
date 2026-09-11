@@ -15,7 +15,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class DataModule {
-
     @Binds
     @Singleton
     abstract fun bindNotesRepository(impl: NotesRepositoryImpl): NotesRepository

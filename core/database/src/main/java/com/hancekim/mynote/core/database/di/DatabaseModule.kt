@@ -19,10 +19,11 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
-
     @Provides
     @Singleton
-    internal fun provideNotesDatabase(@ApplicationContext context: Context): NotesDatabase =
+    internal fun provideNotesDatabase(
+        @ApplicationContext context: Context,
+    ): NotesDatabase =
         Room.databaseBuilder(context, NotesDatabase::class.java, "notes.db").build()
 
     @Provides
@@ -33,7 +34,6 @@ object DatabaseModule {
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class DatabaseBindsModule {
-
     @Binds
     @Singleton
     abstract fun bindLocalNotesDataSource(impl: LocalNotesDataSourceImpl): LocalNotesDataSource

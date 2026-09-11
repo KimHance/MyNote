@@ -11,10 +11,13 @@ import androidx.compose.ui.unit.dp
 object MyNoteRadius {
     /** 카드 · 패널 */
     val card: Dp = 14.dp
+
     /** 리스트 · 코드블록 · 검색창 */
     val list: Dp = 10.dp
+
     /** 칩 · 트리 아이템 */
     val chip: Dp = 8.dp
+
     /** 인라인 코드 */
     val inlineCode: Dp = 5.dp
 }

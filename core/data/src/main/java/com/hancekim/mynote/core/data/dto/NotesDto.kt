@@ -25,27 +25,40 @@ data class NoteDto(
 sealed interface NoteBlockDto {
     @Serializable
     @SerialName("heading")
-    data class Heading(val level: Int, val spans: List<NoteSpanDto>) : NoteBlockDto
+    data class Heading(
+        val level: Int,
+        val spans: List<NoteSpanDto>,
+    ) : NoteBlockDto
 
     @Serializable
     @SerialName("paragraph")
-    data class Paragraph(val spans: List<NoteSpanDto>) : NoteBlockDto
+    data class Paragraph(
+        val spans: List<NoteSpanDto>,
+    ) : NoteBlockDto
 
     @Serializable
     @SerialName("code")
-    data class Code(val code: String) : NoteBlockDto
+    data class Code(
+        val code: String,
+    ) : NoteBlockDto
 
     @Serializable
     @SerialName("quote")
-    data class Quote(val spans: List<NoteSpanDto>) : NoteBlockDto
+    data class Quote(
+        val spans: List<NoteSpanDto>,
+    ) : NoteBlockDto
 
     @Serializable
     @SerialName("bulletList")
-    data class BulletList(val items: List<NoteListItemDto>) : NoteBlockDto
+    data class BulletList(
+        val items: List<NoteListItemDto>,
+    ) : NoteBlockDto
 
     @Serializable
     @SerialName("orderedList")
-    data class OrderedList(val items: List<NoteListItemDto>) : NoteBlockDto
+    data class OrderedList(
+        val items: List<NoteListItemDto>,
+    ) : NoteBlockDto
 
     /** 섹션 구분선(`---`). 필드 없음. */
     @Serializable
@@ -59,7 +72,9 @@ sealed interface NoteBlockDto {
 }
 
 @Serializable
-data class NoteListItemDto(val spans: List<NoteSpanDto>)
+data class NoteListItemDto(
+    val spans: List<NoteSpanDto>,
+)
 
 @Serializable
 data class NoteSpanDto(
@@ -90,8 +105,8 @@ data class IndexNoteDto(
     val id: String,
     val title: String,
     val date: String,
-    val path: String,   // 예: "notes/android/compose-state.json"
-    val hash: String,   // 데스크탑 write-note 도구가 생성, 앱은 비교만
+    val path: String, // 예: "notes/android/compose-state.json"
+    val hash: String, // 데스크탑 write-note 도구가 생성, 앱은 비교만
 )
 
 /**

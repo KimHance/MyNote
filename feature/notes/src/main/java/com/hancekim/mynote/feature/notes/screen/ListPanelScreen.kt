@@ -13,12 +13,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.hancekim.mynote.core.domain.model.Category
-import com.hancekim.mynote.core.domain.model.Note
 import com.hancekim.mynote.core.designsystem.component.CategoryRow
 import com.hancekim.mynote.core.designsystem.component.NoteRow
 import com.hancekim.mynote.core.designsystem.component.SearchField
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
+import com.hancekim.mynote.core.domain.model.Category
+import com.hancekim.mynote.core.domain.model.Note
 import com.hancekim.mynote.feature.notes.NotesIntent
 import com.hancekim.mynote.feature.notes.NotesUiState
 import kotlinx.collections.immutable.persistentListOf
@@ -35,10 +35,11 @@ fun ListPanelScreen(
 ) {
     val colors = MyNoteTheme.colors
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(colors.surface)
-            .padding(horizontal = 12.dp, vertical = 12.dp),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .background(colors.surface)
+                .padding(horizontal = 12.dp, vertical = 12.dp),
     ) {
         Text(
             text = "노트 ${uiState.totalCount}개",
@@ -85,19 +86,22 @@ fun ListPanelScreen(
     }
 }
 
-private val previewState = NotesUiState(
-    categories = persistentListOf(
-        Category("Android", listOf(Note("a", "Compose 상태 관리 정리", "2026.06.12", emptyList()))),
-        Category("Kotlin", listOf(Note("b", "코루틴 디스패처 메모", "2026.05.30", emptyList()))),
-    ),
-    visibleCategories = persistentListOf(
-        Category("Android", listOf(Note("a", "Compose 상태 관리 정리", "2026.06.12", emptyList()))),
-        Category("Kotlin", listOf(Note("b", "코루틴 디스패처 메모", "2026.05.30", emptyList()))),
-    ),
-    activeNoteId = "a",
-    expanded = persistentMapOf("Android" to true),
-    isLoading = false,
-)
+private val previewState =
+    NotesUiState(
+        categories =
+            persistentListOf(
+                Category("Android", listOf(Note("a", "Compose 상태 관리 정리", "2026.06.12", emptyList()))),
+                Category("Kotlin", listOf(Note("b", "코루틴 디스패처 메모", "2026.05.30", emptyList()))),
+            ),
+        visibleCategories =
+            persistentListOf(
+                Category("Android", listOf(Note("a", "Compose 상태 관리 정리", "2026.06.12", emptyList()))),
+                Category("Kotlin", listOf(Note("b", "코루틴 디스패처 메모", "2026.05.30", emptyList()))),
+            ),
+        activeNoteId = "a",
+        expanded = persistentMapOf("Android" to true),
+        isLoading = false,
+    )
 
 @Preview(name = "ListPanel", showBackground = true, backgroundColor = 0xFF161C24, widthDp = 300, heightDp = 520)
 @Composable

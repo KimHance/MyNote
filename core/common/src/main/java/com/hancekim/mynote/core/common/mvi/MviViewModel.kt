@@ -12,17 +12,17 @@ import kotlinx.coroutines.flow.stateIn
 import kotlin.time.Duration.Companion.seconds
 
 abstract class MviViewModel<S : MviState, E : MviEvent> : ViewModel() {
-
     private val triggers = mutableListOf<Flow<Any?>>()
 
     val state: StateFlow<S> by lazy {
         val initial = build()
-        triggers.merge()
+        triggers
+            .merge()
             .map { build() }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5.seconds.inWholeMilliseconds),
-                initialValue = initial
+                initialValue = initial,
             )
     }
 
@@ -36,11 +36,10 @@ abstract class MviViewModel<S : MviState, E : MviEvent> : ViewModel() {
     protected fun <T> Flow<T>.triggerIn(
         initial: T,
         started: SharingStarted = SharingStarted.WhileSubscribed(0),
-    ): StateFlow<T> = stateIn(
-        scope = viewModelScope,
-        started = started,
-        initialValue = initial
-    ).also { triggers += it }
+    ): StateFlow<T> =
+        stateIn(
+            scope = viewModelScope,
+            started = started,
+            initialValue = initial,
+        ).also { triggers += it }
 }
-
-

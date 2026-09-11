@@ -13,9 +13,18 @@ import javax.inject.Singleton
  * - [AppliedTokenSource.applied] : "적용된" 토큰 Flow → ViewModel 이 이걸 보고 sync(홀더와 같은 값이라 레이스 없음)
  */
 @Singleton
-class GithubTokenHolder @Inject constructor() : GithubTokenProvider, AppliedTokenSource {
-    private val state = MutableStateFlow<String?>(null)
-    override fun currentToken(): String? = state.value
-    override fun applied(): Flow<String?> = state.asStateFlow()
-    fun update(token: String?) { state.value = token?.ifBlank { null } }
-}
+class GithubTokenHolder
+    @Inject
+    constructor() :
+    GithubTokenProvider,
+        AppliedTokenSource {
+        private val state = MutableStateFlow<String?>(null)
+
+        override fun currentToken(): String? = state.value
+
+        override fun applied(): Flow<String?> = state.asStateFlow()
+
+        fun update(token: String?) {
+            state.value = token?.ifBlank { null }
+        }
+    }

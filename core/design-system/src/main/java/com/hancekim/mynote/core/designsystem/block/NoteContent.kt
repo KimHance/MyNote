@@ -49,29 +49,51 @@ fun NoteContent(
     ) {
         blocks.forEach { block ->
             when (block) {
-                is NoteContentBlock.Heading -> Text(
-                    text = block.spans.toAnnotatedString(),
-                    style = if (block.level <= 2) {
-                        MyNoteTheme.textStyles.mdHeading2
-                    } else {
-                        MyNoteTheme.textStyles.mdHeading3
-                    },
-                    color = MyNoteTheme.colors.text,
-                )
+                is NoteContentBlock.Heading -> {
+                    Text(
+                        text = block.spans.toAnnotatedString(),
+                        style =
+                            if (block.level <= 2) {
+                                MyNoteTheme.textStyles.mdHeading2
+                            } else {
+                                MyNoteTheme.textStyles.mdHeading3
+                            },
+                        color = MyNoteTheme.colors.text,
+                    )
+                }
 
-                is NoteContentBlock.Paragraph -> Text(
-                    text = block.spans.toAnnotatedString(),
-                    style = MyNoteTheme.textStyles.body,
-                    color = MyNoteTheme.colors.bodyText,
-                )
+                is NoteContentBlock.Paragraph -> {
+                    Text(
+                        text = block.spans.toAnnotatedString(),
+                        style = MyNoteTheme.textStyles.body,
+                        color = MyNoteTheme.colors.bodyText,
+                    )
+                }
 
-                is NoteContentBlock.Code -> CodeBlock(block.code)
-                is NoteContentBlock.Quote -> QuoteBlock(block.spans)
-                is NoteContentBlock.BulletList -> ListBlock(block.items, ordered = false)
-                is NoteContentBlock.OrderedList -> ListBlock(block.items, ordered = true)
-                NoteContentBlock.Divider -> DividerBlock()
+                is NoteContentBlock.Code -> {
+                    CodeBlock(block.code)
+                }
+
+                is NoteContentBlock.Quote -> {
+                    QuoteBlock(block.spans)
+                }
+
+                is NoteContentBlock.BulletList -> {
+                    ListBlock(block.items, ordered = false)
+                }
+
+                is NoteContentBlock.OrderedList -> {
+                    ListBlock(block.items, ordered = true)
+                }
+
+                NoteContentBlock.Divider -> {
+                    DividerBlock()
+                }
+
                 // 단순 줄바꿈: Column 의 기본 간격(12dp)에 더해 한 줄 여백을 준다.
-                NoteContentBlock.Spacer -> Spacer(Modifier.height(8.dp))
+                NoteContentBlock.Spacer -> {
+                    Spacer(Modifier.height(8.dp))
+                }
             }
         }
     }
@@ -83,13 +105,14 @@ private fun CodeBlock(code: String) {
         text = code,
         style = MyNoteTheme.textStyles.mono,
         color = MyNoteTheme.colors.text,
-        modifier = Modifier
-            .fillMaxWidth()
-            // clip 을 먼저 걸어 영역 자체를 둥글게 자른다(가로 스크롤 코드가 모서리 밖으로 안 삐져나가게).
-            .clip(RoundedCornerShape(MyNoteRadius.list))
-            .background(MyNoteTheme.colors.surface2)
-            .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 14.dp, vertical = 12.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                // clip 을 먼저 걸어 영역 자체를 둥글게 자른다(가로 스크롤 코드가 모서리 밖으로 안 삐져나가게).
+                .clip(RoundedCornerShape(MyNoteRadius.list))
+                .background(MyNoteTheme.colors.surface2)
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 14.dp, vertical = 12.dp),
         softWrap = false,
     )
 }
@@ -101,11 +124,12 @@ private fun QuoteBlock(spans: ImmutableList<NoteContentSpan>) {
         text = spans.toAnnotatedString(),
         style = MyNoteTheme.textStyles.body.copy(fontStyle = FontStyle.Italic),
         color = MyNoteTheme.colors.text2,
-        modifier = Modifier
-            .fillMaxWidth()
-            // 왼쪽 3dp accent 세로선을 텍스트 전체 높이에 직접 그린다(빈 Column 대신 drawBehind).
-            .drawBehind { drawRect(color = accent, size = Size(3.dp.toPx(), size.height)) }
-            .padding(start = 12.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                // 왼쪽 3dp accent 세로선을 텍스트 전체 높이에 직접 그린다(빈 Column 대신 drawBehind).
+                .drawBehind { drawRect(color = accent, size = Size(3.dp.toPx(), size.height)) }
+                .padding(start = 12.dp),
     )
 }
 
@@ -114,10 +138,11 @@ private fun QuoteBlock(spans: ImmutableList<NoteContentSpan>) {
 private fun DividerBlock() {
     val color = MyNoteTheme.colors.border
     Canvas(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp) // 위아래 살짝 패딩
-            .height(1.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp) // 위아래 살짝 패딩
+                .height(1.dp),
     ) {
         drawLine(
             color = color,
@@ -155,48 +180,56 @@ private fun ImmutableList<NoteContentSpan>.toAnnotatedString(): AnnotatedString 
     return buildAnnotatedString {
         this@toAnnotatedString.forEach { span ->
             when (span.style) {
-                NoteSpanStyle.Normal -> append(span.text)
-                NoteSpanStyle.Bold -> withStyle(
-                    SpanStyle(fontWeight = FontWeight.W700, color = colors.text),
-                ) { append(span.text) }
+                NoteSpanStyle.Normal -> {
+                    append(span.text)
+                }
 
-                NoteSpanStyle.Code -> withStyle(
-                    SpanStyle(
-                        fontFamily = FontFamily.Monospace,
-                        background = colors.surface2,
-                        color = colors.accent,
-                        baselineShift = BaselineShift(0.08f),
-                    ),
-                ) { append(" ${span.text} ") }
+                NoteSpanStyle.Bold -> {
+                    withStyle(
+                        SpanStyle(fontWeight = FontWeight.W700, color = colors.text),
+                    ) { append(span.text) }
+                }
+
+                NoteSpanStyle.Code -> {
+                    withStyle(
+                        SpanStyle(
+                            fontFamily = FontFamily.Monospace,
+                            background = colors.surface2,
+                            color = colors.accent,
+                            baselineShift = BaselineShift(0.08f),
+                        ),
+                    ) { append(" ${span.text} ") }
+                }
             }
         }
     }
 }
 
-private val previewBlocks: ImmutableList<NoteContentBlock> = persistentListOf(
-    NoteContentBlock.Heading(2, persistentListOf(NoteContentSpan("섹션 제목", NoteSpanStyle.Normal))),
-    NoteContentBlock.Paragraph(
-        persistentListOf(
-            NoteContentSpan("일반 텍스트와 ", NoteSpanStyle.Normal),
-            NoteContentSpan("굵게", NoteSpanStyle.Bold),
-            NoteContentSpan(" 그리고 ", NoteSpanStyle.Normal),
-            NoteContentSpan("code", NoteSpanStyle.Code),
-            NoteContentSpan(" 가 섞인 단락.", NoteSpanStyle.Normal),
+private val previewBlocks: ImmutableList<NoteContentBlock> =
+    persistentListOf(
+        NoteContentBlock.Heading(2, persistentListOf(NoteContentSpan("섹션 제목", NoteSpanStyle.Normal))),
+        NoteContentBlock.Paragraph(
+            persistentListOf(
+                NoteContentSpan("일반 텍스트와 ", NoteSpanStyle.Normal),
+                NoteContentSpan("굵게", NoteSpanStyle.Bold),
+                NoteContentSpan(" 그리고 ", NoteSpanStyle.Normal),
+                NoteContentSpan("code", NoteSpanStyle.Code),
+                NoteContentSpan(" 가 섞인 단락.", NoteSpanStyle.Normal),
+            ),
         ),
-    ),
-    NoteContentBlock.Quote(persistentListOf(NoteContentSpan("인용 한 줄", NoteSpanStyle.Normal))),
-    NoteContentBlock.Spacer,
-    NoteContentBlock.Paragraph(persistentListOf(NoteContentSpan("spacer 로 한 줄 띄운 단락.", NoteSpanStyle.Normal))),
-    NoteContentBlock.Divider,
-    NoteContentBlock.Heading(3, persistentListOf(NoteContentSpan("divider 아래 새 섹션", NoteSpanStyle.Normal))),
-    NoteContentBlock.BulletList(
-        persistentListOf(
-            persistentListOf(NoteContentSpan("첫째", NoteSpanStyle.Normal)),
-            persistentListOf(NoteContentSpan("둘째", NoteSpanStyle.Normal)),
+        NoteContentBlock.Quote(persistentListOf(NoteContentSpan("인용 한 줄", NoteSpanStyle.Normal))),
+        NoteContentBlock.Spacer,
+        NoteContentBlock.Paragraph(persistentListOf(NoteContentSpan("spacer 로 한 줄 띄운 단락.", NoteSpanStyle.Normal))),
+        NoteContentBlock.Divider,
+        NoteContentBlock.Heading(3, persistentListOf(NoteContentSpan("divider 아래 새 섹션", NoteSpanStyle.Normal))),
+        NoteContentBlock.BulletList(
+            persistentListOf(
+                persistentListOf(NoteContentSpan("첫째", NoteSpanStyle.Normal)),
+                persistentListOf(NoteContentSpan("둘째", NoteSpanStyle.Normal)),
+            ),
         ),
-    ),
-    NoteContentBlock.Code("val x = 1"),
-)
+        NoteContentBlock.Code("val x = 1"),
+    )
 
 @Preview(showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 360)
 @Composable
@@ -204,9 +237,10 @@ private fun NoteContentPreview() {
     MyNoteTheme {
         NoteContent(
             blocks = previewBlocks,
-            modifier = Modifier
-                .background(MyNoteTheme.colors.bg)
-                .padding(16.dp),
+            modifier =
+                Modifier
+                    .background(MyNoteTheme.colors.bg)
+                    .padding(16.dp),
         )
     }
 }

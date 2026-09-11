@@ -1,11 +1,12 @@
 #!/bin/sh
-# notes/<group>/<id>.json 이 스테이징되면 index.json 을 재생성해 같은 커밋에 포함한다(원자적).
-# gen_index.py 가 스키마 검증도 수행 → 깨진 노트면 커밋이 중단된다(로컬·즉시).
-# 역할 분담: 노트 작성/커밋은 write-note 스킬(LLM), index.json+hash 재생성은 이 훅(토큰 0).
+# 커밋 직전 두 가지를 한다.
+#   1) 노트를 건드렸으면 index.json 재생성 (결정적 변환은 LLM 이 아니라 훅이 한다)
+#   2) 스테이징된 Kotlin 파일만 ktlint 검사
 #
 # 설치(머신당 1회):  git config core.hooksPath .githooks
 
-# 노트 파일(그룹/파일 2단계)이 스테이징됐을 때만 동작. index.json(notes/index.json) 자체 변경은 트리거 아님.
+# --- 1) notes/<group>/<id>.json 이 스테이징되면 index.json 을 재생성해 같은 커밋에 포함한다(원자적).
+# gen_index.py 가 스키마 검증도 수행 → 깨진 노트면 커밋이 중단된다(로컬·즉시).
 if git diff --cached --name-only --diff-filter=ACMRD | grep -Eq '^notes/[^/]+/[^/]+\.json$'; then
     if ! python3 notes/gen_index.py; then
         echo "✗ 노트 스키마 검증 실패 — 커밋 중단. 위 오류를 고친 뒤 다시 커밋하세요." >&2
@@ -13,6 +14,25 @@ if git diff --cached --name-only --diff-filter=ACMRD | grep -Eq '^notes/[^/]+/[^
     fi
     # 재생성된 index.json 을 이번 커밋에 포함(내용 동일하면 no-op)
     git add notes/index.json
+fi
+
+# --- 2) 스테이징된 Kotlin 파일만 ktlint(+ compose-rules) 검사.
+# ktlint-gradle 의 -PinternalKtlintGitFilter 는 개행으로 구분된 경로 목록만 검사한다.
+# 주의: 디스크 내용을 읽으므로, stage 이후 수정한 내용이 있으면 그 상태로 검사된다.
+KT_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.kts?$')
+if [ -n "$KT_FILES" ]; then
+    COUNT=$(printf '%s\n' "$KT_FILES" | wc -l | tr -d ' ')
+    echo "ktlint: 스테이징된 Kotlin 파일 ${COUNT}개 검사 중…"
+    OUT=$(./gradlew ktlintCheck --continue --console=plain -PinternalKtlintGitFilter="$KT_FILES" 2>&1)
+    if [ $? -ne 0 ]; then
+        # Gradle 태스크 나열은 버리고 위반 줄만 상대경로로 보여준다.
+        printf '%s\n' "$OUT" | grep -E '^/.*\.kts?:[0-9]+:[0-9]+ ' | sed "s|^$(pwd)/||" >&2
+        echo "" >&2
+        echo "✗ ktlint 위반 — 커밋 중단." >&2
+        echo "  './gradlew ktlintFormat' 으로 자동 교정한 뒤 다시 stage 하세요." >&2
+        echo "  (자동 교정이 안 되는 규칙이면 직접 고쳐야 합니다)" >&2
+        exit 1
+    fi
 fi
 
 exit 0

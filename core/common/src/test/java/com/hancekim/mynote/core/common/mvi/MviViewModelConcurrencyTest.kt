@@ -22,7 +22,10 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.CoroutineContext
 
-private data class RaceState(val a: Int, val b: Int) : MviState
+private data class RaceState(
+    val a: Int,
+    val b: Int,
+) : MviState
 
 private sealed interface RaceIntent : MviEvent
 
@@ -55,8 +58,12 @@ private class AndroidLikeMain : CoroutineDispatcher() {
     @Volatile
     private var alive = true
 
-    val thread = Thread({ while (alive) queue.take().run() }, "fake-main")
-        .apply { isDaemon = true; start() }
+    val thread =
+        Thread({ while (alive) queue.take().run() }, "fake-main")
+            .apply {
+                isDaemon = true
+                start()
+            }
 
     override fun isDispatchNeeded(context: CoroutineContext) = Thread.currentThread() !== thread
 
@@ -64,7 +71,15 @@ private class AndroidLikeMain : CoroutineDispatcher() {
 
     fun runOnMain(block: () -> Unit) {
         val done = CountDownLatch(1)
-        queue.put(Runnable { try { block() } finally { done.countDown() } })
+        queue.put(
+            Runnable {
+                try {
+                    block()
+                } finally {
+                    done.countDown()
+                }
+            },
+        )
         done.await()
     }
 
@@ -78,21 +93,29 @@ private class AndroidLikeMain : CoroutineDispatcher() {
 private fun hammer(totalOps: Int, threads: Int, op: (Int) -> Unit): Int {
     val per = totalOps / threads
     val barrier = CyclicBarrier(threads)
-    val workers = List(threads) { t -> Thread { barrier.await(); repeat(per) { op(t) } } }
+    val workers =
+        List(threads) { t ->
+            Thread {
+                barrier.await()
+                repeat(per) { op(t) }
+            }
+        }
     workers.forEach { it.start() }
     workers.forEach { it.join() }
     return per * threads
 }
 
 private suspend fun awaitUntil(timeoutMs: Long = 10_000, cond: () -> Boolean): Boolean =
-    withTimeoutOrNull(timeoutMs) { while (!cond()) delay(2); true } ?: false
+    withTimeoutOrNull(timeoutMs) {
+        while (!cond()) delay(2)
+        true
+    } ?: false
 
 private val CORES = Runtime.getRuntime().availableProcessors()
 private const val OPS = 50_000
 
 /** 가상시간이 아니라 실제 스레드로 때린다. Main = [Dispatchers.Default] 라 항상 디스패치된다. */
 class MviViewModelConcurrencyTest {
-
     private val threads = CORES * 4
 
     @Before
@@ -113,23 +136,23 @@ class MviViewModelConcurrencyTest {
     }
 
     @Test
-    fun `여러 스레드가 동시에 갱신해도 최종 상태가 정확하고 build 는 겹치지 않는다`() = runBlocking {
-        val vm = RaceViewModel()
-        val job = launch(Dispatchers.Default) { vm.state.collect {} }
-        awaitUntil { vm.builds.get() >= 1 }
+    fun `여러 스레드가 동시에 갱신해도 최종 상태가 정확하고 build 는 겹치지 않는다`() =
+        runBlocking {
+            val vm = RaceViewModel()
+            val job = launch(Dispatchers.Default) { vm.state.collect {} }
+            awaitUntil { vm.builds.get() >= 1 }
 
-        val n = hammer(OPS, threads) { t -> if (t % 2 == 0) vm.a.update { it + 1 } else vm.b.update { it + 1 } }
+            val n = hammer(OPS, threads) { t -> if (t % 2 == 0) vm.a.update { it + 1 } else vm.b.update { it + 1 } }
 
-        assertTrue("최종 상태 불일치: ${vm.state.value}", awaitUntil { vm.state.value == RaceState(n / 2, n / 2) })
-        assertEquals(1, vm.maxInFlight.get())
-        job.cancel()
-    }
+            assertTrue("최종 상태 불일치: ${vm.state.value}", awaitUntil { vm.state.value == RaceState(n / 2, n / 2) })
+            assertEquals(1, vm.maxInFlight.get())
+            job.cancel()
+        }
 }
 
 /** Main = 안드로이드 유사(단일 스레드 + immediate 인라인) — 실제 ViewModel 이 도는 조건. */
 @OptIn(ExperimentalCoroutinesApi::class)
 class MviViewModelMainImmediateConcurrencyTest {
-
     private lateinit var main: AndroidLikeMain
 
     @Before
@@ -145,31 +168,33 @@ class MviViewModelMainImmediateConcurrencyTest {
     }
 
     @Test
-    fun `메인에서 폭주 입력해도 build 는 재진입되지 않는다`() = runBlocking {
-        val vm = RaceViewModel()
-        val job = launch(main) { vm.state.collect {} }
-        awaitUntil { vm.builds.get() >= 1 }
+    fun `메인에서 폭주 입력해도 build 는 재진입되지 않는다`() =
+        runBlocking {
+            val vm = RaceViewModel()
+            val job = launch(main) { vm.state.collect {} }
+            awaitUntil { vm.builds.get() >= 1 }
 
-        // immediate 라 수집기가 같은 콜스택에서 인라인으로 깨어나는 경로.
-        main.runOnMain { repeat(OPS) { vm.a.update { v -> v + 1 } } }
+            // immediate 라 수집기가 같은 콜스택에서 인라인으로 깨어나는 경로.
+            main.runOnMain { repeat(OPS) { vm.a.update { v -> v + 1 } } }
 
-        assertTrue(awaitUntil { vm.state.value.a == OPS })
-        assertEquals(1, vm.maxInFlight.get())
-        job.cancel()
-    }
+            assertTrue(awaitUntil { vm.state.value.a == OPS })
+            assertEquals(1, vm.maxInFlight.get())
+            job.cancel()
+        }
 
     @Test
-    fun `메인 입력과 백그라운드 스트림이 동시에 들어와도 최종 상태가 정확하다`() = runBlocking {
-        val vm = RaceViewModel()
-        val job = launch(main) { vm.state.collect {} }
-        awaitUntil { vm.builds.get() >= 1 }
+    fun `메인 입력과 백그라운드 스트림이 동시에 들어와도 최종 상태가 정확하다`() =
+        runBlocking {
+            val vm = RaceViewModel()
+            val job = launch(main) { vm.state.collect {} }
+            awaitUntil { vm.builds.get() >= 1 }
 
-        val bg = Thread { repeat(OPS) { vm.b.update { v -> v + 1 } } }.apply { start() }
-        main.runOnMain { repeat(OPS) { vm.a.update { v -> v + 1 } } }
-        bg.join()
+            val bg = Thread { repeat(OPS) { vm.b.update { v -> v + 1 } } }.apply { start() }
+            main.runOnMain { repeat(OPS) { vm.a.update { v -> v + 1 } } }
+            bg.join()
 
-        assertTrue("최종 상태 불일치: ${vm.state.value}", awaitUntil { vm.state.value == RaceState(OPS, OPS) })
-        assertEquals(1, vm.maxInFlight.get())
-        job.cancel()
-    }
+            assertTrue("최종 상태 불일치: ${vm.state.value}", awaitUntil { vm.state.value == RaceState(OPS, OPS) })
+            assertEquals(1, vm.maxInFlight.get())
+            job.cancel()
+        }
 }

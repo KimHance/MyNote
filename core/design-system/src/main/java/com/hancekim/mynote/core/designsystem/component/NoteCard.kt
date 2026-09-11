@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
@@ -40,13 +40,14 @@ fun NoteCard(
 ) {
     val colors = MyNoteTheme.colors
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(MyNoteRadius.card))
-            .background(if (active) colors.surface2 else colors.surface)
-            .border(1.dp, colors.border, RoundedCornerShape(MyNoteRadius.card))
-            .clickable(onClick = onClick, role = Role.Button)
-            .padding(horizontal = 16.dp, vertical = 15.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(MyNoteRadius.card))
+                .background(if (active) colors.surface2 else colors.surface)
+                .border(1.dp, colors.border, RoundedCornerShape(MyNoteRadius.card))
+                .clickable(onClick = onClick, role = Role.Button)
+                .padding(horizontal = 16.dp, vertical = 15.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -61,13 +62,16 @@ fun NoteCard(
     }
 }
 
-private data class NoteCardPreviewState(val active: Boolean)
+private data class NoteCardPreviewState(
+    val active: Boolean,
+)
 
 private class NoteCardPreviewProvider : PreviewParameterProvider<NoteCardPreviewState> {
-    override val values = sequenceOf(
-        NoteCardPreviewState(active = false),
-        NoteCardPreviewState(active = true),
-    )
+    override val values =
+        sequenceOf(
+            NoteCardPreviewState(active = false),
+            NoteCardPreviewState(active = true),
+        )
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 320)

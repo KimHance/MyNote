@@ -7,19 +7,19 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class NoteDtoSerializationTest {
-
     private val json = Json { ignoreUnknownKeys = true }
 
     @Test
     fun `블록 배열을 type discriminator 로 polymorphic 역직렬화한다`() {
-        val text = """
+        val text =
+            """
             [
               {"type":"heading","level":2,"spans":[{"text":"제목"}]},
               {"type":"paragraph","spans":[{"text":"본문 "},{"text":"굵게","style":"bold"}]},
               {"type":"code","code":"val x = 1"},
               {"type":"bulletList","items":[{"spans":[{"text":"a"}]}]}
             ]
-        """.trimIndent()
+            """.trimIndent()
 
         val blocks = json.decodeFromString<List<NoteBlockDto>>(text)
 

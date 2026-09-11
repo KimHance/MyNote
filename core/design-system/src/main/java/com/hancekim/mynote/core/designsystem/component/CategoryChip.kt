@@ -22,10 +22,11 @@ fun CategoryChip(
         text = text,
         style = MyNoteTheme.textStyles.caption,
         color = MyNoteTheme.colors.accent,
-        modifier = modifier
-            .background(MyNoteTheme.colors.accentSoft, RoundedCornerShape(MyNoteRadius.chip))
-            .border(1.dp, MyNoteTheme.colors.accentSoftBorder, RoundedCornerShape(MyNoteRadius.chip))
-            .padding(horizontal = 8.dp, vertical = 3.dp),
+        modifier =
+            modifier
+                .background(MyNoteTheme.colors.accentSoft, RoundedCornerShape(MyNoteRadius.chip))
+                .border(1.dp, MyNoteTheme.colors.accentSoftBorder, RoundedCornerShape(MyNoteRadius.chip))
+                .padding(horizontal = 8.dp, vertical = 3.dp),
     )
 }
 
@@ -35,7 +36,9 @@ private fun CategoryChipPreview() {
     MyNoteTheme {
         androidx.compose.foundation.layout.Row(
             modifier = Modifier.padding(12.dp),
-            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+            horizontalArrangement =
+                androidx.compose.foundation.layout.Arrangement
+                    .spacedBy(8.dp),
         ) {
             CategoryChip("Android")
             CategoryChip("Kotlin")

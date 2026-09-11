@@ -8,7 +8,9 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 
 /** 본문 폰트 스케일 토글(본문 계열 size 만 영향). */
-enum class MyNoteFontScale(val bodySizeSp: Float) {
+enum class MyNoteFontScale(
+    val bodySizeSp: Float,
+) {
     Normal(16f),
     Large(18f),
 }
@@ -43,63 +45,74 @@ data class MyNoteTextStyles(
 )
 
 /** [MyNoteFontScale] 의 본문 크기를 기준으로 타이포 세트를 생성. */
-fun myNoteTextStyles(bodySizeSp: Float): MyNoteTextStyles = MyNoteTextStyles(
-    noteTitle = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontSize = 28.sp,
-        fontWeight = FontWeight.W700,
-        letterSpacing = (-0.015).em,
-        lineHeight = (28 * 1.25f).sp,
-    ),
-    sectionTitle = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontSize = 21.sp,
-        fontWeight = FontWeight.W700,
-        letterSpacing = (-0.01).em,
-    ),
-    overline = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontSize = 12.sp,
-        fontWeight = FontWeight.W600,
-        letterSpacing = 0.08.em,
-    ),
-    cardTitle = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontSize = 16.sp,
-        fontWeight = FontWeight.W500,
-        lineHeight = 22.sp,
-    ),
-    treeLabel = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontSize = 14.sp,
-        fontWeight = FontWeight.W500,
-    ),
-    caption = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontSize = 13.sp,
-        fontWeight = FontWeight.W400,
-    ),
-    mdHeading2 = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontSize = (bodySizeSp + 5).sp,
-        fontWeight = FontWeight.W700,
-        letterSpacing = (-0.01).em,
-    ),
-    mdHeading3 = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontSize = (bodySizeSp + 1).sp,
-        fontWeight = FontWeight.W600,
-    ),
-    body = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontSize = bodySizeSp.sp,
-        fontWeight = FontWeight.W400,
-        lineHeight = (bodySizeSp * 1.78f).sp,
-    ),
-    mono = TextStyle(
-        fontFamily = FontFamily.Monospace,
-        fontSize = 13.sp,
-        fontWeight = FontWeight.W400,
-        lineHeight = (13 * 1.65f).sp,
-    ),
-)
+fun myNoteTextStyles(bodySizeSp: Float): MyNoteTextStyles =
+    MyNoteTextStyles(
+        noteTitle =
+            TextStyle(
+                fontFamily = FontFamily.Default,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.W700,
+                letterSpacing = (-0.015).em,
+                lineHeight = (28 * 1.25f).sp,
+            ),
+        sectionTitle =
+            TextStyle(
+                fontFamily = FontFamily.Default,
+                fontSize = 21.sp,
+                fontWeight = FontWeight.W700,
+                letterSpacing = (-0.01).em,
+            ),
+        overline =
+            TextStyle(
+                fontFamily = FontFamily.Default,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.W600,
+                letterSpacing = 0.08.em,
+            ),
+        cardTitle =
+            TextStyle(
+                fontFamily = FontFamily.Default,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.W500,
+                lineHeight = 22.sp,
+            ),
+        treeLabel =
+            TextStyle(
+                fontFamily = FontFamily.Default,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.W500,
+            ),
+        caption =
+            TextStyle(
+                fontFamily = FontFamily.Default,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.W400,
+            ),
+        mdHeading2 =
+            TextStyle(
+                fontFamily = FontFamily.Default,
+                fontSize = (bodySizeSp + 5).sp,
+                fontWeight = FontWeight.W700,
+                letterSpacing = (-0.01).em,
+            ),
+        mdHeading3 =
+            TextStyle(
+                fontFamily = FontFamily.Default,
+                fontSize = (bodySizeSp + 1).sp,
+                fontWeight = FontWeight.W600,
+            ),
+        body =
+            TextStyle(
+                fontFamily = FontFamily.Default,
+                fontSize = bodySizeSp.sp,
+                fontWeight = FontWeight.W400,
+                lineHeight = (bodySizeSp * 1.78f).sp,
+            ),
+        mono =
+            TextStyle(
+                fontFamily = FontFamily.Monospace,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.W400,
+                lineHeight = (13 * 1.65f).sp,
+            ),
+    )

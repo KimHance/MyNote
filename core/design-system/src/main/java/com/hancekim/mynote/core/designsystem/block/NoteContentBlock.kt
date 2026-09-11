@@ -13,24 +13,38 @@ import kotlinx.collections.immutable.ImmutableList
 @Immutable
 sealed interface NoteContentBlock {
     @Immutable
-    data class Heading(val level: Int, val spans: ImmutableList<NoteContentSpan>) : NoteContentBlock
+    data class Heading(
+        val level: Int,
+        val spans: ImmutableList<NoteContentSpan>,
+    ) : NoteContentBlock
 
     @Immutable
-    data class Paragraph(val spans: ImmutableList<NoteContentSpan>) : NoteContentBlock
+    data class Paragraph(
+        val spans: ImmutableList<NoteContentSpan>,
+    ) : NoteContentBlock
 
     @Immutable
-    data class Code(val code: String) : NoteContentBlock
+    data class Code(
+        val code: String,
+    ) : NoteContentBlock
 
     @Immutable
-    data class Quote(val spans: ImmutableList<NoteContentSpan>) : NoteContentBlock
+    data class Quote(
+        val spans: ImmutableList<NoteContentSpan>,
+    ) : NoteContentBlock
 
     @Immutable
-    data class BulletList(val items: ImmutableList<ImmutableList<NoteContentSpan>>) : NoteContentBlock
+    data class BulletList(
+        val items: ImmutableList<ImmutableList<NoteContentSpan>>,
+    ) : NoteContentBlock
 
     @Immutable
-    data class OrderedList(val items: ImmutableList<ImmutableList<NoteContentSpan>>) : NoteContentBlock
+    data class OrderedList(
+        val items: ImmutableList<ImmutableList<NoteContentSpan>>,
+    ) : NoteContentBlock
 
     // object 는 본래 stable 이라 @Immutable 을 붙이지 않는다.
+
     /** 섹션 구분선(`---`). 필드 없음. */
     data object Divider : NoteContentBlock
 

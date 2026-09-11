@@ -3,7 +3,6 @@ package com.hancekim.mynote.core.designsystem.component
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
@@ -36,10 +36,11 @@ fun CategoryRow(
     val colors = MyNoteTheme.colors
     val caretRotation by animateFloatAsState(if (expanded) 90f else 0f, label = "caret")
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick, role = Role.Button)
-            .padding(horizontal = 8.dp, vertical = 10.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick, role = Role.Button)
+                .padding(horizontal = 8.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
@@ -54,9 +55,10 @@ fun CategoryRow(
             text = name,
             style = MyNoteTheme.textStyles.treeLabel,
             color = colors.text,
-            modifier = Modifier
-                .weight(1f)
-                .padding(start = 8.dp),
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .padding(start = 8.dp),
         )
         Text(
             text = count.toString(),
@@ -66,13 +68,16 @@ fun CategoryRow(
     }
 }
 
-private data class CategoryRowPreviewState(val expanded: Boolean)
+private data class CategoryRowPreviewState(
+    val expanded: Boolean,
+)
 
 private class CategoryRowPreviewProvider : PreviewParameterProvider<CategoryRowPreviewState> {
-    override val values = sequenceOf(
-        CategoryRowPreviewState(expanded = false),
-        CategoryRowPreviewState(expanded = true),
-    )
+    override val values =
+        sequenceOf(
+            CategoryRowPreviewState(expanded = false),
+            CategoryRowPreviewState(expanded = true),
+        )
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF161C24, widthDp = 280)

@@ -14,25 +14,27 @@ fun CategoryDto.toDomain(): Category = Category(name = name, notes = notes.map {
 
 fun NoteDto.toDomain(): Note = Note(id = id, title = title, date = date, blocks = blocks.map { it.toDomain() })
 
-fun NoteBlockDto.toDomain(): NoteBlock = when (this) {
-    is NoteBlockDto.Heading -> NoteBlock.Heading(level, spans.toDomainSpans())
-    is NoteBlockDto.Paragraph -> NoteBlock.Paragraph(spans.toDomainSpans())
-    is NoteBlockDto.Code -> NoteBlock.Code(code)
-    is NoteBlockDto.Quote -> NoteBlock.Quote(spans.toDomainSpans())
-    is NoteBlockDto.BulletList -> NoteBlock.BulletList(items.map { NoteListItem(it.spans.toDomainSpans()) })
-    is NoteBlockDto.OrderedList -> NoteBlock.OrderedList(items.map { NoteListItem(it.spans.toDomainSpans()) })
-    NoteBlockDto.Divider -> NoteBlock.Divider
-    NoteBlockDto.Spacer -> NoteBlock.Spacer
-}
+fun NoteBlockDto.toDomain(): NoteBlock =
+    when (this) {
+        is NoteBlockDto.Heading -> NoteBlock.Heading(level, spans.toDomainSpans())
+        is NoteBlockDto.Paragraph -> NoteBlock.Paragraph(spans.toDomainSpans())
+        is NoteBlockDto.Code -> NoteBlock.Code(code)
+        is NoteBlockDto.Quote -> NoteBlock.Quote(spans.toDomainSpans())
+        is NoteBlockDto.BulletList -> NoteBlock.BulletList(items.map { NoteListItem(it.spans.toDomainSpans()) })
+        is NoteBlockDto.OrderedList -> NoteBlock.OrderedList(items.map { NoteListItem(it.spans.toDomainSpans()) })
+        NoteBlockDto.Divider -> NoteBlock.Divider
+        NoteBlockDto.Spacer -> NoteBlock.Spacer
+    }
 
 private fun List<NoteSpanDto>.toDomainSpans(): List<NoteSpan> =
     map { NoteSpan(it.text, it.style.toDomain()) }
 
-private fun SpanStyleDto.toDomain(): SpanStyle = when (this) {
-    SpanStyleDto.TEXT -> SpanStyle.Text
-    SpanStyleDto.BOLD -> SpanStyle.Bold
-    SpanStyleDto.CODE -> SpanStyle.Code
-}
+private fun SpanStyleDto.toDomain(): SpanStyle =
+    when (this) {
+        SpanStyleDto.TEXT -> SpanStyle.Text
+        SpanStyleDto.BOLD -> SpanStyle.Bold
+        SpanStyleDto.CODE -> SpanStyle.Code
+    }
 
 /** 캐시 목록 → 카테고리. 파싱 실패(손상/미지 타입) 노트는 조용히 제외(전체 목록 보호). */
 fun List<CachedNote>.toCategories(json: Json): List<Category> =

@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.Flow
 /** 관찰은 Flow, 변경은 suspend. */
 @Dao
 internal interface NoteDao {
-
     @Query("SELECT * FROM notes ORDER BY date DESC")
     fun observeNotes(): Flow<List<NoteEntity>>
 

@@ -36,18 +36,19 @@ data class MyNoteColors(
 )
 
 /** 핸드오프에 정의된 유일한(다크) 팔레트. */
-val StudyNotesDarkColors: MyNoteColors = MyNoteColors(
-    bg = Color(0xFF0E1217),
-    surface = Color(0xFF161C24),
-    surface2 = Color(0xFF1B232D),
-    border = Color(0xFF283039),
-    accent = Color(0xFF6EA8FE),
-    // rgba(110,168,254,0.14) → alpha ≈ 0x24
-    accentSoft = Color(0x246EA8FE),
-    // rgba(110,168,254,0.26) → alpha ≈ 0x42
-    accentSoftBorder = Color(0x426EA8FE),
-    text = Color(0xFFE6EDF3),
-    text2 = Color(0xFF9AA7B4),
-    text3 = Color(0xFF687585),
-    bodyText = Color(0xFFC8D2DC),
-)
+val StudyNotesDarkColors: MyNoteColors =
+    MyNoteColors(
+        bg = Color(0xFF0E1217),
+        surface = Color(0xFF161C24),
+        surface2 = Color(0xFF1B232D),
+        border = Color(0xFF283039),
+        accent = Color(0xFF6EA8FE),
+        // rgba(110,168,254,0.14) → alpha ≈ 0x24
+        accentSoft = Color(0x246EA8FE),
+        // rgba(110,168,254,0.26) → alpha ≈ 0x42
+        accentSoftBorder = Color(0x426EA8FE),
+        text = Color(0xFFE6EDF3),
+        text2 = Color(0xFF9AA7B4),
+        text3 = Color(0xFF687585),
+        bodyText = Color(0xFFC8D2DC),
+    )

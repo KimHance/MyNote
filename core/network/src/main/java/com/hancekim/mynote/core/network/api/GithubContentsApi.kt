@@ -16,7 +16,6 @@ import retrofit2.http.Query
  * path 도 동적(index = 고정 "notes/index.json", 노트 = index 가 준 path).
  */
 interface GithubContentsApi {
-
     @GET("repos/{owner}/{repo}/contents/notes/index.json")
     @Headers("Accept: application/vnd.github.raw+json")
     suspend fun getIndex(

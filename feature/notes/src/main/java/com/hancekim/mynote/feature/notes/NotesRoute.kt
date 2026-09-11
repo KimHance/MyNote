@@ -4,9 +4,9 @@ import android.app.Activity
 import android.os.SystemClock
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -54,10 +54,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.hancekim.mynote.core.domain.model.Category
-import com.hancekim.mynote.core.domain.model.Note
 import com.hancekim.mynote.core.designfoundation.window.MyNoteWindowClass
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
+import com.hancekim.mynote.core.domain.model.Category
+import com.hancekim.mynote.core.domain.model.Note
 import com.hancekim.mynote.feature.notes.screen.HomeScreen
 import com.hancekim.mynote.feature.notes.screen.ListPanelScreen
 import com.hancekim.mynote.feature.notes.screen.NoteReaderScreen
@@ -344,12 +344,13 @@ private fun NotesTopBar(
                 Text(text = "가", style = MyNoteTheme.textStyles.treeLabel, color = colors.accent)
             }
         },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = colors.bg,
-            titleContentColor = colors.text,
-            navigationIconContentColor = colors.text,
-            actionIconContentColor = colors.accent,
-        ),
+        colors =
+            TopAppBarDefaults.topAppBarColors(
+                containerColor = colors.bg,
+                titleContentColor = colors.text,
+                navigationIconContentColor = colors.text,
+                actionIconContentColor = colors.accent,
+            ),
     )
 }
 
@@ -421,26 +422,30 @@ private fun TokenDialog(
 
 // --- Preview ---
 
-private val previewUiState: NotesUiState = run {
-    val notes = listOf(
-        Note("compose-state", "Compose 상태 관리 정리", "2026.06.12", emptyList()),
-        Note("nav3", "Navigation 3 첫인상", "2026.06.18", emptyList()),
-    )
-    val categories = persistentListOf(
-        Category("Android", notes),
-        Category("Kotlin", listOf(Note("coroutines", "코루틴 디스패처 메모", "2026.05.30", emptyList()))),
-    )
-    NotesUiState(
-        categories = categories,
-        visibleCategories = categories,
-        recentNotes = persistentListOf(
-            RecentNote(notes[1], "Android"),
-            RecentNote(notes[0], "Android"),
-        ),
-        expanded = persistentMapOf("Android" to true),
-        isLoading = false,
-    )
-}
+private val previewUiState: NotesUiState =
+    run {
+        val notes =
+            listOf(
+                Note("compose-state", "Compose 상태 관리 정리", "2026.06.12", emptyList()),
+                Note("nav3", "Navigation 3 첫인상", "2026.06.18", emptyList()),
+            )
+        val categories =
+            persistentListOf(
+                Category("Android", notes),
+                Category("Kotlin", listOf(Note("coroutines", "코루틴 디스패처 메모", "2026.05.30", emptyList()))),
+            )
+        NotesUiState(
+            categories = categories,
+            visibleCategories = categories,
+            recentNotes =
+                persistentListOf(
+                    RecentNote(notes[1], "Android"),
+                    RecentNote(notes[0], "Android"),
+                ),
+            expanded = persistentMapOf("Android" to true),
+            isLoading = false,
+        )
+    }
 
 @Preview(name = "Notes · Compact", showBackground = true, widthDp = 360, heightDp = 720)
 @Composable

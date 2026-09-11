@@ -34,15 +34,17 @@ fun SearchField(
         singleLine = true,
         textStyle = MyNoteTheme.textStyles.body.copy(color = colors.text),
         cursorBrush = SolidColor(colors.accent),
-        modifier = modifier
-            .fillMaxWidth()
-            .height(40.dp)
-            .background(colors.surface2, RoundedCornerShape(MyNoteRadius.list)),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(40.dp)
+                .background(colors.surface2, RoundedCornerShape(MyNoteRadius.list)),
         decorationBox = { innerTextField ->
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp),
                 contentAlignment = Alignment.CenterStart,
             ) {
                 if (query.isEmpty()) {

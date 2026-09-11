@@ -35,6 +35,10 @@ internal fun Project.configureAndroidCompose(
         add("lintChecks", libs.findLibrary("compose.lint.checks").get())
     }
 
+    // 테마 토큰 전파는 CompositionLocal 의 정당한 용례다(MyNoteTheme.colors/textStyles/adaptive).
+    // ktlint 쪽(compose:compositionlocal-allowlist)은 .editorconfig 에서 끈다.
+    commonExtension.lint.disable += "ComposeCompositionLocalUsage"
+
     extensions.getByType<ComposeCompilerGradlePluginExtension>().apply {
         includeSourceInformation.set(true)
     }

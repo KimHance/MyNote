@@ -13,15 +13,18 @@ import com.hancekim.mynote.core.designfoundation.window.AdaptiveTokens
 import com.hancekim.mynote.core.designfoundation.window.MyNoteWindowClass
 import com.hancekim.mynote.core.designfoundation.window.adaptiveTokensFor
 
-private val LocalMyNoteColors = staticCompositionLocalOf<MyNoteColors> {
-    error("MyNoteColors 가 제공되지 않았습니다. MyNoteTheme 으로 감싸세요.")
-}
-private val LocalAdaptiveTokens = staticCompositionLocalOf<AdaptiveTokens> {
-    error("AdaptiveTokens 가 제공되지 않았습니다. MyNoteTheme 으로 감싸세요.")
-}
-private val LocalTextStyles = staticCompositionLocalOf<MyNoteTextStyles> {
-    error("MyNoteTextStyles 가 제공되지 않았습니다. MyNoteTheme 으로 감싸세요.")
-}
+private val LocalMyNoteColors =
+    staticCompositionLocalOf<MyNoteColors> {
+        error("MyNoteColors 가 제공되지 않았습니다. MyNoteTheme 으로 감싸세요.")
+    }
+private val LocalAdaptiveTokens =
+    staticCompositionLocalOf<AdaptiveTokens> {
+        error("AdaptiveTokens 가 제공되지 않았습니다. MyNoteTheme 으로 감싸세요.")
+    }
+private val LocalTextStyles =
+    staticCompositionLocalOf<MyNoteTextStyles> {
+        error("MyNoteTextStyles 가 제공되지 않았습니다. MyNoteTheme 으로 감싸세요.")
+    }
 private val LocalFontScale = staticCompositionLocalOf { MyNoteFontScale.Normal }
 
 /**
@@ -40,17 +43,18 @@ fun MyNoteTheme(
     val adaptive = adaptiveTokensFor(windowClass)
     val textStyles = remember(fontScale) { myNoteTextStyles(fontScale.bodySizeSp) }
 
-    val colorScheme = darkColorScheme(
-        primary = colors.accent,
-        onPrimary = colors.bg,
-        background = colors.bg,
-        onBackground = colors.text,
-        surface = colors.surface,
-        onSurface = colors.text,
-        surfaceVariant = colors.surface2,
-        onSurfaceVariant = colors.text2,
-        outline = colors.border,
-    )
+    val colorScheme =
+        darkColorScheme(
+            primary = colors.accent,
+            onPrimary = colors.bg,
+            background = colors.bg,
+            onBackground = colors.text,
+            surface = colors.surface,
+            onSurface = colors.text,
+            surfaceVariant = colors.surface2,
+            onSurfaceVariant = colors.text2,
+            outline = colors.border,
+        )
 
     CompositionLocalProvider(
         LocalMyNoteColors provides colors,
@@ -65,14 +69,18 @@ fun MyNoteTheme(
 /** 핸드오프 토큰 접근자. `MyNoteTheme.colors`, `MyNoteTheme.adaptive`, `MyNoteTheme.textStyles`. */
 object MyNoteTheme {
     val colors: MyNoteColors
-        @Composable @ReadOnlyComposable get() = LocalMyNoteColors.current
+        @Composable @ReadOnlyComposable
+        get() = LocalMyNoteColors.current
 
     val adaptive: AdaptiveTokens
-        @Composable @ReadOnlyComposable get() = LocalAdaptiveTokens.current
+        @Composable @ReadOnlyComposable
+        get() = LocalAdaptiveTokens.current
 
     val textStyles: MyNoteTextStyles
-        @Composable @ReadOnlyComposable get() = LocalTextStyles.current
+        @Composable @ReadOnlyComposable
+        get() = LocalTextStyles.current
 
     val fontScale: MyNoteFontScale
-        @Composable @ReadOnlyComposable get() = LocalFontScale.current
+        @Composable @ReadOnlyComposable
+        get() = LocalFontScale.current
 }

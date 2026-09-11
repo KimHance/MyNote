@@ -8,7 +8,10 @@ import kotlinx.coroutines.flow.Flow
  */
 interface LocalNotesDataSource {
     fun observeNotes(): Flow<List<CachedNote>>
+
     suspend fun loadHashes(): Map<String, String> // id -> contentHash
+
     suspend fun upsert(note: CachedNote)
+
     suspend fun deleteByIds(ids: List<String>)
 }
