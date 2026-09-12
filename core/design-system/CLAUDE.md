@@ -14,8 +14,15 @@
 - 컴포저블 파라미터/State 의 컬렉션은 `ImmutableList`/`ImmutableMap` — `List<T>` 금지.
 - 재사용 컴포넌트는 MVI 를 모른다 — 순수 콜백(`onClick` 등)만 받는다.
 - 애니메이션 값은 deferred read: `Modifier.graphicsLayer { rotationZ = … }` (O) / `Modifier.rotate(value)` (X).
+- 유리 표면은 **backdrop**(liquid glass) — `layerBackdrop`(뒤 콘텐츠, feature 가 건다) ↔
+  `drawBackdrop`(표면, 여기가 건다)가 같은 `Backdrop` 을 봐야 한다. 파라미터로 받고
+  **기본값 `null` = 효과 없음**(프리뷰용). 굴절(API 33+)·블러(31+)·불투명 폴백은 라이브러리가 가른다.
+- `content` 슬롯은 분기마다 부르지 않는다 — Modifier 만 분기하고 호출은 한 번
+  (`compose:content-slot-reused` 위반이자 슬롯 상태가 날아간다).
 
 ## 구성
 - `theme/` — `MyNoteTheme`(토큰 CompositionLocal), `Typography`
-- 공용 컴포넌트 — `NoteCard`·`CategoryChip`·`SearchField`·`CategoryRow`·`NoteRow`
+- 공용 컴포넌트 — `NoteCard`·`CategoryChip`·`SearchField`·`CategoryRow`·`NoteRow`·
+  `FloatingNavBar`/`FloatingNavRail`·`ScrollToTopButton`(+`MyNoteIcons`), `Modifier.fadingEdges`
+- `GlassSurface` 는 **internal** — 유리 표면은 이 모듈 안에서만 조립한다.
 - `block/` — `NoteContentBlock`(UI 모델) + `NoteContent` 렌더러

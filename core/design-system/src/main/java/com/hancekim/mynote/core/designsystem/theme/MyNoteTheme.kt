@@ -1,7 +1,5 @@
 package com.hancekim.mynote.core.designsystem.theme
 
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
@@ -10,6 +8,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import com.hancekim.mynote.core.designfoundation.token.MyNoteColors
 import com.hancekim.mynote.core.designfoundation.token.StudyNotesDarkColors
 import com.hancekim.mynote.core.designfoundation.window.AdaptiveTokens
+import com.hancekim.mynote.core.designfoundation.window.MyNoteHeightClass
 import com.hancekim.mynote.core.designfoundation.window.MyNoteWindowClass
 import com.hancekim.mynote.core.designfoundation.window.adaptiveTokensFor
 
@@ -30,34 +29,21 @@ private val LocalFontScale = staticCompositionLocalOf { MyNoteFontScale.Normal }
 @Composable
 fun MyNoteTheme(
     windowClass: MyNoteWindowClass = MyNoteWindowClass.Compact,
+    heightClass: MyNoteHeightClass = MyNoteHeightClass.Medium,
     fontScale: MyNoteFontScale = MyNoteFontScale.Normal,
     content: @Composable () -> Unit,
 ) {
     val colors = StudyNotesDarkColors
-    val adaptive = adaptiveTokensFor(windowClass)
+    val adaptive = remember(windowClass, heightClass) { adaptiveTokensFor(windowClass, heightClass) }
     val textStyles = remember(fontScale) { myNoteTextStyles(fontScale.bodySizeSp) }
-
-    val colorScheme =
-        darkColorScheme(
-            primary = colors.accent,
-            onPrimary = colors.bg,
-            background = colors.bg,
-            onBackground = colors.text,
-            surface = colors.surface,
-            onSurface = colors.text,
-            surfaceVariant = colors.surface2,
-            onSurfaceVariant = colors.text2,
-            outline = colors.border,
-        )
 
     CompositionLocalProvider(
         LocalMyNoteColors provides colors,
         LocalAdaptiveTokens provides adaptive,
         LocalTextStyles provides textStyles,
         LocalFontScale provides fontScale,
-    ) {
-        MaterialTheme(colorScheme = colorScheme, content = content)
-    }
+        content = content,
+    )
 }
 
 object MyNoteTheme {

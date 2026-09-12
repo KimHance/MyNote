@@ -30,6 +30,9 @@ fun NoteCard(
     title: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    chipModifier: Modifier = Modifier,
+    dateModifier: Modifier = Modifier,
+    titleModifier: Modifier = Modifier,
 ) {
     val colors = MyNoteTheme.colors
     Column(
@@ -47,11 +50,21 @@ fun NoteCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            CategoryChip(category)
-            Text(text = date, style = MyNoteTheme.textStyles.caption, color = colors.text3)
+            CategoryChip(category, modifier = chipModifier)
+            Text(
+                text = date,
+                style = MyNoteTheme.textStyles.caption,
+                color = colors.text3,
+                modifier = dateModifier,
+            )
         }
         Spacer(Modifier.height(10.dp))
-        Text(text = title, style = MyNoteTheme.textStyles.cardTitle, color = colors.text)
+        Text(
+            text = title,
+            style = MyNoteTheme.textStyles.cardTitle,
+            color = colors.text,
+            modifier = titleModifier,
+        )
     }
 }
 
