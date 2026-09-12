@@ -69,7 +69,7 @@ fun HomeScreen(
             }
         } else {
             LazyVerticalGrid(
-                columns = GridCells.Fixed(adaptive.homeGridColumns),
+                columns = GridCells.Adaptive(minSize = adaptive.cardMinWidth),
                 modifier = if (reading != null) Modifier.widthIn(max = reading) else Modifier,
                 contentPadding = PaddingValues(adaptive.page),
                 horizontalArrangement = Arrangement.spacedBy(adaptive.cardGap),
