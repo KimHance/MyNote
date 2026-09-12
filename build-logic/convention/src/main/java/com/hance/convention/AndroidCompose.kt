@@ -37,5 +37,10 @@ internal fun Project.configureAndroidCompose(
 
     extensions.getByType<ComposeCompilerGradlePluginExtension>().apply {
         includeSourceInformation.set(true)
+        if (providers.gradleProperty("composeMetrics").isPresent) {
+            val dir = layout.buildDirectory.dir("compose-reports")
+            reportsDestination.set(dir)
+            metricsDestination.set(dir)
+        }
     }
 }
