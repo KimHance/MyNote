@@ -19,8 +19,11 @@
 
 ## 윈도우 크기 / 반응형
 - 폼팩터 판정은 **`LocalWindowInfo.current.containerDpSize`** 사용(이미 `Dp` 단위, density 변환 불필요).
+  **너비와 높이를 둘 다 본다** — `MyNoteWindowClass.fromWidth` + `MyNoteHeightClass.fromHeight`.
 - `BoxWithConstraints` 로 윈도우 크기를 재지 않는다 — subcomposition 비용이 있고, 그건 "윈도우"가 아니라 "부모 제약"이다.
-- 단계별 토큰은 `AdaptiveTokens`(5단계). 간격/폭/열수를 하드코딩하지 않는다.
+- 단계별 토큰은 `AdaptiveTokens`(너비 5단계 × 높이 3단계). 간격/폭/열수를 하드코딩하지 않는다.
+- **그리드 열 수를 고정하지 않는다.** `GridCells.Adaptive(minSize = adaptive.cardMinWidth)` —
+  폴더블/분할 화면/자유 창에서 너비가 연속적으로 변하므로 `GridCells.Fixed` 는 카드를 튀게 만든다.
 
 ## Recomposition 규율
 - **애니메이션 값은 draw phase 로 격리(deferred read).** `Modifier.graphicsLayer { rotationZ = animatedValue }` 처럼 **람다 안**에서 읽는다.

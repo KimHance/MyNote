@@ -6,9 +6,10 @@
 :app   → :core:{design-foundation, design-system, domain, data, network, database}, :feature:notes
          (composition root: 구현체 모듈을 모두 포함해 Hilt 그래프를 완성)
 
-:feature:notes → :core:common, :core:design-system, :core:domain   (feature convention 이 자동 주입)
+:feature:notes → :core:common, :core:design-system, :core:domain, :core:navigation   (feature convention 이 자동 주입)
 
-:core:common   — leaf. MVI base(`MviViewModel`) 만. 다른 모듈도, Compose 도 의존하지 않는다.
+:core:common     — leaf. MVI base(`MviViewModel`) 만. 다른 모듈도, Compose 도 의존하지 않는다.
+:core:navigation — leaf. 내비 계약(키·씬·모션·공유요소 배선) + nav3(api). 테마/도메인 의존 없음.
 :core:domain   — 가장 안쪽. 모델(Category/Note/NoteBlock) + 인터페이스(NotesRepository/TokenRepository) + UseCase. 의존 없음.
 :core:data     → :core:domain   (도메인 인터페이스 구현 + Remote/Local/Token DataSource 인터페이스 소유)
 :core:network  → :core:data     (RemoteNotesDataSource 구현 = Contents API, AuthInterceptor + GithubTokenHolder)
@@ -60,12 +61,48 @@ ViewModel 은 `:core:common` 의 **`MviViewModel<S, E>`** 를 상속한다.
 @Preview @Composable private fun XxxScreenPreview() = XxxScreen(previewUiState, onIntent = {})
 ```
 
-## 내비게이션 / 레이아웃: 상태 기반 + 접이식 패널
-- 화면 전환은 **단일 상태(`activeNote`)** 가 구동한다 — `activeNote == null` 이면 홈, 아니면 리더.
-  Navigation 3 의존성은 `:feature:notes` 에 선언돼 있으나 **현재 코드에서 쓰지 않는다**(도입 보류).
-- 폼팩터(`containerDpSize`)는 **목록 패널 표현만** 가른다: Compact = `ModalNavigationDrawer`(화면 위 오버레이),
-  Medium+ = `Row` + `AnimatedVisibility`(가로 expand/shrink) 접이식 사이드 패널(옆에서 미는 push).
-- **두 폼팩터 모두 ☰ 토글이 항상 살아 있다.** 패널 펼침 상태는 `rememberSaveable` 로 보존.
+## 내비게이션: Navigation 3 (`NavDisplay` + 커스텀 Scene)
+
+**목적지 키·씬·모션은 전부 `:core:navigation`** 에 모인다. feature 끼리 서로를 몰라도 되고,
+나중에 `:feature:root` 가 하나의 백스택으로 전부 태울 수 있게 하기 위해서다.
+`MyNoteNavKey` 는 `sealed` 라 **새 feature 의 키도 그 모듈에 추가**한다.
+
+**백스택의 소유자는 ViewModel 의 `activeNoteId` 하나다.** nav3 는 그 상태를 읽어 그릴 뿐이고,
+`notesBackStackOf(activeNoteId)` 가 `[Home]` 또는 `[Home, Reader(id)]` 를 만든다.
+`NavDisplay(onBack = …)` 는 `NotesIntent.CloseNote` 를 쏴 다시 상태로 되돌린다 — MVI 단방향 유지.
+
+- **`NavDisplay` 는 하나뿐이다.** 폼팩터에 따라 갈리는 건 **씬 전략(sceneStrategies)** 뿐.
+  | 너비 | 전략 | 결과 |
+  |---|---|---|
+  | Compact | (없음) → 기본 `SinglePaneSceneStrategy` | 홈/리더가 **별개 씬 레이어**로 쌓임. 목록은 `ModalNavigationDrawer` |
+  | Medium+ | `ListDetailSceneStrategy` | 고정 패널 + 상세 한 칸. 헤더도 씬 안(상세 칸 위)에 |
+- **커스텀 씬의 핵심은 `key` 가 상세에 따라 안 바뀐다는 것.** 그래야 `NavDisplay` 가 씬을 통째로
+  슬라이드시키지 않고, 씬이 자기 안의 `AnimatedContent` 로 본문만 페이드 스루로 바꾼다.
+  `previousEntries = entries.dropLast(1)` 이라 뒤로가기는 그대로 살아 있다.
+- 씬에 넘기는 슬롯(`panel`/`header`/`panelExpanded`)은 **`remember` 로 정체성을 고정**한다.
+  매 컴포지션마다 새 람다가 들어가면 전략이 달라진 것으로 보여 씬이 통째로 다시 만들어진다.
+  안의 값은 `rememberUpdatedState` 로 읽는다.
+- **모션은 `NavDisplay` 의 세 spec 에 모아 둔다** (`SceneMotion`). 예측 뒤로가기는
+  `SeekableTransitionState` 가 이 전환을 직접 seek 한다 — 별도 `PredictiveBackHandler` 를 달지 않는다.
+  `EnterTransition` 으로 표현 못 하는 값(모서리 반경·그림자)만 엔트리가 자기
+  `AnimatedContentScope` 의 트랜지션을 읽어 `graphicsLayer` 에서 계산한다(`rememberSceneEdgeTransform`).
+- **씬은 테마를 모른다.** 패널의 폭·구분선·색은 `panel` 슬롯이 그린다 — 그래야 씬이 feature 를 안 탄다.
+  > **커밋 이후 마무리 애니메이션도 `predictivePopTransitionSpec` 그대로 이어서 재생된다.**
+  > 그래서 그 spec 은 진행률 1 에서 화면 밖으로 완전히 빠지는 값이어야 한다.
+- 공유 요소는 `SharedTransitionLayout` 이 `NavDisplay` 를 감싸고, 엔트리가 자기
+  `AnimatedContentScope` 를 `ProvideNavAnimatedScope` 로 내려 준다. 키는 `chip-/date-/title-{noteId}`.
+  `LocalNavAnimatedContentScope` 를 화면에서 직접 읽지 않는다 — 미설정 시 예외라 프리뷰가 깨진다.
+- **뒤로가기 우선순위**(LIFO — 나중에 컴포즈된 핸들러가 이긴다):
+  드로어(`ModalDrawerSheet(drawerState=…)`, 내용보다 뒤에 컴포즈됨) → `NavDisplay` → 앱 종료(두 번 누르기).
+
+## 레이아웃: 너비 × 높이 양축
+- 최종 레이아웃 = **너비 클래스 × 높이 클래스**. 너비는 가로 구조(패널·본문 폭·카드 폭),
+  높이는 세로 리듬(헤더·여백·히어로)과 **플로팅 내비 형태**를 정한다. 둘 다 `AdaptiveTokens` 에.
+- 홈 그리드는 **`GridCells.Adaptive(minSize = cardMinWidth)`** — 고정 열 수 금지
+  (폴더블 접기/펴기·분할 화면·자유 창에서 너비가 연속적으로 변한다).
+- 플로팅 내비: `useFloatingRail` = 너비 Expanded+ **또는** 높이 Compact → 우측 세로 레일, 아니면 하단 바.
+  기준 컨테이너는 **헤더 아래 콘텐츠 영역**이다(넓은 창은 헤더가 씬 안이라 오프셋을 직접 빼 준다).
+- 목록 패널의 ☰ 토글은 두 폼팩터 모두 살아 있다. 펼침 상태는 `rememberSaveable`.
 - ViewModel 주입: `hiltViewModel()` (`androidx.hilt.lifecycle.viewmodel.compose`).
 
 ## Convention Plugins (항상 사용, 수동 설정 금지)
@@ -73,7 +110,7 @@ ViewModel 은 `:core:common` 의 **`MviViewModel<S, E>`** 를 상속한다.
 |---|---|
 | `billboard.android.application` (+ `.compose`) | `:app` |
 | `billboard.android.library` (+ `.compose`) | core 라이브러리 |
-| `billboard.android.feature` | `:feature:*` (`:core:common` + `:core:design-system` + `:core:domain` + lifecycle + coroutines 자동) |
+| `billboard.android.feature` | `:feature:*` (`:core:common` + `:core:design-system` + `:core:domain` + `:core:navigation` + lifecycle + coroutines 자동) |
 | `billboard.android.hilt` | Hilt 모듈 |
 | `billboard.android.room` | Room 모듈(`:core:database`) |
 
