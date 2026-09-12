@@ -7,15 +7,15 @@ import com.hancekim.mynote.feature.notes.NoteUi
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 
-fun List<Category>.toUi(): ImmutableList<CategoryUi> = map { it.toUi() }.toImmutableList()
+internal fun List<Category>.toUi(): ImmutableList<CategoryUi> = map { it.toUi() }.toImmutableList()
 
-fun Category.toUi(): CategoryUi =
+internal fun Category.toUi(): CategoryUi =
     CategoryUi(
         name = name,
         notes = notes.map { it.toUi() }.toImmutableList(),
     )
 
-fun Note.toUi(): NoteUi =
+internal fun Note.toUi(): NoteUi =
     NoteUi(
         id = id,
         title = title,

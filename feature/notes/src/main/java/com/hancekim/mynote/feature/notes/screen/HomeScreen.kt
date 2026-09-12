@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
@@ -25,22 +27,28 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.hancekim.mynote.core.designfoundation.window.MyNoteHeightClass
+import com.hancekim.mynote.core.designfoundation.window.MyNoteWindowClass
 import com.hancekim.mynote.core.designsystem.component.NoteCard
+import com.hancekim.mynote.core.designsystem.component.fadingEdges
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.NoteUi
 import com.hancekim.mynote.feature.notes.RecentNoteUi
 import com.hancekim.mynote.feature.notes.element.NotesIntent
+import com.hancekim.mynote.feature.notes.navigation.rememberNoteSharedModifiers
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
 @Composable
-fun HomeScreen(
+internal fun HomeScreen(
     recentNotes: ImmutableList<RecentNoteUi>,
     isLoading: Boolean,
     onIntent: (NotesIntent) -> Unit,
     modifier: Modifier = Modifier,
+    contentBottomPadding: Dp = 0.dp,
+    gridState: LazyGridState = rememberLazyGridState(),
 ) {
     val adaptive = MyNoteTheme.adaptive
     val reading = adaptive.readingMaxWidth
@@ -69,9 +77,18 @@ fun HomeScreen(
             }
         } else {
             LazyVerticalGrid(
+                state = gridState,
                 columns = GridCells.Adaptive(minSize = adaptive.cardMinWidth),
-                modifier = if (reading != null) Modifier.widthIn(max = reading) else Modifier,
-                contentPadding = PaddingValues(adaptive.page),
+                modifier =
+                    (if (reading != null) Modifier.widthIn(max = reading) else Modifier)
+                        .fadingEdges(top = adaptive.fadeHeight, bottom = adaptive.fadeHeight + 6.dp),
+                contentPadding =
+                    PaddingValues(
+                        start = adaptive.page,
+                        end = adaptive.page,
+                        top = adaptive.padY,
+                        bottom = adaptive.page + contentBottomPadding,
+                    ),
                 horizontalArrangement = Arrangement.spacedBy(adaptive.cardGap),
                 verticalArrangement = Arrangement.spacedBy(adaptive.cardGap),
             ) {
@@ -87,11 +104,15 @@ fun HomeScreen(
                     )
                 }
                 items(recentNotes, key = { it.note.id }) { recent ->
+                    val shared = rememberNoteSharedModifiers(recent.note.id)
                     NoteCard(
                         category = recent.categoryName,
                         date = recent.note.date,
                         title = recent.note.title,
                         onClick = { onIntent(NotesIntent.SelectNote(recent.note.id)) },
+                        chipModifier = shared.chip,
+                        dateModifier = shared.date,
+                        titleModifier = shared.title,
                     )
                 }
             }
@@ -105,40 +126,46 @@ private fun Hero(
     modifier: Modifier = Modifier,
 ) {
     val colors = MyNoteTheme.colors
+    val adaptive = MyNoteTheme.adaptive
+    val logoSize = adaptive.heroLogoSize
 
     Column(modifier = modifier.padding(vertical = 8.dp)) {
-        Box(
-            modifier =
-                Modifier
-                    .size(52.dp)
-                    .clip(RoundedCornerShape(15.dp))
-                    .background(colors.accent),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = "N",
-                color = Color.White,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.W700,
-            )
+        if (logoSize != null) {
+            Box(
+                modifier =
+                    Modifier
+                        .size(logoSize)
+                        .clip(RoundedCornerShape(logoSize * 0.29f))
+                        .background(colors.accent),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = "N",
+                    color = Color.White,
+                    fontSize = adaptive.heroTitleSize,
+                    fontWeight = FontWeight.W700,
+                )
+            }
+            Spacer(Modifier.height(16.dp))
         }
-        Spacer(Modifier.height(16.dp))
         Text(
             text = "공부 기록",
-            style = MyNoteTheme.textStyles.noteTitle.copy(fontSize = 26.sp),
+            style = MyNoteTheme.textStyles.noteTitle.copy(fontSize = adaptive.heroTitleSize),
             color = colors.text,
         )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text =
-                if (modalDrawer) {
-                    "읽고 싶은 노트를 골라보세요. 왼쪽 위 ☰ 를 누르면 전체 목록이 열려요."
-                } else {
-                    "왼쪽 목록에서 읽고 싶은 노트를 선택하세요."
-                },
-            style = MyNoteTheme.textStyles.body,
-            color = colors.text2,
-        )
+        if (logoSize != null) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text =
+                    if (modalDrawer) {
+                        "읽고 싶은 노트를 골라보세요. 왼쪽 위 ☰ 를 누르면 전체 목록이 열려요."
+                    } else {
+                        "왼쪽 목록에서 읽고 싶은 노트를 선택하세요."
+                    },
+                style = MyNoteTheme.textStyles.body,
+                color = colors.text2,
+            )
+        }
     }
 }
 
@@ -149,7 +176,7 @@ private val previewRecent =
         RecentNoteUi(NoteUi("c", "HTTP 캐싱 기초", "2026.04.22"), "CS"),
     )
 
-@Preview(name = "Home Compact", showBackground = true, widthDp = 360, heightDp = 640)
+@Preview(name = "Home · Compact×Medium", showBackground = true, widthDp = 360, heightDp = 640)
 @Composable
 private fun HomeScreenCompactPreview() {
     MyNoteTheme {
@@ -157,10 +184,21 @@ private fun HomeScreenCompactPreview() {
     }
 }
 
-@Preview(name = "Home Medium", showBackground = true, widthDp = 760, heightDp = 640)
+@Preview(name = "Home · Medium×Compact", showBackground = true, widthDp = 760, heightDp = 420)
 @Composable
-private fun HomeScreenMediumPreview() {
-    MyNoteTheme(windowClass = com.hancekim.mynote.core.designfoundation.window.MyNoteWindowClass.Medium) {
+private fun HomeScreenShortPreview() {
+    MyNoteTheme(
+        windowClass = MyNoteWindowClass.Medium,
+        heightClass = MyNoteHeightClass.Compact,
+    ) {
+        HomeScreen(recentNotes = previewRecent, isLoading = false, onIntent = {})
+    }
+}
+
+@Preview(name = "Home · Expanded", showBackground = true, widthDp = 900, heightDp = 700)
+@Composable
+private fun HomeScreenExpandedPreview() {
+    MyNoteTheme(windowClass = MyNoteWindowClass.Expanded) {
         HomeScreen(recentNotes = previewRecent, isLoading = false, onIntent = {})
     }
 }

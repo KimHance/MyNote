@@ -10,7 +10,7 @@ import com.hancekim.mynote.core.domain.model.SpanStyle
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 
-fun List<NoteBlock>.toContentBlocks(): ImmutableList<NoteContentBlock> =
+internal fun List<NoteBlock>.toContentBlocks(): ImmutableList<NoteContentBlock> =
     map { it.toContentBlock() }.toImmutableList()
 
 private fun NoteBlock.toContentBlock(): NoteContentBlock =

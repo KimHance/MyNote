@@ -1,5 +1,6 @@
 package com.hancekim.mynote.feature.notes.screen
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,26 +14,31 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.hancekim.mynote.core.designsystem.block.NoteContent
 import com.hancekim.mynote.core.designsystem.block.NoteContentBlock
 import com.hancekim.mynote.core.designsystem.block.NoteContentSpan
 import com.hancekim.mynote.core.designsystem.block.NoteSpanStyle
 import com.hancekim.mynote.core.designsystem.component.CategoryChip
+import com.hancekim.mynote.core.designsystem.component.fadingEdges
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.NoteUi
+import com.hancekim.mynote.feature.notes.navigation.rememberNoteSharedModifiers
 import kotlinx.collections.immutable.persistentListOf
 
 @Composable
-fun NoteReaderScreen(
+internal fun NoteReaderScreen(
     note: NoteUi,
     categoryName: String,
     modifier: Modifier = Modifier,
+    contentBottomPadding: Dp = 0.dp,
+    scrollState: ScrollState = rememberScrollState(),
 ) {
+    val shared = rememberNoteSharedModifiers(note.id)
     val adaptive = MyNoteTheme.adaptive
     val reading = adaptive.readingMaxWidth
     Box(
@@ -45,25 +51,33 @@ fun NoteReaderScreen(
         Column(
             modifier =
                 (if (reading != null) Modifier.widthIn(max = reading) else Modifier.fillMaxWidth())
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = adaptive.page, vertical = 24.dp),
+                    .fadingEdges(top = adaptive.fadeHeight, bottom = adaptive.fadeHeight + 6.dp)
+                    .verticalScroll(scrollState)
+                    .padding(
+                        start = adaptive.page,
+                        end = adaptive.page,
+                        top = adaptive.padY,
+                        bottom = 24.dp + contentBottomPadding,
+                    ),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                CategoryChip(categoryName)
+                CategoryChip(categoryName, modifier = shared.chip)
                 Text(
                     text = note.date,
                     style = MyNoteTheme.textStyles.caption,
                     color = MyNoteTheme.colors.text3,
+                    modifier = shared.date,
                 )
             }
             Text(
                 text = note.title,
-                style = MyNoteTheme.textStyles.noteTitle,
+                style = MyNoteTheme.textStyles.noteTitle.copy(fontSize = adaptive.noteTitleSize),
                 color = MyNoteTheme.colors.text,
+                modifier = shared.title,
             )
             NoteContent(blocks = note.blocks)
         }

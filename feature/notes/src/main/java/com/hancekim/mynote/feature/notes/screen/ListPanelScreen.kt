@@ -3,9 +3,12 @@ package com.hancekim.mynote.feature.notes.screen
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
@@ -25,18 +28,22 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 
 @Composable
-fun ListPanelScreen(
+internal fun ListPanelScreen(
     uiState: NotesUiState,
     onIntent: (NotesIntent) -> Unit,
     modifier: Modifier = Modifier,
+    applyStatusInset: Boolean = false,
 ) {
     val colors = MyNoteTheme.colors
+    val adaptive = MyNoteTheme.adaptive
     Column(
         modifier =
             modifier
                 .fillMaxSize()
                 .background(colors.surface)
-                .padding(horizontal = 12.dp, vertical = 12.dp),
+                .then(if (applyStatusInset) Modifier.windowInsetsPadding(WindowInsets.statusBars) else Modifier)
+                .padding(horizontal = 12.dp)
+                .padding(top = adaptive.panelHeaderPadTop, bottom = 12.dp),
     ) {
         Text(
             text = "노트 ${uiState.totalCount}개",
