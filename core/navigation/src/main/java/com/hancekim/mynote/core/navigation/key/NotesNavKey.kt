@@ -13,9 +13,4 @@ sealed interface NotesNavKey : MyNoteNavKey {
     ) : NotesNavKey
 }
 
-fun notesBackStackOf(activeNoteId: String?): List<MyNoteNavKey> =
-    if (activeNoteId == null) {
-        listOf(NotesNavKey.Home)
-    } else {
-        listOf(NotesNavKey.Home, NotesNavKey.Reader(activeNoteId))
-    }
+fun List<MyNoteNavKey>.activeNoteId(): String? = (lastOrNull() as? NotesNavKey.Reader)?.noteId

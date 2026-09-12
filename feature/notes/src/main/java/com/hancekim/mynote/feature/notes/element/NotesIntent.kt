@@ -17,6 +17,8 @@ sealed interface NotesIntent : MviEvent {
 
     data object ToggleFontScale : NotesIntent
 
+    data object Back : NotesIntent
+
     data object CloseNote : NotesIntent
 
     data class SaveToken(

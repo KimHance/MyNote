@@ -1,7 +1,6 @@
 package com.hancekim.mynote.feature.notes
 
 import android.app.Activity
-import android.os.SystemClock
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.layout.Box
@@ -48,7 +47,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -86,7 +84,6 @@ import com.hancekim.mynote.core.designsystem.component.rememberFloatingNavScroll
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.navigation.key.MyNoteNavKey
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
-import com.hancekim.mynote.core.navigation.key.notesBackStackOf
 import com.hancekim.mynote.core.navigation.motion.scenePopTransitionSpec
 import com.hancekim.mynote.core.navigation.motion.scenePredictivePopTransitionSpec
 import com.hancekim.mynote.core.navigation.motion.sceneTransitionSpec
@@ -175,10 +172,41 @@ private fun NotesNavHost(
     val navScroll = rememberFloatingNavScrollState()
     LaunchedEffect(uiState.activeNoteId) { navScroll.reset() }
 
-    val exitOnDoubleBack = rememberDoubleBackToExit(snackbarHostState)
-    BackHandler(enabled = uiState.activeNoteId == null && !drawerState.isOpen) { exitOnDoubleBack() }
+    // 드로어가 **열리는 중**이면 Material3 의 핸들러는 아직 꺼져 있다 —
+    // PredictiveBackHandler(enabled = drawerState.isOpen) 인데 isOpen 은 currentValue 라
+    // 애니메이션이 끝나야 true 가 된다. targetValue 로 봐야 그 틈이 안 생긴다.
+    val drawerEngaged = drawerState.isOpen || drawerState.targetValue == DrawerValue.Open
+    val drawerOpening = drawerEngaged && !drawerState.isOpen
 
-    val backStack = remember(uiState.activeNoteId) { notesBackStackOf(uiState.activeNoteId) }
+    // 넓은 창의 고정 패널은 백스택에 없지만, 펼쳐 둔 건 뒤로가기로 접히는 게 자연스럽다.
+    // Compact 에서는 드로어가 같은 역할을 하므로(ModalDrawerSheet 가 자기 핸들러를 단다) 뺀다.
+    val collapsiblePanelOpen = !useDrawer && panelExpanded
+
+    // 뒤로 갈 데가 없을 때만 켠다. 있을 땐 NavDisplay 가 받아야 예측 뒤로가기 제스처가 산다.
+    // 조건은 Navigator 의 스택에서 나온다 — activeNoteId 로 추측하지 않는다.
+    BackHandler(
+        enabled = !uiState.canPop && !drawerEngaged && !collapsiblePanelOpen,
+    ) { onIntent(NotesIntent.Back) }
+
+    // 종료보다 뒤에 컴포즈해 우선순위를 가져간다. 펼친 패널을 먼저 접고, 그다음이 종료다.
+    BackHandler(enabled = collapsiblePanelOpen && !drawerEngaged) { panelExpanded = false }
+
+    // 여는 중인 드로어는 우리가 받아 닫는다. 비활성만 시키면 아무도 안 받아 시스템으로
+    // 넘어가고 앱이 그냥 꺼진다.
+    BackHandler(enabled = drawerOpening) { scope.launch { drawerState.close() } }
+
+    // 종료 여부는 화면이 정하지 않는다. Navigator 가 "더 갈 데 없음"이라 답했을 때만 올라온다.
+    val context = LocalContext.current
+    LaunchedEffect(uiState.exitHintId) {
+        if (uiState.exitHintId > 0) {
+            snackbarHostState.currentSnackbarData?.dismiss()
+            snackbarHostState.showSnackbar("한 번 더 누르면 종료돼요", duration = SnackbarDuration.Short)
+        }
+    }
+    LaunchedEffect(uiState.exitRequestId) {
+        if (uiState.exitRequestId > 0) (context as? Activity)?.finish()
+    }
+
     val layoutDirection = LocalLayoutDirection.current
     val navInsets = WindowInsets.navigationBars.asPaddingValues()
     val bottomInset = navInsets.calculateBottomPadding()
@@ -294,8 +322,8 @@ private fun NotesNavHost(
                         SharedTransitionLayout {
                             CompositionLocalProvider(LocalSharedTransitionScope provides this) {
                                 NavDisplay(
-                                    backStack = backStack,
-                                    onBack = { currentIntent.value(NotesIntent.CloseNote) },
+                                    backStack = uiState.backStack,
+                                    onBack = { currentIntent.value(NotesIntent.Back) },
                                     sceneStrategies = sceneStrategies,
                                     sharedTransitionScope = this@SharedTransitionLayout,
                                     transitionSpec = sceneTransitionSpec(),
@@ -339,6 +367,15 @@ private fun NotesNavHost(
                                 )
                             }
                         }
+                    }
+
+                    // NavDisplay **뒤에** 놓아야 한다. 뒤로가기는 나중에 컴포즈된 핸들러가
+                    // 먼저 받는데(navigationevent 의 precedence 계약), NavDisplay 는 예측
+                    // 뒤로가기 애니메이션을 이미 커밋한 뒤에야 onBack 을 부르기 때문이다.
+                    // 거기서 버리면 화면은 닫혔는데 스택은 그대로라 어긋난다 — 그 전에 삼킨다.
+                    // 드로어가 열려 있을 땐 비활성이다. 드로어 닫기는 언제나 살아 있어야 한다.
+                    BackHandler(enabled = !uiState.isNavSettled && !drawerEngaged) {
+                        // 전환 중이라 삼킨다
                     }
 
                     // 유리보다 먼저 그려 뒤에 깔린다 — 바/버튼이 덮으므로 실제로는 둘 사이의 목만 보인다
@@ -475,31 +512,6 @@ private val floatingNavItems =
         FloatingNavItem("bookmark", "북마크", MyNoteIcons.Bookmark),
         FloatingNavItem("stats", "통계", MyNoteIcons.Stats),
     )
-
-@Composable
-private fun rememberDoubleBackToExit(snackbarHostState: SnackbarHostState): () -> Unit {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    var lastBackMillis by remember { mutableLongStateOf(0L) }
-
-    return {
-        val now = SystemClock.elapsedRealtime()
-        if (now - lastBackMillis < EXIT_WINDOW_MILLIS) {
-            (context as? Activity)?.finish()
-        } else {
-            lastBackMillis = now
-            scope.launch {
-                snackbarHostState.currentSnackbarData?.dismiss()
-                snackbarHostState.showSnackbar(
-                    message = "한 번 더 누르면 종료돼요",
-                    duration = SnackbarDuration.Short,
-                )
-            }
-        }
-    }
-}
-
-private const val EXIT_WINDOW_MILLIS = 1000L
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

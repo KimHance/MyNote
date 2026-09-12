@@ -1,5 +1,6 @@
 package com.hancekim.mynote.feature.notes
 
+import android.os.SystemClock
 import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.viewModelScope
 import com.hancekim.mynote.core.common.mvi.MviViewModel
@@ -9,6 +10,11 @@ import com.hancekim.mynote.core.domain.ObserveAppliedTokenUseCase
 import com.hancekim.mynote.core.domain.SaveTokenUseCase
 import com.hancekim.mynote.core.domain.SyncNotesUseCase
 import com.hancekim.mynote.core.domain.model.SyncOutcome
+import com.hancekim.mynote.core.navigation.NavCommand
+import com.hancekim.mynote.core.navigation.NavResult
+import com.hancekim.mynote.core.navigation.Navigator
+import com.hancekim.mynote.core.navigation.key.NotesNavKey
+import com.hancekim.mynote.core.navigation.key.activeNoteId
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.mapper.toUi
@@ -30,6 +36,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val EXIT_WINDOW_MILLIS = 1000L
+
 private data class SyncState(
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
@@ -45,8 +53,13 @@ class NotesViewModel @Inject constructor(
     private val syncNotes: SyncNotesUseCase,
     private val saveToken: SaveTokenUseCase,
     observeAppliedToken: ObserveAppliedTokenUseCase,
+    private val navigator: Navigator,
 ) : MviViewModel<NotesUiState, NotesIntent>() {
-    private val activeNoteId = trigger<String?>(null)
+    private val navStack = navigator.stack.triggerIn(navigator.stack.value)
+    private val navSettled = navigator.isSettled.triggerIn(true)
+    private val exitHints = trigger(0)
+    private val exitRequests = trigger(0)
+    private var lastRootBackMillis = 0L
     private val query = trigger("")
     private val expanded = trigger(persistentMapOf<String, Boolean>())
     private val fontScale = trigger(MyNoteFontScale.Normal)
@@ -106,7 +119,11 @@ class NotesViewModel @Inject constructor(
             categories = categoryList.value,
             visibleCategories = visibleCategories.value,
             recentNotes = recentNotes.value,
-            activeNoteId = activeNoteId.value,
+            backStack = navStack.value.toImmutableList(),
+            activeNoteId = navStack.value.activeNoteId(),
+            isNavSettled = navSettled.value,
+            exitHintId = exitHints.value,
+            exitRequestId = exitRequests.value,
             query = query.value,
             expanded = expanded.value,
             fontScale = fontScale.value,
@@ -122,7 +139,7 @@ class NotesViewModel @Inject constructor(
     override fun onIntent(event: NotesIntent) {
         when (event) {
             is NotesIntent.SelectNote -> {
-                activeNoteId.value = event.id
+                navigator.push(NotesNavKey.Reader(event.id))
             }
 
             is NotesIntent.QueryChanged -> {
@@ -139,8 +156,20 @@ class NotesViewModel @Inject constructor(
                 }
             }
 
+            NotesIntent.Back -> {
+                if (navigator.pop() == NavResult.Ignored) {
+                    val now = SystemClock.elapsedRealtime()
+                    if (now - lastRootBackMillis < EXIT_WINDOW_MILLIS) {
+                        exitRequests.update { it + 1 }
+                    } else {
+                        lastRootBackMillis = now
+                        exitHints.update { it + 1 }
+                    }
+                }
+            }
+
             NotesIntent.CloseNote -> {
-                activeNoteId.value = null
+                navigator.pop()
             }
 
             is NotesIntent.SaveToken -> {
@@ -159,7 +188,10 @@ class NotesViewModel @Inject constructor(
             emit(
                 syncNotes().fold(
                     onSuccess = { outcome ->
-                        activeNoteId.update { id -> if (id != null && id in outcome.deleted) null else id }
+                        val openNote = navigator.stack.value.activeNoteId()
+                        if (openNote != null && openNote in outcome.deleted) {
+                            navigator.dispatchImmediately(NavCommand.Pop)
+                        }
                         if (announce && outcome.hasChanges) {
                             SyncState(
                                 isLoading = false,

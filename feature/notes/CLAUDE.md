@@ -23,9 +23,19 @@
 
 ## Navigation 3 (필수)
 
-**백스택의 소유자는 `activeNoteId` 다.** nav3 가 상태를 들지 않는다 —
-`notesBackStackOf(activeNoteId)` 로 파생하고, `onBack` 은 `NotesIntent.CloseNote` 를 쏜다.
-`rememberNavBackStack` 을 쓰지 않는 이유가 이것이다(상태가 두 군데가 되면 MVI 가 깨진다).
+**백스택의 소유자는 `:core:navigation` 의 `Navigator` 다.** 여기는 그걸 읽어 나르기만 한다 —
+`NotesViewModel` 이 `navigator.stack`/`isSettled` 를 `triggerIn` 하고, `NotesUiState.backStack`·
+`activeNoteId`·`isNavSettled` 는 전부 거기서 파생된다. `rememberNavBackStack` 도, VM 의
+`activeNoteId` trigger 도 쓰지 않는다(상태가 두 군데가 되면 MVI 가 깨진다).
+이동은 `SelectNote` → `navigator.push`, `CloseNote`/`Back` → `navigator.pop` 으로만 나간다.
+
+**`Back` 과 `CloseNote` 를 가른다.** 둘 다 pop 이지만 더 갈 데가 없을 때가 다르다 — `Back` 은
+앱 종료로 이어지고 `CloseNote`(하단 내비 홈 버튼)는 아무 일도 없어야 한다. 종료 판단은 화면이
+아니라 `Navigator` 가 내린다(`pop() == Ignored`).
+
+**두 번 누르기는 ViewModel 이 센다.** 횟수를 상태로 흘리면 `StateFlow` 가 conflate 해
+(0→1→2 가 한 프레임에 묶이면 2 만 보인다) 눌림이 조용히 씹힌다. 상태로 나가는 건
+`exitHintId`/`exitRequestId` 같은 **일회성 신호**뿐이고, 화면은 그걸 받아 실행만 한다.
 
 - **`NavDisplay` 는 하나.** 폼팩터로 갈리는 건 `sceneStrategies` 뿐:
   - 너비 Compact → 전략 없음 → 기본 `SinglePaneSceneStrategy`. 홈/리더가 별개 씬 레이어로 쌓이고
@@ -38,8 +48,20 @@
 - 엔트리 본문은 `ProvideNavAnimatedScope` 로 감싼다. 그래야 그 아래에서 공유 요소와
   `rememberSceneEdgeTransform` 이 동작한다. 화면에서 `LocalNavAnimatedContentScope` 를 직접 읽지 않는다.
 - 공유 요소 키(`chip-/date-/title-{noteId}`)는 `NoteSharedModifiers` 가 정한다 — 배선은 `:core:navigation`.
-- **뒤로가기 우선순위**(LIFO): 드로어 → `NavDisplay` → 앱 종료(1초 내 두 번).
+- **뒤로가기 우선순위**(LIFO): 드로어 → 전환 중 삼킴 → `NavDisplay` → 펼친 고정 패널 접기
+  → 앱 종료(1초 내 두 번).
+- **넓은 창에서 펼친 패널은 뒤로가기로 접는다**(`collapsiblePanelOpen`). Compact 의 드로어와 대칭이고,
+  종료 핸들러를 그 조건으로 막지 않으면 홈에서 패널 펴 둔 채 뒤로가기가 종료 안내로 샌다.
+  패널은 백스택 엔트리가 아니라 로컬 상태라 `Navigator` 를 거치지 않는다.
+- **드로어 가드는 `drawerEngaged = isOpen || targetValue == Open`.** `isOpen`(=`currentValue`)만 보면
+  **여는 애니메이션 동안** 가드가 뚫려 종료 안내가 먹는다 — 그 구간엔 Material3 핸들러도 꺼져 있다.
+  그리고 `drawerOpening` 구간은 우리가 받아 닫아야 한다. 비활성만 시키면 시스템 back 으로 넘어가
+  앱이 꺼진다.
   드로어는 `ModalDrawerSheet(drawerState = …)` 오버로드를 써야 핸들러가 붙는다.
+- **삼킴 핸들러는 `NavDisplay` 호출 뒤에 둔다** — `BackHandler(enabled = !uiState.isNavSettled && !drawerState.isOpen)`.
+  앞에 두면 `NavDisplay` 가 먼저 받아 애니메이션을 커밋해 버린다. 드로어 조건을 빼는 이유는
+  드로어 닫기가 언제나 살아 있어야 하기 때문이다. 이 핸들러가 앱종료 핸들러보다 뒤라서
+  **리더가 닫히는 중에 종료 안내가 뜨던 문제**도 같이 막힌다.
 
 > 씬 키 고정·예측 뒤로가기 등 **내비 자체의 주의점은 `:core:navigation/CLAUDE.md`** 에 있다.
 

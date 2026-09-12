@@ -4,6 +4,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Stable
 import com.hancekim.mynote.core.common.mvi.MviState
 import com.hancekim.mynote.core.designsystem.theme.MyNoteFontScale
+import com.hancekim.mynote.core.navigation.key.MyNoteNavKey
+import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import com.hancekim.mynote.feature.notes.CategoryUi
 import com.hancekim.mynote.feature.notes.NoteUi
 import com.hancekim.mynote.feature.notes.RecentNoteUi
@@ -17,7 +19,11 @@ data class NotesUiState(
     val categories: ImmutableList<CategoryUi> = persistentListOf(),
     val visibleCategories: ImmutableList<CategoryUi> = persistentListOf(),
     val recentNotes: ImmutableList<RecentNoteUi> = persistentListOf(),
+    val backStack: ImmutableList<MyNoteNavKey> = persistentListOf(NotesNavKey.Home),
     val activeNoteId: String? = null,
+    val isNavSettled: Boolean = true,
+    val exitHintId: Int = 0,
+    val exitRequestId: Int = 0,
     val query: String = "",
     val expanded: ImmutableMap<String, Boolean> = persistentMapOf(),
     val fontScale: MyNoteFontScale = MyNoteFontScale.Normal,
@@ -29,6 +35,8 @@ data class NotesUiState(
     val infoId: Int = 0,
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
 ) : MviState {
+    val canPop: Boolean get() = backStack.size > 1
+
     val totalCount: Int get() = categories.sumOf { it.notes.size }
 
     fun isExpanded(categoryName: String): Boolean =
