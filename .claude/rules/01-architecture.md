@@ -67,9 +67,16 @@ ViewModel 은 `:core:common` 의 **`MviViewModel<S, E>`** 를 상속한다.
 나중에 `:feature:root` 가 하나의 백스택으로 전부 태울 수 있게 하기 위해서다.
 `MyNoteNavKey` 는 `sealed` 라 **새 feature 의 키도 그 모듈에 추가**한다.
 
-**백스택의 소유자는 ViewModel 의 `activeNoteId` 하나다.** nav3 는 그 상태를 읽어 그릴 뿐이고,
-`notesBackStackOf(activeNoteId)` 가 `[Home]` 또는 `[Home, Reader(id)]` 를 만든다.
-`NavDisplay(onBack = …)` 는 `NotesIntent.CloseNote` 를 쏴 다시 상태로 되돌린다 — MVI 단방향 유지.
+**백스택의 소유자는 `:core:navigation` 의 `Navigator` 하나다.** nav3 도 ViewModel 도 스택을
+들지 않는다 — ViewModel 은 `navigator.stack` 을 `triggerIn` 으로 읽어 상태로 나르고,
+`NotesUiState.activeNoteId` 는 저장값이 아니라 **스택에서 파생된** 값이다. 소유자가 하나라는
+성질은 그대로고 자리만 옮겼다.
+
+**스택을 바꾸는 길은 `Navigator.dispatch(NavCommand)` 하나뿐이다.** 입구가 하나여야 거기서
+쓰로틀을 걸 수 있다 — 전환이 끝나기 전에 들어온 이동은 **버린다**(큐에 쌓지 않는다. 쌓으면
+누른 만큼 결국 다 이동해 막는 의미가 없다). 스택을 **바꾸기 전에** 막는 것이 핵심이다.
+먼저 바꾸고 되돌리면 그사이 `NavDisplay` 가 전환을 시작해 화면과 스택이 어긋난다.
+사용자 입력이 아닌 정정(동기화 중 삭제된 노트)·딥링크는 `dispatchImmediately` 로 게이트를 우회한다.
 
 - **`NavDisplay` 는 하나뿐이다.** 폼팩터에 따라 갈리는 건 **씬 전략(sceneStrategies)** 뿐.
   | 너비 | 전략 | 결과 |
@@ -93,7 +100,23 @@ ViewModel 은 `:core:common` 의 **`MviViewModel<S, E>`** 를 상속한다.
   `AnimatedContentScope` 를 `ProvideNavAnimatedScope` 로 내려 준다. 키는 `chip-/date-/title-{noteId}`.
   `LocalNavAnimatedContentScope` 를 화면에서 직접 읽지 않는다 — 미설정 시 예외라 프리뷰가 깨진다.
 - **뒤로가기 우선순위**(LIFO — 나중에 컴포즈된 핸들러가 이긴다):
-  드로어(`ModalDrawerSheet(drawerState=…)`, 내용보다 뒤에 컴포즈됨) → `NavDisplay` → 앱 종료(두 번 누르기).
+  드로어(`ModalDrawerSheet(drawerState=…)`) → **전환 중 삼킴** → `NavDisplay` → **펼친 고정 패널 접기**
+  → 앱 종료(두 번 누르기).
+- **펼친 고정 패널도 뒤로가기를 먹는다.** 넓은 창의 목록 패널은 백스택 엔트리가 아니지만
+  (`rememberSaveable` 로컬 상태), 펼쳐 둔 걸 접는 게 Compact 의 드로어와 대칭이다. 이걸 빠뜨리면
+  홈에서 패널을 펴 둔 채 뒤로가기 했을 때 **종료 안내가 먼저 먹는다.**
+- **드로어 판정은 `isOpen` 이 아니라 `targetValue` 로 한다.** `DrawerState.isOpen` 은 `currentValue`
+  이고 그 값은 `AnchoredDraggable` 이 **애니메이션이 끝난 뒤** `finally` 에서 넣는다. 그래서 여는
+  동안은 `isOpen == false` 인데, Material3 의 핸들러도 `PredictiveBackHandler(enabled = isOpen)` 이라
+  같이 꺼져 있다 — 이 틈에 뒤로가기가 **종료 안내로 샌다**(logcat 으로 `consumed: EXIT` 확인).
+  `targetValue == Open` 까지 봐야 틈이 없다.
+- **여는 중인 드로어는 우리가 받아 닫는다.** 비활성만 시키면 그 틈에 아무도 back 을 안 받아
+  시스템으로 넘어가 앱이 그냥 꺼진다.
+- **시스템 뒤로가기는 `NavDisplay` 에 닿기 전에 막는다.** `NavDisplay` 는 예측 뒤로가기
+  애니메이션을 **이미 커밋한 뒤** `onBack` 을 부르므로, 거기서 버리면 화면은 닫혔는데 스택은
+  그대로라 어긋난다. 그래서 `NavDisplay` **호출 뒤에** `BackHandler(enabled = !isNavSettled)` 를
+  놓아 창이 열려 있는 동안 삼킨다(`activity-compose` 의 `BackHandler` 는 `NavigationEventDispatcher`
+  가 있으면 그쪽에 등록하므로 nav3 의 핸들러와 같은 LIFO 를 탄다).
 
 ## 레이아웃: 너비 × 높이 양축
 - 최종 레이아웃 = **너비 클래스 × 높이 클래스**. 너비는 가로 구조(패널·본문 폭·카드 폭),

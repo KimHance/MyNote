@@ -21,14 +21,14 @@
 backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.state.collect { … } }
 ```
 
-## 현재 커버리지 (총 59)
+## 현재 커버리지 (총 70)
 | 모듈 | 테스트 | 건수 |
 |---|---|---|
 | `:core:common` | `MviViewModelTest`(초기값·재조립·일관성·수명) · `RunCatchingCancellableTest` | 23 |
 | `:core:common` | `MviViewModelConcurrencyTest` + `MviViewModelMainImmediateConcurrencyTest`(실제 스레드) | 4 |
 | `:core:data` | `NotesReconcileTest`(add/update/skip/delete) · `NoteDtoSerializationTest`(polymorphic) | 11 |
 | `:core:design-foundation` | `AdaptiveTokensTest`(너비×높이 토큰, 레일/바 판정, 히어로 생략) | 9 |
-| `:core:navigation` | `ListDetailSceneStrategyTest`(씬 키 고정·previousEntries) · `NotesNavKeyTest`(백스택 파생) | 6 |
+| `:core:navigation` | `NavigatorTest`(쓰로틀 게이트·no-op·창 경계·Throttled↔Ignored) · `ListDetailSceneStrategyTest` · `NotesNavKeyTest` | 17 |
 | `:core:design-system` | `FloatingNavScrollStateTest`(떨림 무시·안전지대·복귀·리셋) | 6 |
 
 `NotesViewModel` 단위 테스트와 화면 UI 테스트는 다음 단계.
