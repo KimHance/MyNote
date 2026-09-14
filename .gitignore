@@ -202,3 +202,7 @@ secrets.properties
 !/gradle/wrapper/gradle-wrapper.jar
 
 # End of https://www.toptal.com/developers/gitignore/api/androidstudio,android,macos,kotlin
+
+# 온디바이스 모델 — 기기에 adb push 로 넣는다(2.5GB+, GitHub 100MB 제한)
+*.litertlm
+*.task

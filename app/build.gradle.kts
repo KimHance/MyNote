@@ -58,6 +58,7 @@ dependencies {
     implementation(projects.core.designFoundation)
     implementation(projects.core.designSystem)
     implementation(projects.core.domain)
+    implementation(projects.core.ai)
     implementation(projects.core.navigation)
     implementation(projects.core.data)
     implementation(projects.core.network)
