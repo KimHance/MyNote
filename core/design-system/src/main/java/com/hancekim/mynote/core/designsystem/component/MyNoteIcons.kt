@@ -63,6 +63,74 @@ object MyNoteIcons {
             lineTo(18.5f, 11.5f)
         }
     }
+
+    val Sparkle: ImageVector by lazy {
+        ImageVector
+            .Builder(
+                name = "sparkle",
+                defaultWidth = 24.dp,
+                defaultHeight = 24.dp,
+                viewportWidth = 24f,
+                viewportHeight = 24f,
+            ).path(fill = SolidColor(Color.White)) {
+                fourPointStar(cx = 10.5f, cy = 10.5f, r = 8f)
+            }.path(fill = SolidColor(Color.White), fillAlpha = 0.55f) {
+                fourPointStar(cx = 19f, cy = 18.6f, r = 3.4f)
+            }.build()
+    }
+
+    val Check: ImageVector by lazy {
+        strokeIcon("check") {
+            moveTo(4.5f, 12.5f)
+            lineTo(9.5f, 17.5f)
+            lineTo(19.5f, 6.5f)
+        }
+    }
+
+    val Close: ImageVector by lazy {
+        strokeIcon("close") {
+            moveTo(6f, 6f)
+            lineTo(18f, 18f)
+            moveTo(18f, 6f)
+            lineTo(6f, 18f)
+        }
+    }
+
+    val ChevronRight: ImageVector by lazy {
+        strokeIcon("chevron_right") {
+            moveTo(9.5f, 4.5f)
+            lineTo(17f, 12f)
+            lineTo(9.5f, 19.5f)
+        }
+    }
+
+    val Warn: ImageVector by lazy {
+        strokeIcon("warn") {
+            moveTo(12f, 3.5f)
+            lineTo(21.5f, 20.5f)
+            lineTo(2.5f, 20.5f)
+            close()
+            moveTo(12f, 9.5f)
+            lineTo(12f, 14.5f)
+            moveTo(12f, 17.6f)
+            lineTo(12f, 17.7f)
+        }
+    }
+}
+
+private fun PathBuilder.fourPointStar(
+    cx: Float,
+    cy: Float,
+    r: Float,
+) {
+    val near = r * 0.1f
+    val far = r * 0.433f
+    moveTo(cx, cy - r)
+    curveTo(cx + near, cy - far, cx + far, cy - near, cx + r, cy)
+    curveTo(cx + far, cy + near, cx + near, cy + far, cx, cy + r)
+    curveTo(cx - near, cy + far, cx - far, cy + near, cx - r, cy)
+    curveTo(cx - far, cy - near, cx - near, cy - far, cx, cy - r)
+    close()
 }
 
 private fun strokeIcon(
