@@ -1,5 +1,8 @@
 package com.hancekim.mynote.core.navigation
 
+import com.hancekim.mynote.core.common.throttle.Clock
+import com.hancekim.mynote.core.common.throttle.SystemClockSource
+import com.hancekim.mynote.core.common.throttle.Throttler
 import com.hancekim.mynote.core.navigation.key.MyNoteNavKey
 import com.hancekim.mynote.core.navigation.motion.SceneMotion
 import kotlinx.coroutines.CoroutineScope
@@ -14,8 +17,11 @@ import kotlin.time.Duration.Companion.milliseconds
 class Navigator(
     private val scope: CoroutineScope,
     root: MyNoteNavKey,
-    private val windowMillis: Long = DEFAULT_WINDOW_MILLIS,
+    private val minIntervalMillis: Long = DEFAULT_MIN_INTERVAL_MILLIS,
+    clock: Clock = SystemClockSource,
 ) {
+    private val throttle = Throttler(minIntervalMillis, clock)
+
     private val mutableStack = MutableStateFlow(listOf(root))
 
     val stack: StateFlow<List<MyNoteNavKey>> = mutableStack.asStateFlow()
@@ -27,7 +33,7 @@ class Navigator(
     private var settleJob: Job? = null
 
     fun dispatch(command: NavCommand): NavResult {
-        if (!mutableSettled.value) return NavResult.Throttled
+        if (!throttle.isIdle()) return NavResult.Throttled
         val next = reduce(mutableStack.value, command) ?: return NavResult.Ignored
         apply(next)
         return NavResult.Applied
@@ -62,17 +68,18 @@ class Navigator(
 
     private fun apply(next: List<MyNoteNavKey>) {
         mutableStack.value = next
+        throttle.tryAccept()
         mutableSettled.value = false
         settleJob?.cancel()
         settleJob =
             scope.launch {
-                delay(windowMillis.milliseconds)
+                delay(minIntervalMillis.milliseconds)
                 mutableSettled.value = true
             }
     }
 }
 
-private val DEFAULT_WINDOW_MILLIS: Long =
+private val DEFAULT_MIN_INTERVAL_MILLIS: Long =
     maxOf(
         SceneMotion.DURATION_MILLIS,
         SceneMotion.BODY_FADE_OUT_MILLIS + SceneMotion.BODY_FADE_IN_MILLIS,
