@@ -8,6 +8,7 @@ android {
 
 dependencies {
     api(projects.core.designFoundation)
+    implementation(projects.core.common)
     api(libs.backdrop)
 
     implementation(libs.androidx.compose.foundation)
