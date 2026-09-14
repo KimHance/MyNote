@@ -24,3 +24,11 @@ data class RecentNoteUi(
     val note: NoteUi,
     val categoryName: String,
 )
+
+@Immutable
+data class QuizQuestionUi(
+    val question: String,
+    val choices: ImmutableList<String>,
+    val answerIndex: Int,
+    val explanation: String,
+)

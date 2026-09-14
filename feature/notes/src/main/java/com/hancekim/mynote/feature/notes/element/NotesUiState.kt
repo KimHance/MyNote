@@ -33,6 +33,10 @@ data class NotesUiState(
     val hasToken: Boolean = false,
     val infoMessage: String? = null,
     val infoId: Int = 0,
+    val isQuizAvailable: Boolean = false,
+    val quiz: QuizUiState = QuizUiState.Idle,
+    val quizUndoMessage: String? = null,
+    val quizUndoId: Int = 0,
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
 ) : MviState {
     val canPop: Boolean get() = backStack.size > 1

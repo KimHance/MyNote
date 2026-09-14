@@ -28,6 +28,7 @@ import com.hancekim.mynote.core.designsystem.component.fadingEdges
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.NoteUi
 import com.hancekim.mynote.feature.notes.navigation.rememberNoteSharedModifiers
+import com.hancekim.mynote.feature.notes.screen.quiz.QuizCtaCard
 import kotlinx.collections.immutable.persistentListOf
 
 @Composable
@@ -37,6 +38,8 @@ internal fun NoteReaderScreen(
     modifier: Modifier = Modifier,
     contentBottomPadding: Dp = 0.dp,
     scrollState: ScrollState = rememberScrollState(),
+    onOpenQuiz: (() -> Unit)? = null,
+    quizAvailable: Boolean = true,
 ) {
     val shared = rememberNoteSharedModifiers(note.id)
     val adaptive = MyNoteTheme.adaptive
@@ -80,6 +83,9 @@ internal fun NoteReaderScreen(
                 modifier = shared.title,
             )
             NoteContent(blocks = note.blocks)
+            if (onOpenQuiz != null) {
+                QuizCtaCard(onClick = onOpenQuiz, available = quizAvailable)
+            }
         }
     }
 }
@@ -122,6 +128,19 @@ private val previewNote =
 @Composable
 private fun NoteReaderScreenPreview() {
     MyNoteTheme {
-        NoteReaderScreen(note = previewNote, categoryName = "Android")
+        NoteReaderScreen(note = previewNote, categoryName = "Android", onOpenQuiz = {})
+    }
+}
+
+@Preview(name = "Reader · 모델 없음", showBackground = true, widthDp = 400, heightDp = 720)
+@Composable
+private fun NoteReaderScreenNoModelPreview() {
+    MyNoteTheme {
+        NoteReaderScreen(
+            note = previewNote,
+            categoryName = "Android",
+            onOpenQuiz = {},
+            quizAvailable = false,
+        )
     }
 }

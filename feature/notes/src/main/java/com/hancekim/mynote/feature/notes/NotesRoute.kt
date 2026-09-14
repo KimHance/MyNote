@@ -35,6 +35,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -94,9 +95,11 @@ import com.hancekim.mynote.core.navigation.shared.LocalSharedTransitionScope
 import com.hancekim.mynote.core.navigation.shared.ProvideNavAnimatedScope
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
+import com.hancekim.mynote.feature.notes.element.QuizUiState
 import com.hancekim.mynote.feature.notes.screen.HomeScreen
 import com.hancekim.mynote.feature.notes.screen.ListPanelScreen
 import com.hancekim.mynote.feature.notes.screen.NoteReaderScreen
+import com.hancekim.mynote.feature.notes.screen.quiz.QuizOverlay
 import com.kyant.backdrop.Backdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
@@ -113,6 +116,7 @@ fun NotesRoute(viewModel: NotesViewModel = hiltViewModel()) {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun NotesScreen(
     uiState: NotesUiState,
@@ -128,6 +132,19 @@ internal fun NotesScreen(
     }
     LaunchedEffect(uiState.infoId) {
         if (uiState.infoId > 0) uiState.infoMessage?.let { snackbarHostState.showSnackbar(it) }
+    }
+    val undoIntent by rememberUpdatedState(onIntent)
+    LaunchedEffect(uiState.quizUndoId) {
+        val message = uiState.quizUndoMessage
+        if (uiState.quizUndoId > 0 && message != null) {
+            val result =
+                snackbarHostState.showSnackbar(
+                    message = message,
+                    actionLabel = "되돌리기",
+                    duration = SnackbarDuration.Short,
+                )
+            if (result == SnackbarResult.ActionPerformed) undoIntent(NotesIntent.UndoQuizExit)
+        }
     }
 
     var showTokenDialog by rememberSaveable { mutableStateOf(false) }
@@ -172,30 +189,19 @@ private fun NotesNavHost(
     val navScroll = rememberFloatingNavScrollState()
     LaunchedEffect(uiState.activeNoteId) { navScroll.reset() }
 
-    // 드로어가 **열리는 중**이면 Material3 의 핸들러는 아직 꺼져 있다 —
-    // PredictiveBackHandler(enabled = drawerState.isOpen) 인데 isOpen 은 currentValue 라
-    // 애니메이션이 끝나야 true 가 된다. targetValue 로 봐야 그 틈이 안 생긴다.
     val drawerEngaged = drawerState.isOpen || drawerState.targetValue == DrawerValue.Open
     val drawerOpening = drawerEngaged && !drawerState.isOpen
 
-    // 넓은 창의 고정 패널은 백스택에 없지만, 펼쳐 둔 건 뒤로가기로 접히는 게 자연스럽다.
-    // Compact 에서는 드로어가 같은 역할을 하므로(ModalDrawerSheet 가 자기 핸들러를 단다) 뺀다.
     val collapsiblePanelOpen = !useDrawer && panelExpanded
 
-    // 뒤로 갈 데가 없을 때만 켠다. 있을 땐 NavDisplay 가 받아야 예측 뒤로가기 제스처가 산다.
-    // 조건은 Navigator 의 스택에서 나온다 — activeNoteId 로 추측하지 않는다.
     BackHandler(
         enabled = !uiState.canPop && !drawerEngaged && !collapsiblePanelOpen,
     ) { onIntent(NotesIntent.Back) }
 
-    // 종료보다 뒤에 컴포즈해 우선순위를 가져간다. 펼친 패널을 먼저 접고, 그다음이 종료다.
     BackHandler(enabled = collapsiblePanelOpen && !drawerEngaged) { panelExpanded = false }
 
-    // 여는 중인 드로어는 우리가 받아 닫는다. 비활성만 시키면 아무도 안 받아 시스템으로
-    // 넘어가고 앱이 그냥 꺼진다.
     BackHandler(enabled = drawerOpening) { scope.launch { drawerState.close() } }
 
-    // 종료 여부는 화면이 정하지 않는다. Navigator 가 "더 갈 데 없음"이라 답했을 때만 올라온다.
     val context = LocalContext.current
     LaunchedEffect(uiState.exitHintId) {
         if (uiState.exitHintId > 0) {
@@ -306,7 +312,7 @@ private fun NotesNavHost(
                         modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars),
                     )
                 },
-                topBar = { if (useDrawer) headerSlot() },
+                topBar = { if (useDrawer && !uiState.quiz.coversReader) headerSlot() },
             ) { padding ->
                 Box(
                     Modifier
@@ -359,6 +365,22 @@ private fun NotesNavHost(
                                                                 },
                                                             contentBottomPadding = contentBottomPadding,
                                                             scrollState = readerScrollState,
+                                                            onOpenQuiz = {
+                                                                if (currentState.value.isQuizAvailable) {
+                                                                    currentIntent.value(
+                                                                        NotesIntent.OpenQuizSetup(note.id),
+                                                                    )
+                                                                } else {
+                                                                    // 눌러도 안 되는 버튼을 숨기지 않는 대신,
+                                                                    // 왜 안 되는지는 말해 준다.
+                                                                    scope.launch {
+                                                                        snackbarHostState.showSnackbar(
+                                                                            MODEL_MISSING_MESSAGE,
+                                                                        )
+                                                                    }
+                                                                }
+                                                            },
+                                                            quizAvailable = currentState.value.isQuizAvailable,
                                                         )
                                                     }
                                                 }
@@ -369,23 +391,16 @@ private fun NotesNavHost(
                         }
                     }
 
-                    // NavDisplay **뒤에** 놓아야 한다. 뒤로가기는 나중에 컴포즈된 핸들러가
-                    // 먼저 받는데(navigationevent 의 precedence 계약), NavDisplay 는 예측
-                    // 뒤로가기 애니메이션을 이미 커밋한 뒤에야 onBack 을 부르기 때문이다.
-                    // 거기서 버리면 화면은 닫혔는데 스택은 그대로라 어긋난다 — 그 전에 삼킨다.
-                    // 드로어가 열려 있을 땐 비활성이다. 드로어 닫기는 언제나 살아 있어야 한다.
-                    BackHandler(enabled = !uiState.isNavSettled && !drawerEngaged) {
-                        // 전환 중이라 삼킨다
-                    }
+                    BackHandler(enabled = !uiState.isNavSettled && !drawerEngaged) {}
 
-                    // 유리보다 먼저 그려 뒤에 깔린다 — 바/버튼이 덮으므로 실제로는 둘 사이의 목만 보인다
+                    val quizOpen = uiState.quiz != QuizUiState.Idle
                     FloatingNav(
                         selectedId = selectedNavItem,
                         onSelect = { id ->
                             selectedNavItem = id
                             if (id == NAV_HOME) onIntent(NotesIntent.CloseNote)
                         },
-                        hidden = navScroll.hidden,
+                        hidden = navScroll.hidden || quizOpen,
                         topOffset = headerOffset,
                         bottomInset = bottomInset,
                         startInset = startInset,
@@ -394,7 +409,7 @@ private fun NotesNavHost(
                     )
 
                     ScrollToTopButton(
-                        visible = showScrollToTop,
+                        visible = showScrollToTop && !quizOpen,
                         onClick = {
                             navScroll.reset()
                             scope.launch {
@@ -413,6 +428,13 @@ private fun NotesNavHost(
                                     end = adaptive.railRightMargin + endInset,
                                     bottom = scrollToTopBottom(adaptive, bottomInset),
                                 ),
+                    )
+
+                    QuizOverlay(
+                        state = uiState.quiz,
+                        noteTitle = uiState.activeNote?.title.orEmpty(),
+                        onIntent = onIntent,
+                        startInset = if (!useDrawer && panelExpanded) adaptive.paneWidth + 1.dp else 0.dp,
                     )
                 }
             }
@@ -500,6 +522,8 @@ private fun scrollToTopBottom(
         adaptive.barBottomMargin + bottomInset +
             (FloatingNavDefaults.BarHeight - ScrollToTopDefaults.Size) / 2
     }
+
+private const val MODEL_MISSING_MESSAGE = "기기에 모델 파일이 없어요. 내려받아 넣으면 퀴즈를 만들 수 있어요."
 
 private const val NOTES_SCENE_KEY = "notes-list-detail"
 private const val NAV_HOME = "home"
