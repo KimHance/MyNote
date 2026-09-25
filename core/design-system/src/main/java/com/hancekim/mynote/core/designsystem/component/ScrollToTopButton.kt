@@ -7,10 +7,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,8 +18,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
@@ -59,19 +54,18 @@ fun ScrollToTopButton(
     ) {
         val colors = MyNoteTheme.colors
         val label = stringResource(R.string.ds_scroll_to_top)
-        val interaction = remember { MutableInteractionSource() }
-        val pressed by interaction.collectIsPressedAsState()
+        val shape = RoundedCornerShape(ButtonRadius)
+        val indication =
+            remember(colors, shape) { PressIndication(shape, pressColor = colors.navItemPressed) }
 
         GlassSurface(radius = ButtonRadius, backdrop = backdrop) {
             Box(
                 modifier =
                     Modifier
                         .size(ScrollToTopDefaults.Size)
-                        .clip(RoundedCornerShape(ButtonRadius))
-                        .background(if (pressed) colors.navItemPressed else Color.Transparent)
                         .clickable(
-                            interactionSource = interaction,
-                            indication = null,
+                            interactionSource = null,
+                            indication = indication,
                             role = Role.Button,
                             onClickLabel = label,
                             onClick = onClick,
