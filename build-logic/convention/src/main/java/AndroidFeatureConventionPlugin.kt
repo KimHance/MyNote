@@ -8,6 +8,7 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
         with(target) {
             pluginManager.apply {
                 apply("hancenote.android.library.compose")
+                apply("hancenote.android.hilt")
             }
 
             dependencies {

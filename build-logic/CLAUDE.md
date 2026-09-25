@@ -34,7 +34,7 @@ build-logic/
 | `hancenote.android.application.compose` | `:app` | `hancenote.android.application` + Compose 컴파일러 + 공통 Compose 의존성 |
 | `hancenote.android.library` | 모든 core 라이브러리 | AGP library · 공통 Kotlin/Android · 계측 러너 · **`hancenote.ktlint` 자동 적용** |
 | `hancenote.android.library.compose` | Compose 쓰는 라이브러리 | `hancenote.android.library` + Compose 컴파일러 + 공통 Compose 의존성 |
-| `hancenote.android.feature` | `:feature:*` | `library.compose` + `:core:common`·`:core:design-system`·`:core:domain` + lifecycle · coroutines |
+| `hancenote.android.feature` | `:feature:*` | `library.compose` + `android.hilt` + `:core:common`·`:core:design-system`·`:core:domain`·`:core:navigation` + lifecycle · coroutines |
 | `hancenote.android.hilt` | Hilt 쓰는 모듈 | KSP · Hilt 플러그인 · `hilt-android` + 컴파일러 |
 | `hancenote.android.room` | `:core:database` | `androidx.room3` · KSP · 스키마 export 디렉터리 · room 런타임/컴파일러 |
 | `hancenote.jvm.library` | `:core:domain` | 순수 JVM(안드로이드 없음) · Java 17 · `hancenote.ktlint` 자동 적용 |

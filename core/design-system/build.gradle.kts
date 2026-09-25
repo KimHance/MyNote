@@ -13,7 +13,6 @@ dependencies {
     api(libs.backdrop)
 
     implementation(libs.androidx.compose.foundation)
-    implementation(libs.androidx.compose.ui.tooling.preview)
 
     testImplementation(libs.junit)
 }

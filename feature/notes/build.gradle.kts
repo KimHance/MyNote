@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.hancenote.android.feature)
-    alias(libs.plugins.hancenote.android.hilt)
 }
 
 android {
