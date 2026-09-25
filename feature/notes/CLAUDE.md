@@ -13,7 +13,28 @@
 | `mapper/` | 도메인 → UI 모델 단방향 매핑(`NotesUiMapper`, `NoteBlockMapper`) |
 | `navigation/` | 노트 전용 공유 요소 키 묶음(`NoteSharedModifiers`)만. 나머지는 `:core:navigation` |
 | `screen/` | `HomeScreen` · `NoteReaderScreen` · `ListPanelScreen` (전부 stateless + `@Preview`) |
-| (루트) | `NotesRoute`(호스트) · `NotesUiModel` · `NotesViewModel` |
+| `shell/` | 호스트 껍데기 — 아래 표 참조 |
+| (루트) | `NotesRoute`/`NotesScreen`(진입점 + 프리뷰) · `NotesUiModel` · `NotesViewModel` · `NotesMessages` |
+
+### `shell/` — 호스트를 일로 쪼갠 것
+
+`NotesScreen` 이 `NotesShell` 하나만 부르고, 그 안에서 조각들이 조립된다. 한 파일이 한 가지 일만 한다.
+
+| 파일 | 하는 일 |
+|---|---|
+| `NotesShell` | 드로어·패널·내비 선택 상태, **뒤로가기 핸들러 순서**, Scaffold, 드로어 래핑 |
+| `NotesLayout` | 인셋 산수 한 곳 — `bottomInset`/`headerOffset`/`contentBottomPadding`/`scrollToTopBottom` |
+| `NotesScrollState` | 홈 그리드 + 리더 스크롤 + "맨 위로" 노출 판정(`derivedStateOf`) + `scrollToTop()` |
+| `NotesScenes` | 씬 슬롯(`panel`/`header`)과 `sceneStrategies` — `remember` 로 정체성 고정하는 자리 |
+| `NotesNavDisplay` | `NavDisplay` 하나 + 엔트리(Home/Reader) + `SharedTransitionLayout` |
+| `NotesOverlays` | 플로팅 내비 · 맨 위로 버튼 · 퀴즈 오버레이 (백드롭 레이어 **밖**) |
+| `NotesTopBar` / `TokenDialog` | 호스트 크롬 |
+
+**쪼갤 때 깨지면 안 되는 것 둘:**
+- **컴포즈 순서가 곧 뒤로가기 우선순위다.** `NotesShell` 안의 세 `BackHandler` → `NavDisplay` →
+  삼킴 `BackHandler` 순서를 파일을 옮겨도 그대로 유지해야 한다(LIFO).
+- **`layerBackdrop` Box 안에는 `NotesNavDisplay` 만.** 오버레이가 그 안에 들어가면 유리가 자기를
+  샘플링한다.
 
 ## MVI (필수)
 - 상태: `NotesUiState` — 단일 소스. 컬렉션은 `ImmutableList`/`ImmutableMap`.
@@ -73,6 +94,13 @@
 - 인셋은 한 군데서만: `TopAppBar`/`ModalDrawerSheet` 가 자기 몫을 처리한다.
   `ListPanelScreen(applyStatusInset = true)` 는 **고정 패널일 때만** — 드로어에선 두 번 밀린다.
 - `Scaffold(contentWindowInsets = WindowInsets(0))` + 하단 여백은 `contentBottomPadding` 으로 명시 전달.
+
+## 문구 (다국어 없음)
+- 화면 문구는 `src/main/res/values/strings.xml`(`resourcePrefix = "notes_"`). 코드에 한글 리터럴 금지
+  (프리뷰 더미는 예외). 공통 문구(취소·저장·닫기·되돌리기)는 design-system 의 `ds_*` 를 쓴다.
+- 말투는 **합니다체** — 서술 `~합니다`/`~습니다`, 권유·지시 `~하세요`.
+- **ViewModel 은 `getString` 을 직접 부르지 않는다.** 스낵바 문구는 `NotesMessages`(`@ApplicationContext`
+  주입)가 만들어 주고 VM 은 그걸 호출만 한다 — 문구가 한 군데 모이고 테스트에서 갈아끼울 수 있다.
 
 ## 그 외
 - 데이터 DTO/도메인 → UI 모델 매핑은 **여기서** 단방향. 도메인 모델이 Composable 까지 오지 않는다.
