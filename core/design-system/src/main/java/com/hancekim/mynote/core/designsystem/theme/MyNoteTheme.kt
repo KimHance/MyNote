@@ -35,7 +35,7 @@ fun MyNoteTheme(
 ) {
     val colors = StudyNotesDarkColors
     val adaptive = remember(windowClass, heightClass) { adaptiveTokensFor(windowClass, heightClass) }
-    val textStyles = remember(fontScale) { myNoteTextStyles(fontScale.bodySizeSp) }
+    val textStyles = remember(fontScale, heightClass) { myNoteTextStyles(fontScale.bodySizeSp, heightClass) }
 
     CompositionLocalProvider(
         LocalMyNoteColors provides colors,

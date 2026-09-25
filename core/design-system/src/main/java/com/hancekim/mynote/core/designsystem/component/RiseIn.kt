@@ -1,8 +1,6 @@
 package com.hancekim.mynote.core.designsystem.component
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.CubicBezierEasing
-import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -25,10 +23,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.hancekim.mynote.core.designsystem.theme.MyNoteEasing
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import kotlinx.coroutines.launch
-
-val RiseEasing: Easing = CubicBezierEasing(0.2f, 0.8f, 0.2f, 1f)
 
 fun Modifier.riseIn(
     delayMillis: Int = 0,
@@ -67,7 +64,7 @@ private class RiseInNode(
         coroutineScope.launch {
             progress.animateTo(
                 targetValue = 1f,
-                animationSpec = tween(durationMillis, delayMillis, RiseEasing),
+                animationSpec = tween(durationMillis, delayMillis, MyNoteEasing),
             )
         }
     }

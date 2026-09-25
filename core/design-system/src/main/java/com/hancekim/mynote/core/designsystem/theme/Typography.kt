@@ -6,6 +6,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import com.hancekim.mynote.core.designfoundation.window.MyNoteHeightClass
 
 enum class MyNoteFontScale(
     val bodySizeSp: Float,
@@ -16,20 +17,41 @@ enum class MyNoteFontScale(
 
 @Immutable
 data class MyNoteTextStyles(
+    val display: TextStyle,
     val noteTitle: TextStyle,
+    val title: TextStyle,
+    val headline: TextStyle,
     val sectionTitle: TextStyle,
-    val overline: TextStyle,
+    val screenTitle: TextStyle,
     val cardTitle: TextStyle,
+    val overline: TextStyle,
     val treeLabel: TextStyle,
     val caption: TextStyle,
     val mdHeading2: TextStyle,
     val mdHeading3: TextStyle,
     val body: TextStyle,
+    val bodyCompact: TextStyle,
+    val bodySmall: TextStyle,
+    val button: TextStyle,
     val mono: TextStyle,
+    val monoLabel: TextStyle,
+    val monoSmall: TextStyle,
 )
 
-fun myNoteTextStyles(bodySizeSp: Float): MyNoteTextStyles =
-    MyNoteTextStyles(
+fun myNoteTextStyles(
+    bodySizeSp: Float,
+    heightClass: MyNoteHeightClass = MyNoteHeightClass.Medium,
+): MyNoteTextStyles {
+    val short = heightClass == MyNoteHeightClass.Compact
+    return MyNoteTextStyles(
+        display =
+            TextStyle(
+                fontFamily = FontFamily.Default,
+                fontSize = if (short) 40.sp else 52.sp,
+                fontWeight = FontWeight.W700,
+                lineHeight = if (short) 40.sp else 52.sp,
+                letterSpacing = (-0.03).em,
+            ),
         noteTitle =
             TextStyle(
                 fontFamily = FontFamily.Default,
@@ -38,6 +60,21 @@ fun myNoteTextStyles(bodySizeSp: Float): MyNoteTextStyles =
                 letterSpacing = (-0.015).em,
                 lineHeight = (28 * 1.25f).sp,
             ),
+        title =
+            TextStyle(
+                fontFamily = FontFamily.Default,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.W700,
+                letterSpacing = (-0.01).em,
+            ),
+        headline =
+            TextStyle(
+                fontFamily = FontFamily.Default,
+                fontSize = 23.sp,
+                fontWeight = FontWeight.W700,
+                lineHeight = (23 * 1.45f).sp,
+                letterSpacing = (-0.01).em,
+            ),
         sectionTitle =
             TextStyle(
                 fontFamily = FontFamily.Default,
@@ -45,12 +82,12 @@ fun myNoteTextStyles(bodySizeSp: Float): MyNoteTextStyles =
                 fontWeight = FontWeight.W700,
                 letterSpacing = (-0.01).em,
             ),
-        overline =
+        screenTitle =
             TextStyle(
                 fontFamily = FontFamily.Default,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.W600,
-                letterSpacing = 0.08.em,
+                fontSize = if (short) 17.sp else 19.sp,
+                fontWeight = FontWeight.W700,
+                letterSpacing = (-0.01).em,
             ),
         cardTitle =
             TextStyle(
@@ -58,6 +95,13 @@ fun myNoteTextStyles(bodySizeSp: Float): MyNoteTextStyles =
                 fontSize = 16.sp,
                 fontWeight = FontWeight.W500,
                 lineHeight = 22.sp,
+            ),
+        overline =
+            TextStyle(
+                fontFamily = FontFamily.Default,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.W600,
+                letterSpacing = 0.08.em,
             ),
         treeLabel =
             TextStyle(
@@ -91,6 +135,26 @@ fun myNoteTextStyles(bodySizeSp: Float): MyNoteTextStyles =
                 fontWeight = FontWeight.W400,
                 lineHeight = (bodySizeSp * 1.78f).sp,
             ),
+        bodyCompact =
+            TextStyle(
+                fontFamily = FontFamily.Default,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.W400,
+                lineHeight = (15 * 1.5f).sp,
+            ),
+        bodySmall =
+            TextStyle(
+                fontFamily = FontFamily.Default,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.W400,
+                lineHeight = (14 * 1.7f).sp,
+            ),
+        button =
+            TextStyle(
+                fontFamily = FontFamily.Default,
+                fontSize = 15.5f.sp,
+                fontWeight = FontWeight.W700,
+            ),
         mono =
             TextStyle(
                 fontFamily = FontFamily.Monospace,
@@ -98,4 +162,18 @@ fun myNoteTextStyles(bodySizeSp: Float): MyNoteTextStyles =
                 fontWeight = FontWeight.W400,
                 lineHeight = (13 * 1.65f).sp,
             ),
+        monoLabel =
+            TextStyle(
+                fontFamily = FontFamily.Monospace,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.W600,
+                letterSpacing = 0.12.em,
+            ),
+        monoSmall =
+            TextStyle(
+                fontFamily = FontFamily.Monospace,
+                fontSize = 12.5f.sp,
+                fontWeight = FontWeight.W600,
+            ),
     )
+}
