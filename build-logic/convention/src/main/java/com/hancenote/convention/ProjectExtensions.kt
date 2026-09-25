@@ -1,4 +1,4 @@
-package com.hance.convention
+package com.hancenote.convention
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalog

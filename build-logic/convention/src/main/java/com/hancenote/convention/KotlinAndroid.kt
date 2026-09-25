@@ -1,4 +1,4 @@
-package com.hance.convention
+package com.hancenote.convention
 
 import com.android.build.api.dsl.CommonExtension
 import org.gradle.api.JavaVersion

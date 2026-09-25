@@ -17,5 +17,5 @@ Room 3 로컬 캐시 모듈. **노트 SSOT 의 물리 저장소**. 의존 방향
 - DataStore 타입도 모듈 밖으로 안 나간다(반환 `String?`/`Flow<String?>`). 현재 **평문**(앱 전용 저장소) — 암호화-at-rest 는 후속(임플만 스왑).
 
 ## 컨벤션
-- 플러그인: `billboard.android.library` + `billboard.android.room` + `billboard.android.hilt`.
+- 플러그인: `hancenote.android.library` + `hancenote.android.room` + `hancenote.android.hilt`.
 - DI: `DatabaseModule` 이 `NotesDatabase`/`NoteDao` 를 `@Provides`, `LocalNotesDataSource`·`TokenStore` 구현을 `@Binds`.

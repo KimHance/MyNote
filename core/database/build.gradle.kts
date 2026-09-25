@@ -1,7 +1,7 @@
 plugins {
-    alias(libs.plugins.billboard.android.library)
-    alias(libs.plugins.billboard.android.room)
-    alias(libs.plugins.billboard.android.hilt)
+    alias(libs.plugins.hancenote.android.library)
+    alias(libs.plugins.hancenote.android.room)
+    alias(libs.plugins.hancenote.android.hilt)
 }
 
 android {

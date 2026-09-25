@@ -1,6 +1,6 @@
 plugins {
-    alias(libs.plugins.billboard.android.library)
-    alias(libs.plugins.billboard.android.hilt)
+    alias(libs.plugins.hancenote.android.library)
+    alias(libs.plugins.hancenote.android.hilt)
     alias(libs.plugins.kotlin.serialization)
 }
 

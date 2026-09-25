@@ -1,4 +1,4 @@
-package com.hance.convention
+package com.hancenote.convention
 
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.dsl.CommonExtension

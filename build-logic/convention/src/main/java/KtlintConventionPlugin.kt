@@ -1,4 +1,4 @@
-import com.hance.convention.libs
+import com.hancenote.convention.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure

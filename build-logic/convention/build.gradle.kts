@@ -5,7 +5,7 @@ plugins {
     `kotlin-dsl-precompiled-script-plugins`
 }
 
-group = "com.billboard.buildlogic"
+group = "com.hancenote.buildlogic"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -39,35 +39,35 @@ tasks {
 gradlePlugin {
     plugins {
         register("androidApplication") {
-            id = "hance.android.application"
+            id = "hancenote.android.application"
             implementationClass = "AndroidApplicationConventionPlugin"
         }
         register("androidCompose") {
-            id = "hance.android.application.compose"
+            id = "hancenote.android.application.compose"
             implementationClass = "AndroidApplicationComposeConventionPlugin"
         }
         register("androidLibrary") {
-            id = "hance.android.library"
+            id = "hancenote.android.library"
             implementationClass = "AndroidLibraryConventionPlugin"
         }
         register("androidLibraryCompose") {
-            id = "hance.android.library.compose"
+            id = "hancenote.android.library.compose"
             implementationClass = "AndroidLibraryComposeConventionPlugin"
         }
         register("androidRoom") {
-            id = "hance.android.room"
+            id = "hancenote.android.room"
             implementationClass = "AndroidRoomConventionPlugin"
         }
         register("androidFeature") {
-            id = "hance.android.feature"
+            id = "hancenote.android.feature"
             implementationClass = "AndroidFeatureConventionPlugin"
         }
         register("hilt") {
-            id = "hance.android.hilt"
+            id = "hancenote.android.hilt"
             implementationClass = "HiltConventionPlugin"
         }
         register("ktlint") {
-            id = "hance.ktlint"
+            id = "hancenote.ktlint"
             implementationClass = "KtlintConventionPlugin"
         }
     }

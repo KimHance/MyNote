@@ -30,16 +30,16 @@ build-logic/
 
 | Plugin ID | 적용 대상 | 하는 일 |
 |---|---|---|
-| `hance.android.application` | `:app` | AGP application · 공통 Kotlin/Android · `targetSdk` · release 서명 · **`hance.ktlint` 자동 적용** |
-| `hance.android.application.compose` | `:app` | `hance.android.application` + Compose 컴파일러 + 공통 Compose 의존성 |
-| `hance.android.library` | 모든 core 라이브러리 | AGP library · 공통 Kotlin/Android · 계측 러너 · **`hance.ktlint` 자동 적용** |
-| `hance.android.library.compose` | Compose 쓰는 라이브러리 | `hance.android.library` + Compose 컴파일러 + 공통 Compose 의존성 |
-| `hance.android.feature` | `:feature:*` | `library.compose` + `:core:common`·`:core:design-system`·`:core:domain` + lifecycle · coroutines |
-| `hance.android.hilt` | Hilt 쓰는 모듈 | KSP · Hilt 플러그인 · `hilt-android` + 컴파일러 |
-| `hance.android.room` | `:core:database` | `androidx.room3` · KSP · 스키마 export 디렉터리 · room 런타임/컴파일러 |
-| `hance.ktlint` | (자동) | ktlint 버전 고정 + `ktlintRuleset(compose-rules)` |
+| `hancenote.android.application` | `:app` | AGP application · 공통 Kotlin/Android · `targetSdk` · release 서명 · **`hancenote.ktlint` 자동 적용** |
+| `hancenote.android.application.compose` | `:app` | `hancenote.android.application` + Compose 컴파일러 + 공통 Compose 의존성 |
+| `hancenote.android.library` | 모든 core 라이브러리 | AGP library · 공통 Kotlin/Android · 계측 러너 · **`hancenote.ktlint` 자동 적용** |
+| `hancenote.android.library.compose` | Compose 쓰는 라이브러리 | `hancenote.android.library` + Compose 컴파일러 + 공통 Compose 의존성 |
+| `hancenote.android.feature` | `:feature:*` | `library.compose` + `:core:common`·`:core:design-system`·`:core:domain` + lifecycle · coroutines |
+| `hancenote.android.hilt` | Hilt 쓰는 모듈 | KSP · Hilt 플러그인 · `hilt-android` + 컴파일러 |
+| `hancenote.android.room` | `:core:database` | `androidx.room3` · KSP · 스키마 export 디렉터리 · room 런타임/컴파일러 |
+| `hancenote.ktlint` | (자동) | ktlint 버전 고정 + `ktlintRuleset(compose-rules)` |
 
-> `hance.ktlint` 는 application/library convention 이 직접 적용하므로 **모듈에서 따로 선언하지 않는다.**
+> `hancenote.ktlint` 는 application/library convention 이 직접 적용하므로 **모듈에서 따로 선언하지 않는다.**
 > 그래서 `libs.versions.toml` 에도 alias 가 없다(문자열 id 로만 적용).
 
 ## 공통 설정이 실제로 켜는 것

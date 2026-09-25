@@ -1,9 +1,9 @@
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.billboard.android.application)
-    alias(libs.plugins.billboard.android.application.compose)
-    alias(libs.plugins.billboard.android.hilt)
+    alias(libs.plugins.hancenote.android.application)
+    alias(libs.plugins.hancenote.android.application.compose)
+    alias(libs.plugins.hancenote.android.hilt)
 }
 
 // local.properties 에서 노트 레포 좌표/토큰을 읽는다(토큰은 gitignore 됨).

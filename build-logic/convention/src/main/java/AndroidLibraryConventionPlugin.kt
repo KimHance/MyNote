@@ -1,5 +1,5 @@
 import com.android.build.api.dsl.LibraryExtension
-import com.hance.convention.configureKotlinAndroid
+import com.hancenote.convention.configureKotlinAndroid
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
@@ -9,7 +9,7 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
         with(target) {
             with(pluginManager) {
                 apply("com.android.library")
-                apply("hance.ktlint")
+                apply("hancenote.ktlint")
             }
 
             extensions.configure<LibraryExtension> {

@@ -131,13 +131,13 @@ ViewModel 은 `:core:common` 의 **`MviViewModel<S, E>`** 를 상속한다.
 ## Convention Plugins (항상 사용, 수동 설정 금지)
 | alias | 용도 |
 |---|---|
-| `billboard.android.application` (+ `.compose`) | `:app` |
-| `billboard.android.library` (+ `.compose`) | core 라이브러리 |
-| `billboard.android.feature` | `:feature:*` (`:core:common` + `:core:design-system` + `:core:domain` + `:core:navigation` + lifecycle + coroutines 자동) |
-| `billboard.android.hilt` | Hilt 모듈 |
-| `billboard.android.room` | Room 모듈(`:core:database`) |
+| `hancenote.android.application` (+ `.compose`) | `:app` |
+| `hancenote.android.library` (+ `.compose`) | core 라이브러리 |
+| `hancenote.android.feature` | `:feature:*` (`:core:common` + `:core:design-system` + `:core:domain` + `:core:navigation` + lifecycle + coroutines 자동) |
+| `hancenote.android.hilt` | Hilt 모듈 |
+| `hancenote.android.room` | Room 모듈(`:core:database`) |
 
-`hance.ktlint`(ktlint + compose-rules)는 application/library convention 이 자동으로 적용하므로 모듈에서 따로 선언하지 않는다.
+`hancenote.ktlint`(ktlint + compose-rules)는 application/library convention 이 자동으로 적용하므로 모듈에서 따로 선언하지 않는다.
 
 > AGP 9 기준: Kotlin 빌트인이라 **`org.jetbrains.kotlin.android` 적용 금지**(새 DSL 과 비호환).
 > `CommonExtension` 은 타입 파라미터가 없어졌고 블록 메서드는 사라졌지만 getter 는 남아 있다

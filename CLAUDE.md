@@ -65,7 +65,7 @@ GitHub 의 JSON 노트를 읽어 "블로그 글처럼" 보는 **읽기 전용** 
 | Collections | kotlinx-collections-immutable |
 | Liquid glass | **backdrop 2.0.1**(`io.github.kyant0`) — 플로팅 내비 유리 표면. 블러 + **굴절(lens, AGSL)** + 스펙큘러 하이라이트 |
 | Build | AGP 9.4.0 · Gradle 9.6 · Kotlin 2.4.20 · convention plugins (`:build-logic`) |
-| Lint / Format | ktlint 1.8.0 + compose-rules 0.6.6(`hance.ktlint`) · Slack compose-lints 1.6.0(Android Lint) · `.editorconfig` |
+| Lint / Format | ktlint 1.8.0 + compose-rules 0.6.6(`hancenote.ktlint`) · Slack compose-lints 1.6.0(Android Lint) · `.editorconfig` |
 | Release | R8 minify + resource shrinking(`app/proguard-rules.pro`) — release 3.2MB, missing_rules 없음 |
 
 ---

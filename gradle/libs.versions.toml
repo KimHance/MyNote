@@ -62,13 +62,13 @@ compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 
-billboard-android-application = { id = "hance.android.application" }
-billboard-android-application-compose = { id = "hance.android.application.compose" }
-billboard-android-library = { id = "hance.android.library" }
-billboard-android-library-compose = { id = "hance.android.library.compose" }
-billboard-android-room = { id = "hance.android.room" }
-billboard-android-hilt = { id = "hance.android.hilt" }
-billboard-android-feature = { id = "hance.android.feature" }
+hancenote-android-application = { id = "hancenote.android.application" }
+hancenote-android-application-compose = { id = "hancenote.android.application.compose" }
+hancenote-android-library = { id = "hancenote.android.library" }
+hancenote-android-library-compose = { id = "hancenote.android.library.compose" }
+hancenote-android-room = { id = "hancenote.android.room" }
+hancenote-android-hilt = { id = "hancenote.android.hilt" }
+hancenote-android-feature = { id = "hancenote.android.feature" }
 
 [libraries]
 android-desugarJdkLibs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugarJdkLibs" }

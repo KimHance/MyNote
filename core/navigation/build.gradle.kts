@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.billboard.android.library.compose)
+    alias(libs.plugins.hancenote.android.library.compose)
     alias(libs.plugins.kotlin.serialization)
 }
 
