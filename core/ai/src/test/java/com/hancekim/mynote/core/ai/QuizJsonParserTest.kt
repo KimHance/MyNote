@@ -62,6 +62,62 @@ class QuizJsonParserTest {
     }
 
     @Test
+    fun `똑같은 선택지가 겹치면 하나만 남긴다`() {
+        val dup = dupQuestion(choices = """["가장 오래 안 쓴 것", "가장 큰 것", "가장 오래 안 쓴 것", "무작위"]""", answerIndex = 0)
+
+        val question = QuizJsonParser.parse(dup).getOrThrow()[0]
+
+        assertEquals(listOf("가장 오래 안 쓴 것", "가장 큰 것", "무작위"), question.choices)
+    }
+
+    @Test
+    fun `겹친 선택지를 지우면 정답 번호도 따라 옮긴다`() {
+        val dup = dupQuestion(choices = """["A", "A", "정답", "B"]""", answerIndex = 2)
+
+        val question = QuizJsonParser.parse(dup).getOrThrow()[0]
+
+        assertEquals(listOf("A", "정답", "B"), question.choices)
+        assertEquals("정답", question.choices[question.answerIndex])
+    }
+
+    @Test
+    fun `정답이 겹친 쪽이면 살아남은 같은 값을 가리킨다`() {
+        val dup = dupQuestion(choices = """["정답", "B", "정답"]""", answerIndex = 2)
+
+        val question = QuizJsonParser.parse(dup).getOrThrow()[0]
+
+        assertEquals("정답", question.choices[question.answerIndex])
+        assertEquals(0, question.answerIndex)
+    }
+
+    @Test
+    fun `대소문자만 다르면 같은 선택지로 본다`() {
+        val dup = dupQuestion(choices = """["SlotTable", "slottable", " SlotTable ", "갭버퍼"]""", answerIndex = 3)
+
+        val question = QuizJsonParser.parse(dup).getOrThrow()[0]
+
+        assertEquals(listOf("SlotTable", "갭버퍼"), question.choices)
+        assertEquals("갭버퍼", question.choices[question.answerIndex])
+    }
+
+    @Test
+    fun `공백 개수만 다르면 같은 선택지로 본다`() {
+        val dup = dupQuestion(choices = """["gap 버퍼", "gap  버퍼", "링 버퍼"]""", answerIndex = 2)
+
+        val question = QuizJsonParser.parse(dup).getOrThrow()[0]
+
+        assertEquals(listOf("gap 버퍼", "링 버퍼"), question.choices)
+        assertEquals("링 버퍼", question.choices[question.answerIndex])
+    }
+
+    @Test
+    fun `겹쳐서 선택지가 하나만 남으면 문제로 치지 않는다`() {
+        val dup = dupQuestion(choices = """["같은 값", "같은 값", "같은 값"]""", answerIndex = 0)
+
+        assertTrue(QuizJsonParser.parse(dup).isFailure)
+    }
+
+    @Test
     fun `JSON 배열이 아예 없으면 실패한다`() {
         assertTrue(QuizJsonParser.parse("죄송하지만 만들 수 없습니다.").isFailure)
     }
@@ -85,3 +141,11 @@ class QuizJsonParserTest {
             """.trimIndent()
     }
 }
+
+private fun dupQuestion(
+    choices: String,
+    answerIndex: Int,
+): String =
+    """
+    [{"question": "겹치는 선택지 시험", "choices": $choices, "answerIndex": $answerIndex, "explanation": "설명"}]
+    """.trimIndent()

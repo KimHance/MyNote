@@ -42,17 +42,30 @@ internal object QuizJsonParser {
 
     private fun RawQuestion.toDomainOrNull(): QuizQuestion? {
         if (question.isBlank() || choices.size < 2) return null
+        val trimmed = choices.map { it.trim() }
         val index =
             when (answerIndex) {
-                in choices.indices -> answerIndex
-                choices.size -> answerIndex - 1
+                in trimmed.indices -> answerIndex
+                trimmed.size -> answerIndex - 1
                 else -> return null
             }
+        val answer = trimmed[index]
+        if (answer.isBlank()) return null
+
+        val unique = trimmed.filter { it.isNotBlank() }.distinctBy { it.dedupeKey() }
+        if (unique.size < 2) return null
+        val answerAt = unique.indexOfFirst { it.dedupeKey() == answer.dedupeKey() }
+        if (answerAt < 0) return null
+
         return QuizQuestion(
             question = question.trim(),
-            choices = choices.map { it.trim() },
-            answerIndex = index,
+            choices = unique,
+            answerIndex = answerAt,
             explanation = explanation.trim(),
         )
     }
+
+    private val whitespace = Regex("\\s+")
+
+    private fun String.dedupeKey(): String = lowercase().replace(whitespace, " ").trim()
 }
