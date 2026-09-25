@@ -36,6 +36,7 @@ import com.hancekim.mynote.core.designsystem.component.throttledProcess
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.designsystem.theme.rememberReduceMotion
 import com.hancekim.mynote.feature.notes.R
+import com.hancekim.mynote.feature.notes.element.QuizUiState
 
 @Suppress("ktlint:compose:modifier-clickable-order", "ktlint:compose:lambda-param-event-trailing")
 @Composable
@@ -100,9 +101,11 @@ internal fun QuizCtaCard(
                 )
                 Text(
                     text =
-                        stringResource(
-                            if (available) R.string.notes_quiz_cta_subtitle else R.string.notes_quiz_cta_unavailable,
-                        ),
+                        if (available) {
+                            stringResource(R.string.notes_quiz_cta_subtitle, QuizUiState.MAX_COUNT)
+                        } else {
+                            stringResource(R.string.notes_quiz_cta_unavailable)
+                        },
                     style = MyNoteTheme.textStyles.caption,
                     color = colors.text3,
                     maxLines = 1,

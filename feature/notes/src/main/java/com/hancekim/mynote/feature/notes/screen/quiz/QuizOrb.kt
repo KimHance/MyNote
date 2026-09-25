@@ -37,8 +37,8 @@ internal fun QuizOrb(
     val still = rememberReduceMotion()
     val transition = rememberInfiniteTransition(label = "orb")
 
-    val breathe = transition.pingPong(false, BREATHE_PERIOD, label = "orbBreathe")
-    val twinkle = transition.pingPong(false, TWINKLE_PERIOD, label = "orbTwinkle")
+    val breathe = transition.pingPong(still, BREATHE_PERIOD, label = "orbBreathe")
+    val twinkle = transition.pingPong(still, TWINKLE_PERIOD, label = "orbTwinkle")
 
     Box(modifier = modifier.size(size), contentAlignment = Alignment.Center) {
         Box(

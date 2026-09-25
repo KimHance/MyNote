@@ -27,7 +27,7 @@
     <string name="notes_sync_deleted">삭제 %1$d개</string>
 
     <string name="notes_quiz_cta_title">이 노트로 퀴즈 풀기</string>
-    <string name="notes_quiz_cta_subtitle">최대 5지선다</string>
+    <string name="notes_quiz_cta_subtitle">최대 %1$d문제</string>
     <string name="notes_quiz_cta_unavailable">모델이 없어 만들지 못합니다</string>
     <string name="notes_quiz_model_missing">기기에 모델 파일이 없습니다. 내려받아 넣으면 퀴즈를 만들 수 있습니다.</string>
 
