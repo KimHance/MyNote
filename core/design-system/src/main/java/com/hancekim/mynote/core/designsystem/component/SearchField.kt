@@ -12,11 +12,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import com.hancekim.mynote.core.designfoundation.token.MyNoteRadius
+import com.hancekim.mynote.core.designsystem.R
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 
 @Composable
@@ -24,9 +26,10 @@ fun SearchField(
     query: String,
     onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    placeholder: String = "노트 검색",
+    placeholder: String? = null,
 ) {
     val colors = MyNoteTheme.colors
+    val hint = placeholder ?: stringResource(R.string.ds_search_hint)
     BasicTextField(
         value = query,
         onValueChange = onQueryChange,
@@ -48,7 +51,7 @@ fun SearchField(
             ) {
                 if (query.isEmpty()) {
                     Text(
-                        text = placeholder,
+                        text = hint,
                         style = MyNoteTheme.textStyles.body,
                         color = colors.text3,
                     )

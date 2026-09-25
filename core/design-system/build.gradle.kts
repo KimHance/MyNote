@@ -3,6 +3,7 @@ plugins {
 }
 
 android {
+    resourcePrefix = "ds_"
     namespace = "com.hancekim.mynote.core.designsystem"
 }
 

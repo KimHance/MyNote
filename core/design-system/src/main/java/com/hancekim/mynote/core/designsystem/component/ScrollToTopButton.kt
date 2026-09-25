@@ -23,10 +23,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.hancekim.mynote.core.designsystem.R
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.kyant.backdrop.Backdrop
 
@@ -56,6 +58,7 @@ fun ScrollToTopButton(
                 fadeOut(tween(DISAPPEAR_MILLIS, easing = FastOutSlowInEasing)),
     ) {
         val colors = MyNoteTheme.colors
+        val label = stringResource(R.string.ds_scroll_to_top)
         val interaction = remember { MutableInteractionSource() }
         val pressed by interaction.collectIsPressedAsState()
 
@@ -70,14 +73,14 @@ fun ScrollToTopButton(
                             interactionSource = interaction,
                             indication = null,
                             role = Role.Button,
-                            onClickLabel = "맨 위로",
+                            onClickLabel = label,
                             onClick = onClick,
                         ),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = MyNoteIcons.ArrowUp,
-                    contentDescription = "맨 위로",
+                    contentDescription = label,
                     tint = colors.text2,
                     modifier = Modifier.size(21.dp),
                 )
