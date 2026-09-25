@@ -61,6 +61,7 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 android-library = { id = "com.android.library", version.ref = "agp" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 
 hancenote-android-application = { id = "hancenote.android.application" }
 hancenote-android-application-compose = { id = "hancenote.android.application.compose" }
@@ -69,6 +70,7 @@ hancenote-android-library-compose = { id = "hancenote.android.library.compose" }
 hancenote-android-room = { id = "hancenote.android.room" }
 hancenote-android-hilt = { id = "hancenote.android.hilt" }
 hancenote-android-feature = { id = "hancenote.android.feature" }
+hancenote-jvm-library = { id = "hancenote.jvm.library" }
 
 [libraries]
 android-desugarJdkLibs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugarJdkLibs" }
@@ -110,6 +112,7 @@ androidx-datastore = { group = "androidx.datastore", name = "datastore-preferenc
 
 androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutine" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutine" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutine" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }

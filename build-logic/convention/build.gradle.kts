@@ -66,6 +66,10 @@ gradlePlugin {
             id = "hancenote.android.hilt"
             implementationClass = "HiltConventionPlugin"
         }
+        register("jvmLibrary") {
+            id = "hancenote.jvm.library"
+            implementationClass = "JvmLibraryConventionPlugin"
+        }
         register("ktlint") {
             id = "hancenote.ktlint"
             implementationClass = "KtlintConventionPlugin"

@@ -3,8 +3,10 @@
 가장 안쪽 레이어. 순수 Kotlin 모델 + Repository 인터페이스 + UseCase. 의존 없음(가장 안쪽).
 
 ## 하드 룰
-- **Android/Compose 의존 금지.** Hilt 플러그인도 불필요 — DI 는 `javax.inject`(`@Inject`)만 사용,
-  UseCase 는 unscoped 생성자 주입.
+- **Android/Compose 의존 금지.** 이건 약속이 아니라 **빌드가 강제한다** — 이 모듈은
+  `hancenote.jvm.library`(순수 JVM)라 `import android.*` 가 `Unresolved reference` 로 막힌다.
+  코루틴도 `-android` 가 아니라 `-core` 를 쓴다. Hilt 플러그인 불필요 — DI 는
+  `javax.inject`(`@Inject`)만 사용, UseCase 는 unscoped 생성자 주입.
 - **인터페이스를 domain 이 소유한다(DIP).** `NotesRepository`(observe/sync)는 여기에 두고,
   구현은 `:core:data` 가 domain 을 의존하며 구현한다. domain 은 data 를 모른다.
 - 도메인 모델(`Category`/`Note`/`NoteBlock`)은 순수 데이터 클래스. 직렬화 어노테이션·Compose stability

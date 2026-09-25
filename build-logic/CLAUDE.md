@@ -37,6 +37,7 @@ build-logic/
 | `hancenote.android.feature` | `:feature:*` | `library.compose` + `:core:common`·`:core:design-system`·`:core:domain` + lifecycle · coroutines |
 | `hancenote.android.hilt` | Hilt 쓰는 모듈 | KSP · Hilt 플러그인 · `hilt-android` + 컴파일러 |
 | `hancenote.android.room` | `:core:database` | `androidx.room3` · KSP · 스키마 export 디렉터리 · room 런타임/컴파일러 |
+| `hancenote.jvm.library` | `:core:domain` | 순수 JVM(안드로이드 없음) · Java 17 · `hancenote.ktlint` 자동 적용 |
 | `hancenote.ktlint` | (자동) | ktlint 버전 고정 + `ktlintRuleset(compose-rules)` |
 
 > `hancenote.ktlint` 는 application/library convention 이 직접 적용하므로 **모듈에서 따로 선언하지 않는다.**
