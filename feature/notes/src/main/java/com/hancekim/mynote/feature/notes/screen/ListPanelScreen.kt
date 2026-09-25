@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.hancekim.mynote.core.designsystem.component.CategoryRow
@@ -22,6 +23,7 @@ import com.hancekim.mynote.core.designsystem.component.SearchField
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.CategoryUi
 import com.hancekim.mynote.feature.notes.NoteUi
+import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import kotlinx.collections.immutable.persistentListOf
@@ -46,7 +48,7 @@ internal fun ListPanelScreen(
                 .padding(top = adaptive.panelHeaderPadTop, bottom = 12.dp),
     ) {
         Text(
-            text = "노트 ${uiState.totalCount}개",
+            text = stringResource(R.string.notes_panel_count, uiState.totalCount),
             style = MyNoteTheme.textStyles.caption,
             color = colors.text3,
             modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
@@ -59,7 +61,7 @@ internal fun ListPanelScreen(
 
         if (uiState.query.isNotBlank() && uiState.visibleCategories.isEmpty()) {
             Text(
-                text = "검색 결과가 없어요",
+                text = stringResource(R.string.notes_panel_empty),
                 style = MyNoteTheme.textStyles.body,
                 color = colors.text3,
                 modifier = Modifier.padding(start = 4.dp, top = 8.dp),

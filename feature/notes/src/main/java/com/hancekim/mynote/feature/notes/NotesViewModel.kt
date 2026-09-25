@@ -46,13 +46,9 @@ import kotlin.time.Duration.Companion.milliseconds
 
 private const val EXIT_WINDOW_MILLIS = 1000L
 
-private const val AUTO_ADVANCE_MILLIS = 1200L
-
 private const val UNDO_WINDOW_MILLIS = 3200L
 
 private const val GENERATE_TIMEOUT_MILLIS = 60_000L
-
-private const val QUIZ_ABANDONED_MESSAGE = "퀴즈를 그만뒀어"
 
 private data class QuizUndo(
     val message: String,
@@ -76,6 +72,7 @@ class NotesViewModel @Inject constructor(
     observeAppliedToken: ObserveAppliedTokenUseCase,
     private val generateQuiz: GenerateQuizUseCase,
     private val autoAdvancePolicy: QuizAutoAdvancePolicy,
+    private val messages: NotesMessages,
     quizGenerator: QuizGenerator,
     private val navigator: Navigator,
 ) : MviViewModel<NotesUiState, NotesIntent>() {
@@ -310,7 +307,7 @@ class NotesViewModel @Inject constructor(
         autoAdvanceJob?.cancel()
         autoAdvanceJob =
             viewModelScope.launch {
-                delay(AUTO_ADVANCE_MILLIS.milliseconds)
+                delay(QuizUiState.AUTO_ADVANCE_MILLIS.milliseconds)
                 onIntent(NotesIntent.NextQuestion(fromIndex = fromIndex))
             }
     }
@@ -325,7 +322,7 @@ class NotesViewModel @Inject constructor(
             return
         }
         abandonedSolving = leaving
-        quizUndo.value = QuizUndo(QUIZ_ABANDONED_MESSAGE, ++undoSeq)
+        quizUndo.value = QuizUndo(messages.quizAbandoned(), ++undoSeq)
         undoJob?.cancel()
         undoJob =
             viewModelScope.launch {
@@ -359,7 +356,7 @@ class NotesViewModel @Inject constructor(
                         if (announce && outcome.hasChanges) {
                             SyncState(
                                 isLoading = false,
-                                infoMessage = buildChangeMessage(outcome),
+                                infoMessage = messages.syncApplied(outcome),
                                 infoId = ++infoSeq,
                             )
                         } else {
@@ -369,7 +366,7 @@ class NotesViewModel @Inject constructor(
                     onFailure = {
                         SyncState(
                             isLoading = false,
-                            errorMessage = "노트를 불러오지 못했어요. 연결을 확인해 주세요.",
+                            errorMessage = messages.syncFailed(),
                             errorId = ++errorSeq,
                         )
                     },
@@ -383,13 +380,4 @@ class NotesViewModel @Inject constructor(
             is QuizFailure.Empty -> QuizUiState.Failed.Kind.Empty
             else -> QuizUiState.Failed.Kind.Engine
         }
-
-    private fun buildChangeMessage(outcome: SyncOutcome): String {
-        val parts =
-            buildList {
-                if (outcome.changed > 0) add("갱신 ${outcome.changed}개")
-                if (outcome.deleted.isNotEmpty()) add("삭제 ${outcome.deleted.size}개")
-            }
-        return "노트 변경 반영 — " + parts.joinToString(" · ")
-    }
 }

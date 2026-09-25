@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -35,6 +36,7 @@ import com.hancekim.mynote.core.designsystem.component.NoteCard
 import com.hancekim.mynote.core.designsystem.component.fadingEdges
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.NoteUi
+import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.RecentNoteUi
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.navigation.rememberNoteSharedModifiers
@@ -69,7 +71,7 @@ internal fun HomeScreen(
                 )
             } else {
                 Text(
-                    text = "표시할 노트가 없어요",
+                    text = stringResource(R.string.notes_home_empty),
                     style = MyNoteTheme.textStyles.body,
                     color = colors.text2,
                     modifier = Modifier.align(Alignment.Center),
@@ -97,7 +99,7 @@ internal fun HomeScreen(
                 }
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Text(
-                        text = "최근 노트",
+                        text = stringResource(R.string.notes_home_recent),
                         style = MyNoteTheme.textStyles.overline,
                         color = colors.text3,
                         modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
@@ -149,7 +151,7 @@ private fun Hero(
             Spacer(Modifier.height(16.dp))
         }
         Text(
-            text = "공부 기록",
+            text = stringResource(R.string.notes_app_title),
             style = MyNoteTheme.textStyles.noteTitle.copy(fontSize = adaptive.heroTitleSize),
             color = colors.text,
         )
@@ -158,9 +160,9 @@ private fun Hero(
             Text(
                 text =
                     if (modalDrawer) {
-                        "읽고 싶은 노트를 골라보세요. 왼쪽 위 ☰ 를 누르면 전체 목록이 열려요."
+                        stringResource(R.string.notes_home_hint_compact)
                     } else {
-                        "왼쪽 목록에서 읽고 싶은 노트를 선택하세요."
+                        stringResource(R.string.notes_home_hint_wide)
                     },
                 style = MyNoteTheme.textStyles.body,
                 color = colors.text2,

@@ -4,6 +4,7 @@ plugins {
 }
 
 android {
+    resourcePrefix = "notes_"
     namespace = "com.hancekim.mynote.feature.notes"
 }
 
