@@ -8,6 +8,7 @@ import androidx.compose.foundation.IndicationNodeFactory
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.InteractionSource
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -135,6 +136,7 @@ private fun PressIndicationPreview() {
     MyNoteTheme {
         val colors = MyNoteTheme.colors
         val shape = RoundedCornerShape(15.dp)
+        val interaction = remember { MutableInteractionSource() }
         val filled =
             remember(colors, shape) {
                 PressIndication(shape, colors.accent, colors.accentPressed, scale = 0.98f)
@@ -149,7 +151,7 @@ private fun PressIndicationPreview() {
                     Modifier
                         .fillMaxWidth()
                         .height(50.dp)
-                        .clickable(interactionSource = null, indication = filled, role = Role.Button) {},
+                        .clickable(interactionSource = interaction, indication = filled, role = Role.Button) {},
                 contentAlignment = Alignment.Center,
             ) {
                 Text("면까지 같이 줄어든다", style = MyNoteTheme.textStyles.body, color = colors.bg)
