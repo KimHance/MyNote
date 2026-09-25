@@ -5,6 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import com.hancekim.mynote.core.designsystem.component.MyNoteIcons
 import com.hancekim.mynote.core.designsystem.component.PressIndication
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
+import com.hancekim.mynote.feature.notes.R
 
 @Composable
 internal fun QuizPrimaryButton(
@@ -47,6 +50,7 @@ internal fun QuizPrimaryButton(
 ) {
     val colors = MyNoteTheme.colors
     val shape = RoundedCornerShape(15.dp)
+    val interaction = remember { MutableInteractionSource() }
     val indication =
         remember(colors, shape) {
             PressIndication(shape, colors.accent, colors.accentPressed, scale = 0.98f)
@@ -56,8 +60,12 @@ internal fun QuizPrimaryButton(
             modifier
                 .fillMaxWidth()
                 .height(height)
-                .clickable(interactionSource = null, indication = indication, role = Role.Button, onClick = onClick)
-                .padding(horizontal = 20.dp),
+                .clickable(
+                    interactionSource = interaction,
+                    indication = indication,
+                    role = Role.Button,
+                    onClick = onClick,
+                ).padding(horizontal = 20.dp),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -71,7 +79,7 @@ internal fun QuizPrimaryButton(
         }
         Text(
             text = text,
-            style = quizTypography().button,
+            style = MyNoteTheme.textStyles.button,
             color = colors.bg,
             modifier = Modifier.padding(start = if (leadingSparkle) 8.dp else 0.dp),
         )
@@ -99,7 +107,7 @@ internal fun QuizOutlineButton(
     ) {
         Text(
             text = text,
-            style = quizTypography().button.copy(fontWeight = FontWeight.W500),
+            style = MyNoteTheme.textStyles.button.copy(fontWeight = FontWeight.W500),
             color = colors.text,
         )
     }
@@ -124,7 +132,7 @@ internal fun QuizQuietButton(
     ) {
         Text(
             text = text,
-            style = quizTypography().body.copy(fontSize = 14.5f.sp),
+            style = MyNoteTheme.textStyles.bodySmall.copy(fontSize = 14.5f.sp),
             color = colors.text3,
         )
     }
@@ -149,7 +157,7 @@ internal fun QuizCloseButton(
     ) {
         Icon(
             imageVector = MyNoteIcons.Close,
-            contentDescription = "퀴즈 닫기",
+            contentDescription = stringResource(R.string.notes_quiz_close),
             tint = colors.text2,
             modifier = Modifier.size(iconSize),
         )

@@ -40,6 +40,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -48,6 +50,8 @@ import com.hancekim.mynote.core.designfoundation.window.MyNoteHeightClass
 import com.hancekim.mynote.core.designfoundation.window.MyNoteWindowClass
 import com.hancekim.mynote.core.designsystem.component.MyNoteIcons
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
+import com.hancekim.mynote.core.designsystem.theme.rememberReduceMotion
+import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.QuizUiState
 import kotlinx.coroutines.delay
@@ -60,10 +64,11 @@ internal fun QuizGeneratingScreen(
     modifier: Modifier = Modifier,
 ) {
     val short = MyNoteTheme.adaptive.heightClass == MyNoteHeightClass.Compact
+    val steps = stringArrayResource(R.array.notes_quiz_generating_steps)
 
     var step by remember { mutableIntStateOf(0) }
-    LaunchedEffect(Unit) {
-        for (next in 1..LOADING_STEPS.lastIndex) {
+    LaunchedEffect(steps) {
+        for (next in 1..steps.lastIndex) {
             delay(STEP_PERIOD_MILLIS.milliseconds)
             step = next
         }
@@ -97,7 +102,7 @@ internal fun QuizGeneratingScreen(
                     verticalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
                     QuizOrb(size = 64.dp)
-                    GeneratingTitle(step = step)
+                    GeneratingTitle(title = steps[step])
                     QuitButton(onIntent = onIntent, modifier = Modifier.widthIn(max = 200.dp))
                 }
                 SlotColumn(
@@ -115,7 +120,7 @@ internal fun QuizGeneratingScreen(
             ) {
                 QuizOrb()
                 Spacer(Modifier.height(30.dp))
-                GeneratingTitle(step = step)
+                GeneratingTitle(title = steps[step])
                 Spacer(Modifier.height(30.dp))
                 SlotColumn(maxCount = state.maxCount, arrived = arrived, compact = false)
             }
@@ -129,18 +134,18 @@ internal fun QuizGeneratingScreen(
 
 @Composable
 private fun GeneratingTitle(
-    step: Int,
+    title: String,
     modifier: Modifier = Modifier,
 ) {
-    val type = quizTypography()
+    val type = MyNoteTheme.textStyles
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Text(text = LOADING_STEPS[step], style = type.screenTitle, color = MyNoteTheme.colors.text)
+        Text(text = title, style = type.screenTitle, color = MyNoteTheme.colors.text)
         Text(
-            text = "처음 한 번은 10초쯤 걸려",
+            text = stringResource(R.string.notes_quiz_generating_hint),
             style = MyNoteTheme.textStyles.caption.copy(fontSize = 13.5f.sp),
             color = MyNoteTheme.colors.text3,
         )
@@ -153,7 +158,7 @@ private fun QuitButton(
     modifier: Modifier = Modifier,
 ) {
     QuizOutlineButton(
-        text = "그만두기",
+        text = stringResource(R.string.notes_quiz_generating_stop),
         onClick = { onIntent(NotesIntent.DismissQuiz) },
         modifier = modifier,
     )
@@ -227,7 +232,7 @@ private fun QuizSlotRow(
         ) {
             Text(
                 text = "$number",
-                style = quizTypography().counter.copy(fontSize = 11.5f.sp, fontWeight = FontWeight.W700),
+                style = MyNoteTheme.textStyles.monoSmall.copy(fontSize = 11.5f.sp, fontWeight = FontWeight.W700),
                 color = if (done) colors.correct else colors.text3,
             )
         }
@@ -307,9 +312,6 @@ private fun SlotBar(
 }
 
 private enum class SlotStatus { Done, Active, Waiting }
-
-private val LOADING_STEPS =
-    listOf("노트를 읽는 중", "핵심 개념을 고르는 중", "문제를 다듬는 중", "선택지를 섞는 중")
 
 private const val STEP_PERIOD_MILLIS = 900L
 private const val SLOT_PERIOD_MILLIS = 2400L

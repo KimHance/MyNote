@@ -22,13 +22,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -53,8 +57,11 @@ import com.hancekim.mynote.core.designfoundation.window.MyNoteWindowClass
 import com.hancekim.mynote.core.designsystem.component.MyNoteIcons
 import com.hancekim.mynote.core.designsystem.component.riseIn
 import com.hancekim.mynote.core.designsystem.component.throttledProcess
+import com.hancekim.mynote.core.designsystem.theme.MyNoteEasing
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
+import com.hancekim.mynote.core.designsystem.theme.rememberReduceMotion
 import com.hancekim.mynote.feature.notes.QuizQuestionUi
+import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.QuizUiState
 import kotlinx.collections.immutable.persistentListOf
@@ -66,13 +73,19 @@ internal fun QuizSolveScreen(
     modifier: Modifier = Modifier,
 ) {
     val colors = MyNoteTheme.colors
-    val type = quizTypography()
+    val type = MyNoteTheme.textStyles
     val short = MyNoteTheme.adaptive.heightClass == MyNoteHeightClass.Compact
 
     val enter = remember { Animatable(0f) }
+    val scroll = rememberScrollState()
     LaunchedEffect(state.index) {
+        scroll.scrollTo(0)
         enter.snapTo(0f)
-        enter.animateTo(1f, tween(320, easing = QuizEasing))
+        enter.animateTo(1f, tween(320, easing = MyNoteEasing))
+    }
+    val reach = scroll.maxValue
+    LaunchedEffect(state.index, state.revealed, reach) {
+        if (state.revealed && scroll.value < reach) scroll.animateScrollTo(reach)
     }
 
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
@@ -84,15 +97,16 @@ internal fun QuizSolveScreen(
                     Modifier
                         .weight(1f)
                         .fillMaxWidth()
+                        .graphicsLayer {
+                            alpha = enter.value
+                            translationX = (1f - enter.value) * ENTER_SLIDE.toPx()
+                        }.verticalScroll(scroll)
                         .padding(
                             start = 22.dp,
                             end = 22.dp,
                             top = if (short) 14.dp else 26.dp,
                             bottom = 20.dp,
-                        ).graphicsLayer {
-                            alpha = enter.value
-                            translationX = (1f - enter.value) * ENTER_SLIDE.toPx()
-                        },
+                        ),
                 verticalArrangement = Arrangement.spacedBy(22.dp),
             ) {
                 if (state.partial) {
@@ -101,11 +115,11 @@ internal fun QuizSolveScreen(
 
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
-                        text = "문제 ${state.index + 1}",
-                        style = type.label,
+                        text = stringResource(R.string.notes_quiz_question_index, state.index + 1),
+                        style = type.monoLabel,
                         color = colors.accent,
                     )
-                    Text(text = state.current.question, style = type.question, color = colors.text)
+                    Text(text = state.current.question, style = type.headline, color = colors.text)
                 }
 
                 Column(
@@ -113,12 +127,14 @@ internal fun QuizSolveScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     state.current.choices.forEachIndexed { index, choice ->
-                        ChoiceRow(
-                            index = index,
-                            text = choice,
-                            state = state,
-                            onPick = { onIntent(NotesIntent.PickChoice(index)) },
-                        )
+                        key(state.index, index) {
+                            ChoiceRow(
+                                index = index,
+                                text = choice,
+                                state = state,
+                                onPick = { onIntent(NotesIntent.PickChoice(index)) },
+                            )
+                        }
                     }
                 }
 
@@ -129,7 +145,10 @@ internal fun QuizSolveScreen(
 
             if (state.revealed && !state.autoAdvancing) {
                 QuizPrimaryButton(
-                    text = if (state.isLast) "결과 보기" else "다음 문제",
+                    text =
+                        stringResource(
+                            if (state.isLast) R.string.notes_quiz_see_result else R.string.notes_quiz_next,
+                        ),
                     onClick = throttledProcess { onIntent(NotesIntent.NextQuestion()) },
                     height = 52.dp,
                     modifier =
@@ -164,12 +183,14 @@ private fun SolveTopBar(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        val progressDescription =
+            stringResource(R.string.notes_quiz_progress, state.questions.size, state.index + 1)
         Row(
             modifier =
                 Modifier
                     .weight(1f)
                     .semantics {
-                        contentDescription = "${state.questions.size}문제 중 ${state.index + 1}번째"
+                        contentDescription = progressDescription
                     },
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
@@ -192,7 +213,7 @@ private fun SolveTopBar(
         }
         Text(
             text = "${state.index + 1} / ${state.questions.size}",
-            style = quizTypography().counter,
+            style = MyNoteTheme.textStyles.monoSmall,
             color = colors.text3,
             maxLines = 1,
             softWrap = false,
@@ -230,7 +251,7 @@ private fun PartialBand(
             modifier = Modifier.size(16.dp),
         )
         Text(
-            text = "${count}문제만 만들어졌어",
+            text = stringResource(R.string.notes_quiz_partial, count),
             style = MyNoteTheme.textStyles.caption,
             color = colors.warnText,
         )
@@ -248,6 +269,8 @@ private fun ChoiceRow(
     val colors = MyNoteTheme.colors
     val shape = RoundedCornerShape(14.dp)
 
+    val correctLabel = stringResource(R.string.notes_quiz_correct)
+    val wrongLabel = stringResource(R.string.notes_quiz_wrong)
     val isAnswer = index == state.current.answerIndex
     val isMyWrong = state.revealed && index == state.picked && !isAnswer
     val revealedAnswer = state.revealed && isAnswer
@@ -290,8 +313,8 @@ private fun ChoiceRow(
                     role = Role.RadioButton,
                     onClick = onPick,
                 ).semantics {
-                    if (revealedAnswer) stateDescription = "정답"
-                    if (isMyWrong) stateDescription = "오답"
+                    if (revealedAnswer) stateDescription = correctLabel
+                    if (isMyWrong) stateDescription = wrongLabel
                 }.padding(horizontal = 14.dp, vertical = 13.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -312,14 +335,14 @@ private fun ChoiceRow(
         ) {
             Text(
                 text = "${index + 1}",
-                style = quizTypography().counter.copy(fontWeight = FontWeight.W700),
+                style = MyNoteTheme.textStyles.monoSmall.copy(fontWeight = FontWeight.W700),
                 color = if (revealedAnswer || isMyWrong) colors.bg else colors.text3,
             )
         }
 
         Text(
             text = text,
-            style = quizTypography().choice,
+            style = MyNoteTheme.textStyles.bodyCompact,
             color = if (dimmed) colors.text3 else colors.text,
             modifier = Modifier.weight(1f),
         )
@@ -341,7 +364,7 @@ private fun Explanation(
     modifier: Modifier = Modifier,
 ) {
     val colors = MyNoteTheme.colors
-    val type = quizTypography()
+    val type = MyNoteTheme.textStyles
     val correct = state.isCorrect
     val accentColor = if (correct) colors.correct else colors.wrong
 
@@ -363,20 +386,24 @@ private fun Explanation(
             ) {
                 Text(
                     modifier = Modifier.riseIn(delayMillis = RISE_STEP_MILLIS),
-                    text = if (correct) "정답" else "오답",
-                    style = type.body.copy(fontSize = 14.sp, fontWeight = FontWeight.W700),
+                    text = stringResource(if (correct) R.string.notes_quiz_correct else R.string.notes_quiz_wrong),
+                    style = type.bodySmall.copy(fontWeight = FontWeight.W700),
                     color = accentColor,
                 )
                 if (state.autoAdvancing) {
                     Spacer(Modifier.weight(1f))
                     AutoAdvanceRing(color = accentColor)
-                    Text(text = "다음 문제로", style = type.counter.copy(fontSize = 12.sp), color = colors.text3)
+                    Text(
+                        text = stringResource(R.string.notes_quiz_auto_next),
+                        style = type.monoSmall.copy(fontSize = 12.sp),
+                        color = colors.text3,
+                    )
                 }
             }
             Text(
                 modifier = Modifier.riseIn(delayMillis = RISE_STEP_MILLIS * 2),
                 text = state.current.explanation,
-                style = type.body,
+                style = type.bodySmall,
                 color = colors.text2,
             )
         }
@@ -392,7 +419,7 @@ private fun AutoAdvanceRing(
     val still = rememberReduceMotion()
     val progress = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
-        if (!still) progress.animateTo(1f, tween(AUTO_ADVANCE_MILLIS, easing = LinearEasing))
+        if (!still) progress.animateTo(1f, tween(QuizUiState.AUTO_ADVANCE_MILLIS, easing = LinearEasing))
     }
     Box(
         modifier
@@ -429,7 +456,6 @@ private const val RISE_STEP_MILLIS = 70
 
 private val CONTENT_MAX_WIDTH = 560.dp
 private val ENTER_SLIDE = 26.dp
-private const val AUTO_ADVANCE_MILLIS = 1200
 
 private val previewQuestions =
     persistentListOf(

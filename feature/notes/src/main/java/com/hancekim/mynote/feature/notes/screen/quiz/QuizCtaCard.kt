@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -33,6 +34,8 @@ import com.hancekim.mynote.core.designsystem.component.PressIndication
 import com.hancekim.mynote.core.designsystem.component.aiShine
 import com.hancekim.mynote.core.designsystem.component.throttledProcess
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
+import com.hancekim.mynote.core.designsystem.theme.rememberReduceMotion
+import com.hancekim.mynote.feature.notes.R
 
 @Suppress("ktlint:compose:modifier-clickable-order", "ktlint:compose:lambda-param-event-trailing")
 @Composable
@@ -60,7 +63,7 @@ internal fun QuizCtaCard(
                         interactionSource = null,
                         indication = remember { PressIndication(scale = 0.985f) },
                         role = Role.Button,
-                        onClickLabel = "퀴즈 만들기",
+                        onClickLabel = stringResource(R.string.notes_quiz_setup_title),
                         onClick = throttledProcess(action = onClick),
                     ).aiShine(
                         color = colors.accent,
@@ -91,12 +94,15 @@ internal fun QuizCtaCard(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text(
-                    text = "이 노트로 퀴즈 풀기",
+                    text = stringResource(R.string.notes_quiz_cta_title),
                     style = MyNoteTheme.textStyles.cardTitle.copy(fontWeight = FontWeight.W700),
                     color = colors.text,
                 )
                 Text(
-                    text = if (available) "최대 5지선다" else "모델이 없어 생성이 불가능합니다",
+                    text =
+                        stringResource(
+                            if (available) R.string.notes_quiz_cta_subtitle else R.string.notes_quiz_cta_unavailable,
+                        ),
                     style = MyNoteTheme.textStyles.caption,
                     color = colors.text3,
                     maxLines = 1,

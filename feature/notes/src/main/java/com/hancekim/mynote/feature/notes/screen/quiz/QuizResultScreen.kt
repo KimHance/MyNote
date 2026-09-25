@@ -30,6 +30,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.TextStyle
@@ -44,7 +45,10 @@ import com.hancekim.mynote.core.designfoundation.window.MyNoteHeightClass
 import com.hancekim.mynote.core.designfoundation.window.MyNoteWindowClass
 import com.hancekim.mynote.core.designsystem.component.MyNoteIcons
 import com.hancekim.mynote.core.designsystem.component.riseIn
+import com.hancekim.mynote.core.designsystem.theme.MyNoteEasing
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
+import com.hancekim.mynote.core.designsystem.theme.rememberReduceMotion
+import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.QuizUiState
 import kotlinx.collections.immutable.ImmutableList
@@ -57,7 +61,7 @@ internal fun QuizResultScreen(
     modifier: Modifier = Modifier,
 ) {
     val colors = MyNoteTheme.colors
-    val type = quizTypography()
+    val type = MyNoteTheme.textStyles
     val short = MyNoteTheme.adaptive.heightClass == MyNoteHeightClass.Compact
     val verdict = verdictFor(state.rate)
 
@@ -73,7 +77,7 @@ internal fun QuizResultScreen(
                     total = state.total,
                     rate = state.rate,
                     size = 132.dp,
-                    scoreStyle = type.score,
+                    scoreStyle = type.display,
                 )
                 Column(
                     modifier = Modifier.weight(1f),
@@ -82,13 +86,13 @@ internal fun QuizResultScreen(
                     Text(
                         modifier = Modifier.riseIn(delayMillis = RISE_STEP_MILLIS),
                         text = verdict.title,
-                        style = type.resultTitle,
+                        style = type.title,
                         color = colors.text,
                     )
                     Text(
                         modifier = Modifier.riseIn(delayMillis = RISE_STEP_MILLIS * 2),
                         text = verdict.body,
-                        style = type.body,
+                        style = type.bodySmall,
                         color = colors.text2,
                     )
                     MarkChips(
@@ -108,19 +112,19 @@ internal fun QuizResultScreen(
                     total = state.total,
                     rate = state.rate,
                     size = 186.dp,
-                    scoreStyle = type.score,
+                    scoreStyle = type.display,
                 )
                 Box(Modifier.size(34.dp))
                 Text(
                     modifier = Modifier.riseIn(delayMillis = RISE_STEP_MILLIS),
                     text = verdict.title,
-                    style = type.resultTitle,
+                    style = type.title,
                     color = colors.text,
                 )
                 Box(Modifier.size(12.dp))
                 Text(
                     text = verdict.body,
-                    style = type.body.copy(fontSize = 14.5f.sp),
+                    style = type.bodySmall.copy(fontSize = 14.5f.sp),
                     color = colors.text2,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.riseIn(delayMillis = RISE_STEP_MILLIS * 2).widthIn(max = 280.dp),
@@ -134,7 +138,7 @@ internal fun QuizResultScreen(
         }
 
         QuizPrimaryButton(
-            text = "노트로 돌아가기",
+            text = stringResource(R.string.notes_quiz_back_to_note),
             onClick = { onIntent(NotesIntent.DismissQuiz) },
             height = 52.dp,
             modifier = Modifier.padding(bottom = 12.dp),
@@ -153,17 +157,18 @@ private fun ScoreGauge(
 ) {
     val colors = MyNoteTheme.colors
     val still = rememberReduceMotion()
+    val scoreDescription = stringResource(R.string.notes_quiz_result_score, total, score)
 
     var started by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { started = true }
     val sweep by animateFloatAsState(
         targetValue = if (started) rate else 0f,
-        animationSpec = if (still) snap() else tween(900, easing = QuizEasing),
+        animationSpec = if (still) snap() else tween(900, easing = MyNoteEasing),
         label = "gaugeSweep",
     )
     val pop by animateFloatAsState(
         targetValue = if (started) 1f else 0.86f,
-        animationSpec = if (still) snap() else tween(420, easing = QuizEasing),
+        animationSpec = if (still) snap() else tween(420, easing = MyNoteEasing),
         label = "gaugePop",
     )
 
@@ -199,14 +204,14 @@ private fun ScoreGauge(
                             style = stroke,
                         )
                     }
-                }.clearAndSetSemantics { contentDescription = "${total}문제 중 ${score}문제 정답" },
+                }.clearAndSetSemantics { contentDescription = scoreDescription },
         contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(text = "$score", style = scoreStyle, color = colors.text)
             Text(
                 text = "/ $total",
-                style = quizTypography().counter.copy(fontSize = 14.sp),
+                style = MyNoteTheme.textStyles.monoSmall.copy(fontSize = 14.sp),
                 color = colors.text3,
             )
         }
@@ -219,8 +224,16 @@ private fun MarkChips(
     modifier: Modifier = Modifier,
 ) {
     val colors = MyNoteTheme.colors
+    val correctLabel = stringResource(R.string.notes_quiz_correct)
+    val wrongLabel = stringResource(R.string.notes_quiz_wrong)
     Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
         marks.forEachIndexed { index, correct ->
+            val markLabel =
+                stringResource(
+                    R.string.notes_quiz_result_mark,
+                    index + 1,
+                    if (correct) correctLabel else wrongLabel,
+                )
             Box(
                 modifier =
                     Modifier
@@ -229,7 +242,7 @@ private fun MarkChips(
                             (if (correct) colors.correct else colors.wrong).copy(alpha = 0.14f),
                             RoundedCornerShape(11.dp),
                         ).clearAndSetSemantics {
-                            contentDescription = "${index + 1}번 " + if (correct) "정답" else "오답"
+                            contentDescription = markLabel
                         },
                 contentAlignment = Alignment.Center,
             ) {
@@ -249,14 +262,26 @@ private data class Verdict(
     val body: String,
 )
 
-private fun verdictFor(rate: Float): Verdict =
-    when {
-        rate >= 1f -> Verdict("다 맞았어", "이 노트는 충분히 소화한 것 같아.")
-        rate >= 0.6f -> Verdict("거의 잡았어", REVIEW_BODY)
-        else -> Verdict("한 번 더 읽어보자", REVIEW_BODY)
-    }
+@Composable
+private fun verdictFor(rate: Float): Verdict {
+    val review = stringResource(R.string.notes_quiz_result_review_body)
+    return when {
+        rate >= 1f -> {
+            Verdict(
+                stringResource(R.string.notes_quiz_result_perfect_title),
+                stringResource(R.string.notes_quiz_result_perfect_body),
+            )
+        }
 
-private const val REVIEW_BODY = "틀린 문제의 해설은 방금 본 그 자리에 있었어. 노트를 다시 한 번 훑어봐."
+        rate >= 0.6f -> {
+            Verdict(stringResource(R.string.notes_quiz_result_good_title), review)
+        }
+
+        else -> {
+            Verdict(stringResource(R.string.notes_quiz_result_retry_title), review)
+        }
+    }
+}
 
 private const val RISE_STEP_MILLIS = 90
 
