@@ -17,18 +17,7 @@ GitHub 의 JSON 노트를 읽어 "블로그 글처럼" 보는 **읽기 전용** 
 
 **Package root:** `com.hancekim.mynote`
 **SDK:** compileSdk 37 · targetSdk 36 · minSdk 32
-**Base:** `Billboard 프로젝트` 의 Gradle/convention plugin 을 가져와 각색(Circuit·flavor 제거 완료, 전체 재조립형 MVI 채택).
-
----
-
-## Rules
-@.claude/rules/01-architecture.md
-@.claude/rules/02-compose-state.md
-@.claude/rules/03-di-hilt.md
-@.claude/rules/04-design-system.md
-@.claude/rules/05-error-handling.md
-@.claude/rules/06-testing.md
-@.claude/rules/07-notes-authoring.md
+**Build:** convention plugin(`:build-logic`, `hancenote.*`) — Circuit·flavor 없음, 전체 재조립형 MVI.
 
 ---
 
