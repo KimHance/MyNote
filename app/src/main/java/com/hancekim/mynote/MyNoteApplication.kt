@@ -7,4 +7,9 @@ import javax.inject.Inject
 @HiltAndroidApp
 class MyNoteApplication : Application() {
     @Inject lateinit var tokenSync: TokenSync
+
+    override fun onCreate() {
+        super.onCreate()
+        tokenSync.start()
+    }
 }

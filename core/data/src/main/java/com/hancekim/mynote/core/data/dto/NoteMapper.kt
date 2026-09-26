@@ -11,10 +11,11 @@ import kotlinx.serialization.json.Json
 
 fun CategoryDto.toDomain(): Category = Category(name = name, notes = notes.map { it.toDomain() })
 
-fun NoteDto.toDomain(): Note = Note(id = id, title = title, date = date, blocks = blocks.map { it.toDomain() })
+fun NoteDto.toDomain(): Note = Note(id = id, title = title, date = date, blocks = blocks.mapNotNull { it.toDomain() })
 
-fun NoteBlockDto.toDomain(): NoteBlock =
+fun NoteBlockDto.toDomain(): NoteBlock? =
     when (this) {
+        NoteBlockDto.Unknown -> null
         is NoteBlockDto.Heading -> NoteBlock.Heading(level, spans.toDomainSpans())
         is NoteBlockDto.Paragraph -> NoteBlock.Paragraph(spans.toDomainSpans())
         is NoteBlockDto.Code -> NoteBlock.Code(code)
@@ -42,6 +43,6 @@ fun List<CachedNote>.toCategories(json: Json): List<Category> =
     }
 
 fun CachedNote.toDomainNote(json: Json): Note {
-    val blocks = json.decodeFromString<List<NoteBlockDto>>(blocksJson).map { it.toDomain() }
+    val blocks = json.decodeFromString<List<NoteBlockDto>>(blocksJson).mapNotNull { it.toDomain() }
     return Note(id = id, title = title, date = date, blocks = blocks)
 }

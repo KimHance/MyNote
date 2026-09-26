@@ -1,5 +1,6 @@
 package com.hancekim.mynote.core.data.di
 
+import com.hancekim.mynote.core.data.dto.NotesJson
 import com.hancekim.mynote.core.data.repository.NotesRepositoryImpl
 import com.hancekim.mynote.core.data.repository.TokenRepositoryImpl
 import com.hancekim.mynote.core.domain.repository.NotesRepository
@@ -26,6 +27,6 @@ abstract class DataModule {
     companion object {
         @Provides
         @Singleton
-        fun provideJson(): Json = Json { ignoreUnknownKeys = true }
+        fun provideJson(): Json = NotesJson
     }
 }

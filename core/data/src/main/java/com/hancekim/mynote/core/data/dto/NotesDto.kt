@@ -20,6 +20,10 @@ data class NoteDto(
 @Serializable
 sealed interface NoteBlockDto {
     @Serializable
+    @SerialName("unknown")
+    data object Unknown : NoteBlockDto
+
+    @Serializable
     @SerialName("heading")
     data class Heading(
         val level: Int,

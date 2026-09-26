@@ -7,7 +7,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class NoteDtoSerializationTest {
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = NotesJson
 
     @Test
     fun `블록 배열을 type discriminator 로 polymorphic 역직렬화한다`() {
@@ -46,5 +46,40 @@ class NoteDtoSerializationTest {
         assertTrue(blocks[1] is NoteBlockDto.Spacer)
         val reDecoded = json.decodeFromString<List<NoteBlockDto>>(json.encodeToString(blocks))
         assertEquals(blocks, reDecoded)
+    }
+
+    @Test
+    fun `모르는 블록 타입이 와도 던지지 않고 Unknown 으로 읽는다`() {
+        val text = """[{"type":"paragraph","spans":[{"text":"본문"}]},{"type":"timeline","events":[1,2]}]"""
+
+        val blocks = json.decodeFromString<List<NoteBlockDto>>(text)
+
+        assertEquals(2, blocks.size)
+        assertTrue(blocks[1] is NoteBlockDto.Unknown)
+    }
+
+    @Test
+    fun `모르는 블록은 도메인으로 갈 때 빠진다`() {
+        val text =
+            """
+            {"id":"n","title":"t","date":"2026.01.01","blocks":[
+              {"type":"paragraph","spans":[{"text":"본문"}]},
+              {"type":"timeline","events":[1,2]}
+            ]}
+            """.trimIndent()
+
+        val note = json.decodeFromString<NoteDto>(text).toDomain()
+
+        assertEquals(1, note.blocks.size)
+    }
+
+    @Test
+    fun `모르는 블록 하나가 노트 전체를 못 쓰게 만들지 않는다`() {
+        val text = """{"id":"n","title":"t","date":"2026.01.01","blocks":[{"type":"timeline"}]}"""
+
+        val note = json.decodeFromString<NoteDto>(text).toDomain()
+
+        assertEquals("t", note.title)
+        assertTrue(note.blocks.isEmpty())
     }
 }
