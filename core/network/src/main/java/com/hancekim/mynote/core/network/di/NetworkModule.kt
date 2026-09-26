@@ -1,11 +1,14 @@
 package com.hancekim.mynote.core.network.di
 
 import com.hancekim.mynote.core.data.datasource.RemoteNotesDataSource
+import com.hancekim.mynote.core.domain.repository.AppliedTokenSource
+import com.hancekim.mynote.core.domain.repository.NetworkStatusSource
 import com.hancekim.mynote.core.network.api.GithubContentsApi
 import com.hancekim.mynote.core.network.config.GithubTokenHolder
 import com.hancekim.mynote.core.network.config.GithubTokenProvider
 import com.hancekim.mynote.core.network.datasource.RemoteNotesDataSourceImpl
 import com.hancekim.mynote.core.network.interceptor.AuthInterceptor
+import com.hancekim.mynote.core.network.status.NetworkStatusSourceImpl
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -61,7 +64,9 @@ abstract class RemoteDataSourceModule {
 
     @Binds
     @Singleton
-    abstract fun bindAppliedTokenSource(
-        impl: GithubTokenHolder,
-    ): com.hancekim.mynote.core.domain.repository.AppliedTokenSource
+    abstract fun bindNetworkStatusSource(impl: NetworkStatusSourceImpl): NetworkStatusSource
+
+    @Binds
+    @Singleton
+    abstract fun bindAppliedTokenSource(impl: GithubTokenHolder): AppliedTokenSource
 }
