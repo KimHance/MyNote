@@ -118,6 +118,26 @@ class QuizJsonParserTest {
     }
 
     @Test
+    fun `선택지가 넷을 넘으면 넷으로 자른다`() {
+        val many = dupQuestion(choices = """["A", "B", "C", "D", "E"]""", answerIndex = 1)
+
+        val question = QuizJsonParser.parse(many).getOrThrow()[0]
+
+        assertEquals(listOf("A", "B", "C", "D"), question.choices)
+        assertEquals("B", question.choices[question.answerIndex])
+    }
+
+    @Test
+    fun `잘리는 자리에 정답이 있으면 정답을 살린다`() {
+        val many = dupQuestion(choices = """["A", "B", "C", "D", "정답"]""", answerIndex = 4)
+
+        val question = QuizJsonParser.parse(many).getOrThrow()[0]
+
+        assertEquals(4, question.choices.size)
+        assertEquals("정답", question.choices[question.answerIndex])
+    }
+
+    @Test
     fun `JSON 배열이 아예 없으면 실패한다`() {
         assertTrue(QuizJsonParser.parse("죄송하지만 만들 수 없습니다.").isFailure)
     }

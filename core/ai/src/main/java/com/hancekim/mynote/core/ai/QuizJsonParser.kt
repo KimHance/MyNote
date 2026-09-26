@@ -18,15 +18,15 @@ internal object QuizJsonParser {
                 .substringAfter('[', missingDelimiterValue = "")
                 .substringBeforeLast(']', missingDelimiterValue = "")
                 .let { if (it.isBlank()) null else "[$it]" }
-                ?: return Result.failure(QuizFailure.Parse("JSON 배열을 찾지 못했습니다"))
+                ?: return Result.failure(QuizFailure.Parse("no JSON array in output"))
 
         val decoded =
             runCatching { json.decodeFromString<List<RawQuestion>>(array) }
-                .getOrElse { return Result.failure(QuizFailure.Parse("JSON 파싱 실패: ${it.message}")) }
+                .getOrElse { return Result.failure(QuizFailure.Parse("decode failed: ${it.message}")) }
 
         val questions = decoded.mapNotNull { it.toDomainOrNull() }
         return if (questions.isEmpty()) {
-            Result.failure(QuizFailure.Empty("쓸 수 있는 문제가 없습니다"))
+            Result.failure(QuizFailure.Empty("no usable question after filtering"))
         } else {
             Result.success(questions)
         }
@@ -57,13 +57,25 @@ internal object QuizJsonParser {
         val answerAt = unique.indexOfFirst { it.dedupeKey() == answer.dedupeKey() }
         if (answerAt < 0) return null
 
+        // 프롬프트로 4개를 요구해도 모델이 더 뱉을 때가 있다. 앞에서 자르되 정답이
+        // 뒤에 있으면 잘려 나가므로 마지막 자리를 정답에 내준다 — 정답을 0번으로
+        // 몰지 않는 이유는 위치가 고정되면 읽지 않고도 맞힐 수 있기 때문이다.
+        val capped =
+            when {
+                unique.size <= MAX_CHOICES -> unique
+                answerAt < MAX_CHOICES -> unique.take(MAX_CHOICES)
+                else -> unique.take(MAX_CHOICES - 1) + unique[answerAt]
+            }
+
         return QuizQuestion(
             question = question.trim(),
-            choices = unique,
-            answerIndex = answerAt,
+            choices = capped,
+            answerIndex = capped.indexOfFirst { it.dedupeKey() == answer.dedupeKey() },
             explanation = explanation.trim(),
         )
     }
+
+    private const val MAX_CHOICES = 4
 
     private val whitespace = Regex("\\s+")
 
