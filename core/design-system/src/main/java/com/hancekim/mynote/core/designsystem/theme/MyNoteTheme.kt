@@ -6,7 +6,10 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import com.hancekim.mynote.core.designfoundation.token.MyNoteColors
+import com.hancekim.mynote.core.designfoundation.token.MyNoteFontScale
+import com.hancekim.mynote.core.designfoundation.token.MyNoteTextStyles
 import com.hancekim.mynote.core.designfoundation.token.StudyNotesDarkColors
+import com.hancekim.mynote.core.designfoundation.token.myNoteTextStyles
 import com.hancekim.mynote.core.designfoundation.window.AdaptiveTokens
 import com.hancekim.mynote.core.designfoundation.window.MyNoteHeightClass
 import com.hancekim.mynote.core.designfoundation.window.MyNoteWindowClass

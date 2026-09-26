@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen.quiz
+package com.hancekim.mynote.feature.notes.quiz.screen
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,12 +46,13 @@ import com.hancekim.mynote.core.designfoundation.window.MyNoteHeightClass
 import com.hancekim.mynote.core.designfoundation.window.MyNoteWindowClass
 import com.hancekim.mynote.core.designsystem.component.MyNoteIcons
 import com.hancekim.mynote.core.designsystem.component.riseIn
-import com.hancekim.mynote.core.designsystem.theme.MyNoteEasing
+import com.hancekim.mynote.core.designsystem.motion.MyNoteEasing
+import com.hancekim.mynote.core.designsystem.motion.rememberReduceMotion
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
-import com.hancekim.mynote.core.designsystem.theme.rememberReduceMotion
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.NotesIntent
-import com.hancekim.mynote.feature.notes.element.QuizUiState
+import com.hancekim.mynote.feature.notes.quiz.QuizUiState
+import com.hancekim.mynote.feature.notes.quiz.component.QuizPrimaryButton
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
@@ -65,84 +67,86 @@ internal fun QuizResultScreen(
     val short = MyNoteTheme.adaptive.heightClass == MyNoteHeightClass.Compact
     val verdict = verdictFor(state.rate)
 
-    Column(modifier = modifier.fillMaxSize().padding(horizontal = 30.dp)) {
-        if (short) {
-            Row(
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(28.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                ScoreGauge(
-                    score = state.score,
-                    total = state.total,
-                    rate = state.rate,
-                    size = 132.dp,
-                    scoreStyle = type.display,
-                )
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(14.dp),
+    Surface(modifier = modifier.fillMaxSize(), color = colors.bg) {
+        Column(modifier = Modifier.padding(horizontal = 30.dp)) {
+            if (short) {
+                Row(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(28.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    ScoreGauge(
+                        score = state.score,
+                        total = state.total,
+                        rate = state.rate,
+                        size = 132.dp,
+                        scoreStyle = type.display,
+                    )
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(14.dp),
+                    ) {
+                        Text(
+                            modifier = Modifier.riseIn(delayMillis = RISE_STEP_MILLIS),
+                            text = verdict.title,
+                            style = type.title,
+                            color = colors.text,
+                        )
+                        Text(
+                            modifier = Modifier.riseIn(delayMillis = RISE_STEP_MILLIS * 2),
+                            text = verdict.body,
+                            style = type.bodySmall,
+                            color = colors.text2,
+                        )
+                        MarkChips(
+                            marks = state.marks,
+                            modifier = Modifier.riseIn(delayMillis = RISE_STEP_MILLIS * 3),
+                        )
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    ScoreGauge(
+                        score = state.score,
+                        total = state.total,
+                        rate = state.rate,
+                        size = 186.dp,
+                        scoreStyle = type.display,
+                    )
+                    Box(Modifier.size(34.dp))
                     Text(
                         modifier = Modifier.riseIn(delayMillis = RISE_STEP_MILLIS),
                         text = verdict.title,
                         style = type.title,
                         color = colors.text,
                     )
+                    Box(Modifier.size(12.dp))
                     Text(
-                        modifier = Modifier.riseIn(delayMillis = RISE_STEP_MILLIS * 2),
                         text = verdict.body,
-                        style = type.bodySmall,
+                        style = type.bodySmall.copy(fontSize = 14.5f.sp),
                         color = colors.text2,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.riseIn(delayMillis = RISE_STEP_MILLIS * 2).widthIn(max = 280.dp),
                     )
+                    Box(Modifier.size(34.dp))
                     MarkChips(
                         marks = state.marks,
                         modifier = Modifier.riseIn(delayMillis = RISE_STEP_MILLIS * 3),
                     )
                 }
             }
-        } else {
-            Column(
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                ScoreGauge(
-                    score = state.score,
-                    total = state.total,
-                    rate = state.rate,
-                    size = 186.dp,
-                    scoreStyle = type.display,
-                )
-                Box(Modifier.size(34.dp))
-                Text(
-                    modifier = Modifier.riseIn(delayMillis = RISE_STEP_MILLIS),
-                    text = verdict.title,
-                    style = type.title,
-                    color = colors.text,
-                )
-                Box(Modifier.size(12.dp))
-                Text(
-                    text = verdict.body,
-                    style = type.bodySmall.copy(fontSize = 14.5f.sp),
-                    color = colors.text2,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.riseIn(delayMillis = RISE_STEP_MILLIS * 2).widthIn(max = 280.dp),
-                )
-                Box(Modifier.size(34.dp))
-                MarkChips(
-                    marks = state.marks,
-                    modifier = Modifier.riseIn(delayMillis = RISE_STEP_MILLIS * 3),
-                )
-            }
-        }
 
-        QuizPrimaryButton(
-            text = stringResource(R.string.notes_quiz_back_to_note),
-            onClick = { onIntent(NotesIntent.DismissQuiz) },
-            height = 52.dp,
-            modifier = Modifier.padding(bottom = 12.dp),
-        )
+            QuizPrimaryButton(
+                text = stringResource(R.string.notes_quiz_back_to_note),
+                onClick = { onIntent(NotesIntent.DismissQuiz) },
+                height = 52.dp,
+                modifier = Modifier.padding(bottom = 12.dp),
+            )
+        }
     }
 }
 

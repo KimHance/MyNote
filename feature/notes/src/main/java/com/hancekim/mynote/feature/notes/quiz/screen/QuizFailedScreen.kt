@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen.quiz
+package com.hancekim.mynote.feature.notes.quiz.screen
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,7 +30,11 @@ import com.hancekim.mynote.core.designsystem.component.throttledProcess
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.NotesIntent
-import com.hancekim.mynote.feature.notes.element.QuizUiState
+import com.hancekim.mynote.feature.notes.quiz.QuizUiState
+import com.hancekim.mynote.feature.notes.quiz.component.QuizCloseButton
+import com.hancekim.mynote.feature.notes.quiz.component.QuizOutlineButton
+import com.hancekim.mynote.feature.notes.quiz.component.QuizPrimaryButton
+import com.hancekim.mynote.feature.notes.quiz.component.QuizQuietButton
 
 @Composable
 internal fun QuizFailedScreen(
@@ -40,61 +45,63 @@ internal fun QuizFailedScreen(
     val colors = MyNoteTheme.colors
     val type = MyNoteTheme.textStyles
 
-    Column(modifier = modifier.fillMaxSize()) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            QuizCloseButton(
-                onClick = { onIntent(NotesIntent.DismissQuiz) },
-                modifier = Modifier.padding(top = 4.dp),
-            )
-        }
-
-        Column(
-            modifier =
-                Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = 30.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            FailIcon(modifier = Modifier.riseIn())
-            Text(
-                modifier = Modifier.riseIn(delayMillis = RISE_STEP_MILLIS).padding(top = 26.dp, bottom = 14.dp),
-                text = stringResource(R.string.notes_quiz_failed_title),
-                style = type.sectionTitle,
-                color = colors.text,
-            )
-            Text(
-                modifier = Modifier.riseIn(delayMillis = RISE_STEP_MILLIS * 2),
-                text = stringResource(state.kind.reasonRes()),
-                style = type.bodySmall,
-                color = colors.text2,
-                textAlign = TextAlign.Center,
-            )
-            Box(Modifier.size(26.dp))
+    Surface(modifier = modifier.fillMaxSize(), color = colors.bg) {
+        Column {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                QuizCloseButton(
+                    onClick = { onIntent(NotesIntent.DismissQuiz) },
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
 
             Column(
-                modifier = Modifier.fillMaxWidth().riseIn(delayMillis = RISE_STEP_MILLIS * 3),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(horizontal = 30.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
             ) {
-                QuizPrimaryButton(
-                    text = stringResource(R.string.notes_quiz_retry),
-                    onClick = throttledProcess { onIntent(NotesIntent.RetryQuiz) },
+                FailIcon(modifier = Modifier.riseIn())
+                Text(
+                    modifier = Modifier.riseIn(delayMillis = RISE_STEP_MILLIS).padding(top = 26.dp, bottom = 14.dp),
+                    text = stringResource(R.string.notes_quiz_failed_title),
+                    style = type.sectionTitle,
+                    color = colors.text,
                 )
-                if (state.canRetryWithFewer) {
-                    QuizOutlineButton(
-                        text = stringResource(R.string.notes_quiz_retry_fewer, QuizUiState.MIN_COUNT),
-                        onClick = { onIntent(NotesIntent.RetryQuizWithFewer(QuizUiState.MIN_COUNT)) },
+                Text(
+                    modifier = Modifier.riseIn(delayMillis = RISE_STEP_MILLIS * 2),
+                    text = stringResource(state.kind.reasonRes()),
+                    style = type.bodySmall,
+                    color = colors.text2,
+                    textAlign = TextAlign.Center,
+                )
+                Box(Modifier.size(26.dp))
+
+                Column(
+                    modifier = Modifier.fillMaxWidth().riseIn(delayMillis = RISE_STEP_MILLIS * 3),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    QuizPrimaryButton(
+                        text = stringResource(R.string.notes_quiz_retry),
+                        onClick = throttledProcess { onIntent(NotesIntent.RetryQuiz) },
                     )
+                    if (state.canRetryWithFewer) {
+                        QuizOutlineButton(
+                            text = stringResource(R.string.notes_quiz_retry_fewer, QuizUiState.MIN_COUNT),
+                            onClick = { onIntent(NotesIntent.RetryQuizWithFewer(QuizUiState.MIN_COUNT)) },
+                        )
+                    }
                 }
             }
-        }
 
-        QuizQuietButton(
-            text = stringResource(R.string.notes_quiz_back_to_note),
-            onClick = { onIntent(NotesIntent.DismissQuiz) },
-            modifier = Modifier.padding(horizontal = 30.dp, vertical = 12.dp),
-        )
+            QuizQuietButton(
+                text = stringResource(R.string.notes_quiz_back_to_note),
+                onClick = { onIntent(NotesIntent.DismissQuiz) },
+                modifier = Modifier.padding(horizontal = 30.dp, vertical = 12.dp),
+            )
+        }
     }
 }
 

@@ -2,6 +2,8 @@ package com.hancekim.mynote.core.designsystem.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -33,11 +35,9 @@ fun CategoryChip(
 @Composable
 private fun CategoryChipPreview() {
     MyNoteTheme {
-        androidx.compose.foundation.layout.Row(
+        Row(
             modifier = Modifier.padding(12.dp),
-            horizontalArrangement =
-                androidx.compose.foundation.layout.Arrangement
-                    .spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             CategoryChip("Android")
             CategoryChip("Kotlin")

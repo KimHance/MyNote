@@ -23,7 +23,7 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.hancekim.mynote.core.designsystem.theme.MyNoteEasing
+import com.hancekim.mynote.core.designsystem.motion.MyNoteEasing
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 
 @Stable

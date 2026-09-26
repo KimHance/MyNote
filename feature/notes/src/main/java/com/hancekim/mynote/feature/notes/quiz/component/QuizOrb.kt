@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen.quiz
+package com.hancekim.mynote.feature.notes.quiz.component
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.InfiniteTransition
@@ -25,8 +25,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.hancekim.mynote.core.designsystem.component.MyNoteIcons
+import com.hancekim.mynote.core.designsystem.motion.rememberReduceMotion
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
-import com.hancekim.mynote.core.designsystem.theme.rememberReduceMotion
 
 @Composable
 internal fun QuizOrb(

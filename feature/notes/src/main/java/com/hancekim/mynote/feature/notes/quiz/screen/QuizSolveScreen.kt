@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen.quiz
+package com.hancekim.mynote.feature.notes.quiz.screen
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
@@ -27,6 +27,7 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -57,13 +58,15 @@ import com.hancekim.mynote.core.designfoundation.window.MyNoteWindowClass
 import com.hancekim.mynote.core.designsystem.component.MyNoteIcons
 import com.hancekim.mynote.core.designsystem.component.riseIn
 import com.hancekim.mynote.core.designsystem.component.throttledProcess
-import com.hancekim.mynote.core.designsystem.theme.MyNoteEasing
+import com.hancekim.mynote.core.designsystem.motion.MyNoteEasing
+import com.hancekim.mynote.core.designsystem.motion.rememberReduceMotion
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
-import com.hancekim.mynote.core.designsystem.theme.rememberReduceMotion
 import com.hancekim.mynote.feature.notes.QuizQuestionUi
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.NotesIntent
-import com.hancekim.mynote.feature.notes.element.QuizUiState
+import com.hancekim.mynote.feature.notes.quiz.QuizUiState
+import com.hancekim.mynote.feature.notes.quiz.component.QuizCloseButton
+import com.hancekim.mynote.feature.notes.quiz.component.QuizPrimaryButton
 import kotlinx.collections.immutable.persistentListOf
 
 @Composable
@@ -88,75 +91,77 @@ internal fun QuizSolveScreen(
         if (state.revealed && scroll.value < reach) scroll.animateScrollTo(reach)
     }
 
-    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-        Column(Modifier.fillMaxSize().widthIn(max = CONTENT_MAX_WIDTH)) {
-            SolveTopBar(state = state, onIntent = onIntent, compact = short)
-
-            Column(
-                modifier =
-                    Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .graphicsLayer {
-                            alpha = enter.value
-                            translationX = (1f - enter.value) * ENTER_SLIDE.toPx()
-                        }.verticalScroll(scroll)
-                        .padding(
-                            start = 22.dp,
-                            end = 22.dp,
-                            top = if (short) 14.dp else 26.dp,
-                            bottom = 20.dp,
-                        ),
-                verticalArrangement = Arrangement.spacedBy(22.dp),
-            ) {
-                if (state.partial) {
-                    PartialBand(count = state.questions.size)
-                }
-
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(
-                        text = stringResource(R.string.notes_quiz_question_index, state.index + 1),
-                        style = type.monoLabel,
-                        color = colors.accent,
-                    )
-                    Text(text = state.current.question, style = type.headline, color = colors.text)
-                }
+    Surface(modifier = modifier.fillMaxSize(), color = colors.bg) {
+        Box(contentAlignment = Alignment.TopCenter) {
+            Column(Modifier.fillMaxSize().widthIn(max = CONTENT_MAX_WIDTH)) {
+                SolveTopBar(state = state, onIntent = onIntent, compact = short)
 
                 Column(
-                    modifier = Modifier.fillMaxWidth().selectableGroup(),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .graphicsLayer {
+                                alpha = enter.value
+                                translationX = (1f - enter.value) * ENTER_SLIDE.toPx()
+                            }.verticalScroll(scroll)
+                            .padding(
+                                start = 22.dp,
+                                end = 22.dp,
+                                top = if (short) 14.dp else 26.dp,
+                                bottom = 20.dp,
+                            ),
+                    verticalArrangement = Arrangement.spacedBy(22.dp),
                 ) {
-                    state.current.choices.forEachIndexed { index, choice ->
-                        key(state.index, index) {
-                            ChoiceRow(
-                                index = index,
-                                text = choice,
-                                state = state,
-                                onPick = { onIntent(NotesIntent.PickChoice(index)) },
-                            )
+                    if (state.partial) {
+                        PartialBand(count = state.questions.size)
+                    }
+
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            text = stringResource(R.string.notes_quiz_question_index, state.index + 1),
+                            style = type.monoLabel,
+                            color = colors.accent,
+                        )
+                        Text(text = state.current.question, style = type.headline, color = colors.text)
+                    }
+
+                    Column(
+                        modifier = Modifier.fillMaxWidth().selectableGroup(),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        state.current.choices.forEachIndexed { index, choice ->
+                            key(state.index, index) {
+                                ChoiceRow(
+                                    index = index,
+                                    text = choice,
+                                    state = state,
+                                    onPick = { onIntent(NotesIntent.PickChoice(index)) },
+                                )
+                            }
                         }
+                    }
+
+                    if (state.revealed) {
+                        Explanation(state = state)
                     }
                 }
 
-                if (state.revealed) {
-                    Explanation(state = state)
+                if (state.revealed && !state.autoAdvancing) {
+                    QuizPrimaryButton(
+                        text =
+                            stringResource(
+                                if (state.isLast) R.string.notes_quiz_see_result else R.string.notes_quiz_next,
+                            ),
+                        onClick = throttledProcess { onIntent(NotesIntent.NextQuestion()) },
+                        height = 52.dp,
+                        modifier =
+                            Modifier
+                                .padding(horizontal = 22.dp)
+                                .padding(bottom = if (short) 10.dp else 16.dp)
+                                .riseIn(durationMillis = 260),
+                    )
                 }
-            }
-
-            if (state.revealed && !state.autoAdvancing) {
-                QuizPrimaryButton(
-                    text =
-                        stringResource(
-                            if (state.isLast) R.string.notes_quiz_see_result else R.string.notes_quiz_next,
-                        ),
-                    onClick = throttledProcess { onIntent(NotesIntent.NextQuestion()) },
-                    height = 52.dp,
-                    modifier =
-                        Modifier
-                            .padding(horizontal = 22.dp)
-                            .padding(bottom = if (short) 10.dp else 16.dp)
-                            .riseIn(durationMillis = 260),
-                )
             }
         }
     }

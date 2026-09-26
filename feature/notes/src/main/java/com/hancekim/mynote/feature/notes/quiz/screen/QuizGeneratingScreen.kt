@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen.quiz
+package com.hancekim.mynote.feature.notes.quiz.screen
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,11 +50,14 @@ import androidx.compose.ui.unit.sp
 import com.hancekim.mynote.core.designfoundation.window.MyNoteHeightClass
 import com.hancekim.mynote.core.designfoundation.window.MyNoteWindowClass
 import com.hancekim.mynote.core.designsystem.component.MyNoteIcons
+import com.hancekim.mynote.core.designsystem.motion.rememberReduceMotion
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
-import com.hancekim.mynote.core.designsystem.theme.rememberReduceMotion
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.NotesIntent
-import com.hancekim.mynote.feature.notes.element.QuizUiState
+import com.hancekim.mynote.feature.notes.quiz.QuizUiState
+import com.hancekim.mynote.feature.notes.quiz.component.QuizCloseButton
+import com.hancekim.mynote.feature.notes.quiz.component.QuizOrb
+import com.hancekim.mynote.feature.notes.quiz.component.QuizOutlineButton
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -82,52 +86,54 @@ internal fun QuizGeneratingScreen(
         }
     }
 
-    Column(modifier = modifier.fillMaxSize()) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            QuizCloseButton(
-                onClick = { onIntent(NotesIntent.DismissQuiz) },
-                modifier = Modifier.padding(top = 4.dp),
-            )
-        }
-
-        if (short) {
-            Row(
-                modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 22.dp, vertical = 4.dp),
-                horizontalArrangement = Arrangement.spacedBy(24.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(14.dp),
-                ) {
-                    QuizOrb(size = 64.dp)
-                    GeneratingTitle(title = steps[step])
-                    QuitButton(onIntent = onIntent, modifier = Modifier.widthIn(max = 200.dp))
-                }
-                SlotColumn(
-                    maxCount = state.maxCount,
-                    arrived = arrived,
-                    compact = true,
-                    modifier = Modifier.weight(1f).widthIn(max = 380.dp),
+    Surface(modifier = modifier.fillMaxSize(), color = MyNoteTheme.colors.bg) {
+        Column {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                QuizCloseButton(
+                    onClick = { onIntent(NotesIntent.DismissQuiz) },
+                    modifier = Modifier.padding(top = 4.dp),
                 )
             }
-        } else {
-            Column(
-                modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 26.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                QuizOrb()
-                Spacer(Modifier.height(30.dp))
-                GeneratingTitle(title = steps[step])
-                Spacer(Modifier.height(30.dp))
-                SlotColumn(maxCount = state.maxCount, arrived = arrived, compact = false)
+
+            if (short) {
+                Row(
+                    modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 22.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(24.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(14.dp),
+                    ) {
+                        QuizOrb(size = 64.dp)
+                        GeneratingTitle(title = steps[step])
+                        QuitButton(onIntent = onIntent, modifier = Modifier.widthIn(max = 200.dp))
+                    }
+                    SlotColumn(
+                        maxCount = state.maxCount,
+                        arrived = arrived,
+                        compact = true,
+                        modifier = Modifier.weight(1f).widthIn(max = 380.dp),
+                    )
+                }
+            } else {
+                Column(
+                    modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 26.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    QuizOrb()
+                    Spacer(Modifier.height(30.dp))
+                    GeneratingTitle(title = steps[step])
+                    Spacer(Modifier.height(30.dp))
+                    SlotColumn(maxCount = state.maxCount, arrived = arrived, compact = false)
+                }
+                QuitButton(
+                    onIntent = onIntent,
+                    modifier = Modifier.padding(horizontal = 26.dp, vertical = 16.dp),
+                )
             }
-            QuitButton(
-                onIntent = onIntent,
-                modifier = Modifier.padding(horizontal = 26.dp, vertical = 16.dp),
-            )
         }
     }
 }

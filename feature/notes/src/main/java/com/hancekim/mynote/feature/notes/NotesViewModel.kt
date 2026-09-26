@@ -4,7 +4,7 @@ import android.os.SystemClock
 import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.viewModelScope
 import com.hancekim.mynote.core.common.mvi.MviViewModel
-import com.hancekim.mynote.core.designsystem.theme.MyNoteFontScale
+import com.hancekim.mynote.core.designfoundation.token.MyNoteFontScale
 import com.hancekim.mynote.core.domain.GenerateQuizUseCase
 import com.hancekim.mynote.core.domain.GetCategoriesUseCase
 import com.hancekim.mynote.core.domain.ObserveAppliedTokenUseCase
@@ -19,8 +19,9 @@ import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import com.hancekim.mynote.core.navigation.key.activeNoteId
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
-import com.hancekim.mynote.feature.notes.element.QuizUiState
 import com.hancekim.mynote.feature.notes.mapper.toUi
+import com.hancekim.mynote.feature.notes.quiz.QuizAutoAdvancePolicy
+import com.hancekim.mynote.feature.notes.quiz.QuizUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf

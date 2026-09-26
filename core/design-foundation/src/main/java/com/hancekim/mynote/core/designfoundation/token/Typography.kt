@@ -1,4 +1,4 @@
-package com.hancekim.mynote.core.designsystem.theme
+package com.hancekim.mynote.core.designfoundation.token
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.TextStyle

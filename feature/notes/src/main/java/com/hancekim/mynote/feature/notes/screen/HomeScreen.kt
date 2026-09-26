@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -56,66 +57,62 @@ internal fun HomeScreen(
     val reading = adaptive.readingMaxWidth
     val colors = MyNoteTheme.colors
 
-    Box(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .background(colors.bg),
-        contentAlignment = Alignment.TopCenter,
-    ) {
-        if (recentNotes.isEmpty()) {
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center),
-                    color = colors.accent,
-                )
-            } else {
-                Text(
-                    text = stringResource(R.string.notes_home_empty),
-                    style = MyNoteTheme.textStyles.body,
-                    color = colors.text2,
-                    modifier = Modifier.align(Alignment.Center),
-                )
-            }
-        } else {
-            LazyVerticalGrid(
-                state = gridState,
-                columns = GridCells.Adaptive(minSize = adaptive.cardMinWidth),
-                modifier =
-                    (if (reading != null) Modifier.widthIn(max = reading) else Modifier)
-                        .fadingEdges(top = adaptive.fadeHeight, bottom = adaptive.fadeHeight + 6.dp),
-                contentPadding =
-                    PaddingValues(
-                        start = adaptive.page,
-                        end = adaptive.page,
-                        top = adaptive.padY,
-                        bottom = adaptive.page + contentBottomPadding,
-                    ),
-                horizontalArrangement = Arrangement.spacedBy(adaptive.cardGap),
-                verticalArrangement = Arrangement.spacedBy(adaptive.cardGap),
-            ) {
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    Hero(modalDrawer = adaptive.useModalDrawer)
-                }
-                item(span = { GridItemSpan(maxLineSpan) }) {
+    Surface(modifier = modifier.fillMaxSize(), color = colors.bg) {
+        Box(contentAlignment = Alignment.TopCenter) {
+            if (recentNotes.isEmpty()) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center),
+                        color = colors.accent,
+                    )
+                } else {
                     Text(
-                        text = stringResource(R.string.notes_home_recent),
-                        style = MyNoteTheme.textStyles.overline,
-                        color = colors.text3,
-                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+                        text = stringResource(R.string.notes_home_empty),
+                        style = MyNoteTheme.textStyles.body,
+                        color = colors.text2,
+                        modifier = Modifier.align(Alignment.Center),
                     )
                 }
-                items(recentNotes, key = { it.note.id }) { recent ->
-                    val shared = rememberNoteSharedModifiers(recent.note.id)
-                    NoteCard(
-                        category = recent.categoryName,
-                        date = recent.note.date,
-                        title = recent.note.title,
-                        onClick = { onIntent(NotesIntent.SelectNote(recent.note.id)) },
-                        chipModifier = shared.chip,
-                        dateModifier = shared.date,
-                        titleModifier = shared.title,
-                    )
+            } else {
+                LazyVerticalGrid(
+                    state = gridState,
+                    columns = GridCells.Adaptive(minSize = adaptive.cardMinWidth),
+                    modifier =
+                        (if (reading != null) Modifier.widthIn(max = reading) else Modifier)
+                            .fadingEdges(top = adaptive.fadeHeight, bottom = adaptive.fadeHeight + 6.dp),
+                    contentPadding =
+                        PaddingValues(
+                            start = adaptive.page,
+                            end = adaptive.page,
+                            top = adaptive.padY,
+                            bottom = adaptive.page + contentBottomPadding,
+                        ),
+                    horizontalArrangement = Arrangement.spacedBy(adaptive.cardGap),
+                    verticalArrangement = Arrangement.spacedBy(adaptive.cardGap),
+                ) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        Hero(modalDrawer = adaptive.useModalDrawer)
+                    }
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        Text(
+                            text = stringResource(R.string.notes_home_recent),
+                            style = MyNoteTheme.textStyles.overline,
+                            color = colors.text3,
+                            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+                        )
+                    }
+                    items(recentNotes, key = { it.note.id }) { recent ->
+                        val shared = rememberNoteSharedModifiers(recent.note.id)
+                        NoteCard(
+                            category = recent.categoryName,
+                            date = recent.note.date,
+                            title = recent.note.title,
+                            onClick = { onIntent(NotesIntent.SelectNote(recent.note.id)) },
+                            chipModifier = shared.chip,
+                            dateModifier = shared.date,
+                            titleModifier = shared.title,
+                        )
+                    }
                 }
             }
         }

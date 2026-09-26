@@ -3,12 +3,13 @@ package com.hancekim.mynote.feature.notes.element
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Stable
 import com.hancekim.mynote.core.common.mvi.MviState
-import com.hancekim.mynote.core.designsystem.theme.MyNoteFontScale
+import com.hancekim.mynote.core.designfoundation.token.MyNoteFontScale
 import com.hancekim.mynote.core.navigation.key.MyNoteNavKey
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import com.hancekim.mynote.feature.notes.CategoryUi
 import com.hancekim.mynote.feature.notes.NoteUi
 import com.hancekim.mynote.feature.notes.RecentNoteUi
+import com.hancekim.mynote.feature.notes.quiz.QuizUiState
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentListOf

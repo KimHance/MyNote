@@ -1,6 +1,5 @@
 package com.hancekim.mynote.feature.notes.screen
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -11,6 +10,7 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -38,52 +38,52 @@ internal fun ListPanelScreen(
 ) {
     val colors = MyNoteTheme.colors
     val adaptive = MyNoteTheme.adaptive
-    Column(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .background(colors.surface)
-                .then(if (applyStatusInset) Modifier.windowInsetsPadding(WindowInsets.statusBars) else Modifier)
-                .padding(horizontal = 12.dp)
-                .padding(top = adaptive.panelHeaderPadTop, bottom = 12.dp),
-    ) {
-        Text(
-            text = stringResource(R.string.notes_panel_count, uiState.totalCount),
-            style = MyNoteTheme.textStyles.caption,
-            color = colors.text3,
-            modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
-        )
-        SearchField(
-            query = uiState.query,
-            onQueryChange = { onIntent(NotesIntent.QueryChanged(it)) },
-        )
-        Spacer(Modifier.height(12.dp))
-
-        if (uiState.query.isNotBlank() && uiState.visibleCategories.isEmpty()) {
+    Surface(modifier = modifier.fillMaxSize(), color = colors.surface) {
+        Column(
+            modifier =
+                Modifier
+                    .then(if (applyStatusInset) Modifier.windowInsetsPadding(WindowInsets.statusBars) else Modifier)
+                    .padding(horizontal = 12.dp)
+                    .padding(top = adaptive.panelHeaderPadTop, bottom = 12.dp),
+        ) {
             Text(
-                text = stringResource(R.string.notes_panel_empty),
-                style = MyNoteTheme.textStyles.body,
+                text = stringResource(R.string.notes_panel_count, uiState.totalCount),
+                style = MyNoteTheme.textStyles.caption,
                 color = colors.text3,
-                modifier = Modifier.padding(start = 4.dp, top = 8.dp),
+                modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
             )
-        } else {
-            LazyColumn {
-                uiState.visibleCategories.forEach { category ->
-                    item(key = "cat-${category.name}") {
-                        CategoryRow(
-                            name = category.name,
-                            count = category.notes.size,
-                            expanded = uiState.isExpanded(category.name),
-                            onClick = { onIntent(NotesIntent.ToggleCategory(category.name)) },
-                        )
-                    }
-                    if (uiState.isExpanded(category.name)) {
-                        items(category.notes, key = { "note-${it.id}" }) { note ->
-                            NoteRow(
-                                title = note.title,
-                                active = note.id == uiState.activeNoteId,
-                                onClick = { onIntent(NotesIntent.SelectNote(note.id)) },
+            SearchField(
+                query = uiState.query,
+                onQueryChange = { onIntent(NotesIntent.QueryChanged(it)) },
+            )
+            Spacer(Modifier.height(12.dp))
+
+            if (uiState.query.isNotBlank() && uiState.visibleCategories.isEmpty()) {
+                Text(
+                    text = stringResource(R.string.notes_panel_empty),
+                    style = MyNoteTheme.textStyles.body,
+                    color = colors.text3,
+                    modifier = Modifier.padding(start = 4.dp, top = 8.dp),
+                )
+            } else {
+                LazyColumn {
+                    uiState.visibleCategories.forEach { category ->
+                        item(key = "cat-${category.name}") {
+                            CategoryRow(
+                                name = category.name,
+                                count = category.notes.size,
+                                expanded = uiState.isExpanded(category.name),
+                                onClick = { onIntent(NotesIntent.ToggleCategory(category.name)) },
                             )
+                        }
+                        if (uiState.isExpanded(category.name)) {
+                            items(category.notes, key = { "note-${it.id}" }) { note ->
+                                NoteRow(
+                                    title = note.title,
+                                    active = note.id == uiState.activeNoteId,
+                                    onClick = { onIntent(NotesIntent.SelectNote(note.id)) },
+                                )
+                            }
                         }
                     }
                 }

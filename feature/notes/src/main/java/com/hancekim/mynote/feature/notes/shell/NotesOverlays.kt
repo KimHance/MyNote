@@ -19,8 +19,8 @@ import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
-import com.hancekim.mynote.feature.notes.element.QuizUiState
-import com.hancekim.mynote.feature.notes.screen.quiz.QuizOverlay
+import com.hancekim.mynote.feature.notes.quiz.QuizOverlay
+import com.hancekim.mynote.feature.notes.quiz.QuizUiState
 import com.kyant.backdrop.Backdrop
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf

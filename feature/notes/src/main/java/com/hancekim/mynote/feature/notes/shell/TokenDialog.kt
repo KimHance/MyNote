@@ -19,10 +19,6 @@ import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.core.designsystem.R as DsR
 
-/**
- * GitHub 토큰 입력 다이얼로그. feature 전용 Composable — design-system 재사용 컴포넌트 아님.
- * PasswordVisualTransformation 으로 토큰 값을 가린다.
- */
 @Composable
 internal fun TokenDialog(
     onDismiss: () -> Unit,

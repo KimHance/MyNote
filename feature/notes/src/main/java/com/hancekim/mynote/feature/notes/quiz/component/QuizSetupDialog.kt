@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen.quiz
+package com.hancekim.mynote.feature.notes.quiz.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -40,7 +40,7 @@ import com.hancekim.mynote.core.designsystem.component.throttledProcess
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.NotesIntent
-import com.hancekim.mynote.feature.notes.element.QuizUiState
+import com.hancekim.mynote.feature.notes.quiz.QuizUiState
 import com.kyant.backdrop.Backdrop
 import com.hancekim.mynote.core.designsystem.R as DsR
 

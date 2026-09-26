@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen.quiz
+package com.hancekim.mynote.feature.notes.quiz.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -33,10 +33,10 @@ import com.hancekim.mynote.core.designsystem.component.MyNoteIcons
 import com.hancekim.mynote.core.designsystem.component.PressIndication
 import com.hancekim.mynote.core.designsystem.component.aiShine
 import com.hancekim.mynote.core.designsystem.component.throttledProcess
+import com.hancekim.mynote.core.designsystem.motion.rememberReduceMotion
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
-import com.hancekim.mynote.core.designsystem.theme.rememberReduceMotion
 import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.element.QuizUiState
+import com.hancekim.mynote.feature.notes.quiz.QuizUiState
 
 @Suppress("ktlint:compose:modifier-clickable-order", "ktlint:compose:lambda-param-event-trailing")
 @Composable

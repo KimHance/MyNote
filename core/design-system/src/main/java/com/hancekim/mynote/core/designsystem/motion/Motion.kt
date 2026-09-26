@@ -1,4 +1,4 @@
-package com.hancekim.mynote.core.designsystem.theme
+package com.hancekim.mynote.core.designsystem.motion
 
 import android.provider.Settings
 import androidx.compose.animation.core.CubicBezierEasing

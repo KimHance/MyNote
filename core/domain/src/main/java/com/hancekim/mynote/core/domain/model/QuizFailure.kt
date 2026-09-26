@@ -6,13 +6,13 @@ sealed class QuizFailure(
 ) : Exception(message, cause) {
     class Parse(
         detail: String,
-    ) : QuizFailure(detail)
+    ) : QuizFailure("parse: $detail")
 
     class Empty(
         detail: String,
-    ) : QuizFailure(detail)
+    ) : QuizFailure("empty: $detail")
 
     class Engine(
         cause: Throwable?,
-    ) : QuizFailure("모델을 불러오지 못했습니다", cause)
+    ) : QuizFailure("engine failed to load or run", cause)
 }

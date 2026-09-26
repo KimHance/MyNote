@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen.quiz
+package com.hancekim.mynote.feature.notes.quiz.component
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
