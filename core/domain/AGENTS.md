@@ -33,10 +33,15 @@
 |---|---|---|
 | `NotesRepository` | `observeCategories(): Flow<List<Category>>` + `suspend sync(): Result<SyncOutcome>` | `NotesRepositoryImpl` (`:core:data`) |
 | `TokenRepository` | 저장된 토큰 read/write/observe | `TokenRepositoryImpl` (`:core:data` → DataStore in `:core:database`) |
+| `SettingsRepository` | 본문 글자 크기(`FontScale`) observe/write | `SettingsRepositoryImpl` (`:core:data` → DataStore in `:core:database`) |
 | `AppliedTokenSource` | 지금 **실제로 먹은** 토큰 | `GithubTokenHolder` (`:core:network`) |
 | `QuizGenerator` | `isAvailable()` + `generate(title, text, count)` | `LiteRtLmQuizGenerator` (`:core:ai`) |
 
-domain 은 넷 다 구현을 모른다. 그래프는 `:app` 이 네 모듈을 전부 포함해 완성한다.
+domain 은 전부 구현을 모른다. 그래프는 `:app` 이 구현 모듈을 다 포함해 완성한다.
+
+`FontScale`(`model/`)은 `:core:design-foundation` 의 `MyNoteFontScale` 과 **일부러 별개 타입**이다 —
+design-foundation 은 Compose 를 들고 있어서 domain 이 그걸 의존하면 의존 방향이 뒤집힌다.
+둘 사이 매핑은 바깥(UI 레이어)이 한다.
 
 ### 토큰 인터페이스가 둘인 이유 (중복이 아니다)
 
@@ -47,8 +52,9 @@ debug 에서 항상 없다고 나온다. `ObserveAppliedTokenUseCase` 가 그 �
 
 ## UseCase 가 어디까지 하는가
 
-대부분은 위임 한 줄이다(`GetCategories`·`SyncNotes`·`ObserveToken`·`ObserveAppliedToken`,
-`SaveToken` 은 blank → null 정규화까지). 정렬·필터 같은 도메인 규칙이 생기면 여기로 온다.
+대부분은 위임 한 줄이다(`GetCategories`·`SyncNotes`·`ObserveToken`·`ObserveAppliedToken`·
+`ObserveFontScale`·`SetFontScale`, `SaveToken` 은 blank → null 정규화까지). 정렬·필터 같은 도메인 규칙이
+생기면 여기로 온다.
 
 실제 규칙을 든 건 **`GenerateQuizUseCase`** 하나다. 화면에서 `noteId` 만 받아 네 가지를 한다:
 

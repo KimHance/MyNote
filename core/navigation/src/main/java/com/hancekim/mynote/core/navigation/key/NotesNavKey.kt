@@ -11,6 +11,11 @@ sealed interface NotesNavKey : MyNoteNavKey {
     data class Reader(
         val noteId: String,
     ) : NotesNavKey
+
+    @Serializable
+    data object Settings : NotesNavKey
 }
+
+fun List<MyNoteNavKey>.isSettingsTop(): Boolean = lastOrNull() is NotesNavKey.Settings
 
 fun List<MyNoteNavKey>.activeNoteId(): String? = (lastOrNull() as? NotesNavKey.Reader)?.noteId

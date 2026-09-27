@@ -54,6 +54,50 @@ object MyNoteIcons {
         }
     }
 
+    val Settings: ImageVector by lazy {
+        strokeIcon("settings") {
+            moveTo(15f, 12f)
+            arcTo(3f, 3f, 0f, isMoreThanHalf = true, isPositiveArc = true, x1 = 9f, y1 = 12f)
+            arcTo(3f, 3f, 0f, isMoreThanHalf = true, isPositiveArc = true, x1 = 15f, y1 = 12f)
+            close()
+            moveTo(19f, 12f)
+            arcTo(7f, 7f, 0f, isMoreThanHalf = true, isPositiveArc = true, x1 = 5f, y1 = 12f)
+            arcTo(7f, 7f, 0f, isMoreThanHalf = true, isPositiveArc = true, x1 = 19f, y1 = 12f)
+            close()
+            moveTo(12f, 2.6f)
+            lineTo(12f, 5.2f)
+            moveTo(12f, 18.8f)
+            lineTo(12f, 21.4f)
+            moveTo(2.6f, 12f)
+            lineTo(5.2f, 12f)
+            moveTo(18.8f, 12f)
+            lineTo(21.4f, 12f)
+            moveTo(5.3f, 5.3f)
+            lineTo(7.2f, 7.2f)
+            moveTo(16.8f, 16.8f)
+            lineTo(18.7f, 18.7f)
+            moveTo(18.7f, 5.3f)
+            lineTo(16.8f, 7.2f)
+            moveTo(7.2f, 16.8f)
+            lineTo(5.3f, 18.7f)
+        }
+    }
+
+    val Key: ImageVector by lazy {
+        strokeIcon("key") {
+            moveTo(12f, 15f)
+            arcTo(3.5f, 3.5f, 0f, isMoreThanHalf = true, isPositiveArc = true, x1 = 5f, y1 = 15f)
+            arcTo(3.5f, 3.5f, 0f, isMoreThanHalf = true, isPositiveArc = true, x1 = 12f, y1 = 15f)
+            close()
+            moveTo(11.1f, 12.9f)
+            lineTo(19.5f, 4.5f)
+            moveTo(16.4f, 7.6f)
+            lineTo(18.6f, 9.8f)
+            moveTo(14.2f, 9.8f)
+            lineTo(16f, 11.6f)
+        }
+    }
+
     val ArrowUp: ImageVector by lazy {
         strokeIcon("arrow_up") {
             moveTo(12f, 19.5f)

@@ -14,6 +14,18 @@ class NotesMessages
 
         fun quizAbandoned(): String = context.getString(R.string.notes_quiz_abandoned)
 
+        fun tokenSaved(): String = context.getString(R.string.notes_settings_token_saved)
+
+        fun tokenCleared(): String = context.getString(R.string.notes_settings_token_cleared)
+
+        fun downloadPaused(): String = context.getString(R.string.notes_model_paused_snack)
+
+        fun downloadCancelled(): String = context.getString(R.string.notes_model_cancelled_snack)
+
+        fun partialDiscarded(): String = context.getString(R.string.notes_model_discarded_snack)
+
+        fun modelDeleted(): String = context.getString(R.string.notes_model_deleted)
+
         fun syncApplied(outcome: SyncOutcome): String {
             val parts =
                 buildList {

@@ -4,6 +4,7 @@
 
 GitHub 의 JSON 노트를 받아 읽는 **읽기 전용** 안드로이드 학습 노트 앱. 앱에서 쓰기는 없다.
 온디바이스 LLM(LiteRT-LM)으로 노트에서 4지선다 퀴즈를 만드는 기능이 붙어 있다.
+퀴즈 모델(2.6GB)은 APK 에 없고 **앱에서 런타임에 내려받는다**(WorkManager + 포그라운드 알림).
 
 **모듈마다 `AGENTS.md` 가 따로 있다. 어떤 모듈을 건드리든 그 파일을 먼저 읽어라.**
 여기에는 모듈 하나만 봐서는 알 수 없는 것만 적는다.
@@ -99,6 +100,11 @@ app  ─────────────────────────
 `Conversation.sendMessage()` 는 블로킹이라(suspend 아님) 코루틴을 취소해도 네이티브 디코딩이
 계속 돌고 `Mutex` 를 계속 쥔다. 라이브러리에 `cancelProcess()` 가 있는데 아직 안 쓴다.
 (`core/ai/AGENTS.md`)
+
+**퀴즈 모델 상태 타입은 `:core:domain` 이 소유한다.**
+받는 구현은 `:core:ai` 지만 feature 는 `:core:ai` 를 의존하지 않는다. `ModelStatus`·`ModelFailure`·
+`QuizModelSource` 를 domain 에 두고 `ModelDownloads` 가 구현한다. `:core:ai` 에 public 을 만들어도
+feature 에서는 안 보인다. (`feature/notes/AGENTS.md`)
 
 **뒤로가기 우선순위는 컴포즈 순서다.**
 `feature/notes/shell/` 의 파일을 옮기거나 쪼개면 조용히 깨진다. (`feature/notes/AGENTS.md`)

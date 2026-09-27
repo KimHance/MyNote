@@ -6,6 +6,7 @@
     <string name="ds_action_close">닫기</string>
     <string name="ds_action_retry">다시 시도</string>
     <string name="ds_action_undo">되돌리기</string>
+    <string name="ds_action_back">뒤로</string>
 
     <string name="ds_scroll_to_top">맨 위로</string>
     <string name="ds_search_hint">노트 검색</string>

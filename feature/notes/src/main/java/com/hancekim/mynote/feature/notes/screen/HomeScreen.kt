@@ -51,6 +51,7 @@ internal fun HomeScreen(
     onIntent: (NotesIntent) -> Unit,
     modifier: Modifier = Modifier,
     contentBottomPadding: Dp = 0.dp,
+    contentTopPadding: Dp = 0.dp,
     gridState: LazyGridState = rememberLazyGridState(),
 ) {
     val adaptive = MyNoteTheme.adaptive
@@ -84,7 +85,7 @@ internal fun HomeScreen(
                         PaddingValues(
                             start = adaptive.page,
                             end = adaptive.page,
-                            top = adaptive.padY,
+                            top = adaptive.padY + contentTopPadding,
                             bottom = adaptive.page + contentBottomPadding,
                         ),
                     horizontalArrangement = Arrangement.spacedBy(adaptive.cardGap),

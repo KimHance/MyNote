@@ -31,6 +31,7 @@
                 tools:node="remove" />
         </provider>
 
+
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden"

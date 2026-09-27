@@ -5,13 +5,21 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.viewModelScope
 import com.hancekim.mynote.core.common.mvi.MviViewModel
 import com.hancekim.mynote.core.designfoundation.token.MyNoteFontScale
+import com.hancekim.mynote.core.domain.CancelModelDownloadUseCase
+import com.hancekim.mynote.core.domain.DeleteModelUseCase
+import com.hancekim.mynote.core.domain.DiscardPartialModelUseCase
 import com.hancekim.mynote.core.domain.GenerateQuizUseCase
 import com.hancekim.mynote.core.domain.GetCategoriesUseCase
 import com.hancekim.mynote.core.domain.ObserveAppliedTokenUseCase
+import com.hancekim.mynote.core.domain.ObserveFontScaleUseCase
+import com.hancekim.mynote.core.domain.ObserveModelStatusUseCase
 import com.hancekim.mynote.core.domain.SaveTokenUseCase
+import com.hancekim.mynote.core.domain.SetFontScaleUseCase
+import com.hancekim.mynote.core.domain.StartModelDownloadUseCase
 import com.hancekim.mynote.core.domain.SyncNotesUseCase
+import com.hancekim.mynote.core.domain.model.FontScale
+import com.hancekim.mynote.core.domain.model.ModelStatus
 import com.hancekim.mynote.core.domain.model.QuizFailure
-import com.hancekim.mynote.core.domain.repository.QuizGenerator
 import com.hancekim.mynote.core.navigation.NavCommand
 import com.hancekim.mynote.core.navigation.NavResult
 import com.hancekim.mynote.core.navigation.Navigator
@@ -19,6 +27,8 @@ import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import com.hancekim.mynote.core.navigation.key.activeNoteId
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
+import com.hancekim.mynote.feature.notes.element.NoticeUi
+import com.hancekim.mynote.feature.notes.element.maskToken
 import com.hancekim.mynote.feature.notes.mapper.toUi
 import com.hancekim.mynote.feature.notes.quiz.QuizAutoAdvancePolicy
 import com.hancekim.mynote.feature.notes.quiz.QuizUiState
@@ -70,17 +80,22 @@ class NotesViewModel @Inject constructor(
     private val syncNotes: SyncNotesUseCase,
     private val saveToken: SaveTokenUseCase,
     observeAppliedToken: ObserveAppliedTokenUseCase,
+    observeFontScale: ObserveFontScaleUseCase,
+    private val setFontScale: SetFontScaleUseCase,
+    observeModelStatus: ObserveModelStatusUseCase,
+    private val startModelDownload: StartModelDownloadUseCase,
+    private val cancelModelDownload: CancelModelDownloadUseCase,
+    private val discardPartialModel: DiscardPartialModelUseCase,
+    private val deleteModel: DeleteModelUseCase,
     private val generateQuiz: GenerateQuizUseCase,
     private val autoAdvancePolicy: QuizAutoAdvancePolicy,
     private val messages: NotesMessages,
-    quizGenerator: QuizGenerator,
     private val navigator: Navigator,
 ) : MviViewModel<NotesUiState, NotesIntent>() {
     private val navStack = navigator.stack.triggerIn(navigator.stack.value)
     private val navSettled = navigator.isSettled.triggerIn(true)
     private val quiz = trigger<QuizUiState>(QuizUiState.Idle)
 
-    private val quizAvailable = flow { emit(quizGenerator.isAvailable()) }.triggerIn(false)
     private val quizUndo = trigger<QuizUndo?>(null)
     private var quizJob: Job? = null
     private var autoAdvanceJob: Job? = null
@@ -93,7 +108,17 @@ class NotesViewModel @Inject constructor(
     private var lastRootBackMillis = 0L
     private val query = trigger("")
     private val expanded = trigger(persistentMapOf<String, Boolean>())
-    private val fontScale = trigger(MyNoteFontScale.Normal)
+    private val fontScale =
+        observeFontScale()
+            .map { it.toUi() }
+            .triggerIn(MyNoteFontScale.Normal, started = SharingStarted.Lazily)
+    private val modelStatus =
+        observeModelStatus()
+            .triggerIn(ModelStatus.Missing, started = SharingStarted.Lazily)
+    private val tokenEditing = trigger(false)
+    private val notice = trigger<NoticeUi?>(null)
+    private var clearedToken: String? = null
+    private var noticeSeq = 0
     private val refreshTicks = MutableStateFlow(0)
 
     private val appliedToken =
@@ -162,9 +187,12 @@ class NotesViewModel @Inject constructor(
             errorMessage = sync.value.errorMessage,
             errorId = sync.value.errorId,
             hasToken = !appliedToken.value.isNullOrBlank(),
+            maskedToken = maskToken(appliedToken.value),
+            tokenEditing = tokenEditing.value,
+            notice = notice.value,
             infoMessage = sync.value.infoMessage,
             infoId = sync.value.infoId,
-            isQuizAvailable = quizAvailable.value,
+            modelStatus = modelStatus.value,
             quiz = quiz.value,
             quizUndoMessage = quizUndo.value?.message,
             quizUndoId = quizUndo.value?.id ?: 0,
@@ -174,7 +202,15 @@ class NotesViewModel @Inject constructor(
     override fun onIntent(event: NotesIntent) {
         when (event) {
             is NotesIntent.SelectNote -> {
+                if (navigator.stack.value.lastOrNull() is NotesNavKey.Settings) {
+                    navigator.dispatchImmediately(NavCommand.Pop)
+                }
                 navigator.push(NotesNavKey.Reader(event.id))
+            }
+
+            NotesIntent.OpenSettings -> {
+                tokenEditing.value = false
+                navigator.push(NotesNavKey.Settings)
             }
 
             is NotesIntent.QueryChanged -> {
@@ -185,10 +221,28 @@ class NotesViewModel @Inject constructor(
                 expanded.update { it.putting(event.name, !(it[event.name] ?: false)) }
             }
 
-            NotesIntent.ToggleFontScale -> {
-                fontScale.update {
-                    if (it == MyNoteFontScale.Normal) MyNoteFontScale.Large else MyNoteFontScale.Normal
-                }
+            is NotesIntent.SetFontScale -> {
+                viewModelScope.launch { setFontScale(event.scale.toDomain()) }
+            }
+
+            NotesIntent.StartModelDownload -> {
+                startModelDownload()
+            }
+
+            NotesIntent.CancelModelDownload -> {
+                val received = (modelStatus.value as? ModelStatus.Downloading)?.received ?: 0L
+                cancelModelDownload()
+                announce(if (received > 0L) messages.downloadPaused() else messages.downloadCancelled())
+            }
+
+            NotesIntent.DiscardPartialModel -> {
+                discardPartialModel()
+                announce(messages.partialDiscarded())
+            }
+
+            NotesIntent.DeleteModel -> {
+                deleteModel()
+                announce(messages.modelDeleted())
             }
 
             NotesIntent.Back -> {
@@ -207,8 +261,40 @@ class NotesViewModel @Inject constructor(
                 navigator.pop()
             }
 
+            NotesIntent.StartTokenEdit -> {
+                tokenEditing.value = true
+            }
+
+            NotesIntent.CancelTokenEdit -> {
+                tokenEditing.value = false
+            }
+
             is NotesIntent.SaveToken -> {
-                viewModelScope.launch { saveToken(event.token) }
+                val token = event.token.trim()
+                if (token.isEmpty()) return
+                tokenEditing.value = false
+                clearedToken = null
+                viewModelScope.launch {
+                    saveToken(token)
+                    notice.value = NoticeUi(messages.tokenSaved(), undoable = false, id = ++noticeSeq)
+                }
+            }
+
+            NotesIntent.ClearToken -> {
+                val previous = appliedToken.value
+                if (previous.isNullOrBlank()) return
+                tokenEditing.value = false
+                clearedToken = previous
+                viewModelScope.launch {
+                    saveToken("")
+                    notice.value = NoticeUi(messages.tokenCleared(), undoable = true, id = ++noticeSeq)
+                }
+            }
+
+            NotesIntent.UndoClearToken -> {
+                val previous = clearedToken ?: return
+                clearedToken = null
+                viewModelScope.launch { saveToken(previous) }
             }
 
             is NotesIntent.OpenQuizSetup -> {
@@ -337,6 +423,10 @@ class NotesViewModel @Inject constructor(
         quizJob?.cancel()
     }
 
+    private fun announce(message: String) {
+        notice.value = NoticeUi(message, undoable = false, id = ++noticeSeq)
+    }
+
     private fun clearUndo() {
         undoJob?.cancel()
         abandonedSolving = null
@@ -381,3 +471,15 @@ class NotesViewModel @Inject constructor(
             else -> QuizUiState.Failed.Kind.Engine
         }
 }
+
+private fun FontScale.toUi(): MyNoteFontScale =
+    when (this) {
+        FontScale.Normal -> MyNoteFontScale.Normal
+        FontScale.Large -> MyNoteFontScale.Large
+    }
+
+private fun MyNoteFontScale.toDomain(): FontScale =
+    when (this) {
+        MyNoteFontScale.Normal -> FontScale.Normal
+        MyNoteFontScale.Large -> FontScale.Large
+    }

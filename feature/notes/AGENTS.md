@@ -3,8 +3,8 @@
 이 파일은 이 모듈에서 작업하는 에이전트를 위한 안내다.
 
 앱의 UI 는 전부 여기 있다. `MainActivity` 는 `NotesRoute()` 하나만 부르고, 그 아래에
-ViewModel 하나 · `NavDisplay` 하나 · `MyNoteTheme` 하나가 있고 그 안에서 화면 7개
-(Home · ListPanel · NoteReader · 퀴즈 4개)가 돈다. "새 화면을 추가한다" 는 대개 새 모듈이
+ViewModel 하나 · `NavDisplay` 하나 · `MyNoteTheme` 하나가 있고 그 안에서 화면 8개
+(Home · ListPanel · NoteReader · Settings · 퀴즈 4개)가 돈다. "새 화면을 추가한다" 는 대개 새 모듈이
 아니라 이 구조 안에 끼우는 일이다.
 
 의존은 컨벤션(`hancenote.android.feature`)이 `:core:common` · `:core:design-system` ·
@@ -21,7 +21,7 @@ UseCase 와 `QuizGenerator` 인터페이스로만 들어온다.
 |---|---|---|
 | `NotesViewModel` | 화면이 그리는 거의 전부 + 퀴즈 진행 + 스낵바 호스트 | 재조립형 MVI 단일 상태 |
 | `Navigator`(`:core:navigation`, `@Singleton`) | **백스택** | 소유자가 하나여야 하고, 입구가 하나라 거기서 쓰로틀을 건다 |
-| 컴포지션 로컬(`rememberSaveable`) | 드로어 열림 · 고정 패널 펼침 · 토큰 다이얼로그 · 선택된 내비 아이템 | 목적지가 아니고 레이아웃 상태다. 백스택 엔트리가 아니다 |
+| 컴포지션 로컬(`rememberSaveable`) | 드로어 열림 · 고정 패널 펼침 · **토큰 입력 draft·보기여부** · 확인 다이얼로그 · 선택된 내비 아이템 | 목적지가 아니고 레이아웃 상태다. 백스택 엔트리가 아니다 |
 
 세 번째를 ViewModel 로 올리려는 충동을 참아라. 드로어/패널은 창 크기에 따라 존재 자체가
 사라지는 값이라 상태로 올리면 폼팩터 전환 때 의미가 없어진다. 대신 **뒤로가기는 먹는다**
@@ -102,7 +102,7 @@ UseCase 와 `QuizGenerator` 인터페이스로만 들어온다.
 `NotesScreen` → `NotesShell` 하나만 부르고 그 안에서 조립된다. 한 파일이 한 가지만 한다:
 드로어·패널 상태와 뒤로가기 순서(`NotesShell`) / 인셋 산수(`NotesLayout`) / 스크롤과 "맨 위로"
 판정(`NotesScrollState`) / 씬 슬롯과 전략(`NotesScenes`) / `NavDisplay`(`NotesNavDisplay`) /
-플로팅 내비·맨 위로·퀴즈(`NotesOverlays`) / 크롬(`NotesTopBar`·`TokenDialog`).
+플로팅 내비·맨 위로·퀴즈·모델 알약(`NotesOverlays`·`ModelPill`) / 크롬(`NotesTopBar`).
 
 쪼개거나 옮길 때 깨지는 것:
 
@@ -217,3 +217,69 @@ UseCase 와 `QuizGenerator` 인터페이스로만 들어온다.
 ./gradlew :feature:notes:testDebugUnitTest   # QuizGradingTest (순수 JVM, 13건)
 ./gradlew :app:compileDebugKotlin            # 이 모듈 변경 검증은 :app 컴파일로
 ```
+
+---
+
+## 설정 화면과 퀴즈 모델 상태
+
+### 토큰 원문은 ViewModel 밖으로 나가지 않는다
+
+`NotesUiState` 에 있는 건 `maskedToken`(`ghp_••••••••a3F9`)뿐이다. 입력 중인 draft 와 보기/숨기기는
+`SettingsScreen` 의 `rememberSaveable` 로컬이다. 비밀값을 상태로 올리면 로그·스크린샷 테스트·
+`toString()` 에 흘러나온다. `maskToken()` 은 **길이도 드러내지 않는다** — 원본이 20자든 200자든
+가린 결과가 같다.
+
+되돌리기용 이전 토큰은 `NotesViewModel` 의 **메모리 필드**다. 디스크에 백업을 남기지 않는다.
+
+### `ModelStatus` 는 `:core:domain` 에 있다 — `:core:ai` 가 아니다
+
+받는 쪽 구현은 `:core:ai` 인데 **feature 는 `:core:ai` 를 의존하지 않는다**(feature 컨벤션이
+넣어 주는 건 core/{common, design-system, domain, navigation} 뿐). 그래서 상태 타입과
+`QuizModelSource` 계약은 `:core:domain` 이 소유하고 `:core:ai` 의 `ModelDownloads` 가 구현한다.
+`QuizGenerator` 와 같은 DIP 다. **`:core:ai` 에 public 을 만들어도 여기서는 영원히 안 보인다.**
+
+화면이 쓰는 입구는 UseCase 다 — `ObserveModelStatusUseCase` · `StartModelDownloadUseCase` ·
+`CancelModelDownloadUseCase` · `DiscardPartialModelUseCase` · `DeleteModelUseCase`.
+
+### 실패 이유 문자열은 `ModelFailure` 하나에서만 온다
+
+`ModelStatus.Failed(reason)` 의 `reason` 은 WorkManager output data 를 타고 오는 **문자열**이라
+타입이 지켜 주지 않는다. `:core:domain` 의 `ModelFailure.NO_SPACE` 를 양쪽이 같이 본다.
+UI 에 `"no-space"` 를 다시 적으면 값이 어긋나는 순간 **공간 부족인데 "잠시 뒤 다시 시도해 주세요"
+로 조용히 떨어진다.** 실제로 한 번 그렇게 만들었다가 고쳤다.
+
+### `isQuizAvailable` 은 더 이상 한 번 읽고 마는 값이 아니다
+
+예전엔 `flow { emit(quizGenerator.isAvailable()) }` 로 앱 시작에 한 번만 읽었다. 그래서 다 받아도
+앱을 다시 켜야 퀴즈가 켜졌다. 지금은 `modelStatus == Ready` 에서 파생되고, `ModelDownloads.status()`
+가 WorkManager 를 계속 흘린다.
+
+### 상태 → 화면 매핑은 순수 함수다
+
+`element/ModelStatusUi.kt` 의 `modelCardUi()`(9개 상태 → 점·라벨·막대·버튼)와 `quizCtaUi()`
+(상태 → CTA 부제·칩·동작)는 `@StringRes` id 를 돌려준다. Context 없이 단위 테스트가 된다.
+Composable 안에서 `when (status)` 를 새로 쓰지 말고 여기에 넣어라.
+
+---
+
+## 사이드 시트 — `LazyColumn` 은 반드시 `weight(1f)` 박스 안에
+
+```
+Column(fillMaxSize) {
+    Header                       // 고정
+    Box(Modifier.weight(1f)) { LazyColumn(...) }   // ← 여기서만 늘어난다
+    SettingsRow(...)             // 고정
+}
+```
+
+`weight` 를 빼면 카테고리가 많을 때 **설정 줄이 화면 밖으로 밀려난다.** 목록과 설정 줄 사이에
+선을 넣지 않는다 — 대신 아래에 더 있을 때만 하단 페이드가 켜진다.
+
+페이드는 새로 만들지 않고 design-system 의 `Modifier.fadingEdges(top, bottom)` 에
+`animateDpAsState` 로 0↔16/52dp 를 먹인다. `listState.canScrollBackward/Forward` 가 조건이다.
+
+## 상단 알약은 콘텐츠를 가리지 않는다
+
+`ModelPill` 이 보이는 동안 홈·리더의 스크롤 `contentTopPadding` 이 +54dp 된다(300ms).
+`NotesShell` 이 `rememberModelPillVisible()` 을 한 번 계산해 **오버레이와 패딩 양쪽에 같은 값**을
+넘긴다. 두 군데서 따로 계산하면 알약이 뜨는데 패딩이 안 밀리는 순간이 생긴다.

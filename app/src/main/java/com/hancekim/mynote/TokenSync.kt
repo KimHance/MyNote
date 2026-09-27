@@ -2,6 +2,7 @@ package com.hancekim.mynote
 
 import com.hancekim.mynote.core.domain.ObserveTokenUseCase
 import com.hancekim.mynote.core.network.config.GithubTokenHolder
+import com.hancekim.mynote.di.ApplicationScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -11,7 +12,7 @@ import javax.inject.Singleton
 
 @Singleton
 class TokenSync @Inject constructor(
-    private val scope: CoroutineScope,
+    @ApplicationScope private val scope: CoroutineScope,
     private val observeToken: ObserveTokenUseCase,
     private val holder: GithubTokenHolder,
 ) {

@@ -26,7 +26,9 @@ import com.hancekim.mynote.core.designsystem.block.NoteSpanStyle
 import com.hancekim.mynote.core.designsystem.component.CategoryChip
 import com.hancekim.mynote.core.designsystem.component.fadingEdges
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
+import com.hancekim.mynote.core.domain.model.ModelStatus
 import com.hancekim.mynote.feature.notes.NoteUi
+import com.hancekim.mynote.feature.notes.element.CtaAction
 import com.hancekim.mynote.feature.notes.navigation.rememberNoteSharedModifiers
 import com.hancekim.mynote.feature.notes.quiz.component.QuizCtaCard
 import kotlinx.collections.immutable.persistentListOf
@@ -37,9 +39,10 @@ internal fun NoteReaderScreen(
     categoryName: String,
     modifier: Modifier = Modifier,
     contentBottomPadding: Dp = 0.dp,
+    contentTopPadding: Dp = 0.dp,
     scrollState: ScrollState = rememberScrollState(),
-    onOpenQuiz: (() -> Unit)? = null,
-    quizAvailable: Boolean = true,
+    onQuizAction: ((CtaAction) -> Unit)? = null,
+    modelStatus: ModelStatus = ModelStatus.Ready,
 ) {
     val shared = rememberNoteSharedModifiers(note.id)
     val adaptive = MyNoteTheme.adaptive
@@ -54,7 +57,7 @@ internal fun NoteReaderScreen(
                         .padding(
                             start = adaptive.page,
                             end = adaptive.page,
-                            top = adaptive.padY,
+                            top = adaptive.padY + contentTopPadding,
                             bottom = 24.dp + contentBottomPadding,
                         ),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -78,8 +81,8 @@ internal fun NoteReaderScreen(
                     modifier = shared.title,
                 )
                 NoteContent(blocks = note.blocks)
-                if (onOpenQuiz != null) {
-                    QuizCtaCard(onClick = onOpenQuiz, available = quizAvailable)
+                if (onQuizAction != null) {
+                    QuizCtaCard(status = modelStatus, onAction = onQuizAction)
                 }
             }
         }
@@ -124,7 +127,7 @@ private val previewNote =
 @Composable
 private fun NoteReaderScreenPreview() {
     MyNoteTheme {
-        NoteReaderScreen(note = previewNote, categoryName = "Android", onOpenQuiz = {})
+        NoteReaderScreen(note = previewNote, categoryName = "Android", onQuizAction = {})
     }
 }
 
@@ -135,8 +138,8 @@ private fun NoteReaderScreenNoModelPreview() {
         NoteReaderScreen(
             note = previewNote,
             categoryName = "Android",
-            onOpenQuiz = {},
-            quizAvailable = false,
+            onQuizAction = {},
+            modelStatus = ModelStatus.Missing,
         )
     }
 }

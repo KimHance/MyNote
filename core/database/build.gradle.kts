@@ -9,12 +9,11 @@ android {
 }
 
 dependencies {
-    // CachedNote + LocalNotesDataSource 인터페이스를 구현/사용
     implementation(projects.core.data)
-
+    implementation(projects.core.domain)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.javax.inject)
-
-    // DataStore Preferences — 토큰 저장(DataStoreTokenStore)
     implementation(libs.androidx.datastore)
+
+    testImplementation(libs.junit)
 }

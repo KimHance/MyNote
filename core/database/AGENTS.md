@@ -4,9 +4,11 @@
 
 ## 이 모듈이 하는 일
 
-`:core:data` 의 **`LocalNotesDataSource` 와 `TokenStore` 를 구현**한다(`:core:database → :core:data`).
-노트 캐시(Room 3)와 토큰 저장(DataStore Preferences)이라는 성격이 다른 두 저장소가 한 모듈에 있는데,
+`:core:data` 의 **`LocalNotesDataSource`·`TokenStore`·`SettingsStore` 를 구현**한다(`:core:database → :core:data`).
+노트 캐시(Room 3)와 토큰·설정 저장(DataStore Preferences)이라는 성격이 다른 저장소가 한 모듈에 있는데,
 공통점은 "로컬 영속화 구현체" 라는 것뿐이다. 서로 아무 관계가 없다.
+`SettingsStore` 계약이 도메인 타입(`FontScale`)으로 말하므로 이 모듈은 `:core:domain` 도 의존한다
+(`:core:network` 와 같은 모양이다).
 
 **노트의 SSOT 는 이 모듈의 `notes` 테이블이다.** 화면이 보는 Flow 는 원격이 아니라 Room 에서 나온다
 (`observeCategories()` → `LocalNotesDataSource.observeNotes()` → `NoteDao.observeNotes()`).
@@ -62,8 +64,20 @@
   인터페이스가 좁게 잡혀 있다.
 - 토큰이 저장된 뒤 실제 HTTP 요청에 붙기까지의 배선은 `core/network/AGENTS.md` 의 토큰 흐름을 본다.
 
+## 설정 저장 (DataStore)
+
+- `DataStoreSettingsStore` 가 `SettingsStore` 를 구현한다 — `preferencesDataStore(name = "settings")`,
+  키는 `font_scale` 하나. 토큰과 **다른 파일**이라 서로 영향이 없다.
+- **저장 형식은 enum 이름이 아니라 `datasource/FontScalePreference.kt` 의 고정 문자열**(`"normal"`/`"large"`)이다.
+  `FontScale.name` 을 그대로 쓰면 enum 을 리네임하는 순간 기존 사용자의 저장값이 조용히 무효가 된다.
+- **매핑은 던지지 않는다** — 키가 없거나 모르는 값이면 `FontScale.Default`(=`Normal`). 다운그레이드로
+  모르는 값이 남아 있어도 기본 크기로 뜬다(단, DataStore 파일 자체가 깨지면 `data` Flow 가 던진다 —
+  토큰 쪽과 같은 노출이다).
+- 이 매핑은 `FontScalePreferenceTest` 가 지킨다(이 모듈의 유일한 테스트).
+
 ## 테스트
 
-이 모듈에는 테스트가 없다(컨벤션이 `failOnNoDiscoveredTests(false)` 로 풀어 뒀다).
+`FontScalePreferenceTest`(저장 형식 매핑) 하나뿐이다. Room·DataStore 를 타는 코드에는 테스트가 없다
+(컨벤션이 `failOnNoDiscoveredTests(false)` 로 풀어 뒀다).
 DAO 동작은 `:core:data` 의 `NotesReconcileTest` 가 fake `LocalNotesDataSource` 로 대체 검증한다 —
 즉 **`applySync` 의 트랜잭션성 자체는 어떤 테스트도 지켜 주지 않는다.** 여기를 고칠 땐 직접 확인한다.

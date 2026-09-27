@@ -9,6 +9,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
@@ -32,7 +33,9 @@ internal class NotesScrollState(
 @Composable
 internal fun rememberNotesScrollState(activeNoteId: String?): NotesScrollState {
     val homeGrid = rememberLazyGridState()
-    val reader = key(activeNoteId) { rememberScrollState() }
+    val lastNoteId = remember { mutableStateOf(activeNoteId) }
+    if (activeNoteId != null) lastNoteId.value = activeNoteId
+    val reader = key(lastNoteId.value) { rememberScrollState() }
     val thresholdPx = with(LocalDensity.current) { READER_THRESHOLD.toPx() }
     val isReader = activeNoteId != null
     return remember(homeGrid, reader, isReader, thresholdPx) {

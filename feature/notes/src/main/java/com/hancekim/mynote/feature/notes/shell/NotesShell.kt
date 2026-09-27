@@ -2,6 +2,8 @@ package com.hancekim.mynote.feature.notes.shell
 
 import android.app.Activity
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,8 +32,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.hancekim.mynote.core.designsystem.component.MyNoteSnackbarHost
 import com.hancekim.mynote.core.designsystem.component.rememberFloatingNavScrollState
+import com.hancekim.mynote.core.designsystem.motion.MyNoteEasing
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.R
+import com.hancekim.mynote.feature.notes.element.CtaAction
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.screen.ListPanelScreen
@@ -44,7 +48,8 @@ internal fun NotesShell(
     uiState: NotesUiState,
     onIntent: (NotesIntent) -> Unit,
     snackbarHostState: SnackbarHostState,
-    onShowTokenDialog: () -> Unit,
+    onConfirmDownload: () -> Unit,
+    onEnableNotifications: () -> Unit,
 ) {
     val adaptive = MyNoteTheme.adaptive
     val colors = MyNoteTheme.colors
@@ -73,6 +78,13 @@ internal fun NotesShell(
 
     NotesExitEffects(uiState, snackbarHostState)
 
+    val pillVisible = rememberModelPillVisible(uiState.modelStatus, uiState.isSettingsOpen)
+    val contentTopPadding by animateDpAsState(
+        targetValue = if (pillVisible) MODEL_PILL_RESERVE else 0.dp,
+        animationSpec = tween(PILL_RESERVE_MILLIS, easing = MyNoteEasing),
+        label = "pillReserve",
+    )
+
     val layout = rememberNotesLayout()
     val scroll = rememberNotesScrollState(uiState.activeNoteId)
 
@@ -84,12 +96,9 @@ internal fun NotesShell(
             onMenu = {
                 if (useDrawer) scope.launch { drawerState.open() } else panelExpanded = !panelExpanded
             },
-            onShowTokenDialog = onShowTokenDialog,
         )
     val sceneStrategies =
         rememberNotesSceneStrategies(useDrawer, panelSlot, headerSlot) { panelExpanded }
-
-    val modelMissing = stringResource(R.string.notes_quiz_model_missing)
 
     val scaffold =
         @Composable {
@@ -121,13 +130,15 @@ internal fun NotesShell(
                             sceneStrategies = sceneStrategies,
                             stackedScenes = useDrawer,
                             contentBottomPadding = layout.contentBottomPadding,
+                            contentTopPadding = contentTopPadding,
+                            onEnableNotifications = onEnableNotifications,
                             scroll = scroll,
-                            onOpenQuiz = { noteId ->
-                                if (uiState.isQuizAvailable) {
-                                    onIntent(NotesIntent.OpenQuizSetup(noteId))
-                                } else {
-                                    // 눌러도 안 되는 버튼을 숨기지 않는 대신, 왜 안 되는지는 말해 준다.
-                                    scope.launch { snackbarHostState.showSnackbar(modelMissing) }
+                            onQuizAction = { noteId, action ->
+                                when (action) {
+                                    CtaAction.OpenSetup -> onIntent(NotesIntent.OpenQuizSetup(noteId))
+                                    CtaAction.ConfirmDownload -> onConfirmDownload()
+                                    CtaAction.OpenSettings -> onIntent(NotesIntent.OpenSettings)
+                                    CtaAction.StartDownload -> onIntent(NotesIntent.StartModelDownload)
                                 }
                             },
                         )
@@ -142,6 +153,7 @@ internal fun NotesShell(
                         scroll = scroll,
                         navScroll = navScroll,
                         backdrop = backdrop,
+                        pillVisible = pillVisible,
                         selectedNavItem = selectedNavItem,
                         onSelectNavItem = { id ->
                             selectedNavItem = id
@@ -166,7 +178,9 @@ internal fun NotesShell(
                         uiState = uiState,
                         onIntent = { intent ->
                             onIntent(intent)
-                            if (intent is NotesIntent.SelectNote) scope.launch { drawerState.close() }
+                            if (intent is NotesIntent.SelectNote || intent is NotesIntent.OpenSettings) {
+                                scope.launch { drawerState.close() }
+                            }
                         },
                     )
                 }
@@ -195,3 +209,7 @@ private fun NotesExitEffects(
         if (uiState.exitRequestId > 0) (context as? Activity)?.finish()
     }
 }
+
+private val MODEL_PILL_RESERVE = MODEL_PILL_RESERVE_DP.dp
+
+private const val PILL_RESERVE_MILLIS = 300

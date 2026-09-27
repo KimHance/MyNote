@@ -1,6 +1,7 @@
 package com.hancekim.mynote.feature.notes.element
 
 import com.hancekim.mynote.core.common.mvi.MviEvent
+import com.hancekim.mynote.core.designfoundation.token.MyNoteFontScale
 
 sealed interface NotesIntent : MviEvent {
     data class SelectNote(
@@ -15,7 +16,11 @@ sealed interface NotesIntent : MviEvent {
         val name: String,
     ) : NotesIntent
 
-    data object ToggleFontScale : NotesIntent
+    data object OpenSettings : NotesIntent
+
+    data class SetFontScale(
+        val scale: MyNoteFontScale,
+    ) : NotesIntent
 
     data object Back : NotesIntent
 
@@ -52,9 +57,25 @@ sealed interface NotesIntent : MviEvent {
 
     data object UndoQuizExit : NotesIntent
 
+    data object StartTokenEdit : NotesIntent
+
+    data object CancelTokenEdit : NotesIntent
+
     data class SaveToken(
         val token: String,
     ) : NotesIntent
+
+    data object ClearToken : NotesIntent
+
+    data object UndoClearToken : NotesIntent
+
+    data object StartModelDownload : NotesIntent
+
+    data object CancelModelDownload : NotesIntent
+
+    data object DiscardPartialModel : NotesIntent
+
+    data object DeleteModel : NotesIntent
 
     data object Refresh : NotesIntent
 }

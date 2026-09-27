@@ -1,7 +1,7 @@
 package com.hancekim.mynote.feature.notes.shell
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -14,14 +14,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.R
+import com.hancekim.mynote.core.designsystem.R as DsR
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun NotesTopBar(
     title: String,
+    showBack: Boolean,
     onMenu: () -> Unit,
-    onToggleFont: () -> Unit,
-    onTokenDialog: () -> Unit,
+    onBack: () -> Unit,
     onRefresh: () -> Unit,
 ) {
     val colors = MyNoteTheme.colors
@@ -37,8 +38,18 @@ internal fun NotesTopBar(
         },
         expandedHeight = MyNoteTheme.adaptive.headerHeight,
         navigationIcon = {
-            IconButton(onClick = onMenu) {
-                Text(text = "☰", style = MyNoteTheme.textStyles.sectionTitle, color = colors.text)
+            if (showBack) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(DsR.string.ds_action_back),
+                        tint = colors.text,
+                    )
+                }
+            } else {
+                IconButton(onClick = onMenu) {
+                    Text(text = "☰", style = MyNoteTheme.textStyles.sectionTitle, color = colors.text)
+                }
             }
         },
         actions = {
@@ -47,20 +58,6 @@ internal fun NotesTopBar(
                     imageVector = Icons.Default.Refresh,
                     contentDescription = stringResource(R.string.notes_action_refresh),
                     tint = colors.accent,
-                )
-            }
-            IconButton(onClick = onTokenDialog) {
-                Icon(
-                    imageVector = Icons.Default.Lock,
-                    contentDescription = stringResource(R.string.notes_action_token),
-                    tint = colors.accent,
-                )
-            }
-            IconButton(onClick = onToggleFont) {
-                Text(
-                    text = stringResource(R.string.notes_action_font_scale),
-                    style = MyNoteTheme.textStyles.treeLabel,
-                    color = colors.accent,
                 )
             }
         },

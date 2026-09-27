@@ -19,7 +19,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -35,18 +35,24 @@ import com.hancekim.mynote.core.designsystem.component.aiShine
 import com.hancekim.mynote.core.designsystem.component.throttledProcess
 import com.hancekim.mynote.core.designsystem.motion.rememberReduceMotion
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
+import com.hancekim.mynote.core.domain.model.ModelStatus
 import com.hancekim.mynote.feature.notes.R
+import com.hancekim.mynote.feature.notes.element.CtaAction
+import com.hancekim.mynote.feature.notes.element.QuizCtaUi
+import com.hancekim.mynote.feature.notes.element.fractionOrNull
+import com.hancekim.mynote.feature.notes.element.quizCtaUi
 import com.hancekim.mynote.feature.notes.quiz.QuizUiState
 
 @Suppress("ktlint:compose:modifier-clickable-order", "ktlint:compose:lambda-param-event-trailing")
 @Composable
 internal fun QuizCtaCard(
-    available: Boolean,
+    status: ModelStatus,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit,
+    onAction: (CtaAction) -> Unit,
 ) {
     val colors = MyNoteTheme.colors
-    val shine = available && !rememberReduceMotion()
+    val cta = quizCtaUi(status)
+    val shine = cta.shine && !rememberReduceMotion()
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -58,14 +64,12 @@ internal fun QuizCtaCard(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .graphicsLayer { alpha = if (available) 1f else UNAVAILABLE_ALPHA }
                     .clickable(
-                        enabled = available,
                         interactionSource = null,
                         indication = remember { PressIndication(scale = 0.985f) },
                         role = Role.Button,
                         onClickLabel = stringResource(R.string.notes_quiz_setup_title),
-                        onClick = throttledProcess(action = onClick),
+                        onClick = throttledProcess(action = { onAction(cta.action) }),
                     ).aiShine(
                         color = colors.accent,
                         baseColor = colors.border,
@@ -100,45 +104,83 @@ internal fun QuizCtaCard(
                     color = colors.text,
                 )
                 Text(
-                    text =
-                        if (available) {
-                            stringResource(R.string.notes_quiz_cta_subtitle, QuizUiState.MAX_COUNT)
-                        } else {
-                            stringResource(R.string.notes_quiz_cta_unavailable)
-                        },
+                    text = ctaSubtitle(cta, status),
                     style = MyNoteTheme.textStyles.caption,
-                    color = colors.text3,
+                    color = if (cta.warn) colors.wrong else colors.text3,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
 
-            Icon(
-                imageVector = MyNoteIcons.ChevronRight,
-                contentDescription = null,
-                tint = colors.text3,
-                modifier = Modifier.size(20.dp),
-            )
+            val chip = cta.chip
+            if (chip != null) {
+                Text(
+                    text = stringResource(chip),
+                    style = MyNoteTheme.textStyles.caption.copy(fontWeight = FontWeight.W700),
+                    color = colors.bg,
+                    modifier =
+                        Modifier
+                            .background(colors.accent, RoundedCornerShape(CHIP_RADIUS))
+                            .padding(horizontal = 12.dp, vertical = 7.dp),
+                )
+            } else {
+                Icon(
+                    imageVector = MyNoteIcons.ChevronRight,
+                    contentDescription = null,
+                    tint = colors.text3,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
         }
     }
 }
 
+@Composable
+private fun ctaSubtitle(
+    cta: QuizCtaUi,
+    status: ModelStatus,
+): String =
+    when {
+        cta.subtitle == R.string.notes_quiz_cta_subtitle -> {
+            stringResource(cta.subtitle, QuizUiState.MAX_COUNT)
+        }
+
+        cta.subtitle == R.string.notes_quiz_cta_downloading -> {
+            stringResource(cta.subtitle, ((status.fractionOrNull() ?: 0f) * 100).toInt())
+        }
+
+        cta.subtitleArg != null -> {
+            stringResource(cta.subtitle, cta.subtitleArg)
+        }
+
+        else -> {
+            stringResource(cta.subtitle)
+        }
+    }
+
 private val CARD_RADIUS = 18.dp
 private val RING_WIDTH = 1.5.dp
-private const val UNAVAILABLE_ALPHA = 0.55f
+private val CHIP_RADIUS = 10.dp
 
-private class QuizCtaAvailabilityProvider : PreviewParameterProvider<Boolean> {
-    override val values = sequenceOf(true, false)
+private class QuizCtaStatusProvider : PreviewParameterProvider<ModelStatus> {
+    override val values =
+        sequenceOf(
+            ModelStatus.Ready,
+            ModelStatus.Missing,
+            ModelStatus.Downloading(1_090_000_000L, 2_588_147_712L),
+            ModelStatus.Paused(1_090_000_000L, 2_588_147_712L),
+            ModelStatus.Failed("no-space"),
+        )
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 360)
 @Composable
 private fun QuizCtaCardPreview(
-    @PreviewParameter(QuizCtaAvailabilityProvider::class) available: Boolean,
+    @PreviewParameter(QuizCtaStatusProvider::class) status: ModelStatus,
 ) {
     MyNoteTheme {
         Box(Modifier.padding(16.dp)) {
-            QuizCtaCard(available = available, onClick = {})
+            QuizCtaCard(status = status, onAction = {})
         }
     }
 }
@@ -147,11 +189,9 @@ private fun QuizCtaCardPreview(
 @Composable
 private fun QuizCtaCardLargeFontPreview() {
     MyNoteTheme {
-        CompositionLocalProvider(
-            LocalInspectionMode provides true,
-        ) {
+        CompositionLocalProvider(LocalInspectionMode provides true) {
             Box(Modifier.padding(16.dp)) {
-                QuizCtaCard(available = true, onClick = {})
+                QuizCtaCard(status = ModelStatus.Ready, onAction = {})
             }
         }
     }

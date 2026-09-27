@@ -18,10 +18,12 @@ import com.hancekim.mynote.core.navigation.scene.rememberSceneEdgeProgress
 import com.hancekim.mynote.core.navigation.scene.sceneEdge
 import com.hancekim.mynote.core.navigation.shared.LocalSharedTransitionScope
 import com.hancekim.mynote.core.navigation.shared.ProvideNavAnimatedScope
+import com.hancekim.mynote.feature.notes.element.CtaAction
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.screen.HomeScreen
 import com.hancekim.mynote.feature.notes.screen.NoteReaderScreen
+import com.hancekim.mynote.feature.notes.screen.SettingsScreen
 
 @Composable
 internal fun NotesNavDisplay(
@@ -30,12 +32,15 @@ internal fun NotesNavDisplay(
     sceneStrategies: List<SceneStrategy<MyNoteNavKey>>,
     stackedScenes: Boolean,
     contentBottomPadding: Dp,
+    contentTopPadding: Dp,
     scroll: NotesScrollState,
-    onOpenQuiz: (String) -> Unit,
+    onQuizAction: (String, CtaAction) -> Unit,
+    onEnableNotifications: () -> Unit,
 ) {
     val currentState = rememberUpdatedState(uiState)
     val currentIntent = rememberUpdatedState(onIntent)
-    val currentOpenQuiz = rememberUpdatedState(onOpenQuiz)
+    val currentQuizAction = rememberUpdatedState(onQuizAction)
+    val currentEnableNotifications = rememberUpdatedState(onEnableNotifications)
 
     SharedTransitionLayout {
         CompositionLocalProvider(LocalSharedTransitionScope provides this) {
@@ -56,7 +61,20 @@ internal fun NotesNavDisplay(
                                     isLoading = uiState.isLoading,
                                     onIntent = onIntent,
                                     contentBottomPadding = contentBottomPadding,
+                                    contentTopPadding = contentTopPadding,
                                     gridState = scroll.homeGrid,
+                                )
+                            }
+                        }
+                        entry<NotesNavKey.Settings> {
+                            ProvideNavAnimatedScope {
+                                val edgeProgress = rememberSceneEdgeProgress()
+                                SettingsScreen(
+                                    uiState = currentState.value,
+                                    onIntent = currentIntent.value,
+                                    onEnableNotifications = currentEnableNotifications.value,
+                                    modifier =
+                                        if (stackedScenes) Modifier.sceneEdge(edgeProgress) else Modifier,
                                 )
                             }
                         }
@@ -68,13 +86,12 @@ internal fun NotesNavDisplay(
                                     NoteReaderScreen(
                                         note = note,
                                         categoryName = uiState.categoryNameOf(note.id).orEmpty(),
-                                        // 스택으로 쌓이는 Compact 에서만 모서리·그림자가 의미 있다
-                                        modifier =
-                                            if (stackedScenes) Modifier.sceneEdge(edgeProgress) else Modifier,
+                                        modifier = if (stackedScenes) Modifier.sceneEdge(edgeProgress) else Modifier,
                                         contentBottomPadding = contentBottomPadding,
+                                        contentTopPadding = contentTopPadding,
                                         scrollState = scroll.reader,
-                                        onOpenQuiz = { currentOpenQuiz.value(note.id) },
-                                        quizAvailable = currentState.value.isQuizAvailable,
+                                        onQuizAction = { action -> currentQuizAction.value(note.id, action) },
+                                        modelStatus = currentState.value.modelStatus,
                                     )
                                 }
                             }

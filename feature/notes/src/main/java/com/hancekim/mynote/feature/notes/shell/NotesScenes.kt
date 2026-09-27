@@ -37,7 +37,7 @@ internal fun rememberNotesPanelSlot(
                     ListPanelScreen(
                         uiState = currentState.value,
                         onIntent = currentIntent.value,
-                        applyStatusInset = true,
+                        inFixedPanel = true,
                     )
                 }
                 VerticalDivider(color = MyNoteTheme.colors.border)
@@ -51,21 +51,25 @@ internal fun rememberNotesHeaderSlot(
     uiState: NotesUiState,
     onIntent: (NotesIntent) -> Unit,
     onMenu: () -> Unit,
-    onShowTokenDialog: () -> Unit,
 ): @Composable () -> Unit {
     val currentState = rememberUpdatedState(uiState)
     val currentIntent = rememberUpdatedState(onIntent)
     val currentMenu = rememberUpdatedState(onMenu)
-    val currentTokenDialog = rememberUpdatedState(onShowTokenDialog)
     val homeTitle = stringResource(R.string.notes_app_title)
+    val settingsTitle = stringResource(R.string.notes_settings)
 
-    return remember(homeTitle) {
+    return remember(homeTitle, settingsTitle) {
         @Composable {
+            val state = currentState.value
             NotesTopBar(
-                title = currentState.value.activeNote?.title ?: homeTitle,
+                title =
+                    when {
+                        state.isSettingsOpen -> settingsTitle
+                        else -> state.activeNote?.title ?: homeTitle
+                    },
+                showBack = state.isSettingsOpen,
                 onMenu = { currentMenu.value() },
-                onToggleFont = { currentIntent.value(NotesIntent.ToggleFontScale) },
-                onTokenDialog = { currentTokenDialog.value() },
+                onBack = { currentIntent.value(NotesIntent.Back) },
                 onRefresh = { currentIntent.value(NotesIntent.Refresh) },
             )
         }

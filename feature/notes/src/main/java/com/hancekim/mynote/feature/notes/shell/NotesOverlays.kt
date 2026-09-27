@@ -36,6 +36,7 @@ internal fun BoxScope.NotesOverlays(
     scroll: NotesScrollState,
     navScroll: FloatingNavScrollState,
     backdrop: Backdrop,
+    pillVisible: Boolean,
     selectedNavItem: String,
     onSelectNavItem: (String) -> Unit,
     quizStartInset: Dp,
@@ -44,10 +45,19 @@ internal fun BoxScope.NotesOverlays(
     val scope = rememberCoroutineScope()
     val quizOpen = uiState.quiz != QuizUiState.Idle
 
+    ModelPill(
+        status = uiState.modelStatus,
+        visible = pillVisible,
+        hidden = navScroll.hidden || quizOpen,
+        topOffset = layout.headerOffset,
+        backdrop = backdrop,
+        onClick = { onIntent(NotesIntent.OpenSettings) },
+    )
+
     FloatingNav(
         selectedId = selectedNavItem,
         onSelect = onSelectNavItem,
-        hidden = navScroll.hidden || quizOpen,
+        hidden = navScroll.hidden || quizOpen || uiState.isSettingsOpen,
         layout = layout,
         backdrop = backdrop,
     )

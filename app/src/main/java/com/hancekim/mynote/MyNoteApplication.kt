@@ -3,12 +3,15 @@ package com.hancekim.mynote
 import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import com.hancekim.mynote.download.ModelWaitNotice
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
 @HiltAndroidApp
 class MyNoteApplication : Application(), Configuration.Provider {
     @Inject lateinit var tokenSync: TokenSync
+
+    @Inject lateinit var modelWaitNotice: ModelWaitNotice
 
     @Inject lateinit var workerFactory: HiltWorkerFactory
 
@@ -18,5 +21,6 @@ class MyNoteApplication : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         tokenSync.start()
+        modelWaitNotice.start()
     }
 }

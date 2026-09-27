@@ -4,6 +4,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Stable
 import com.hancekim.mynote.core.common.mvi.MviState
 import com.hancekim.mynote.core.designfoundation.token.MyNoteFontScale
+import com.hancekim.mynote.core.domain.model.ModelStatus
 import com.hancekim.mynote.core.navigation.key.MyNoteNavKey
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import com.hancekim.mynote.feature.notes.CategoryUi
@@ -14,6 +15,13 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
+
+@Stable
+data class NoticeUi(
+    val message: String,
+    val undoable: Boolean,
+    val id: Int,
+)
 
 @Stable
 data class NotesUiState(
@@ -32,15 +40,23 @@ data class NotesUiState(
     val errorMessage: String? = null,
     val errorId: Int = 0,
     val hasToken: Boolean = false,
+    val maskedToken: String? = null,
+    val tokenEditing: Boolean = false,
+    val notice: NoticeUi? = null,
     val infoMessage: String? = null,
     val infoId: Int = 0,
-    val isQuizAvailable: Boolean = false,
+    val modelStatus: ModelStatus = ModelStatus.Missing,
+    val notificationsEnabled: Boolean = true,
     val quiz: QuizUiState = QuizUiState.Idle,
     val quizUndoMessage: String? = null,
     val quizUndoId: Int = 0,
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
 ) : MviState {
     val canPop: Boolean get() = backStack.size > 1
+
+    val isQuizAvailable: Boolean get() = modelStatus == ModelStatus.Ready
+
+    val isSettingsOpen: Boolean get() = backStack.lastOrNull() is NotesNavKey.Settings
 
     val totalCount: Int get() = categories.sumOf { it.notes.size }
 

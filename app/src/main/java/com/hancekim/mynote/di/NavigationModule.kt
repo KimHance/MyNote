@@ -14,5 +14,7 @@ import javax.inject.Singleton
 object NavigationModule {
     @Provides
     @Singleton
-    fun provideNavigator(appScope: CoroutineScope): Navigator = Navigator(appScope, NotesNavKey.Home)
+    fun provideNavigator(
+        @ApplicationScope appScope: CoroutineScope,
+    ): Navigator = Navigator(appScope, NotesNavKey.Home)
 }
