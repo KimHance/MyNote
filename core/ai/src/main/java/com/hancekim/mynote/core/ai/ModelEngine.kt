@@ -7,6 +7,7 @@ import com.google.ai.edge.litertlm.Engine
 import com.google.ai.edge.litertlm.EngineConfig
 import com.google.ai.edge.litertlm.ExperimentalApi
 import com.google.ai.edge.litertlm.ExperimentalFlags
+import com.hancekim.mynote.core.ai.download.ModelSource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -37,7 +38,7 @@ class ModelEngine
         /** 모델 파일은 기기에 따로 넣는 2.5GB 라 없을 수 있다. 없으면 기능을 감춘다. */
         fun isAvailable(): Boolean = modelFile().exists()
 
-        fun modelFile(): File = File(context.getExternalFilesDir(null), MODEL_NAME)
+        fun modelFile(): File = File(context.getExternalFilesDir(null), ModelSource.FILE_NAME)
 
         /**
          * 엔진을 쓰는 유일한 통로.
@@ -73,6 +74,5 @@ class ModelEngine
 
         private companion object {
             const val TAG = "MyNoteAi"
-            const val MODEL_NAME = "gemma-4-E2B-it.litertlm"
         }
     }

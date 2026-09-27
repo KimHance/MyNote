@@ -74,4 +74,6 @@ dependencies {
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime)
+    implementation(libs.androidx.work.runtime)
+    implementation(libs.androidx.hilt.work)
 }

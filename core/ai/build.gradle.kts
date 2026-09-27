@@ -6,6 +6,7 @@ plugins {
 
 android {
     namespace = "com.hancekim.mynote.core.ai"
+    resourcePrefix = "ai_"
 }
 
 dependencies {
@@ -15,6 +16,12 @@ dependencies {
     implementation(libs.litertlm.android)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.okhttp)
+    implementation(libs.androidx.work.runtime)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
 
     testImplementation(libs.junit)
+    testImplementation(libs.okhttp.mockwebserver)
+    testImplementation(libs.kotlinx.coroutines.test)
 }
