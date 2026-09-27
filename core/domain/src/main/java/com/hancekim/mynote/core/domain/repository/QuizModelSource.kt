@@ -12,5 +12,5 @@ interface QuizModelSource {
 
     fun discardPartial()
 
-    fun deleteModel()
+    suspend fun deleteModel()
 }

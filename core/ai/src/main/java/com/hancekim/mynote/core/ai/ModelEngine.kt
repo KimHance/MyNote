@@ -52,6 +52,13 @@ class ModelEngine
                 withContext(Dispatchers.Default) { block(ready) }
             }
 
+        suspend fun release() =
+            mutex.withLock {
+                val open = engine ?: return@withLock
+                engine = null
+                withContext(Dispatchers.Default) { open.close() }
+            }
+
         @OptIn(ExperimentalApi::class)
         private fun create(): Engine {
             // 엔진 생성 **전에** 켜야 먹는다. GPU 에서는 켜서 손해 볼 게 없다(품질 동일, 디코드만 빨라짐).

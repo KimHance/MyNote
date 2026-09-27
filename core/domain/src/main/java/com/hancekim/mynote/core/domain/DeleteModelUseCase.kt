@@ -6,5 +6,5 @@ import javax.inject.Inject
 class DeleteModelUseCase @Inject constructor(
     private val source: QuizModelSource,
 ) {
-    operator fun invoke() = source.deleteModel()
+    suspend operator fun invoke() = source.deleteModel()
 }

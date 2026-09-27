@@ -3,6 +3,7 @@ package com.hancekim.mynote.core.ai.download
 import android.content.Context
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import com.hancekim.mynote.core.ai.ModelEngine
 import com.hancekim.mynote.core.ai.download.decision.DownloadFacts
 import com.hancekim.mynote.core.ai.download.decision.WorkFacts
 import com.hancekim.mynote.core.ai.download.decision.statusOf
@@ -37,6 +38,7 @@ class ModelDownloads
     constructor(
         @ApplicationContext private val context: Context,
         private val intents: Optional<ModelDownloadIntents>,
+        private val engine: ModelEngine,
     ) : QuizModelSource {
         private val revisions = MutableStateFlow(0)
 
@@ -58,7 +60,8 @@ class ModelDownloads
             revisions.update { it + 1 }
         }
 
-        override fun deleteModel() {
+        override suspend fun deleteModel() {
+            engine.release()
             modelFilesOf(context).target.delete()
             revisions.update { it + 1 }
         }

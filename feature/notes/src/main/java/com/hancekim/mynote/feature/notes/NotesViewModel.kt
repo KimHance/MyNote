@@ -241,8 +241,10 @@ class NotesViewModel @Inject constructor(
             }
 
             NotesIntent.DeleteModel -> {
-                deleteModel()
-                announce(messages.modelDeleted())
+                viewModelScope.launch {
+                    deleteModel()
+                    announce(messages.modelDeleted())
+                }
             }
 
             NotesIntent.Back -> {
