@@ -38,6 +38,7 @@ import com.hancekim.mynote.core.designsystem.motion.MyNoteEasing
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.CtaAction
+import com.hancekim.mynote.feature.notes.element.NotesDrafts
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.screen.ListPanelScreen
@@ -50,6 +51,7 @@ internal fun NotesShell(
     uiState: NotesUiState,
     onIntent: (NotesIntent) -> Unit,
     snackbarHostState: SnackbarHostState,
+    drafts: NotesDrafts,
     onConfirmDownload: () -> Unit,
     onEnableNotifications: () -> Unit,
 ) {
@@ -94,7 +96,7 @@ internal fun NotesShell(
 
     NotesExitEffects(uiState, snackbarHostState)
 
-    val pillVisible = rememberModelPillVisible(uiState.modelStatus, uiState.isSettingsOpen)
+    val pillVisible = rememberModelPillVisible(uiState.modelStatus, uiState.isSettingsOpen || uiState.isConnectOpen)
     val contentTopPadding by animateDpAsState(
         targetValue = if (pillVisible) MODEL_PILL_RESERVE else 0.dp,
         animationSpec = tween(PILL_RESERVE_MILLIS, easing = MyNoteEasing),
@@ -139,7 +141,7 @@ internal fun NotesShell(
                         modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars),
                     )
                 },
-                topBar = { if (useDrawer && !uiState.quiz.coversReader) headerSlot() },
+                topBar = { if (useDrawer && !uiState.quiz.coversReader && !uiState.isConnectOpen) headerSlot() },
             ) { padding ->
                 Box(
                     Modifier
@@ -163,6 +165,7 @@ internal fun NotesShell(
                             twoPane = layout.twoPane,
                             onEnableNotifications = onEnableNotifications,
                             scroll = scroll,
+                            drafts = drafts,
                             onQuizAction = { noteId, action ->
                                 when (action) {
                                     CtaAction.OpenSetup -> onIntent(NotesIntent.OpenQuizSetup(noteId))
@@ -193,6 +196,7 @@ internal fun NotesShell(
     if (useDrawer) {
         ModalNavigationDrawer(
             drawerState = drawerState,
+            gesturesEnabled = !uiState.isConnectOpen,
             drawerContent = {
                 ModalDrawerSheet(
                     drawerState = drawerState,
@@ -218,7 +222,7 @@ internal fun NotesShell(
 }
 
 @Composable
-private fun NotesExitEffects(
+internal fun NotesExitEffects(
     uiState: NotesUiState,
     snackbarHostState: SnackbarHostState,
 ) {

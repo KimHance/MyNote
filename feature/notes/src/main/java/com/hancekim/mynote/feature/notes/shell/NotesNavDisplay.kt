@@ -9,6 +9,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.scene.SceneStrategy
 import androidx.navigation3.ui.NavDisplay
+import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.navigation.key.MyNoteNavKey
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import com.hancekim.mynote.core.navigation.motion.scenePopTransitionSpec
@@ -18,13 +19,16 @@ import com.hancekim.mynote.core.navigation.scene.rememberSceneEdgeProgress
 import com.hancekim.mynote.core.navigation.scene.sceneEdge
 import com.hancekim.mynote.core.navigation.shared.LocalSharedTransitionScope
 import com.hancekim.mynote.core.navigation.shared.ProvideNavAnimatedScope
+import com.hancekim.mynote.feature.notes.element.ConnectPlace
 import com.hancekim.mynote.feature.notes.element.CtaAction
+import com.hancekim.mynote.feature.notes.element.NotesDrafts
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.screen.HomeScreen
 import com.hancekim.mynote.feature.notes.screen.NoteReaderScreen
 import com.hancekim.mynote.feature.notes.screen.SettingsScreen
 import com.hancekim.mynote.feature.notes.screen.bookmarks.BookmarksScreen
+import com.hancekim.mynote.feature.notes.screen.connect.ConnectRoute
 import com.hancekim.mynote.feature.notes.screen.stats.StatsHistoryRoute
 import com.hancekim.mynote.feature.notes.screen.stats.StatsRoute
 
@@ -39,6 +43,7 @@ internal fun NotesNavDisplay(
     contentTopPadding: Dp,
     twoPane: Boolean,
     scroll: NotesScrollState,
+    drafts: NotesDrafts,
     onQuizAction: (String, CtaAction) -> Unit,
     onEnableNotifications: () -> Unit,
 ) {
@@ -63,7 +68,8 @@ internal fun NotesNavDisplay(
                             ProvideNavAnimatedScope {
                                 HomeScreen(
                                     recentNotes = uiState.recentNotes,
-                                    isLoading = uiState.isLoading,
+                                    body = uiState.homeBody,
+                                    showConnectBand = uiState.showConnectBand && MyNoteTheme.adaptive.useModalDrawer,
                                     onIntent = onIntent,
                                     contentBottomPadding = contentBottomPadding,
                                     contentEndPadding = contentEndPadding,
@@ -123,8 +129,22 @@ internal fun NotesNavDisplay(
                                     uiState = currentState.value,
                                     onIntent = currentIntent.value,
                                     onEnableNotifications = currentEnableNotifications.value,
+                                    drafts = drafts,
                                     modifier =
                                         if (stackedScenes) Modifier.sceneEdge(edgeProgress) else Modifier,
+                                )
+                            }
+                        }
+                        entry<NotesNavKey.Connect> {
+                            ProvideNavAnimatedScope {
+                                val edgeProgress = rememberSceneEdgeProgress()
+                                ConnectRoute(
+                                    place = ConnectPlace.Stacked,
+                                    hasConnection = currentState.value.connectedRepo != null,
+                                    drafts = drafts,
+                                    snackbarHostState = currentState.value.snackbarHostState,
+                                    onNotesIntent = currentIntent.value,
+                                    modifier = if (stackedScenes) Modifier.sceneEdge(edgeProgress) else Modifier,
                                 )
                             }
                         }

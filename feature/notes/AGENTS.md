@@ -21,7 +21,9 @@ UseCase 와 `QuizGenerator` 인터페이스로만 들어온다.
 |---|---|---|
 | `NotesViewModel` | 화면이 그리는 거의 전부 + 퀴즈 진행 + 스낵바 호스트 | 재조립형 MVI 단일 상태 |
 | `Navigator`(`:core:navigation`, `@Singleton`) | **백스택** | 소유자가 하나여야 하고, 입구가 하나라 거기서 쓰로틀을 건다 |
-| 컴포지션 로컬(`rememberSaveable`) | 드로어 열림 · 고정 패널 펼침 · **토큰 입력 draft·보기여부** · 확인 다이얼로그 | 목적지가 아니고 레이아웃 상태다. 백스택 엔트리가 아니다 |
+| 컴포지션 로컬(`rememberSaveable`) | 드로어 열림 · 고정 패널 펼침 · 모델 확인 다이얼로그 | 목적지가 아니고 레이아웃 상태다. 백스택 엔트리가 아니다 |
+| `NotesDrafts`(`NotesScreen` 의 `remember`, 셸 분기 위) | **토큰 입력 draft · 보기 여부**(연결 화면 · 설정 편집기 각각) | 저장하지 않는다 — 상태 복원 번들에 원문이 안 들어가고(결정 16), 접기·펴기·회전에는 셸 분기가 바뀌어도 남는다. `toString` 에 원문이 없다(`TokenDraft`) |
+| `ConnectViewModel`(Activity 스코프) | 연결 화면 흐름(확인 중 · 토큰 갈래 · 첫 동기화 · 확인 대화상자). 링크 draft 만 `SavedStateHandle` | 루트와 쌓은 화면이 같은 상태를 쓴다 |
 
 플로팅 내비의 선택은 이 셋 어디에도 없다 — `NotesUiState.selectedTab`(`Reader`·`Settings` 를 건너뛴 가장 위의
 `Home`/`Bookmarks`/`Stats`)으로 **백스택에서 파생**한다. 선택 상태를 따로 두면 화면과 어긋난다.
@@ -283,7 +285,7 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
 ### 토큰 원문은 ViewModel 밖으로 나가지 않는다
 
 `NotesUiState` 에 있는 건 `maskedToken`(`ghp_••••••••a3F9`)뿐이다. 입력 중인 draft 와 보기/숨기기는
-`SettingsScreen` 의 `rememberSaveable` 로컬이다. 비밀값을 상태로 올리면 로그·스크린샷 테스트·
+`NotesDrafts`(저장 안 되는 홀더)다. 비밀값을 상태로 올리면 로그·스크린샷 테스트·
 `toString()` 에 흘러나온다. `maskToken()` 은 **길이도 드러내지 않는다** — 원본이 20자든 200자든
 가린 결과가 같다.
 
@@ -341,3 +343,15 @@ Column(fillMaxSize) {
 `ModelPill` 이 보이는 동안 홈·리더의 스크롤 `contentTopPadding` 이 +54dp 된다(300ms).
 `NotesShell` 이 `rememberModelPillVisible()` 을 한 번 계산해 **오버레이와 패딩 양쪽에 같은 값**을
 넘긴다. 두 군데서 따로 계산하면 알약이 뜨는데 패딩이 안 밀리는 순간이 생긴다.
+
+---
+
+## 저장소 연결 — 시작 분기 · 연결 화면 · 설정 카드
+
+- **시작 분기는 `NotesScreen` 이 한다.** `NotesUiState.start`(순수 함수 `element/ConnectStart.kt:startDestination`)가 읽는 중 / 연결 루트 / `NotesShell` 을 가른다.
+  연결 루트는 셸 밖이라 `NotesExitEffects`(셸 파일의 `internal`)와 스낵바 · 인셋을 직접 갖는다. 연결을 읽기 전(`connection == null`) · 노트를 읽기 전(`notesLoaded`) · 시드 소비 전(`seedPending`)에는 연결 화면도 홈도 그리지 않는다.
+- **화면 정리는 연결 상태 전이가 한다.** `NotesViewModel.onConnectionChanged` 가 (이전 → 다음 연결) 을 `element/ScreenCleanup.kt:screenCleanupOf` 에 넘겨 스택 `[Home]` · 퀴즈 닫기를 정한다. 시드 · 확정 · 끊기 어느 길이든 한 곳이고, 화면이 따로 discard 를 부르지 않는다.
+- **연결 화면 자리는 둘**: 첫 실행 루트(`ConnectPlace.Root`) · 쌓은 화면(`ConnectPlace.Stacked`, `NotesNavKey.Connect` entry + 자체 `NotesTopBar`). 셸은 `Connect` 가 top 이면 topBar · 플로팅 내비 · 알약 · 맨 위로 · 드로어 제스처를 숨긴다.
+  뒤로가기는 엔트리 안 `BackHandler`(NavDisplay 뒤에 컴포즈되어 이긴다) — 판정은 순수 함수 `connectBackAction`.
+- **판정 로직은 순수 함수**(`element/`)다: `startDestination` · `screenCleanupOf` · `connectBackAction` · `repoCardUi`(RC-13) · `reduceTokenEdit`(RC-18 전이표 + D37 · D39) · `homeBodyOf`(RC-21) · `issueOfProbe`/`issueOfSync` · `linkCheckOf` · `confirmUiOf`. 시험 이름에 항목 ID.
+- 동기화 트리거는 `ObserveSyncRunsUseCase` 다. 연결 직후 동기화는 `announce` 가 꺼져 스낵바가 없고(SY-6), 새로고침에만 반영 알림이 뜬다.

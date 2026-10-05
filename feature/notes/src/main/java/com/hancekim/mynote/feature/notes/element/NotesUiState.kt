@@ -1,10 +1,13 @@
 package com.hancekim.mynote.feature.notes.element
 
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import com.hancekim.mynote.core.common.mvi.MviState
 import com.hancekim.mynote.core.designfoundation.token.MyNoteFontScale
+import com.hancekim.mynote.core.domain.model.ConnectionState
 import com.hancekim.mynote.core.domain.model.ModelStatus
+import com.hancekim.mynote.core.domain.model.RepoConnection
 import com.hancekim.mynote.core.navigation.key.MyNoteNavKey
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import com.hancekim.mynote.feature.notes.BookmarkUi
@@ -33,6 +36,12 @@ data class ReaderScrollRequest(
     val id: Int,
 )
 
+@Immutable
+data class DisconnectDialogUi(
+    val notes: Int,
+    val bookmarks: Int,
+)
+
 @Stable
 data class NotesUiState(
     val categories: ImmutableList<CategoryUi> = persistentListOf(),
@@ -53,7 +62,13 @@ data class NotesUiState(
     val errorId: Int = 0,
     val hasToken: Boolean = false,
     val maskedToken: String? = null,
-    val tokenEditing: Boolean = false,
+    val tokenEdit: TokenEditState = TokenEditState.Viewing,
+    val connection: ConnectionState? = null,
+    val notesLoaded: Boolean = false,
+    val seedPending: Boolean = true,
+    val lastSync: LastSync = LastSync.None,
+    val disconnectDialog: DisconnectDialogUi? = null,
+    val awaitingNotes: Boolean = false,
     val notice: NoticeUi? = null,
     val infoMessage: String? = null,
     val infoId: Int = 0,
@@ -71,6 +86,36 @@ data class NotesUiState(
     val isQuizAvailable: Boolean get() = modelStatus == ModelStatus.Ready
 
     val isSettingsOpen: Boolean get() = backStack.lastOrNull() is NotesNavKey.Settings
+
+    val isConnectOpen: Boolean get() = backStack.lastOrNull() is NotesNavKey.Connect
+
+    val tokenEditing: Boolean get() = tokenEdit.editing
+
+    val connectedRepo: RepoConnection? get() = (connection as? ConnectionState.Connected)?.connection
+
+    val start: StartDestination
+        get() =
+            startDestination(
+                connection =
+                    when (connection) {
+                        null -> ConnectionKnown.Unknown
+                        ConnectionState.None -> ConnectionKnown.None
+                        is ConnectionState.Connected -> ConnectionKnown.Connected
+                    },
+                notes =
+                    when {
+                        !notesLoaded -> NotesKnown.Unknown
+                        totalCount == 0 -> NotesKnown.Empty
+                        else -> NotesKnown.Some
+                    },
+                seedPending = seedPending,
+            )
+
+    val repoCard: RepoCardUi get() = repoCardUi(connectedRepo, hasToken, lastSync)
+
+    val homeBody: HomeBody get() = homeBodyOf(connectedRepo != null, totalCount, isLoading || awaitingNotes)
+
+    val showConnectBand: Boolean get() = connection == ConnectionState.None && totalCount > 0
 
     val isBookmarksTop: Boolean get() = backStack.lastOrNull() is NotesNavKey.Bookmarks
 

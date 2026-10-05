@@ -9,15 +9,20 @@ import com.hancekim.mynote.core.designfoundation.token.MyNoteFontScale
 import com.hancekim.mynote.core.domain.AddBookmarkUseCase
 import com.hancekim.mynote.core.domain.CancelModelDownloadUseCase
 import com.hancekim.mynote.core.domain.ClearStudyLogUseCase
+import com.hancekim.mynote.core.domain.ConsumeSeedUseCase
+import com.hancekim.mynote.core.domain.CountErasableUseCase
 import com.hancekim.mynote.core.domain.DeleteModelUseCase
 import com.hancekim.mynote.core.domain.DiscardPartialModelUseCase
+import com.hancekim.mynote.core.domain.DisconnectUseCase
 import com.hancekim.mynote.core.domain.GenerateQuizUseCase
 import com.hancekim.mynote.core.domain.GetCategoriesUseCase
 import com.hancekim.mynote.core.domain.ObserveAppliedTokenUseCase
 import com.hancekim.mynote.core.domain.ObserveBookmarksUseCase
+import com.hancekim.mynote.core.domain.ObserveConnectionUseCase
 import com.hancekim.mynote.core.domain.ObserveFontScaleUseCase
 import com.hancekim.mynote.core.domain.ObserveModelStatusUseCase
 import com.hancekim.mynote.core.domain.ObserveStudyLogEnabledUseCase
+import com.hancekim.mynote.core.domain.ObserveSyncRunsUseCase
 import com.hancekim.mynote.core.domain.RecordBookmarkEventUseCase
 import com.hancekim.mynote.core.domain.RecordQuizAttemptUseCase
 import com.hancekim.mynote.core.domain.RecordReadSessionUseCase
@@ -26,26 +31,42 @@ import com.hancekim.mynote.core.domain.SaveTokenUseCase
 import com.hancekim.mynote.core.domain.SetFontScaleUseCase
 import com.hancekim.mynote.core.domain.SetStudyLogEnabledUseCase
 import com.hancekim.mynote.core.domain.StartModelDownloadUseCase
-import com.hancekim.mynote.core.domain.SyncNotesUseCase
+import com.hancekim.mynote.core.domain.VerifyConnectLinkUseCase
+import com.hancekim.mynote.core.domain.connect.ConnectVerification
 import com.hancekim.mynote.core.domain.model.Bookmark
 import com.hancekim.mynote.core.domain.model.BookmarkEvent
 import com.hancekim.mynote.core.domain.model.BookmarkEventKind
+import com.hancekim.mynote.core.domain.model.ConnectionState
 import com.hancekim.mynote.core.domain.model.FontScale
 import com.hancekim.mynote.core.domain.model.ModelStatus
 import com.hancekim.mynote.core.domain.model.Moment
 import com.hancekim.mynote.core.domain.model.QuizFailure
 import com.hancekim.mynote.core.domain.model.ReadSession
 import com.hancekim.mynote.core.domain.model.ReadSessionTracker
+import com.hancekim.mynote.core.domain.model.SyncRun
 import com.hancekim.mynote.core.navigation.NavCommand
 import com.hancekim.mynote.core.navigation.NavResult
 import com.hancekim.mynote.core.navigation.Navigator
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import com.hancekim.mynote.core.navigation.key.activeNoteId
+import com.hancekim.mynote.feature.notes.element.CategoryLoad
+import com.hancekim.mynote.feature.notes.element.DisconnectDialogUi
+import com.hancekim.mynote.feature.notes.element.LastSync
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.element.NoticeUi
 import com.hancekim.mynote.feature.notes.element.ReaderScrollRequest
+import com.hancekim.mynote.feature.notes.element.TokenEditEffect
+import com.hancekim.mynote.feature.notes.element.TokenEditEvent
+import com.hancekim.mynote.feature.notes.element.TokenEditState
+import com.hancekim.mynote.feature.notes.element.TokenFailureKind
+import com.hancekim.mynote.feature.notes.element.connectionLinkOf
+import com.hancekim.mynote.feature.notes.element.lastSyncOf
 import com.hancekim.mynote.feature.notes.element.maskToken
+import com.hancekim.mynote.feature.notes.element.reduceTokenEdit
+import com.hancekim.mynote.feature.notes.element.screenCleanupOf
+import com.hancekim.mynote.feature.notes.element.settledCategories
+import com.hancekim.mynote.feature.notes.element.tokenFailureOfProbe
 import com.hancekim.mynote.feature.notes.mapper.bookmarkedNotes
 import com.hancekim.mynote.feature.notes.mapper.toUi
 import com.hancekim.mynote.feature.notes.navigation.switchTabCommand
@@ -60,6 +81,7 @@ import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableSet
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
@@ -70,8 +92,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -105,8 +126,13 @@ private data class SyncState(
 @HiltViewModel
 class NotesViewModel @Inject constructor(
     getCategories: GetCategoriesUseCase,
-    private val syncNotes: SyncNotesUseCase,
+    observeSyncRuns: ObserveSyncRunsUseCase,
     private val saveToken: SaveTokenUseCase,
+    observeConnection: ObserveConnectionUseCase,
+    private val consumeSeed: ConsumeSeedUseCase,
+    private val countErasable: CountErasableUseCase,
+    private val disconnect: DisconnectUseCase,
+    private val verifyConnectLink: VerifyConnectLinkUseCase,
     observeAppliedToken: ObserveAppliedTokenUseCase,
     observeFontScale: ObserveFontScaleUseCase,
     private val setFontScale: SetFontScaleUseCase,
@@ -154,7 +180,13 @@ class NotesViewModel @Inject constructor(
         observeModelStatus()
             .catch { emit(ModelStatus.Missing) }
             .triggerIn(ModelStatus.Missing, started = SharingStarted.Lazily)
-    private val tokenEditing = trigger(false)
+    private val tokenEdit = trigger(TokenEditState.Viewing)
+    private var verifyJob: Job? = null
+    private val connection = trigger<ConnectionState?>(null)
+    private var previousConnection: ConnectionState? = null
+    private val seedPending = trigger(true)
+    private val lastSync = trigger<LastSync>(LastSync.None)
+    private val disconnectDialog = trigger<DisconnectDialogUi?>(null)
     private val notice = trigger<NoticeUi?>(null)
     private var clearedToken: String? = null
     private var noticeSeq = 0
@@ -169,9 +201,11 @@ class NotesViewModel @Inject constructor(
             .catch { emit(emptyList()) }
             .map { it.toUi() }
 
-    private val categoryList =
-        categories
-            .triggerIn(persistentListOf(), started = SharingStarted.Lazily)
+    private val categoryLoad =
+        settledCategories(connection.filterNotNull()) { categories }
+            .triggerIn(CategoryLoad.Initial, started = SharingStarted.Lazily)
+
+    private val categoryList: Flow<ImmutableList<CategoryUi>> = categoryLoad.map { it.list }
 
     private val bookmarkEntries =
         observeBookmarks()
@@ -230,8 +264,9 @@ class NotesViewModel @Inject constructor(
     private var infoSeq = 0
 
     private val sync =
-        combine(appliedToken, refreshTicks) { _, tick -> tick }
-            .flatMapLatest { tick -> syncFlow(announce = tick > 0) }
+        observeSyncRuns(refreshTicks)
+            .onEach { run -> afterSyncRun(run) }
+            .map { run -> run.toSyncState() }
             .catch { emit(SyncState(isLoading = false, errorMessage = messages.syncFailed(), errorId = ++errorSeq)) }
             .triggerIn(SyncState())
 
@@ -248,11 +283,23 @@ class NotesViewModel @Inject constructor(
             .distinctUntilChanged()
             .onEach { covered -> tracker.onCovered(covered, moment()) }
             .launchIn(viewModelScope)
+        observeConnection()
+            .catch { emit(ConnectionState.None) }
+            .distinctUntilChanged()
+            .onEach { next -> onConnectionChanged(next) }
+            .launchIn(viewModelScope)
+        launchSafely {
+            try {
+                consumeSeed()
+            } finally {
+                seedPending.value = false
+            }
+        }
     }
 
     override fun build() =
         NotesUiState(
-            categories = categoryList.value,
+            categories = categoryLoad.value.list,
             visibleCategories = visibleCategories.value,
             recentNotes = recentNotes.value,
             bookmarkedIds = bookmarkedIds.value,
@@ -270,7 +317,13 @@ class NotesViewModel @Inject constructor(
             errorId = sync.value.errorId,
             hasToken = !appliedToken.value.isNullOrBlank(),
             maskedToken = maskToken(appliedToken.value),
-            tokenEditing = tokenEditing.value,
+            tokenEdit = tokenEdit.value,
+            connection = connection.value,
+            notesLoaded = categoryLoad.value.loaded,
+            seedPending = seedPending.value,
+            lastSync = lastSync.value,
+            disconnectDialog = disconnectDialog.value,
+            awaitingNotes = categoryLoad.value.settling,
             notice = notice.value,
             infoMessage = sync.value.infoMessage,
             infoId = sync.value.infoId,
@@ -333,8 +386,34 @@ class NotesViewModel @Inject constructor(
             }
 
             NotesIntent.OpenSettings -> {
-                tokenEditing.value = false
+                applyTokenEdit(TokenEditEvent.EnterSettings)
                 navigator.push(NotesNavKey.Settings)
+            }
+
+            NotesIntent.OpenConnect -> {
+                if (!applyTokenEdit(TokenEditEvent.ChangeRepository)) navigator.push(NotesNavKey.Connect)
+            }
+
+            NotesIntent.RequestDisconnect -> {
+                if (applyTokenEdit(TokenEditEvent.Disconnect)) return
+                launchSafely {
+                    val count = countErasable()
+                    disconnectDialog.value = DisconnectDialogUi(count.notes, count.bookmarks)
+                }
+            }
+
+            NotesIntent.ConfirmDisconnect -> {
+                disconnectDialog.value = null
+                launchSafely {
+                    disconnect().onFailure {
+                        Log.e(TAG, "연결 끊기 실패", it)
+                        announce(messages.disconnectFailed())
+                    }
+                }
+            }
+
+            NotesIntent.DismissDisconnect -> {
+                disconnectDialog.value = null
             }
 
             is NotesIntent.QueryChanged -> {
@@ -424,7 +503,7 @@ class NotesViewModel @Inject constructor(
                 val eventId = removedEventId
                 removedBookmark = null
                 removedEventId = null
-                if (categoryList.value.none { c -> c.notes.any { it.id == entry.noteId } }) return
+                if (categoryLoad.value.list.none { c -> c.notes.any { it.id == entry.noteId } }) return
                 launchSafely { addBookmark(entry.noteId, entry.addedAt) }
                 if (eventId !=
                     null
@@ -434,39 +513,24 @@ class NotesViewModel @Inject constructor(
             }
 
             NotesIntent.StartTokenEdit -> {
-                tokenEditing.value = true
+                applyTokenEdit(TokenEditEvent.Start)
             }
 
             NotesIntent.CancelTokenEdit -> {
-                tokenEditing.value = false
+                applyTokenEdit(TokenEditEvent.Dismiss)
             }
 
             is NotesIntent.SaveToken -> {
-                val token = event.token.trim()
-                if (token.isEmpty()) return
-                tokenEditing.value = false
-                clearedToken = null
-                launchSafely {
-                    saveToken(token)
-                    announce(messages.tokenSaved())
-                }
+                val token = event.token.value.trim()
+                applyTokenEdit(TokenEditEvent.Save(blank = token.isEmpty()), token)
             }
 
             NotesIntent.ClearToken -> {
-                val previous = appliedToken.value
-                if (previous.isNullOrBlank()) return
-                tokenEditing.value = false
-                clearedToken = previous
-                launchSafely {
-                    saveToken("")
-                    announce(messages.tokenCleared(), undo = NotesIntent.UndoClearToken)
-                }
+                applyTokenEdit(TokenEditEvent.Clear(hasToken = !appliedToken.value.isNullOrBlank()))
             }
 
             NotesIntent.UndoClearToken -> {
-                val previous = clearedToken ?: return
-                clearedToken = null
-                launchSafely { saveToken(previous) }
+                applyTokenEdit(TokenEditEvent.Undo)
             }
 
             is NotesIntent.OpenQuizSetup -> {
@@ -603,11 +667,15 @@ class NotesViewModel @Inject constructor(
 
     private fun categoryOf(noteId: String?): String? {
         if (noteId == null) return null
-        return categoryList.value.firstOrNull { c -> c.notes.any { it.id == noteId } }?.name
+        return categoryLoad.value.list
+            .firstOrNull { c -> c.notes.any { it.id == noteId } }
+            ?.name
     }
 
     private fun isReadable(noteId: String): Boolean =
-        categoryList.value.firstNotNullOfOrNull { c -> c.notes.firstOrNull { it.id == noteId } }?.readable != false
+        categoryLoad.value.list
+            .firstNotNullOfOrNull { c -> c.notes.firstOrNull { it.id == noteId } }
+            ?.readable != false
 
     private fun recordSession(session: ReadSession?) {
         val closed = session ?: return
@@ -663,40 +731,139 @@ class NotesViewModel @Inject constructor(
         if (quizUndo.value != null) quizUndo.value = null
     }
 
-    private fun syncFlow(announce: Boolean): Flow<SyncState> =
-        flow {
-            emit(SyncState(isLoading = true))
-            emit(
-                syncNotes().fold(
-                    onSuccess = { outcome ->
-                        val openNote = navigator.stack.value.activeNoteId()
-                        if (openNote != null && openNote in outcome.deleted) {
-                            navigator.dispatchImmediately(NavCommand.Pop)
-                        }
-                        if (outcome.deleted.isNotEmpty()) {
-                            val deleted = outcome.deleted
-                            launchSafely { removeBookmarks(deleted) }
-                        }
-                        if (announce && outcome.hasChanges) {
-                            SyncState(
-                                isLoading = false,
-                                infoMessage = messages.syncApplied(outcome),
-                                infoId = ++infoSeq,
-                            )
-                        } else {
-                            SyncState(isLoading = false)
-                        }
-                    },
-                    onFailure = {
+    private fun afterSyncRun(run: SyncRun) {
+        if (run !is SyncRun.Finished) return
+        lastSync.value = lastSyncOf(run.result)
+        val outcome = run.result.getOrNull() ?: return
+        val openNote = navigator.stack.value.activeNoteId()
+        if (openNote != null && openNote in outcome.deleted) {
+            navigator.dispatchImmediately(NavCommand.Pop)
+        }
+        if (outcome.deleted.isNotEmpty()) {
+            val deleted = outcome.deleted
+            launchSafely { removeBookmarks(deleted) }
+        }
+    }
+
+    private fun SyncRun.toSyncState(): SyncState =
+        when (this) {
+            SyncRun.Idle -> {
+                SyncState(isLoading = false)
+            }
+
+            is SyncRun.Running -> {
+                SyncState(isLoading = true)
+            }
+
+            is SyncRun.Finished -> {
+                val outcome = result.getOrNull()
+                when {
+                    outcome == null -> {
+                        SyncState(isLoading = false, errorMessage = messages.syncFailed(), errorId = ++errorSeq)
+                    }
+
+                    announce && outcome.hasChanges -> {
                         SyncState(
                             isLoading = false,
-                            errorMessage = messages.syncFailed(),
-                            errorId = ++errorSeq,
+                            infoMessage = messages.syncApplied(outcome),
+                            infoId = ++infoSeq,
                         )
-                    },
-                ),
-            )
+                    }
+
+                    else -> {
+                        SyncState(isLoading = false)
+                    }
+                }
+            }
         }
+
+    private fun onConnectionChanged(next: ConnectionState) {
+        val cleanup = screenCleanupOf(previousConnection, next)
+        previousConnection = next
+        if (cleanup != null) {
+            if (cleanup.resetStack) {
+                navigator.dispatchImmediately(NavCommand.ReplaceAll(listOf(NotesNavKey.Home)))
+            }
+            if (cleanup.dismissQuiz) {
+                cancelQuizWork()
+                clearUndo()
+                quiz.value = QuizUiState.Idle
+            }
+            lastSync.value = if (next is ConnectionState.Connected) LastSync.Succeeded else LastSync.None
+        }
+        connection.value = next
+    }
+
+    private fun applyTokenEdit(
+        event: TokenEditEvent,
+        token: String? = null,
+    ): Boolean {
+        val transition = reduceTokenEdit(tokenEdit.value, event)
+        tokenEdit.value = transition.next
+        var blocked = false
+        transition.effects.forEach { effect ->
+            when (effect) {
+                TokenEditEffect.Verify -> verifyToken(token.orEmpty())
+                TokenEditEffect.CancelRequest -> verifyJob?.cancel()
+                TokenEditEffect.DiscardInput -> Unit
+                TokenEditEffect.ClearStored -> clearStoredToken()
+                TokenEditEffect.RestoreStored -> restoreStoredToken()
+                TokenEditEffect.Saved -> announce(messages.tokenSaved())
+                TokenEditEffect.Blocked -> blocked = true
+            }
+        }
+        return blocked
+    }
+
+    private fun verifyToken(token: String) {
+        verifyJob?.cancel()
+        val repo = (connection.value as? ConnectionState.Connected)?.connection
+        verifyJob =
+            launchSafely {
+                try {
+                    if (repo == null) {
+                        applyTokenEdit(TokenEditEvent.VerifyFailed(TokenFailureKind.Transient))
+                        return@launchSafely
+                    }
+                    when (val outcome = verifyConnectLink(connectionLinkOf(repo), token)) {
+                        is ConnectVerification.Ready -> {
+                            withContext(NonCancellable) { saveToken(token) }
+                            clearedToken = null
+                            applyTokenEdit(TokenEditEvent.VerifySucceeded)
+                        }
+
+                        is ConnectVerification.Rejected -> {
+                            applyTokenEdit(TokenEditEvent.VerifyFailed(TokenFailureKind.Rejected))
+                        }
+
+                        is ConnectVerification.Failed -> {
+                            applyTokenEdit(TokenEditEvent.VerifyFailed(tokenFailureOfProbe(outcome.failure)))
+                        }
+                    }
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (failure: Exception) {
+                    Log.e(TAG, "토큰 확인 실패", failure)
+                    applyTokenEdit(TokenEditEvent.VerifyFailed(TokenFailureKind.Transient))
+                }
+            }
+    }
+
+    private fun clearStoredToken() {
+        val previous = appliedToken.value
+        if (previous.isNullOrBlank()) return
+        clearedToken = previous
+        launchSafely {
+            saveToken("")
+            announce(messages.tokenCleared(), undo = NotesIntent.UndoClearToken)
+        }
+    }
+
+    private fun restoreStoredToken() {
+        val previous = clearedToken ?: return
+        clearedToken = null
+        launchSafely { saveToken(previous) }
+    }
 
     private fun Throwable.toFailKind(): QuizUiState.Failed.Kind =
         when (this) {

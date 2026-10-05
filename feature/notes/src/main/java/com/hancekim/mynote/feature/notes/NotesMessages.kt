@@ -16,6 +16,8 @@ class NotesMessages
 
         fun tokenSaved(): String = context.getString(R.string.notes_settings_token_saved)
 
+        fun disconnectFailed(): String = context.getString(R.string.notes_repo_disconnect_failed)
+
         fun tokenCleared(): String = context.getString(R.string.notes_settings_token_cleared)
 
         fun downloadPaused(): String = context.getString(R.string.notes_model_paused_snack)

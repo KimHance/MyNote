@@ -75,7 +75,12 @@ import com.hancekim.mynote.core.designsystem.component.PressIndication
 import com.hancekim.mynote.core.designsystem.component.riseIn
 import com.hancekim.mynote.core.designsystem.motion.rememberReduceMotion
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
+import com.hancekim.mynote.core.domain.model.ConnectionState
+import com.hancekim.mynote.core.domain.model.RepoConnection
+import com.hancekim.mynote.core.domain.model.SourceId
 import com.hancekim.mynote.feature.notes.R
+import com.hancekim.mynote.feature.notes.element.LastSync
+import com.hancekim.mynote.feature.notes.element.NotesDrafts
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.element.maskedTokenTail
@@ -86,14 +91,13 @@ import com.hancekim.mynote.core.designsystem.R as DsR
 internal fun SettingsScreen(
     uiState: NotesUiState,
     onIntent: (NotesIntent) -> Unit,
+    drafts: NotesDrafts,
     modifier: Modifier = Modifier,
     onEnableNotifications: () -> Unit = {},
 ) {
     val colors = MyNoteTheme.colors
     val adaptive = MyNoteTheme.adaptive
     val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-
-    BackHandler(enabled = uiState.tokenEditing) { onIntent(NotesIntent.CancelTokenEdit) }
 
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     if (confirmDelete) {
@@ -134,7 +138,11 @@ internal fun SettingsScreen(
                     },
                     onEnableNotifications = onEnableNotifications,
                 )
-                GithubSection(uiState = uiState, onIntent = onIntent)
+                RepoSection(
+                    uiState = uiState,
+                    onIntent = onIntent,
+                    drafts = drafts,
+                )
             }
         }
     }
@@ -290,227 +298,6 @@ private fun PreviewBlock() {
 }
 
 @Composable
-private fun GithubSection(
-    uiState: NotesUiState,
-    onIntent: (NotesIntent) -> Unit,
-) {
-    val colors = MyNoteTheme.colors
-    SettingsSection(label = stringResource(R.string.notes_settings_section_github)) {
-        SettingsCard(modifier = Modifier.animateContentSize()) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
-            ) {
-                IconBox(icon = MyNoteIcons.Key)
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(
-                        text = stringResource(R.string.notes_settings_token_title),
-                        style = MyNoteTheme.textStyles.cardTitle.copy(fontWeight = FontWeight.W500),
-                        color = colors.text,
-                    )
-                    TokenStatusLine(uiState = uiState)
-                }
-            }
-
-            if (uiState.tokenEditing) {
-                TokenEditor(
-                    onCancel = { onIntent(NotesIntent.CancelTokenEdit) },
-                    onSave = { onIntent(NotesIntent.SaveToken(it)) },
-                )
-            } else {
-                TokenActions(hasToken = uiState.hasToken, onIntent = onIntent)
-            }
-        }
-        Text(
-            text = stringResource(R.string.notes_settings_token_help),
-            style = MyNoteTheme.textStyles.caption,
-            color = colors.text3,
-            modifier = Modifier.padding(horizontal = 4.dp, vertical = 10.dp),
-        )
-    }
-}
-
-@Composable
-private fun TokenStatusLine(uiState: NotesUiState) {
-    val colors = MyNoteTheme.colors
-    val tail = maskedTokenTail(uiState.maskedToken)
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(7.dp),
-    ) {
-        Box(
-            Modifier
-                .size(7.dp)
-                .clip(CircleShape)
-                .background(if (uiState.hasToken) colors.correct else colors.text3),
-        )
-        Text(
-            text =
-                stringResource(
-                    if (uiState.hasToken) {
-                        R.string.notes_settings_token_connected
-                    } else {
-                        R.string.notes_settings_token_none
-                    },
-                ),
-            style = MyNoteTheme.textStyles.caption.copy(fontWeight = FontWeight.W500),
-            color = colors.bodyText,
-            maxLines = 1,
-        )
-        if (uiState.hasToken) {
-            val masked = uiState.maskedToken.orEmpty()
-            Text(
-                text = masked,
-                style = MyNoteTheme.textStyles.monoSmall,
-                color = colors.text2,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier =
-                    Modifier.semantics {
-                        if (tail != null) contentDescription = "끝자리 $tail"
-                    },
-            )
-        } else {
-            Text(
-                text = stringResource(R.string.notes_settings_token_none_desc),
-                style = MyNoteTheme.textStyles.caption,
-                color = colors.text3,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-    }
-}
-
-@Composable
-private fun TokenActions(
-    hasToken: Boolean,
-    onIntent: (NotesIntent) -> Unit,
-) {
-    Row(
-        modifier = Modifier.padding(start = ACTION_INDENT, end = 16.dp, bottom = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        if (hasToken) {
-            SecondaryButton(
-                text = stringResource(R.string.notes_settings_token_change),
-                onClick = { onIntent(NotesIntent.StartTokenEdit) },
-            )
-            DestructiveButton(
-                text = stringResource(R.string.notes_settings_token_clear),
-                onClick = { onIntent(NotesIntent.ClearToken) },
-            )
-        } else {
-            PrimaryButton(
-                text = stringResource(R.string.notes_settings_token_enter),
-                onClick = { onIntent(NotesIntent.StartTokenEdit) },
-            )
-        }
-    }
-}
-
-@Composable
-private fun TokenEditor(
-    onCancel: () -> Unit,
-    onSave: (String) -> Unit,
-) {
-    val colors = MyNoteTheme.colors
-    var draft by rememberSaveable { mutableStateOf("") }
-    var revealed by rememberSaveable { mutableStateOf(false) }
-    val focusRequester = remember { FocusRequester() }
-    val fieldInView = remember { BringIntoViewRequester() }
-    val reduceMotion = rememberReduceMotion()
-    val imeBottom = WindowInsets.ime.getBottom(LocalDensity.current)
-    LaunchedEffect(Unit) { focusRequester.requestFocus() }
-    LaunchedEffect(imeBottom) { if (imeBottom > 0) fieldInView.bringIntoView() }
-
-    Column(
-        modifier =
-            Modifier
-                .then(if (reduceMotion) Modifier else Modifier.riseIn())
-                .bringIntoViewRequester(fieldInView)
-                .padding(start = ACTION_INDENT, end = 16.dp, bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(colors.surface2)
-                    .border(1.dp, colors.accent.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
-                    .padding(start = 14.dp, end = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(Modifier.weight(1f)) {
-                if (draft.isEmpty()) {
-                    Text(
-                        text = stringResource(R.string.notes_settings_token_placeholder),
-                        style = MyNoteTheme.textStyles.mono,
-                        color = colors.text3,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-                BasicTextField(
-                    value = draft,
-                    onValueChange = { draft = it },
-                    singleLine = true,
-                    textStyle = MyNoteTheme.textStyles.mono.copy(color = colors.text),
-                    cursorBrush = SolidColor(colors.accent),
-                    visualTransformation =
-                        if (revealed) VisualTransformation.None else PasswordVisualTransformation(),
-                    keyboardOptions =
-                        KeyboardOptions(
-                            keyboardType = KeyboardType.Password,
-                            autoCorrectEnabled = false,
-                            imeAction = ImeAction.Done,
-                        ),
-                    keyboardActions = KeyboardActions(onDone = { if (draft.isNotBlank()) onSave(draft) }),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .focusRequester(focusRequester),
-                )
-            }
-            QuietButton(
-                text =
-                    stringResource(
-                        if (revealed) R.string.notes_settings_token_hide else R.string.notes_settings_token_show,
-                    ),
-                contentDescription =
-                    stringResource(
-                        if (revealed) {
-                            R.string.notes_settings_token_hide_a11y
-                        } else {
-                            R.string.notes_settings_token_show_a11y
-                        },
-                    ),
-                onClick = { revealed = !revealed },
-            )
-        }
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                text = stringResource(R.string.notes_settings_token_local_only),
-                style = MyNoteTheme.textStyles.caption,
-                color = colors.text3,
-                modifier = Modifier.weight(1f),
-            )
-            QuietButton(text = stringResource(DsR.string.ds_action_cancel), onClick = onCancel)
-            PrimaryButton(
-                text = stringResource(DsR.string.ds_action_save),
-                enabled = draft.isNotBlank(),
-                onClick = { onSave(draft) },
-            )
-        }
-    }
-}
-
-@Composable
 internal fun SettingsSection(
     label: String,
     content: @Composable () -> Unit,
@@ -572,6 +359,7 @@ internal fun IconBox(
 internal fun PrimaryButton(
     text: String,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
     enabled: Boolean = true,
 ) {
     val colors = MyNoteTheme.colors
@@ -580,7 +368,7 @@ internal fun PrimaryButton(
         remember(colors, shape) { PressIndication(shape, colors.accent, colors.accentPressed, scale = 0.98f) }
     Box(
         modifier =
-            Modifier
+            modifier
                 .height(BUTTON_HEIGHT)
                 .alpha(if (enabled) 1f else DISABLED_ALPHA)
                 .clip(shape)
@@ -602,22 +390,44 @@ internal fun PrimaryButton(
 internal fun SecondaryButton(
     text: String,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    trailingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
 ) {
     val colors = MyNoteTheme.colors
     val shape = RoundedCornerShape(12.dp)
     val indication = remember(colors, shape) { PressIndication(shape, pressColor = colors.border) }
     Box(
         modifier =
-            Modifier
+            modifier
                 .height(BUTTON_HEIGHT)
+                .alpha(if (enabled) 1f else DISABLED_ALPHA)
                 .clip(shape)
                 .background(colors.surface2)
                 .border(1.dp, colors.border, shape)
-                .clickable(interactionSource = null, indication = indication, role = Role.Button, onClick = onClick)
-                .padding(horizontal = 16.dp),
+                .clickable(
+                    enabled = enabled,
+                    interactionSource = null,
+                    indication = indication,
+                    role = Role.Button,
+                    onClick = onClick,
+                ).padding(horizontal = 16.dp),
         contentAlignment = Alignment.Center,
     ) {
-        ButtonLabel(text = text, color = colors.text, weight = FontWeight.W500)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            ButtonLabel(text = text, color = colors.text, weight = FontWeight.W500)
+            if (trailingIcon != null) {
+                Icon(
+                    imageVector = trailingIcon,
+                    contentDescription = null,
+                    tint = colors.text2,
+                    modifier = Modifier.size(15.dp),
+                )
+            }
+        }
     }
 }
 
@@ -625,6 +435,8 @@ internal fun SecondaryButton(
 internal fun DestructiveButton(
     text: String,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     val colors = MyNoteTheme.colors
     val shape = RoundedCornerShape(12.dp)
@@ -632,11 +444,17 @@ internal fun DestructiveButton(
         remember(colors, shape) { PressIndication(shape, pressColor = colors.wrong.copy(alpha = 0.10f)) }
     Box(
         modifier =
-            Modifier
+            modifier
                 .height(BUTTON_HEIGHT)
+                .alpha(if (enabled) 1f else DISABLED_ALPHA)
                 .clip(shape)
-                .clickable(interactionSource = null, indication = indication, role = Role.Button, onClick = onClick)
-                .padding(horizontal = 14.dp),
+                .clickable(
+                    enabled = enabled,
+                    interactionSource = null,
+                    indication = indication,
+                    role = Role.Button,
+                    onClick = onClick,
+                ).padding(horizontal = 14.dp),
         contentAlignment = Alignment.Center,
     ) {
         ButtonLabel(text = text, color = colors.wrong, weight = FontWeight.W500)
@@ -644,21 +462,56 @@ internal fun DestructiveButton(
 }
 
 @Composable
-private fun QuietButton(
+internal fun SolidDestructiveButton(
     text: String,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = MyNoteTheme.colors
+    val shape = RoundedCornerShape(12.dp)
+    val indication =
+        remember(
+            colors,
+            shape,
+        ) { PressIndication(shape, colors.wrong, colors.wrong.copy(alpha = 0.82f), scale = 0.98f) }
+    Box(
+        modifier =
+            modifier
+                .height(BUTTON_HEIGHT)
+                .clip(shape)
+                .background(colors.wrong)
+                .clickable(interactionSource = null, indication = indication, role = Role.Button, onClick = onClick)
+                .padding(horizontal = 18.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        ButtonLabel(text = text, color = colors.bg, weight = FontWeight.W700)
+    }
+}
+
+@Composable
+internal fun QuietButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
     contentDescription: String? = null,
+    enabled: Boolean = true,
 ) {
     val colors = MyNoteTheme.colors
     val shape = RoundedCornerShape(10.dp)
     val indication = remember(colors, shape) { PressIndication(shape, pressColor = colors.border) }
     Box(
         modifier =
-            Modifier
+            modifier
                 .height(36.dp)
+                .alpha(if (enabled) 1f else DISABLED_ALPHA)
                 .clip(shape)
-                .clickable(interactionSource = null, indication = indication, role = Role.Button, onClick = onClick)
-                .padding(horizontal = 12.dp)
+                .clickable(
+                    enabled = enabled,
+                    interactionSource = null,
+                    indication = indication,
+                    role = Role.Button,
+                    onClick = onClick,
+                ).padding(horizontal = 12.dp)
                 .then(
                     if (contentDescription != null) {
                         Modifier.semantics { this.contentDescription = contentDescription }
@@ -673,7 +526,7 @@ private fun QuietButton(
 }
 
 @Composable
-private fun ButtonLabel(
+internal fun ButtonLabel(
     text: String,
     color: Color,
     weight: FontWeight,
@@ -688,50 +541,61 @@ private fun ButtonLabel(
     )
 }
 
-private val CONTENT_MAX_WIDTH: Dp = 560.dp
+internal val CONTENT_MAX_WIDTH: Dp = 560.dp
 private val SECTION_GAP: Dp = 28.dp
 private val BUTTON_HEIGHT: Dp = 40.dp
-private val ACTION_INDENT: Dp = 70.dp
-private const val DISABLED_ALPHA = 0.4f
+internal const val DISABLED_ALPHA = 0.4f
 
-@Preview(name = "설정 · 토큰 있음", showBackground = true, widthDp = 400, heightDp = 860)
+@Preview(name = "설정 · 공개 저장소", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 400, heightDp = 1100)
 @Composable
 private fun SettingsScreenPreview() {
     MyNoteTheme {
         SettingsScreen(
             uiState =
                 NotesUiState(
-                    hasToken = true,
-                    maskedToken = "ghp_••••••••a3F9",
+                    connection = previewConnection,
+                    lastSync = LastSync.Succeeded,
                     isLoading = false,
                 ),
             onIntent = {},
+            drafts = NotesDrafts(),
         )
     }
 }
 
-@Preview(name = "설정 · 토큰 없음", showBackground = true, widthDp = 400, heightDp = 860)
+@Preview(name = "설정 · 토큰 사용", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 400, heightDp = 1100)
 @Composable
-private fun SettingsScreenNoTokenPreview() {
+private fun SettingsScreenTokenPreview() {
     MyNoteTheme {
-        SettingsScreen(uiState = NotesUiState(isLoading = false), onIntent = {})
-    }
-}
-
-@Preview(name = "설정 · 편집 중 · 글자 크게", showBackground = true, widthDp = 400, heightDp = 860)
-@Composable
-private fun SettingsScreenEditingPreview() {
-    MyNoteTheme(fontScale = MyNoteFontScale.Large) {
         SettingsScreen(
             uiState =
                 NotesUiState(
+                    connection = previewConnection,
                     hasToken = true,
-                    maskedToken = "ghp_••••••••a3F9",
-                    tokenEditing = true,
-                    fontScale = MyNoteFontScale.Large,
+                    maskedToken = "github_pat_••••••••a1b2",
+                    lastSync = LastSync.Succeeded,
                     isLoading = false,
                 ),
             onIntent = {},
+            drafts = NotesDrafts(),
         )
     }
 }
+
+@Preview(name = "설정 · 연결 없음", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 400, heightDp = 860)
+@Composable
+private fun SettingsScreenNoConnectionPreview() {
+    MyNoteTheme {
+        SettingsScreen(
+            uiState = NotesUiState(connection = ConnectionState.None, isLoading = false),
+            onIntent = {},
+            drafts = NotesDrafts(),
+        )
+    }
+}
+
+private val previewConnection =
+    ConnectionState.Connected(
+        sourceId = SourceId("s1"),
+        connection = RepoConnection("octo-learner", "android-notes", "main", "notes/index.json", isPublic = true),
+    )
