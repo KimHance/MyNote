@@ -7,6 +7,7 @@ import com.hancekim.mynote.core.data.datasource.SourceRecord
 import com.hancekim.mynote.core.domain.model.RepoConnection
 import com.hancekim.mynote.core.domain.model.SourceKind
 import com.hancekim.mynote.core.network.api.GithubContentsApi
+import com.hancekim.mynote.core.network.failure.syncFailureOf
 import javax.inject.Inject
 
 class GithubManifestAdapter @Inject constructor(
@@ -16,8 +17,7 @@ class GithubManifestAdapter @Inject constructor(
 
     override suspend fun list(source: SourceRecord): List<SourceEntry> {
         val connection = connectionOf(source)
-        return api
-            .getIndex(connection.owner, connection.repo, connection.indexPath, connection.ref())
+        return guarded { api.getIndex(connection.owner, connection.repo, connection.indexPath, connection.ref()) }
             .flatMap { (group, notes) ->
                 notes.map { note ->
                     SourceEntry(
@@ -37,8 +37,17 @@ class GithubManifestAdapter @Inject constructor(
         entry: SourceEntry,
     ): String {
         val connection = connectionOf(source)
-        return api.getNote(connection.owner, connection.repo, entry.path, connection.ref()).use { it.string() }
+        return guarded {
+            api.getNote(connection.owner, connection.repo, entry.path, connection.ref()).use { it.string() }
+        }
     }
+
+    private suspend fun <T> guarded(call: suspend () -> T): T =
+        try {
+            call()
+        } catch (failure: Exception) {
+            throw syncFailureOf(failure)
+        }
 
     private fun connectionOf(source: SourceRecord): RepoConnection =
         requireNotNull(

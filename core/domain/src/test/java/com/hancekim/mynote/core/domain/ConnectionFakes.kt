@@ -55,12 +55,26 @@ internal class FakeConnections(
     var beginToken: String? = "unset"
     var firstSyncs = 0
     var firstSyncGate: CompletableDeferred<Unit>? = null
+    var erasable = ErasureCount(0, 0)
+    var countCalls = 0
+    var confirmFailure: Exception? = null
+    var confirmFailsAfterCommit = false
+    var adoptionErasable: (Set<String>) -> ErasureCount = { ErasureCount(0, 0) }
+    val adoptionKept = mutableListOf<Set<String>>()
 
     override fun observeConnection(): Flow<ConnectionState> = flowOf(connected)
 
     override fun observeAttempting(): Flow<Boolean> = attempting
 
-    override suspend fun countErasable(): ErasureCount = ErasureCount(0, 0)
+    override suspend fun countErasable(): ErasureCount {
+        countCalls++
+        return erasable
+    }
+
+    override suspend fun countAdoptionErasable(keptDocIds: Set<String>): ErasureCount {
+        adoptionKept += keptDocIds
+        return adoptionErasable(keptDocIds)
+    }
 
     override suspend fun isSeedEligible(): Boolean = connected is ConnectionState.None && !seedBlocked
 
@@ -84,8 +98,10 @@ internal class FakeConnections(
 
     override suspend fun confirm(pending: PendingConnection) {
         calls += "confirm"
+        if (!confirmFailsAfterCommit) confirmFailure?.let { throw it }
         connected = ConnectionState.Connected(pending.sourceId, pending.connection)
         attempting.value = false
+        if (confirmFailsAfterCommit) confirmFailure?.let { throw it }
     }
 
     override suspend fun discard(pending: PendingConnection) {

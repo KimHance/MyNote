@@ -14,6 +14,8 @@ interface ConnectionRepository {
 
     suspend fun countErasable(): ErasureCount
 
+    suspend fun countAdoptionErasable(keptDocIds: Set<String>): ErasureCount
+
     suspend fun isSeedEligible(): Boolean
 
     suspend fun begin(

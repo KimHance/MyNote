@@ -37,6 +37,7 @@
 | `StudyLogRepository` | 학습 기록 쓰기(세션·시도·북마크 이벤트) · 구간/노트별 관찰 · 오답 조회 · 지우기(요약 캐시 포함) · 365일 정리 | `StudyLogRepositoryImpl` (`:core:data` → Room in `:core:database`) |
 | `InsightRepository` | 주간 요약·패턴 캐시(`stamp` 로 거른 관찰) · 워커 상태(성공/실패/포기·`log_epoch`) · 26주 정리 | `InsightRepositoryImpl` (`:core:data` → Room + DataStore `study_insights`) |
 | `InsightScheduler` | 워커 예약·취소 · "생성 중" 상태 · 현재 `InsightStamp`(모델 commit + 출력 형식 버전) | `StudyInsightWork` (`:core:ai`) |
+| `ConnectProbe` | 후보 목록 + 후보 토큰으로 저장소 · 목록 확인 → `ConnectProbeResult`(Verified · Failed 9종) | `GithubConnectProbe` (`:core:network`) |
 | `AppliedTokenSource` | 지금 **실제로 먹은** 토큰 | `GithubTokenHolder` (`:core:network`) |
 | `QuizGenerator` | `isAvailable()` + `generate(title, text, count)` | `LiteRtLmQuizGenerator` (`:core:ai`) |
 
@@ -45,6 +46,12 @@ domain 은 전부 구현을 모른다. 그래프는 `:app` 이 구현 모듈을 
 `FontScale`(`model/`)은 `:core:design-foundation` 의 `MyNoteFontScale` 과 **일부러 별개 타입**이다 —
 design-foundation 은 Compose 를 들고 있어서 domain 이 그걸 의존하면 의존 방향이 뒤집힌다.
 둘 사이 매핑은 바깥(UI 레이어)이 한다.
+
+### 연결 흐름 UseCase 둘
+
+`VerifyConnectLinkUseCase`(링크 해석 → 오프라인이면 요청 없이 → probe → 성공 뒤에만 지울 개수 · 토큰 삭제 여부 `ConnectReplacement`)와
+`ConnectRepositoryUseCase`(begin → 첫 동기화 → confirm, 실패 · 취소면 discard, `Flow<ConnectProgress>`: Syncing · Connected · Failed). confirm 이 예외로 끝나면 연결 상태를 다시 읽어 확정됐으면 Connected, 아니면 Failed(Server) 로 끝낸다. 이어받기 개수는 `ConnectionRepository.countAdoptionErasable(새 목록 id)` — 새 목록에 없는 노트만. **confirm 이 끝난 뒤에는 discard 를 부르지 않는다**
+(확정된 연결의 토큰만 시도 전 값으로 돌아간다). 첫 동기화 실패는 `SyncFailure` 6종으로 나가고 그 밖의 예외는 `Server` 로 감싼다. 시험: `ConnectFlowTest`.
 
 ### 토큰 인터페이스가 둘인 이유 (중복이 아니다)
 
