@@ -23,6 +23,9 @@ sealed interface NotesNavKey : MyNoteNavKey {
 
     @Serializable
     data object Settings : NotesNavKey
+
+    @Serializable
+    data object Connect : NotesNavKey
 }
 
 fun List<MyNoteNavKey>.isSettingsTop(): Boolean = lastOrNull() is NotesNavKey.Settings

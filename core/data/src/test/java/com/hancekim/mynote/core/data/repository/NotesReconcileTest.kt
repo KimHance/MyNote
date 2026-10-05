@@ -27,133 +27,13 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.Collections
 
-private val S0 = SourceId.Legacy
-private val LINK = SourceId("s1")
-
-private fun entry(
-    id: String,
-    revision: String,
-    date: String = "2026.01.01",
-) = SourceEntry(
-    docId = id,
-    path = "notes/android/$id.json",
-    revision = revision,
-    category = "android",
-    title = id,
-    date = date,
-)
-
-private fun body(text: String) =
-    """{"id":"x","title":"x","date":"x","blocks":[{"type":"paragraph","spans":[{"text":"$text"}]}]}"""
-
-private fun cached(
-    id: String,
-    revision: String?,
-    source: SourceId = S0,
-    raw: String? = body(id),
-    parserVersion: Int = PARSER_VERSION,
-    blocksJson: String = "[]",
-    firstSeenAt: Long = 1L,
-) = CachedNote(
-    key = "${source.value}/$id",
-    sourceId = source.value,
-    docId = id,
-    path = null,
-    group = "android",
-    title = id,
-    date = "2026.01.01",
-    epochDay = null,
-    firstSeenAt = firstSeenAt,
-    revision = revision,
-    fetchedAt = null,
-    parserVersion = parserVersion,
-    raw = raw,
-    blocksJson = blocksJson,
-    excerpt = null,
-)
-
-private class FakeAdapter(
-    var entries: List<SourceEntry>,
-    val docs: Map<String, String> = emptyMap(),
-    private val listError: Throwable? = null,
-    private val failOn: String? = null,
-    private val gate: Int = 0,
-    override val kind: SourceKind = SourceKind.GitHub,
-) : NoteSourceAdapter {
-    val fetched: MutableList<String> = Collections.synchronizedList(mutableListOf())
-    var lists = 0
-    private val arrived = MutableStateFlow(0)
-
-    override suspend fun list(source: SourceRecord): List<SourceEntry> {
-        lists++
-        listError?.let { throw it }
-        return entries
-    }
-
-    override suspend fun fetch(
-        source: SourceRecord,
-        entry: SourceEntry,
-    ): String {
-        fetched += entry.docId
-        if (gate > 0) {
-            arrived.update { it + 1 }
-            withTimeout(2_000) { arrived.first { it >= gate } }
-        }
-        if (entry.docId == failOn) error("fetch 실패: ${entry.docId}")
-        return docs[entry.docId] ?: body(entry.docId)
-    }
-}
-
-private class FakeLocal(
-    initial: List<CachedNote> = emptyList(),
-    sources: List<SourceRecord> = emptyList(),
-    private val writeError: Throwable? = null,
-) : LocalNotesDataSource {
-    val store = MutableStateFlow(initial.associateBy { it.key })
-    val sourceRows = sources.associateBy { it.id }.toMutableMap()
-    var applyCalls = 0
-
-    override fun observeNotes(): Flow<List<CachedNote>> = store.map { it.values.toList() }
-
-    override suspend fun ensureSource(record: SourceRecord) {
-        sourceRows.putIfAbsent(record.id, record)
-    }
-
-    override suspend fun sources(): List<SourceRecord> = sourceRows.values.sortedBy { it.id.value }
-
-    override suspend fun loadSourceState(source: SourceId): Map<String, CachedNoteState> =
-        store.value.values
-            .filter { it.sourceId == source.value }
-            .associate { it.docId to CachedNoteState(it.revision, it.raw != null, it.firstSeenAt) }
-
-    override suspend fun applySourceSync(
-        source: SourceId,
-        upserts: List<CachedNote>,
-        deleteDocIds: List<String>,
-    ) {
-        applyCalls++
-        writeError?.let { throw it }
-        store.update { current ->
-            current + upserts.associateBy { it.key } - deleteDocIds.map { "${source.value}/$it" }.toSet()
-        }
-    }
-
-    override suspend fun loadStale(parserVersion: Int): List<CachedNote> =
-        store.value.values.filter { it.parserVersion < parserVersion && it.raw != null }
-
-    override suspend fun replaceDerived(rows: List<CachedNote>) {
-        writeError?.let { throw it }
-        store.update { current -> current + rows.associateBy { it.key } }
-    }
-}
-
 class NotesReconcileTest {
     private var clock = 1_000L
 
     private fun repo(
         adapter: NoteSourceAdapter,
         local: LocalNotesDataSource,
-    ) = NotesRepositoryImpl(setOf(adapter), local, NotesJson) { clock++ }
+    ) = NotesRepositoryImpl(setOf(adapter), local, NotesJson, {}) { clock++ }
 
     private suspend fun NotesRepositoryImpl.blocksOf(key: String): List<NoteBlock> =
         observeCategories()

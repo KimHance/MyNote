@@ -10,25 +10,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-private class FakeBookmarkStore(
-    initial: Map<String, Long> = emptyMap(),
-) : BookmarkStore {
-    val entries = MutableStateFlow(initial)
-
-    override fun observe(): Flow<Map<String, Long>> = entries
-
-    override suspend fun put(
-        noteId: String,
-        addedAt: Long,
-    ) {
-        entries.update { it + (noteId to addedAt) }
-    }
-
-    override suspend fun remove(noteIds: Collection<String>) {
-        entries.update { it - noteIds.toSet() }
-    }
-}
-
 class BookmarkRepositoryImplTest {
     @Test
     fun `저장소의 맵을 정렬 없이 Bookmark 목록으로 옮긴다`() =

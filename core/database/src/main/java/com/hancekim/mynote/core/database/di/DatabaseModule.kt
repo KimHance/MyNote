@@ -3,6 +3,7 @@ package com.hancekim.mynote.core.database.di
 import android.content.Context
 import androidx.room3.Room
 import com.hancekim.mynote.core.data.datasource.BookmarkStore
+import com.hancekim.mynote.core.data.datasource.ConnectionStateStore
 import com.hancekim.mynote.core.data.datasource.InsightStatusStore
 import com.hancekim.mynote.core.data.datasource.InsightStore
 import com.hancekim.mynote.core.data.datasource.LocalNotesDataSource
@@ -14,6 +15,7 @@ import com.hancekim.mynote.core.database.dao.InsightDao
 import com.hancekim.mynote.core.database.dao.NoteDao
 import com.hancekim.mynote.core.database.dao.StudyLogDao
 import com.hancekim.mynote.core.database.datasource.DataStoreBookmarkStore
+import com.hancekim.mynote.core.database.datasource.DataStoreConnectionStateStore
 import com.hancekim.mynote.core.database.datasource.DataStoreInsightStatusStore
 import com.hancekim.mynote.core.database.datasource.DataStoreSettingsStore
 import com.hancekim.mynote.core.database.datasource.DataStoreTokenStore
@@ -65,6 +67,10 @@ abstract class DatabaseBindsModule {
     @Binds
     @Singleton
     abstract fun bindTokenStore(impl: DataStoreTokenStore): TokenStore
+
+    @Binds
+    @Singleton
+    abstract fun bindConnectionStateStore(impl: DataStoreConnectionStateStore): ConnectionStateStore
 
     @Binds
     @Singleton

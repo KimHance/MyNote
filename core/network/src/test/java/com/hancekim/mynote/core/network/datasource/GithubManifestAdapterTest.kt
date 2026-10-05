@@ -1,12 +1,13 @@
 package com.hancekim.mynote.core.network.datasource
 
+import com.hancekim.mynote.core.data.connection.ConnectionConfigCodec
 import com.hancekim.mynote.core.data.datasource.SourceEntry
 import com.hancekim.mynote.core.data.datasource.SourceRecord
 import com.hancekim.mynote.core.data.dto.NotesJson
+import com.hancekim.mynote.core.domain.model.RepoConnection
 import com.hancekim.mynote.core.domain.model.SourceId
 import com.hancekim.mynote.core.domain.model.SourceKind
 import com.hancekim.mynote.core.network.api.GithubContentsApi
-import com.hancekim.mynote.core.network.config.GithubConfig
 import kotlinx.coroutines.test.runTest
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
@@ -18,7 +19,18 @@ import org.junit.Test
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
-private val SOURCE = SourceRecord(SourceId.Legacy, SourceKind.GitHub, configJson = null)
+private fun sourceOf(
+    owner: String = "o",
+    repo: String = "r",
+    branch: String = "main",
+    indexPath: String = "notes/index.json",
+) = SourceRecord(
+    SourceId.Legacy,
+    SourceKind.GitHub,
+    ConnectionConfigCodec.encode(RepoConnection(owner, repo, branch, indexPath, isPublic = true)),
+)
+
+private val SOURCE = sourceOf()
 
 class GithubManifestAdapterTest {
     private val server = MockWebServer()
@@ -34,7 +46,7 @@ class GithubManifestAdapterTest {
                 .addConverterFactory(NotesJson.asConverterFactory("application/json".toMediaType()))
                 .build()
                 .create(GithubContentsApi::class.java)
-        adapter = GithubManifestAdapter(api, GithubConfig(owner = "o", repo = "r", branch = "main"))
+        adapter = GithubManifestAdapter(api)
     }
 
     @After
@@ -90,5 +102,48 @@ class GithubManifestAdapterTest {
             val note = server.takeRequest()
             assertEquals("/repos/o/r/contents/notes/android/a.json?ref=main", note.target)
             assertEquals("application/vnd.github.raw+json", note.headers["Accept"])
+        }
+
+    @Test
+    fun `SY-2 요청이 저장된 연결을 따른다`() =
+        runTest {
+            enqueue("{}")
+
+            adapter.list(sourceOf(owner = "a", repo = "b", branch = "dev", indexPath = "docs/index.json"))
+
+            assertEquals("/repos/a/b/contents/docs/index.json?ref=dev", server.takeRequest().target)
+        }
+
+    @Test
+    fun `SY-2 항목 path 는 저장소 루트 기준이다`() =
+        runTest {
+            enqueue("{}")
+
+            adapter.fetch(
+                sourceOf(owner = "a", repo = "b", branch = "dev", indexPath = "docs/index.json"),
+                SourceEntry("y", "notes/x/y.json", "h", "x", "y", null),
+            )
+
+            assertEquals("/repos/a/b/contents/notes/x/y.json?ref=dev", server.takeRequest().target)
+        }
+
+    @Test
+    fun `RC-19 브랜치가 비면 ref 를 보내지 않는다`() =
+        runTest {
+            enqueue("{}")
+
+            adapter.list(sourceOf(branch = ""))
+
+            assertEquals("/repos/o/r/contents/notes/index.json", server.takeRequest().target)
+        }
+
+    @Test
+    fun `SY-3 연결 정보가 없는 소스는 요청 없이 실패한다`() =
+        runTest {
+            val result =
+                runCatching { adapter.list(SourceRecord(SourceId.Legacy, SourceKind.GitHub, configJson = null)) }
+
+            assertEquals(true, result.isFailure)
+            assertEquals(0, server.requestCount)
         }
 }

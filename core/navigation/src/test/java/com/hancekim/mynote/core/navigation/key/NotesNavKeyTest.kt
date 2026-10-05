@@ -49,4 +49,11 @@ class NotesNavKeyTest {
         assertNull(stack.activeNoteId())
         assertFalse(stack.isSettingsTop())
     }
+
+    @Test
+    fun `맨 위가 연결 화면이면 열린 노트가 없고 설정도 아니다`() {
+        val stack = listOf(NotesNavKey.Home, NotesNavKey.Settings, NotesNavKey.Connect)
+        assertNull(stack.activeNoteId())
+        assertFalse(stack.isSettingsTop())
+    }
 }

@@ -20,7 +20,8 @@ M1 에서 순수 JVM `:core:format` 으로 옮겨 갈 자리다.
 
 1. **재변환(로컬).** `parser_version < PARSER_VERSION` 이고 `raw` 가 있는 행을 원문에서 다시 만들어 한 번에 바꾼다.
    네트워크보다 **먼저** 돌고 따로 커밋되므로 오프라인이어도 반영된다(F4 — 앱을 올리면 노트 파일이 안 바뀌어도 새 변환이 보인다).
-2. `ensureSource(s0)` — 소스 `s0`(빌드 속성의 GitHub 레포) 행을 `INSERT OR IGNORE`. 새로 깐 기기는 마이그레이션이 없어서 여기서 생긴다.
+2. **동기화는 소스를 만들지 않는다**(SY-3). `sources()` 중 확정된 GitHub 소스(`config_json` 해석 가능 · 미확정 아님)와 다른 kind 만 돈다.
+   연결이 없으면 요청 0회로 빈 `SyncOutcome`. 먼저 `ConnectionRecovery.ensure()` 를 기다린다.
 3. **소스마다** `SourceReconciler.reconcile(source, adapter)`. 어댑터는 Hilt `@IntoSet` 으로 모이고 `kind` 로 고른다.
    **어댑터가 없는 kind(`Link`·`Local`)의 소스는 동기화도 삭제도 하지 않는다.** M0 의 소스는 `s0` 하나다.
 
@@ -59,6 +60,24 @@ M1 에서 순수 JVM `:core:format` 으로 옮겨 갈 자리다.
   있어야 한다(`로컬 쓰기가 실패해도 예외를 던지지 않고 Result 실패다`).
 - **`Dispatchers.Default` 를 떼지 말 것.** 호출자는 `viewModelScope`(Main.immediate)이고 `sync()` 안에서 노트마다 파싱·인코딩이 돈다.
 - 시계는 생성자로 받는다: `internal constructor(…, now)` + `@Inject constructor(…)` 가 `System::currentTimeMillis` 를 넘긴다.
+
+## 연결 — `ConnectionRepositoryImpl` · `ConnectionRecovery`
+
+연결 정보는 `sources.config_json` 한 줄(`connection/ConnectionConfigCodec`: owner·repo·branch·indexPath·isPublic·pending)이다.
+스키마 변경 없음. 한 번에 연결 하나.
+
+- **시도** = `begin`(시도 기록 + 시도 전 토큰을 `ConnectionStateStore` 에 적음 → 필요하면 후보 토큰 저장) → `syncPending` → `confirm`/`discard`.
+  종류 셋: `New`(다른 저장소 · 첫 연결 — 새 UUID 소스 행을 `"pending":true` 로 만든다, 노트는 한 쿼리로 가려진다),
+  `Adopt`(연결 없음 + `config_json` 없는 옛 노트 소유 소스 — 행에 아무것도 쓰지 않고 첫 동기화는 메모리 속 `SourceRecord` 로 돈다),
+  `SameRepository`(대소문자 무시로 같은 저장소 — 같은 소스 id 로 설정만 바꾼다). `Adopt`·`SameRepository` 는 확정 전에 저장된 것이 없어서 중단되면 자동으로 옛 상태다.
+- **확정(`New`)** = `LocalNotesDataSource.promote` 한 Room 트랜잭션: 새 소스 pending 제거 + 다른 GitHub 소스 노트·행 삭제. 그 뒤 북마크 접두 삭제.
+  Room 과 DataStore 는 못 묶으므로 지울 id 를 먼저 `bookmarkSweep` 에 적고 시작 복구가 행이 사라진 id 만 마저 지운다.
+- **끊기** = 표식(`markDisconnect`, 시드 차단 겸용) → 노트·행(한 트랜잭션) → 북마크 접두 → 토큰 → 표식 해제. 시드 차단은 새 연결이 확정될 때 푼다.
+  노트 삭제가 실패하면 표식을 되돌리고 북마크·토큰은 그대로다.
+- **시작 복구** `ConnectionRecovery.ensure()`(싱글턴, 한 번): 끊기 표식 마무리 → pending 소스 폐기 → 확정 안 된 시도의 토큰을 시도 전 값으로(시도 대상 행의 `config_json` 이 목표와 다르면) → 북마크 청소.
+  앱에 시동 필드가 없다 — `NotesRepositoryImpl.sync` · `ConnectionRepositoryImpl` 의 모든 진입 · `:app` `TokenSync` 가 먼저 기다린다.
+- 연결 식별자는 `ConnectionIdGenerator`(UUID)이고 쓴 id 는 DataStore 에 쌓여 겹치면 다시 뽑는다.
+- 시드는 domain 의 `ConsumeSeedUseCase` 가 소비한다(`ConnectionSeed?` 를 주입받아 `begin` → 첫 동기화 → `confirm`, 실패면 `discard`).
 
 ## 형식 — `format/MyNoteJsonFormat`
 

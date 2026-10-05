@@ -1,13 +1,16 @@
 package com.hancekim.mynote.core.data.di
 
+import com.hancekim.mynote.core.data.datasource.ConnectionIdGenerator
 import com.hancekim.mynote.core.data.dto.NotesJson
 import com.hancekim.mynote.core.data.repository.BookmarkRepositoryImpl
+import com.hancekim.mynote.core.data.repository.ConnectionRepositoryImpl
 import com.hancekim.mynote.core.data.repository.InsightRepositoryImpl
 import com.hancekim.mynote.core.data.repository.NotesRepositoryImpl
 import com.hancekim.mynote.core.data.repository.SettingsRepositoryImpl
 import com.hancekim.mynote.core.data.repository.StudyLogRepositoryImpl
 import com.hancekim.mynote.core.data.repository.TokenRepositoryImpl
 import com.hancekim.mynote.core.domain.repository.BookmarkRepository
+import com.hancekim.mynote.core.domain.repository.ConnectionRepository
 import com.hancekim.mynote.core.domain.repository.InsightRepository
 import com.hancekim.mynote.core.domain.repository.NotesRepository
 import com.hancekim.mynote.core.domain.repository.SettingsRepository
@@ -19,6 +22,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.json.Json
+import java.util.UUID
 import javax.inject.Singleton
 
 @Module
@@ -27,6 +31,10 @@ abstract class DataModule {
     @Binds
     @Singleton
     abstract fun bindNotesRepository(impl: NotesRepositoryImpl): NotesRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindConnectionRepository(impl: ConnectionRepositoryImpl): ConnectionRepository
 
     @Binds
     @Singleton
@@ -52,5 +60,12 @@ abstract class DataModule {
         @Provides
         @Singleton
         fun provideJson(): Json = NotesJson
+
+        @Provides
+        @Singleton
+        fun provideConnectionIdGenerator(): ConnectionIdGenerator =
+            ConnectionIdGenerator {
+                UUID.randomUUID().toString()
+            }
     }
 }
