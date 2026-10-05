@@ -92,7 +92,7 @@ sealed interface NotesIntent : MviEvent {
     data object CancelTokenEdit : NotesIntent
 
     data class SaveToken(
-        val token: String,
+        val token: SecretText,
     ) : NotesIntent
 
     data object ClearToken : NotesIntent
@@ -108,4 +108,12 @@ sealed interface NotesIntent : MviEvent {
     data object DeleteModel : NotesIntent
 
     data object Refresh : NotesIntent
+
+    data object OpenConnect : NotesIntent
+
+    data object RequestDisconnect : NotesIntent
+
+    data object ConfirmDisconnect : NotesIntent
+
+    data object DismissDisconnect : NotesIntent
 }

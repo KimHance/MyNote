@@ -62,6 +62,7 @@ import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.element.fractionOrNull
 import com.hancekim.mynote.feature.notes.element.isBusy
+import com.hancekim.mynote.feature.notes.screen.connect.ConnectBand
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.flow.filter
@@ -141,6 +142,14 @@ internal fun ListPanelScreen(
                         contentPadding = PaddingValues(start = 12.dp, end = 12.dp, bottom = 18.dp),
                         modifier = Modifier.fadingEdges(top = topFade, bottom = bottomFade),
                     ) {
+                        if (inFixedPanel && uiState.showConnectBand) {
+                            item(key = "connect-band") {
+                                ConnectBand(
+                                    onClick = { dispatch(NotesIntent.OpenConnect) },
+                                    modifier = Modifier.padding(bottom = 12.dp),
+                                )
+                            }
+                        }
                         uiState.visibleCategories.forEach { category ->
                             item(key = "cat-${category.name}") {
                                 CategoryRow(
@@ -167,7 +176,7 @@ internal fun ListPanelScreen(
 
             SettingsRow(
                 selected = inFixedPanel && uiState.isSettingsOpen,
-                tokenMissing = !uiState.hasToken,
+                tokenCheck = uiState.repoCard.showBadge,
                 modelStatus = uiState.modelStatus,
                 onClick = { dispatch(NotesIntent.OpenSettings) },
                 modifier =
@@ -191,7 +200,7 @@ internal fun ListPanelScreen(
 @Composable
 private fun SettingsRow(
     selected: Boolean,
-    tokenMissing: Boolean,
+    tokenCheck: Boolean,
     modelStatus: ModelStatus,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -239,7 +248,7 @@ private fun SettingsRow(
                     else -> R.string.notes_model_badge_missing
                 }
             if (modelBadge != null) WarnBadge(text = stringResource(modelBadge))
-            if (tokenMissing) WarnBadge(text = stringResource(R.string.notes_settings_token_missing_badge))
+            if (tokenCheck) WarnBadge(text = stringResource(R.string.notes_settings_token_check_badge))
         }
     }
 }

@@ -34,9 +34,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hancekim.mynote.core.designfoundation.window.MyNoteHeightClass
 import com.hancekim.mynote.core.designfoundation.window.MyNoteWindowClass
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
+import com.hancekim.mynote.core.domain.model.ConnectionState
+import com.hancekim.mynote.core.domain.model.RepoConnection
+import com.hancekim.mynote.core.domain.model.SourceId
+import com.hancekim.mynote.feature.notes.element.ConnectPlace
+import com.hancekim.mynote.feature.notes.element.NotesDrafts
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
+import com.hancekim.mynote.feature.notes.element.StartDestination
 import com.hancekim.mynote.feature.notes.screen.ModelConfirmDialog
+import com.hancekim.mynote.feature.notes.screen.connect.ConnectReadingScreen
+import com.hancekim.mynote.feature.notes.screen.connect.ConnectRoute
+import com.hancekim.mynote.feature.notes.shell.NotesExitEffects
 import com.hancekim.mynote.feature.notes.shell.NotesShell
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
@@ -145,14 +154,36 @@ internal fun NotesScreen(
         }
     }
 
+    val drafts = remember { NotesDrafts() }
+
     MyNoteTheme(windowClass = windowClass, heightClass = heightClass, fontScale = uiState.fontScale) {
-        NotesShell(
-            uiState = uiState,
-            onIntent = onIntent,
-            snackbarHostState = snackbarHostState,
-            onConfirmDownload = { showDownloadConfirm = true },
-            onEnableNotifications = onEnableNotifications,
-        )
+        when (uiState.start) {
+            StartDestination.Reading -> {
+                ConnectReadingScreen()
+            }
+
+            StartDestination.ConnectRoot -> {
+                ConnectRoute(
+                    place = ConnectPlace.Root,
+                    hasConnection = false,
+                    drafts = drafts,
+                    snackbarHostState = snackbarHostState,
+                    onNotesIntent = onIntent,
+                )
+                NotesExitEffects(uiState, snackbarHostState)
+            }
+
+            StartDestination.Shell -> {
+                NotesShell(
+                    uiState = uiState,
+                    onIntent = onIntent,
+                    snackbarHostState = snackbarHostState,
+                    drafts = drafts,
+                    onConfirmDownload = { showDownloadConfirm = true },
+                    onEnableNotifications = onEnableNotifications,
+                )
+            }
+        }
 
         if (showDownloadConfirm) {
             ModelConfirmDialog(
@@ -165,6 +196,8 @@ internal fun NotesScreen(
         }
     }
 }
+
+private val previewRepo = RepoConnection("octo-learner", "android-notes", "main", "notes/index.json", isPublic = true)
 
 private val previewUiState: NotesUiState =
     run {
@@ -188,6 +221,9 @@ private val previewUiState: NotesUiState =
                 ),
             expanded = persistentMapOf("Android" to true),
             isLoading = false,
+            connection = ConnectionState.Connected(SourceId("s1"), previewRepo),
+            notesLoaded = true,
+            seedPending = false,
         )
     }
 

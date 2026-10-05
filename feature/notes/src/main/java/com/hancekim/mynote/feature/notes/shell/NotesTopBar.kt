@@ -58,6 +58,7 @@ internal fun NotesTopBar(
     onRefresh: () -> Unit,
     onToggleBookmark: () -> Unit,
     showRefresh: Boolean = true,
+    backEnabled: Boolean = true,
 ) {
     val colors = MyNoteTheme.colors
     TopAppBar(
@@ -73,11 +74,12 @@ internal fun NotesTopBar(
         expandedHeight = MyNoteTheme.adaptive.headerHeight,
         navigationIcon = {
             if (showBack) {
-                IconButton(onClick = onBack) {
+                IconButton(onClick = onBack, enabled = backEnabled) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = stringResource(DsR.string.ds_action_back),
                         tint = colors.text,
+                        modifier = Modifier.graphicsLayer { alpha = if (backEnabled) 1f else DISABLED_BACK_ALPHA },
                     )
                 }
             } else {
@@ -177,6 +179,7 @@ private fun BookmarkToggle(
     }
 }
 
+private const val DISABLED_BACK_ALPHA = 0.4f
 private val TOGGLE_SIZE = 44.dp
 private val TOGGLE_ICON = 22.dp
 private val TOGGLE_RADIUS = 12.dp

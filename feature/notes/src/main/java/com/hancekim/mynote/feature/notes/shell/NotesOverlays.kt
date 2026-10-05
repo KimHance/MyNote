@@ -69,13 +69,13 @@ internal fun BoxScope.NotesOverlays(
                 NAV_STATS -> onIntent(NotesIntent.SwitchTab(NotesTab.Stats))
             }
         },
-        hidden = navScroll.hidden || quizOpen || uiState.isSettingsOpen,
+        hidden = navScroll.hidden || quizOpen || uiState.isSettingsOpen || uiState.isConnectOpen,
         layout = layout,
         backdrop = backdrop,
     )
 
     ScrollToTopButton(
-        visible = scroll.showScrollToTop && !quizOpen,
+        visible = scroll.showScrollToTop && !quizOpen && !uiState.isConnectOpen,
         onClick = {
             navScroll.reset()
             scope.launch { scroll.scrollToTop() }

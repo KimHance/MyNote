@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,8 +38,10 @@ import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.NoteUi
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.RecentNoteUi
+import com.hancekim.mynote.feature.notes.element.HomeBody
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.navigation.rememberNoteSharedModifiers
+import com.hancekim.mynote.feature.notes.screen.connect.ConnectBand
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
@@ -49,7 +50,7 @@ import kotlinx.collections.immutable.persistentSetOf
 @Composable
 internal fun HomeScreen(
     recentNotes: ImmutableList<RecentNoteUi>,
-    isLoading: Boolean,
+    body: HomeBody,
     onIntent: (NotesIntent) -> Unit,
     modifier: Modifier = Modifier,
     contentBottomPadding: Dp = 0.dp,
@@ -57,6 +58,7 @@ internal fun HomeScreen(
     contentEndPadding: Dp = 0.dp,
     gridState: LazyGridState = rememberLazyGridState(),
     bookmarkedIds: ImmutableSet<String> = persistentSetOf(),
+    showConnectBand: Boolean = false,
 ) {
     val adaptive = MyNoteTheme.adaptive
     val reading = adaptive.readingMaxWidth
@@ -65,19 +67,13 @@ internal fun HomeScreen(
     Surface(modifier = modifier.fillMaxSize(), color = colors.bg) {
         Box(contentAlignment = Alignment.TopCenter) {
             if (recentNotes.isEmpty()) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center),
-                        color = colors.accent,
-                    )
-                } else {
-                    Text(
-                        text = stringResource(R.string.notes_home_empty),
-                        style = MyNoteTheme.textStyles.body,
-                        color = colors.text2,
-                        modifier = Modifier.align(Alignment.Center),
-                    )
-                }
+                HomeEmpty(
+                    body = body,
+                    onRefresh = { onIntent(NotesIntent.Refresh) },
+                    endPadding = contentEndPadding,
+                    topPadding = contentTopPadding,
+                    modifier = Modifier.align(Alignment.Center),
+                )
             } else {
                 LazyVerticalGrid(
                     state = gridState,
@@ -95,6 +91,11 @@ internal fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(adaptive.cardGap),
                     verticalArrangement = Arrangement.spacedBy(adaptive.cardGap),
                 ) {
+                    if (showConnectBand) {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            ConnectBand(onClick = { onIntent(NotesIntent.OpenConnect) })
+                        }
+                    }
                     item(span = { GridItemSpan(maxLineSpan) }) {
                         Hero(modalDrawer = adaptive.useModalDrawer)
                     }
@@ -185,7 +186,7 @@ private val previewRecent =
 @Composable
 private fun HomeScreenCompactPreview() {
     MyNoteTheme {
-        HomeScreen(recentNotes = previewRecent, isLoading = false, onIntent = {})
+        HomeScreen(recentNotes = previewRecent, body = HomeBody.Notes, onIntent = {})
     }
 }
 
@@ -195,7 +196,7 @@ private fun HomeScreenBookmarkedPreview() {
     MyNoteTheme {
         HomeScreen(
             recentNotes = previewRecent,
-            isLoading = false,
+            body = HomeBody.Notes,
             onIntent = {},
             bookmarkedIds = persistentSetOf("a", "c"),
         )
@@ -209,7 +210,7 @@ private fun HomeScreenShortPreview() {
         windowClass = MyNoteWindowClass.Medium,
         heightClass = MyNoteHeightClass.Compact,
     ) {
-        HomeScreen(recentNotes = previewRecent, isLoading = false, onIntent = {})
+        HomeScreen(recentNotes = previewRecent, body = HomeBody.Notes, onIntent = {})
     }
 }
 
@@ -217,22 +218,64 @@ private fun HomeScreenShortPreview() {
 @Composable
 private fun HomeScreenExpandedPreview() {
     MyNoteTheme(windowClass = MyNoteWindowClass.Expanded) {
-        HomeScreen(recentNotes = previewRecent, isLoading = false, onIntent = {})
+        HomeScreen(recentNotes = previewRecent, body = HomeBody.Notes, onIntent = {})
     }
 }
 
-@Preview(name = "Home · 로딩 중", showBackground = true, widthDp = 360, heightDp = 640)
+@Preview(name = "Home · 받는 중", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 360, heightDp = 640)
 @Composable
-private fun HomeScreenLoadingPreview() {
+private fun HomeScreenReceivingPreview() {
     MyNoteTheme {
-        HomeScreen(recentNotes = persistentListOf(), isLoading = true, onIntent = {})
+        HomeScreen(recentNotes = persistentListOf(), body = HomeBody.Receiving, onIntent = {})
     }
 }
 
-@Preview(name = "Home · 빈 상태", showBackground = true, widthDp = 360, heightDp = 640)
+@Preview(name = "Home · 노트 없음", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 360, heightDp = 640)
 @Composable
-private fun HomeScreenEmptyPreview() {
+private fun HomeScreenNoneNotesPreview() {
     MyNoteTheme {
-        HomeScreen(recentNotes = persistentListOf(), isLoading = false, onIntent = {})
+        HomeScreen(recentNotes = persistentListOf(), body = HomeBody.NoNotes, onIntent = {})
+    }
+}
+
+@Preview(
+    name = "Home · 노트 없음 · 852",
+    showBackground = true,
+    backgroundColor = 0xFF0E1217,
+    widthDp = 560,
+    heightDp = 800,
+)
+@Composable
+private fun HomeScreenNoneNotesWidePreview() {
+    MyNoteTheme(windowClass = MyNoteWindowClass.Medium) {
+        HomeScreen(
+            recentNotes = persistentListOf(),
+            body = HomeBody.NoNotes,
+            onIntent = {},
+            contentEndPadding = 74.dp,
+        )
+    }
+}
+
+@Preview(name = "Home · 연결 안내", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 360, heightDp = 640)
+@Composable
+private fun HomeScreenConnectBandPreview() {
+    MyNoteTheme {
+        HomeScreen(recentNotes = previewRecent, body = HomeBody.Notes, onIntent = {}, showConnectBand = true)
+    }
+}
+
+@Preview(
+    name = "Home · 노트 없음 · ×1.3",
+    showBackground = true,
+    backgroundColor = 0xFF0E1217,
+    widthDp = 360,
+    heightDp = 640,
+    fontScale = 1.3f,
+)
+@Composable
+private fun HomeScreenNoneNotesLargePreview() {
+    MyNoteTheme {
+        HomeScreen(recentNotes = persistentListOf(), body = HomeBody.NoNotes, onIntent = {})
     }
 }
