@@ -49,6 +49,7 @@ import com.hancekim.mynote.core.navigation.NavResult
 import com.hancekim.mynote.core.navigation.Navigator
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import com.hancekim.mynote.core.navigation.key.activeNoteId
+import com.hancekim.mynote.feature.notes.element.CategoryLoad
 import com.hancekim.mynote.feature.notes.element.DisconnectDialogUi
 import com.hancekim.mynote.feature.notes.element.LastSync
 import com.hancekim.mynote.feature.notes.element.NotesIntent
@@ -64,6 +65,7 @@ import com.hancekim.mynote.feature.notes.element.lastSyncOf
 import com.hancekim.mynote.feature.notes.element.maskToken
 import com.hancekim.mynote.feature.notes.element.reduceTokenEdit
 import com.hancekim.mynote.feature.notes.element.screenCleanupOf
+import com.hancekim.mynote.feature.notes.element.settledCategories
 import com.hancekim.mynote.feature.notes.element.tokenFailureOfProbe
 import com.hancekim.mynote.feature.notes.mapper.bookmarkedNotes
 import com.hancekim.mynote.feature.notes.mapper.toUi
@@ -90,6 +92,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -105,13 +108,6 @@ private const val EXIT_WINDOW_MILLIS = 1000L
 private const val UNDO_WINDOW_MILLIS = 3200L
 
 private const val GENERATE_TIMEOUT_MILLIS = 60_000L
-
-private const val NOTES_SETTLE_MILLIS = 1_000L
-
-private data class CategoryLoad(
-    val loaded: Boolean,
-    val list: ImmutableList<CategoryUi>,
-)
 
 private data class QuizUndo(
     val message: String,
@@ -191,8 +187,6 @@ class NotesViewModel @Inject constructor(
     private val seedPending = trigger(true)
     private val lastSync = trigger<LastSync>(LastSync.None)
     private val disconnectDialog = trigger<DisconnectDialogUi?>(null)
-    private val awaitingNotes = trigger(false)
-    private var settleJob: Job? = null
     private val notice = trigger<NoticeUi?>(null)
     private var clearedToken: String? = null
     private var noticeSeq = 0
@@ -208,9 +202,8 @@ class NotesViewModel @Inject constructor(
             .map { it.toUi() }
 
     private val categoryLoad =
-        categories
-            .map { CategoryLoad(loaded = true, list = it) }
-            .triggerIn(CategoryLoad(loaded = false, list = persistentListOf()), started = SharingStarted.Lazily)
+        settledCategories(connection.filterNotNull()) { categories }
+            .triggerIn(CategoryLoad.Initial, started = SharingStarted.Lazily)
 
     private val categoryList: Flow<ImmutableList<CategoryUi>> = categoryLoad.map { it.list }
 
@@ -330,7 +323,7 @@ class NotesViewModel @Inject constructor(
             seedPending = seedPending.value,
             lastSync = lastSync.value,
             disconnectDialog = disconnectDialog.value,
-            awaitingNotes = awaitingNotes.value,
+            awaitingNotes = categoryLoad.value.settling,
             notice = notice.value,
             infoMessage = sync.value.infoMessage,
             infoId = sync.value.infoId,
@@ -797,17 +790,6 @@ class NotesViewModel @Inject constructor(
                 quiz.value = QuizUiState.Idle
             }
             lastSync.value = if (next is ConnectionState.Connected) LastSync.Succeeded else LastSync.None
-            settleJob?.cancel()
-            if (next is ConnectionState.Connected) {
-                awaitingNotes.value = true
-                settleJob =
-                    launchSafely {
-                        delay(NOTES_SETTLE_MILLIS.milliseconds)
-                        awaitingNotes.value = false
-                    }
-            } else {
-                awaitingNotes.value = false
-            }
         }
         connection.value = next
     }
