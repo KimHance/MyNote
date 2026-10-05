@@ -41,8 +41,4 @@ sealed interface ConnectProgress {
     data class Failed(
         val failure: SyncFailure,
     ) : ConnectProgress
-
-    data class ConfirmFailed(
-        val cause: Throwable,
-    ) : ConnectProgress
 }

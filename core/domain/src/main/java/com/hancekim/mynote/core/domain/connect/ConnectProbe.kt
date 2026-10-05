@@ -13,6 +13,7 @@ interface ConnectProbe {
 sealed interface ConnectProbeResult {
     data class Verified(
         val connection: RepoConnection,
+        val noteIds: Set<String>,
     ) : ConnectProbeResult
 
     data class Failed(

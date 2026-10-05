@@ -64,11 +64,18 @@ internal class GithubConnectProbe @Inject constructor(
             if (response.isSuccessful) {
                 return ConnectProbeResult.Verified(
                     RepoConnection(owner, name, branch, candidate.indexPath, isPublic = !body.isPrivate),
+                    noteIds =
+                        response
+                            .body()
+                            .orEmpty()
+                            .values
+                            .flatMap { notes -> notes.map { it.id } }
+                            .toSet(),
                 )
             }
             val kind = classifyHttp(response.code(), response.headers())
             if (kind != HttpFailureKind.NotFound) {
-                return ConnectProbeResult.Failed(manifestFailure(kind))
+                return ConnectProbeResult.Failed(manifestFailure(kind, token != null))
             }
         }
         return ConnectProbeResult.Failed(
@@ -98,11 +105,25 @@ internal class GithubConnectProbe @Inject constructor(
             }
         }
 
-    private fun manifestFailure(kind: HttpFailureKind): ConnectProbeFailure =
+    private fun manifestFailure(
+        kind: HttpFailureKind,
+        withToken: Boolean,
+    ): ConnectProbeFailure =
         when (kind) {
-            HttpFailureKind.RateLimited -> ConnectProbeFailure.RateLimited
-            HttpFailureKind.TokenRejected -> ConnectProbeFailure.TokenRejected
-            HttpFailureKind.NotFound, HttpFailureKind.AccessDenied -> ConnectProbeFailure.ManifestInaccessible
-            HttpFailureKind.Server -> ConnectProbeFailure.Transient
+            HttpFailureKind.RateLimited -> {
+                ConnectProbeFailure.RateLimited
+            }
+
+            HttpFailureKind.TokenRejected -> {
+                if (withToken) ConnectProbeFailure.TokenRejected else ConnectProbeFailure.NeedsToken
+            }
+
+            HttpFailureKind.NotFound, HttpFailureKind.AccessDenied -> {
+                ConnectProbeFailure.ManifestInaccessible
+            }
+
+            HttpFailureKind.Server -> {
+                ConnectProbeFailure.Transient
+            }
         }
 }

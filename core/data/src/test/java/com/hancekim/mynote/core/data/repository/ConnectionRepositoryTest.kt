@@ -532,6 +532,28 @@ class ConnectionRepositoryTest {
         }
 
     @Test
+    fun `RC-15 이어받기는 새 목록에 없는 노트만 센다`() =
+        runTest {
+            val old = (0 until 22).map { cached("n$it", "h1") }
+            val h =
+                Harness(
+                    local =
+                        FakeLocal(
+                            initial = old,
+                            connected = false,
+                            sources = listOf(SourceRecord(S0, SourceKind.GitHub, null)),
+                        ),
+                    bookmarks = FakeBookmarkStore(mapOf("s0/n0" to 1L, "s0/n21" to 2L, "other/x" to 3L)),
+                    adapter = FakeAdapter(emptyList()),
+                )
+
+            val counted = h.connections().countAdoptionErasable((0 until 20).map { "n$it" }.toSet())
+
+            assertEquals(ErasureCount(notes = 2, bookmarks = 1), counted)
+            assertEquals(0, h.adapter.lists)
+        }
+
+    @Test
     fun `RC-19 이어받기 첫 동기화가 실패하면 연결 없음과 옛 노트로 돌아간다`() =
         runTest {
             val old = (0 until 22).map { cached("n$it", "h1") }

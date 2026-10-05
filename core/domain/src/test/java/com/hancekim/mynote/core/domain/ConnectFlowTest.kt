@@ -34,7 +34,7 @@ private val OLD_REPO = RepoConnection("old", "repo", "main", "notes/index.json",
 
 private class FakeProbe : ConnectProbe {
     val calls = mutableListOf<Triple<ConnectLinkRepo, List<ConnectCandidate>, String?>>()
-    var result: ConnectProbeResult = ConnectProbeResult.Verified(NEW_REPO)
+    var result: ConnectProbeResult = ConnectProbeResult.Verified(NEW_REPO, setOf("a"))
 
     override suspend fun verify(
         repo: ConnectLinkRepo,
@@ -195,7 +195,7 @@ class ConnectFlowTest {
             assertTrue(h.tokens.writes.isEmpty())
             assertTrue(h.connections.calls.isEmpty())
 
-            h.probe.result = ConnectProbeResult.Verified(NEW_REPO)
+            h.probe.result = ConnectProbeResult.Verified(NEW_REPO, setOf("a"))
             h.connections.syncResult = Result.failure(SyncFailure.RateLimited())
             val ready = h.verify("foo/bar", "cand") as ConnectVerification.Ready
             val progress = h.connect(ready).toList()
@@ -307,13 +307,6 @@ class ConnectFlowTest {
                 ConnectReplacement.None,
                 (first.verify("foo/bar", null) as ConnectVerification.Ready).replacement,
             )
-
-            val adopt = FlowHarness()
-            adopt.connections.erasable = ErasureCount(22, 3)
-            assertEquals(
-                ConnectReplacement.Erases(ErasureCount(22, 3), dropsToken = false, adopts = true),
-                (adopt.verify("foo/bar", null) as ConnectVerification.Ready).replacement,
-            )
         }
 
     private suspend fun dropsToken(
@@ -322,7 +315,7 @@ class ConnectFlowTest {
         public: Boolean,
     ): Boolean {
         val h = FlowHarness(stored = stored, connected = CONNECTED_OLD)
-        h.probe.result = ConnectProbeResult.Verified(NEW_REPO.copy(isPublic = public))
+        h.probe.result = ConnectProbeResult.Verified(NEW_REPO.copy(isPublic = public), setOf("a"))
         h.connections.erasable = ErasureCount(1, 0)
         val ready = h.verify("foo/bar", candidate) as ConnectVerification.Ready
         return (ready.replacement as ConnectReplacement.Erases).dropsToken
@@ -352,16 +345,85 @@ class ConnectFlowTest {
         }
 
     @Test
-    fun `RC-15 확정이 예외로 끝나면 폐기를 부르지 않는다`() =
+    fun `RC-15 이어받기는 새 목록에 없는 노트만 센다`() =
+        runTest {
+            val h = FlowHarness()
+            h.probe.result = ConnectProbeResult.Verified(NEW_REPO, setOf("keep", "new"))
+            h.connections.erasable = ErasureCount(22, 9)
+            h.connections.adoptionErasable = { kept -> ErasureCount(22 - kept.size, 1) }
+
+            val ready = h.verify("foo/bar", null) as ConnectVerification.Ready
+
+            assertEquals(
+                ConnectReplacement.Erases(ErasureCount(20, 1), dropsToken = false, adopts = true),
+                ready.replacement,
+            )
+            assertEquals(listOf(setOf("keep", "new")), h.connections.adoptionKept)
+            assertEquals(0, h.connections.countCalls)
+            assertEquals(1, h.probe.calls.size)
+        }
+
+    @Test
+    fun `RC-15 이어받기에서 지울 노트가 없으면 확인이 없다`() =
+        runTest {
+            val h = FlowHarness()
+
+            val ready = h.verify("foo/bar", null) as ConnectVerification.Ready
+
+            assertEquals(ConnectReplacement.None, ready.replacement)
+        }
+
+    @Test
+    fun `RC-15 바꾸기의 개수는 옛 소스 전부다`() =
+        runTest {
+            val h = FlowHarness(connected = CONNECTED_OLD)
+            h.probe.result = ConnectProbeResult.Verified(NEW_REPO, setOf("keep"))
+            h.connections.erasable = ErasureCount(22, 3)
+
+            val ready = h.verify("foo/bar", null) as ConnectVerification.Ready
+
+            assertEquals(ErasureCount(22, 3), (ready.replacement as ConnectReplacement.Erases).count)
+            assertTrue(h.connections.adoptionKept.isEmpty())
+        }
+
+    @Test
+    fun `RC-15 확정 예외 뒤 이미 확정됐으면 연결된 것으로 끝난다`() =
+        runTest {
+            val h = FlowHarness()
+            h.connections.confirmFailure = IllegalStateException("저장 실패")
+            h.connections.confirmFailsAfterCommit = true
+            val ready = h.verify("foo/bar", null) as ConnectVerification.Ready
+
+            val terminal = h.connect(ready).toList().last()
+
+            assertEquals(ConnectProgress.Connected(SyncOutcome(added = 1)), terminal)
+            assertEquals(listOf("begin", "syncPending", "confirm"), h.connections.calls)
+        }
+
+    @Test
+    fun `RC-15 확정 예외 뒤 확정되지 않았으면 일시 오류로 끝난다`() =
         runTest {
             val h = FlowHarness()
             h.connections.confirmFailure = IllegalStateException("저장 실패")
             val ready = h.verify("foo/bar", null) as ConnectVerification.Ready
 
-            val terminal = h.connect(ready).toList().last()
+            val terminal = h.connect(ready).toList().last() as ConnectProgress.Failed
 
-            assertTrue(terminal is ConnectProgress.ConfirmFailed)
+            assertTrue(terminal.failure is SyncFailure.Server)
+            assertTrue(terminal.failure.cause is IllegalStateException)
             assertEquals(listOf("begin", "syncPending", "confirm"), h.connections.calls)
+        }
+
+    @Test
+    fun `RC-15 확정이 예외로 끝나도 폐기를 부르지 않는다`() =
+        runTest {
+            val h = FlowHarness(connected = CONNECTED_OLD)
+            h.connections.confirmFailure = IllegalStateException("저장 실패")
+            val ready = h.verify("foo/bar", null) as ConnectVerification.Ready
+
+            h.connect(ready).toList()
+
+            assertTrue("discard" !in h.connections.calls)
         }
 
     @OptIn(ExperimentalCoroutinesApi::class)

@@ -44,17 +44,18 @@ class VerifyConnectLinkUseCase @Inject constructor(
                 ConnectVerification.Ready(
                     connection = verified.connection,
                     candidateToken = token,
-                    replacement = replacementOf(verified.connection, token),
+                    replacement = replacementOf(verified, token),
                 )
             }
         }
     }
 
     private suspend fun replacementOf(
-        connection: RepoConnection,
+        verified: ConnectProbeResult.Verified,
         candidateToken: String?,
-    ): ConnectReplacement =
-        when (val current = connections.observeConnection().first()) {
+    ): ConnectReplacement {
+        val connection = verified.connection
+        return when (val current = connections.observeConnection().first()) {
             is ConnectionState.Connected -> {
                 if (current.connection.isSameRepositoryAs(connection)) {
                     ConnectReplacement.None
@@ -69,7 +70,7 @@ class VerifyConnectLinkUseCase @Inject constructor(
             }
 
             ConnectionState.None -> {
-                val count = connections.countErasable()
+                val count = connections.countAdoptionErasable(verified.noteIds)
                 if (count.notes > 0) {
                     ConnectReplacement.Erases(count = count, dropsToken = false, adopts = true)
                 } else {
@@ -77,4 +78,5 @@ class VerifyConnectLinkUseCase @Inject constructor(
                 }
             }
         }
+    }
 }

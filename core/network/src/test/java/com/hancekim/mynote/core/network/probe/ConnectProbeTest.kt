@@ -95,7 +95,10 @@ class ConnectProbeTest {
             val result = verify()
 
             assertEquals(
-                ConnectProbeResult.Verified(RepoConnection("Foo", "Bar", "main", "notes/index.json", isPublic = true)),
+                ConnectProbeResult.Verified(
+                    RepoConnection("Foo", "Bar", "main", "notes/index.json", isPublic = true),
+                    setOf("a"),
+                ),
                 result,
             )
             assertEquals("/repos/foo/bar", server.takeRequest().target)
@@ -112,6 +115,31 @@ class ConnectProbeTest {
         }
 
     @Test
+    fun `RC-5 무인증 목록 401 은 토큰 입력으로 넘어간다`() =
+        runTest {
+            respond(200, REPO_PUBLIC)
+            respond(401)
+            assertEquals(ConnectProbeFailure.NeedsToken, failure(verify()))
+
+            respond(200, REPO_PRIVATE)
+            respond(401)
+            assertEquals(ConnectProbeFailure.TokenRejected, failure(verify(token = CANDIDATE)))
+        }
+
+    @Test
+    fun `RC-15 확인이 읽은 목록의 노트 id 를 함께 돌려준다`() =
+        runTest {
+            respond(200, REPO_PUBLIC)
+            respond(200, "{}")
+            assertEquals(emptySet<String>(), (verify() as ConnectProbeResult.Verified).noteIds)
+
+            respond(200, REPO_PUBLIC)
+            respond(200, INDEX)
+            assertEquals(setOf("a"), (verify() as ConnectProbeResult.Verified).noteIds)
+            assertEquals(4, server.requestCount)
+        }
+
+    @Test
     fun `RC-6 후보 토큰으로 확인한다`() =
         runTest {
             respond(200, REPO_PRIVATE)
@@ -120,7 +148,10 @@ class ConnectProbeTest {
             val result = verify(token = CANDIDATE)
 
             assertEquals(
-                ConnectProbeResult.Verified(RepoConnection("Foo", "Bar", "main", "notes/index.json", isPublic = false)),
+                ConnectProbeResult.Verified(
+                    RepoConnection("Foo", "Bar", "main", "notes/index.json", isPublic = false),
+                    setOf("a"),
+                ),
                 result,
             )
             repeat(2) { assertEquals("Bearer $CANDIDATE", server.takeRequest().headers["Authorization"]) }

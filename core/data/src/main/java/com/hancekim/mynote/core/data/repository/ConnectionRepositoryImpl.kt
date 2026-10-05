@@ -88,6 +88,14 @@ class ConnectionRepositoryImpl internal constructor(
         return ErasureCount(local.noteCount(target.id), bookmarks.countByPrefix("${target.id.value}/"))
     }
 
+    override suspend fun countAdoptionErasable(keptDocIds: Set<String>): ErasureCount {
+        recovery.ensure()
+        val target = adoptableOf(local.sources()) ?: return ErasureCount(0, 0)
+        val gone = local.loadSourceState(target.id).keys - keptDocIds
+        val marked = bookmarks.observe().first().keys
+        return ErasureCount(gone.size, gone.count { "${target.id.value}/$it" in marked })
+    }
+
     override suspend fun isSeedEligible(): Boolean {
         recovery.ensure()
         return confirmedOf(local.sources()) == null && !state.isSeedBlocked()

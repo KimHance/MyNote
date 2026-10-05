@@ -50,7 +50,7 @@ design-foundation 은 Compose 를 들고 있어서 domain 이 그걸 의존하�
 ### 연결 흐름 UseCase 둘
 
 `VerifyConnectLinkUseCase`(링크 해석 → 오프라인이면 요청 없이 → probe → 성공 뒤에만 지울 개수 · 토큰 삭제 여부 `ConnectReplacement`)와
-`ConnectRepositoryUseCase`(begin → 첫 동기화 → confirm, 실패 · 취소면 discard, `Flow<ConnectProgress>`). **confirm 이 끝난 뒤에는 discard 를 부르지 않는다**
+`ConnectRepositoryUseCase`(begin → 첫 동기화 → confirm, 실패 · 취소면 discard, `Flow<ConnectProgress>`: Syncing · Connected · Failed). confirm 이 예외로 끝나면 연결 상태를 다시 읽어 확정됐으면 Connected, 아니면 Failed(Server) 로 끝낸다. 이어받기 개수는 `ConnectionRepository.countAdoptionErasable(새 목록 id)` — 새 목록에 없는 노트만. **confirm 이 끝난 뒤에는 discard 를 부르지 않는다**
 (확정된 연결의 토큰만 시도 전 값으로 돌아간다). 첫 동기화 실패는 `SyncFailure` 6종으로 나가고 그 밖의 예외는 `Server` 로 감싼다. 시험: `ConnectFlowTest`.
 
 ### 토큰 인터페이스가 둘인 이유 (중복이 아니다)
