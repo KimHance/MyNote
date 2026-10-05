@@ -92,6 +92,10 @@ dispatch: throttle.isIdle() 로 게이트  →  reduce(현재 스택, 명령)  �
   **`previousEntries` 가 비면 `NavDisplay` 가 뒤로가기를 가져가지 않는다** — nav3 가
   `NavigationBackHandler(isBackEnabled = scene.previousEntries.isNotEmpty())` 로 등록한다. 홈 단독일 때
   back 이 우리 종료 핸들러까지 내려오는 건 이 성질에 기대고 있다.
+- **맨 위가 `NotesNavKey.Connect` 이면 `null` 을 돌려 기본 한 칸으로 떨어진다** — 넓은 창에서도 목록 칸·헤더 없이
+  전체 폭이다(RC-14). 판정은 `entry.contentKey` 를 같은 기본값으로 만든 `Connect` 엔트리의 것과 비교한다
+  (`NavEntry.key` 는 private 이고 기본 `contentKey` 는 문자열이 아니라 (문자열, 클래스) 쌍이다). 엔트리에
+  `contentKey` 를 직접 주는 코드가 생기면 이 판정이 조용히 빗나간다. 시험: `RC-14 연결 화면은 …`.
 - **슬롯(`panel`/`header`/`panelExpanded`)은 호출부에서 `remember` 로 정체성을 고정**해 넘긴다.
   매 컴포지션 새 람다가 들어오면 전략이 달라진 것으로 보여 씬이 통째로 다시 만들어진다. 안의 값은
   `rememberUpdatedState` 로 읽는다. 특히 `panelExpanded` 는 `remember` 키에서 빼야 한다 —

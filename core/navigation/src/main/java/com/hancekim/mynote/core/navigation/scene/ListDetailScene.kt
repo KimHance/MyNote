@@ -24,8 +24,11 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.scene.Scene
 import androidx.navigation3.scene.SceneStrategy
 import androidx.navigation3.scene.SceneStrategyScope
+import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import com.hancekim.mynote.core.navigation.motion.SceneMotion
 import com.hancekim.mynote.core.navigation.shared.LocalNavAnimatedScope
+
+private val CONNECT_CONTENT_KEY: Any = NavEntry(NotesNavKey.Connect) {}.contentKey
 
 internal data class ListDetailScene<T : Any>(
     override val key: Any,
@@ -94,6 +97,7 @@ class ListDetailSceneStrategy<T : Any>(
 ) : SceneStrategy<T> {
     override fun SceneStrategyScope<T>.calculateScene(entries: List<NavEntry<T>>): Scene<T>? {
         val detail = entries.lastOrNull() ?: return null
+        if (detail.contentKey == CONNECT_CONTENT_KEY) return null
         return ListDetailScene(
             key = sceneKey,
             previousEntries = entries.dropLast(1),
