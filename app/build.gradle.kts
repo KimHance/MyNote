@@ -6,8 +6,6 @@ plugins {
     alias(libs.plugins.hancenote.android.hilt)
 }
 
-// debug 빌드만 local.properties 의 github.owner/repo/branch/token 을 "첫 실행 시드" 로 내장한다
-// (개발 편의 · RC-19). release 는 값이 있어도 항상 빈 값 — 저장소 연결은 앱 화면에서 한다.
 val localProps =
     Properties().apply {
         val f = rootProject.file("local.properties")
@@ -27,7 +25,6 @@ android {
                 .toInt()
         versionName = libs.versions.appVersionName.get()
 
-        // 코드에 기본 저장소를 두지 않는다 — 값은 아래 buildTypes 가 정한다.
         buildConfigField("String", "GITHUB_OWNER", "\"\"")
         buildConfigField("String", "GITHUB_REPO", "\"\"")
         buildConfigField("String", "GITHUB_BRANCH", "\"\"")
@@ -53,8 +50,6 @@ android {
             buildConfigField("String", "GITHUB_TOKEN", "\"${prop("github.token")}\"")
         }
         release {
-            // local.properties 에 값이 있어도 공개 빌드에는 시드 · 토큰이 없다(결정 22).
-            // defaultConfig 가 나중에 바뀌어도 새지 않도록 여기서도 못 박는다.
             buildConfigField("String", "GITHUB_OWNER", "\"\"")
             buildConfigField("String", "GITHUB_REPO", "\"\"")
             buildConfigField("String", "GITHUB_BRANCH", "\"\"")
