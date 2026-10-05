@@ -27,6 +27,7 @@ data class ConnectUiState(
     val tokenPanel: TokenPanelUi? = null,
     val notice: ConnectNotice? = null,
     val confirm: ConfirmUi? = null,
+    val resetCount: Int = 0,
 ) : MviState
 
 sealed interface ConnectIntent : MviEvent {

@@ -29,7 +29,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -63,7 +62,7 @@ internal fun monoAnnotated(
     @StringRes res: Int,
     vararg args: String,
 ): AnnotatedString {
-    val text = stringResource(res, *args)
+    val text = keepWordsResource(res, *args)
     val mono = SpanStyle(fontFamily = MyNoteTheme.textStyles.mono.fontFamily, color = MyNoteTheme.colors.bodyText)
     return remember(text, mono) {
         buildAnnotatedString {
@@ -137,7 +136,9 @@ internal fun FieldLabel(
 ) {
     Text(
         text = text,
-        style = MyNoteTheme.textStyles.caption.copy(fontWeight = FontWeight.W600),
+        style =
+            MyNoteTheme.textStyles.caption
+                .copy(fontWeight = FontWeight.W600),
         color = MyNoteTheme.colors.text2,
         modifier = modifier,
     )
@@ -190,7 +191,7 @@ internal fun LinkField(
         Box(Modifier.weight(1f).padding(end = 8.dp)) {
             if (value.isEmpty()) {
                 Text(
-                    text = stringResource(R.string.notes_connect_link_hint),
+                    text = keepWordsResource(R.string.notes_connect_link_hint),
                     style = MyNoteTheme.textStyles.mono,
                     color = colors.text3,
                     maxLines = 1,
@@ -231,7 +232,7 @@ internal fun TokenField(
         Box(Modifier.weight(1f)) {
             if (draft.text.isEmpty()) {
                 Text(
-                    text = stringResource(R.string.notes_settings_token_placeholder),
+                    text = keepWordsResource(R.string.notes_settings_token_placeholder),
                     style = MyNoteTheme.textStyles.mono,
                     color = colors.text3,
                     maxLines = 1,
@@ -262,11 +263,11 @@ internal fun TokenField(
         }
         QuietButton(
             text =
-                stringResource(
+                keepWordsResource(
                     if (draft.revealed) R.string.notes_settings_token_hide else R.string.notes_settings_token_show,
                 ),
             contentDescription =
-                stringResource(
+                keepWordsResource(
                     if (draft.revealed) {
                         R.string.notes_settings_token_hide_a11y
                     } else {
@@ -306,7 +307,7 @@ private fun HowToLine(
     val colors = MyNoteTheme.colors
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
-            text = stringResource(label),
+            text = keepWordsResource(label),
             style = MyNoteTheme.textStyles.bodySmall,
             color = colors.text2,
         )
@@ -316,8 +317,10 @@ private fun HowToLine(
             color = colors.text3,
         )
         Text(
-            text = stringResource(value),
-            style = MyNoteTheme.textStyles.bodySmall.copy(fontWeight = FontWeight.W600),
+            text = keepWordsResource(value),
+            style =
+                MyNoteTheme.textStyles.bodySmall
+                    .copy(fontWeight = FontWeight.W600),
             color = colors.text,
         )
     }
@@ -329,7 +332,7 @@ internal fun TokenCreateButton(
     modifier: Modifier = Modifier,
 ) {
     SecondaryButton(
-        text = stringResource(R.string.notes_token_create),
+        text = keepWordsResource(R.string.notes_token_create),
         onClick = onClick,
         trailingIcon = ConnectIcons.External,
         modifier = modifier,
@@ -370,19 +373,6 @@ internal fun NoticeBox(
 }
 
 @Composable
-internal fun WarnLine(
-    text: String,
-    modifier: Modifier = Modifier,
-) {
-    Text(
-        text = text,
-        style = MyNoteTheme.textStyles.bodySmall,
-        color = MyNoteTheme.colors.warnText,
-        modifier = modifier.semantics { liveRegion = LiveRegionMode.Polite },
-    )
-}
-
-@Composable
 internal fun VerifyingLine(
     text: String,
     modifier: Modifier = Modifier,
@@ -396,7 +386,9 @@ internal fun VerifyingLine(
         ProgressRing()
         Text(
             text = text,
-            style = MyNoteTheme.textStyles.caption.copy(fontWeight = FontWeight.W500),
+            style =
+                MyNoteTheme.textStyles.caption
+                    .copy(fontWeight = FontWeight.W500),
             color = MyNoteTheme.colors.text2,
             modifier = Modifier.weight(1f),
         )

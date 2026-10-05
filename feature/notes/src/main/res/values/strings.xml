@@ -275,13 +275,12 @@
     <string name="notes_connect_action">연결</string>
     <string name="notes_connect_reading">연결 정보 읽는 중</string>
     <string name="notes_connect_found">저장소 %1$s · 브랜치 %2$s · 노트 위치 %3$s</string>
-    <string name="notes_connect_branch_default">기본 브랜치</string>
+    <string name="notes_connect_found_default">저장소 %1$s · 기본 브랜치 · 노트 위치 %2$s</string>
     <string name="notes_connect_probing">저장소 확인 중</string>
     <string name="notes_connect_syncing_title">노트 가져오는 중</string>
     <string name="notes_connect_syncing_desc">끝나면 연결이 완료됩니다. 지금은 닫을 수 없습니다.</string>
     <string name="notes_connect_change_title">저장소 바꾸기</string>
     <string name="notes_connect_attach_title">저장소 연결</string>
-    <string name="notes_connect_back_locked">연결하는 중에는 닫을 수 없습니다</string>
     <string name="notes_connect_token_title">토큰이 필요합니다</string>
     <string name="notes_connect_token_desc">비공개 저장소이거나 주소를 확인해야 할 수 있습니다. 비공개라면 읽기 전용 토큰을 입력하세요.</string>
     <string name="notes_connect_token_label">액세스 토큰</string>
@@ -337,6 +336,7 @@
     <string name="notes_repo_connect">저장소 연결</string>
     <string name="notes_repo_label">저장소</string>
     <string name="notes_repo_value">%1$s · 브랜치 %2$s · 노트 위치 %3$s</string>
+    <string name="notes_repo_value_default">%1$s · 기본 브랜치 · 노트 위치 %2$s</string>
     <string name="notes_repo_last_ok">마지막 동기화 성공</string>
     <string name="notes_repo_last_fail">마지막 동기화 실패 · %1$s</string>
     <string name="notes_repo_kind_offline">인터넷 연결</string>

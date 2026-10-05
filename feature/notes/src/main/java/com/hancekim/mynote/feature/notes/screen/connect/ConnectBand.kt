@@ -18,7 +18,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -55,12 +54,14 @@ internal fun ConnectBand(
     ) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
-                text = stringResource(R.string.notes_home_connect_title),
-                style = MyNoteTheme.textStyles.bodySmall.copy(fontWeight = FontWeight.W700),
+                text = keepWordsResource(R.string.notes_home_connect_title),
+                style =
+                    MyNoteTheme.textStyles.bodySmall
+                        .copy(fontWeight = FontWeight.W700),
                 color = colors.text,
             )
             Text(
-                text = stringResource(R.string.notes_home_connect_desc),
+                text = keepWordsResource(R.string.notes_home_connect_desc),
                 style = MyNoteTheme.textStyles.caption,
                 color = colors.text2,
             )
@@ -70,7 +71,7 @@ internal fun ConnectBand(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(
-                text = stringResource(R.string.notes_home_connect_action),
+                text = keepWordsResource(R.string.notes_home_connect_action),
                 style = MyNoteTheme.textStyles.button.copy(fontWeight = FontWeight.W700),
                 color = colors.accent,
                 maxLines = 1,

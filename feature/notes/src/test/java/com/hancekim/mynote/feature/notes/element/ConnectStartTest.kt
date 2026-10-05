@@ -3,6 +3,9 @@ package com.hancekim.mynote.feature.notes.element
 import com.hancekim.mynote.core.domain.model.ConnectionState
 import com.hancekim.mynote.core.domain.model.RepoConnection
 import com.hancekim.mynote.core.domain.model.SourceId
+import com.hancekim.mynote.feature.notes.CategoryUi
+import com.hancekim.mynote.feature.notes.NoteUi
+import kotlinx.collections.immutable.persistentListOf
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -107,6 +110,24 @@ class ConnectStartTest {
 
         assertEquals(null, screenCleanupOf(null, old))
         assertEquals(null, screenCleanupOf(old, old))
+    }
+
+    @Test
+    fun `RC-1 로딩 직후 recentNotes 가 비어 있어도 노트 있음은 categories 와 같은 원천에서 낸다`() {
+        val withNotes =
+            NotesUiState(
+                connection = ConnectionState.None,
+                notesLoaded = true,
+                seedPending = false,
+                categories = persistentListOf(CategoryUi("android", persistentListOf(NoteUi("a", "제목", "2026.06.12")))),
+                recentNotes = persistentListOf(),
+            )
+        val notLoaded = withNotes.copy(notesLoaded = false, categories = persistentListOf())
+        val loadedEmpty = withNotes.copy(categories = persistentListOf())
+
+        assertEquals(StartDestination.Shell, withNotes.start)
+        assertEquals(StartDestination.Reading, notLoaded.start)
+        assertEquals(StartDestination.ConnectRoot, loadedEmpty.start)
     }
 
     private fun connected(

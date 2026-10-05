@@ -106,6 +106,11 @@ private const val UNDO_WINDOW_MILLIS = 3200L
 
 private const val GENERATE_TIMEOUT_MILLIS = 60_000L
 
+private data class CategoryLoad(
+    val loaded: Boolean,
+    val list: ImmutableList<CategoryUi>,
+)
+
 private data class QuizUndo(
     val message: String,
     val id: Int,
@@ -184,7 +189,6 @@ class NotesViewModel @Inject constructor(
     private val seedPending = trigger(true)
     private val lastSync = trigger<LastSync>(LastSync.None)
     private val disconnectDialog = trigger<DisconnectDialogUi?>(null)
-    private val categoriesLoaded = trigger(false)
     private val notice = trigger<NoticeUi?>(null)
     private var clearedToken: String? = null
     private var noticeSeq = 0
@@ -199,10 +203,12 @@ class NotesViewModel @Inject constructor(
             .catch { emit(emptyList()) }
             .map { it.toUi() }
 
-    private val categoryList =
+    private val categoryLoad =
         categories
-            .onEach { categoriesLoaded.value = true }
-            .triggerIn(persistentListOf(), started = SharingStarted.Lazily)
+            .map { CategoryLoad(loaded = true, list = it) }
+            .triggerIn(CategoryLoad(loaded = false, list = persistentListOf()), started = SharingStarted.Lazily)
+
+    private val categoryList: Flow<ImmutableList<CategoryUi>> = categoryLoad.map { it.list }
 
     private val bookmarkEntries =
         observeBookmarks()
@@ -296,7 +302,7 @@ class NotesViewModel @Inject constructor(
 
     override fun build() =
         NotesUiState(
-            categories = categoryList.value,
+            categories = categoryLoad.value.list,
             visibleCategories = visibleCategories.value,
             recentNotes = recentNotes.value,
             bookmarkedIds = bookmarkedIds.value,
@@ -316,7 +322,7 @@ class NotesViewModel @Inject constructor(
             maskedToken = maskToken(appliedToken.value),
             tokenEdit = tokenEdit.value,
             connection = connection.value,
-            notesLoaded = categoriesLoaded.value,
+            notesLoaded = categoryLoad.value.loaded,
             seedPending = seedPending.value,
             lastSync = lastSync.value,
             disconnectDialog = disconnectDialog.value,
@@ -499,7 +505,7 @@ class NotesViewModel @Inject constructor(
                 val eventId = removedEventId
                 removedBookmark = null
                 removedEventId = null
-                if (categoryList.value.none { c -> c.notes.any { it.id == entry.noteId } }) return
+                if (categoryLoad.value.list.none { c -> c.notes.any { it.id == entry.noteId } }) return
                 launchSafely { addBookmark(entry.noteId, entry.addedAt) }
                 if (eventId !=
                     null
@@ -663,11 +669,15 @@ class NotesViewModel @Inject constructor(
 
     private fun categoryOf(noteId: String?): String? {
         if (noteId == null) return null
-        return categoryList.value.firstOrNull { c -> c.notes.any { it.id == noteId } }?.name
+        return categoryLoad.value.list
+            .firstOrNull { c -> c.notes.any { it.id == noteId } }
+            ?.name
     }
 
     private fun isReadable(noteId: String): Boolean =
-        categoryList.value.firstNotNullOfOrNull { c -> c.notes.firstOrNull { it.id == noteId } }?.readable != false
+        categoryLoad.value.list
+            .firstNotNullOfOrNull { c -> c.notes.firstOrNull { it.id == noteId } }
+            ?.readable != false
 
     private fun recordSession(session: ReadSession?) {
         val closed = session ?: return

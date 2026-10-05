@@ -41,7 +41,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
@@ -93,7 +92,7 @@ internal fun ConnectRoute(
     val draft = drafts.connectToken
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val browserMissing = stringResource(R.string.notes_token_browser_missing)
+    val browserMissing = keepWordsResource(R.string.notes_token_browser_missing)
     val keyboard = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
@@ -105,6 +104,13 @@ internal fun ConnectRoute(
     }
     LaunchedEffect(state.step) {
         if (state.step == ConnectStep.Done) draft.clear()
+        if (state.step == ConnectStep.Probing) {
+            focusManager.clearFocus(force = true)
+            keyboard?.hide()
+        }
+    }
+    LaunchedEffect(state.resetCount) {
+        if (state.resetCount > 0) draft.clear()
     }
 
     val backAction = connectBackAction(place, state.step)
@@ -117,7 +123,7 @@ internal fun ConnectRoute(
     }
 
     val title =
-        stringResource(
+        keepWordsResource(
             if (hasConnection) R.string.notes_connect_change_title else R.string.notes_connect_attach_title,
         )
     val content =
@@ -248,7 +254,7 @@ internal fun ConnectScreen(
                         onCancel = { onIntent(ConnectIntent.CancelProbe) },
                         showProbing = panel == null,
                     )
-                    state.notice?.let { NoticeBox(text = stringResource(connectNoticeRes(it))) }
+                    state.notice?.let { NoticeBox(text = keepWordsResource(connectNoticeRes(it))) }
                     if (panel != null) {
                         TokenCard(
                             panel = panel,
@@ -264,7 +270,7 @@ internal fun ConnectScreen(
                         SyncProgressCard()
                     } else {
                         PrimaryButton(
-                            text = stringResource(R.string.notes_connect_action),
+                            text = keepWordsResource(R.string.notes_connect_action),
                             enabled = canSubmit,
                             onClick = submit,
                             modifier = Modifier.fillMaxWidth().bringIntoViewRequester(buttonInView),
@@ -285,14 +291,14 @@ private fun ConnectIntro(
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         if (place == ConnectPlace.Root) {
             Text(
-                text = stringResource(R.string.notes_connect_title),
+                text = keepWordsResource(R.string.notes_connect_title),
                 style = MyNoteTheme.textStyles.title,
                 color = colors.text,
                 modifier = Modifier.semantics { heading() },
             )
         }
         Text(
-            text = stringResource(R.string.notes_connect_intro),
+            text = keepWordsResource(R.string.notes_connect_intro),
             style = MyNoteTheme.textStyles.body,
             color = colors.bodyText,
         )
@@ -313,7 +319,7 @@ private fun LinkBlock(
     val rejected = check as? LinkCheck.Rejected
     val warn = rejected != null && rejected.reason != ConnectLinkRejection.Empty
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        FieldLabel(text = stringResource(R.string.notes_connect_link_label))
+        FieldLabel(text = keepWordsResource(R.string.notes_connect_link_label))
         LinkField(
             value = state.link,
             onValueChange = onLinkChange,
@@ -324,14 +330,19 @@ private fun LinkBlock(
         when {
             state.step == ConnectStep.Probing && showProbing -> {
                 VerifyingLine(
-                    text = stringResource(R.string.notes_connect_probing),
-                    trailing = { QuietButton(text = stringResource(DsR.string.ds_action_cancel), onClick = onCancel) },
+                    text = keepWordsResource(R.string.notes_connect_probing),
+                    trailing = {
+                        QuietButton(
+                            text = keepWordsResource(DsR.string.ds_action_cancel),
+                            onClick = onCancel,
+                        )
+                    },
                 )
             }
 
             rejected != null -> {
                 Text(
-                    text = stringResource(linkReasonRes(rejected.reason)),
+                    text = keepWordsResource(linkReasonRes(rejected.reason)),
                     style = MyNoteTheme.textStyles.bodySmall,
                     color = if (warn) colors.warnText else colors.text3,
                     modifier = Modifier.padding(horizontal = 4.dp),
@@ -341,12 +352,11 @@ private fun LinkBlock(
             check is LinkCheck.Found -> {
                 Text(
                     text =
-                        monoAnnotated(
-                            R.string.notes_connect_found,
-                            check.repoName,
-                            check.branch ?: stringResource(R.string.notes_connect_branch_default),
-                            check.folder,
-                        ),
+                        if (check.branch == null) {
+                            monoAnnotated(R.string.notes_connect_found_default, check.repoName, check.folder)
+                        } else {
+                            monoAnnotated(R.string.notes_connect_found, check.repoName, check.branch, check.folder)
+                        },
                     style = MyNoteTheme.textStyles.bodySmall,
                     color = colors.text2,
                     modifier = Modifier.padding(horizontal = 4.dp),
@@ -397,7 +407,7 @@ private fun TokenCard(
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
                     text =
-                        stringResource(
+                        keepWordsResource(
                             if (panel.reason == TokenReason.Limit) {
                                 R.string.notes_token_err_limit_title
                             } else {
@@ -410,7 +420,7 @@ private fun TokenCard(
                 )
                 Text(
                     text =
-                        stringResource(
+                        keepWordsResource(
                             if (panel.reason == TokenReason.Limit) {
                                 R.string.notes_token_err_limit_desc
                             } else {
@@ -425,19 +435,24 @@ private fun TokenCard(
         TokenHowTo()
         Row { TokenCreateButton(onClick = onCreateToken) }
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            FieldLabel(text = stringResource(R.string.notes_connect_token_label))
+            FieldLabel(text = keepWordsResource(R.string.notes_connect_token_label))
             TokenField(
                 draft = draft,
                 locked = locked,
                 warn = panel.failure != null,
                 onDone = onDone,
             )
-            panel.failure?.let { WarnLine(text = stringResource(tokenFailureRes(it))) }
-            if (draft.isClassic) NoticeBox(text = stringResource(R.string.notes_token_classic_warn))
+            panel.failure?.let { NoticeBox(text = keepWordsResource(tokenFailureRes(it))) }
+            if (draft.isClassic) NoticeBox(text = keepWordsResource(R.string.notes_token_classic_warn))
             if (probing) {
                 VerifyingLine(
-                    text = stringResource(R.string.notes_token_verifying),
-                    trailing = { QuietButton(text = stringResource(DsR.string.ds_action_cancel), onClick = onCancel) },
+                    text = keepWordsResource(R.string.notes_token_verifying),
+                    trailing = {
+                        QuietButton(
+                            text = keepWordsResource(DsR.string.ds_action_cancel),
+                            onClick = onCancel,
+                        )
+                    },
                 )
             }
         }
@@ -463,12 +478,12 @@ private fun SyncProgressCard() {
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(
-                text = stringResource(R.string.notes_connect_syncing_title),
+                text = keepWordsResource(R.string.notes_connect_syncing_title),
                 style = MyNoteTheme.textStyles.cardTitle,
                 color = colors.text,
             )
             Text(
-                text = stringResource(R.string.notes_connect_syncing_desc),
+                text = keepWordsResource(R.string.notes_connect_syncing_desc),
                 style = MyNoteTheme.textStyles.caption,
                 color = colors.text3,
             )

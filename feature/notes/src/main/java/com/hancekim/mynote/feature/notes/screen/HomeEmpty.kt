@@ -19,7 +19,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
@@ -34,6 +33,7 @@ import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.HomeBody
 import com.hancekim.mynote.feature.notes.screen.connect.ConnectIcons
 import com.hancekim.mynote.feature.notes.screen.connect.ProgressBar
+import com.hancekim.mynote.feature.notes.screen.connect.keepWordsResource
 
 @Composable
 internal fun HomeEmpty(
@@ -67,7 +67,7 @@ internal fun HomeEmpty(
                 modifier = modifier,
             ) {
                 Box(Modifier.minimumInteractiveComponentSize(), contentAlignment = Alignment.Center) {
-                    SecondaryButton(text = stringResource(R.string.notes_action_refresh), onClick = onRefresh)
+                    SecondaryButton(text = keepWordsResource(R.string.notes_action_refresh), onClick = onRefresh)
                 }
             }
         }
@@ -112,16 +112,20 @@ private fun EmptyColumn(
         }
         Spacer(Modifier.height(18.dp))
         Text(
-            text = stringResource(title),
-            style = MyNoteTheme.textStyles.title.copy(fontSize = 17.sp, fontWeight = FontWeight.W700),
+            text = keepWordsResource(title),
+            style =
+                MyNoteTheme.textStyles.title
+                    .copy(fontSize = 17.sp, fontWeight = FontWeight.W700),
             color = colors.text,
             textAlign = TextAlign.Center,
             modifier = Modifier.semantics { heading() },
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = stringResource(desc),
-            style = MyNoteTheme.textStyles.body.copy(fontSize = 14.sp, lineHeight = 23.sp),
+            text = keepWordsResource(desc),
+            style =
+                MyNoteTheme.textStyles.body
+                    .copy(fontSize = 14.sp, lineHeight = 23.sp),
             color = colors.text2,
             textAlign = TextAlign.Center,
             modifier = Modifier.widthIn(max = 280.dp),

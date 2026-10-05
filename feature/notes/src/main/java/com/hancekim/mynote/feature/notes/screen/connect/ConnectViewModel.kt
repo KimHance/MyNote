@@ -2,11 +2,14 @@ package com.hancekim.mynote.feature.notes.screen.connect
 
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
 import com.hancekim.mynote.core.common.mvi.MviViewModel
 import com.hancekim.mynote.core.domain.ConnectRepositoryUseCase
+import com.hancekim.mynote.core.domain.ObserveConnectionUseCase
 import com.hancekim.mynote.core.domain.VerifyConnectLinkUseCase
 import com.hancekim.mynote.core.domain.connect.ConnectProgress
 import com.hancekim.mynote.core.domain.connect.ConnectVerification
+import com.hancekim.mynote.core.domain.model.ConnectionState
 import com.hancekim.mynote.feature.notes.element.ConfirmUi
 import com.hancekim.mynote.feature.notes.element.ConnectIssue
 import com.hancekim.mynote.feature.notes.element.ConnectNotice
@@ -20,7 +23,12 @@ import com.hancekim.mynote.feature.notes.element.linkCheckOf
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -33,6 +41,7 @@ class ConnectViewModel @Inject constructor(
     private val savedState: SavedStateHandle,
     private val verifyConnectLink: VerifyConnectLinkUseCase,
     private val connectRepository: ConnectRepositoryUseCase,
+    observeConnection: ObserveConnectionUseCase,
 ) : MviViewModel<ConnectUiState, ConnectIntent>() {
     private val link = trigger(savedState.get<String>(KEY_LINK).orEmpty())
     private val linkCheck = link.map(::linkCheckOf).triggerIn(linkCheckOf(link.value))
@@ -40,10 +49,26 @@ class ConnectViewModel @Inject constructor(
     private val tokenPanel = trigger<TokenPanelUi?>(null)
     private val notice = trigger<ConnectNotice?>(null)
     private val confirm = trigger<ConfirmUi?>(null)
+    private val resetCount = trigger(0)
 
     private var job: Job? = null
     private var resetJob: Job? = null
     private var pending: ConnectVerification.Ready? = null
+    private var wasConnected = false
+
+    init {
+        observeConnection()
+            .catch { }
+            .distinctUntilChanged()
+            .onEach { state ->
+                val connected = state is ConnectionState.Connected
+                if (wasConnected && !connected) {
+                    resetJob?.cancel()
+                    reset()
+                }
+                wasConnected = connected
+            }.launchIn(viewModelScope)
+    }
 
     override fun build() =
         ConnectUiState(
@@ -53,6 +78,7 @@ class ConnectViewModel @Inject constructor(
             tokenPanel = tokenPanel.value,
             notice = notice.value,
             confirm = confirm.value,
+            resetCount = resetCount.value,
         )
 
     override fun onFailure(cause: Throwable) {
@@ -184,12 +210,21 @@ class ConnectViewModel @Inject constructor(
         resetJob =
             launchSafely {
                 delay(DONE_RESET_MILLIS.milliseconds)
-                savedState[KEY_LINK] = ""
-                link.value = ""
-                tokenPanel.value = null
-                notice.value = null
-                step.value = ConnectStep.Editing
+                reset()
             }
+    }
+
+    private fun reset() {
+        job?.cancel()
+        job = null
+        pending = null
+        savedState[KEY_LINK] = ""
+        link.value = ""
+        tokenPanel.value = null
+        notice.value = null
+        confirm.value = null
+        step.value = ConnectStep.Editing
+        resetCount.update { it + 1 }
     }
 }
 

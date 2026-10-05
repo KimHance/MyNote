@@ -104,7 +104,7 @@ data class NotesUiState(
                 notes =
                     when {
                         !notesLoaded -> NotesKnown.Unknown
-                        recentNotes.isEmpty() -> NotesKnown.Empty
+                        totalCount == 0 -> NotesKnown.Empty
                         else -> NotesKnown.Some
                     },
                 seedPending = seedPending,
