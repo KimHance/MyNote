@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -357,12 +358,9 @@ class ConnectionRepositoryTest {
             val repo = h.connections()
             val pending = repo.begin(conn(isPublic = false), "T1")
             repo.syncPending(pending).getOrThrow()
+            val attempt = h.state.attemptRecord
             repo.confirm(pending)
-            h.state.attemptRecord = h.state.attemptRecord ?: AttemptRecord(
-                "c1",
-                ConnectionConfigCodec.encode(conn(isPublic = false)),
-                null,
-            )
+            h.state.attemptRecord = attempt
 
             h.connections().recover()
 
@@ -613,5 +611,115 @@ class ConnectionRepositoryTest {
             connected.connections().disconnect().getOrThrow()
             connected.notes().sync().getOrThrow()
             assertTrue(connected.local.sourceRows.isEmpty())
+        }
+
+    @Test
+    fun `RC-15 확정이 승격 뒤에 취소돼도 확정 소스가 남는다`() =
+        runTest {
+            val h =
+                Harness(
+                    local = FakeLocal(initial = listOf(cached("a", "h1"))),
+                    bookmarks = FakeBookmarkStore(mapOf("s0/a" to 1L)),
+                    adapter = FakeAdapter(listOf(entry("x", "h1"))),
+                )
+            val repo = h.connections()
+            val pending = repo.begin(conn(owner = "other", repo = "repo"), null)
+            repo.syncPending(pending).getOrThrow()
+            val job = launch { repo.confirm(pending) }
+            h.bookmarks.onRemoveByPrefix = {
+                job.cancel()
+                yield()
+            }
+
+            job.join()
+            repo.discard(pending)
+
+            assertEquals(setOf("c1/x"), h.keys())
+            assertEquals(SourceId("c1"), (h.connection() as ConnectionState.Connected).sourceId)
+            assertNull(h.state.attemptRecord)
+            assertFalse(repo.observeAttempting().first())
+        }
+
+    @Test
+    fun `RC-15 이미 확정된 소스는 폐기가 지우지 않는다`() =
+        runTest {
+            val h = Harness(local = FakeLocal(connected = false), adapter = FakeAdapter(listOf(entry("a", "h1"))))
+            val repo = h.connections()
+            val (pending, _) = repo.connect(conn())
+
+            repo.discard(pending)
+
+            assertEquals(setOf("c1/a"), h.keys())
+            assertTrue(h.connection() is ConnectionState.Connected)
+        }
+
+    @Test
+    fun `RC-15 · SY-1 confirm 이 예외로 끝나도 시도 중 표시가 풀린다`() =
+        runTest {
+            val h = Harness(adapter = FakeAdapter(listOf(entry("x", "h1"))))
+            val repo = h.connections()
+            val pending = repo.begin(conn(owner = "other", repo = "repo"), null)
+            repo.syncPending(pending).getOrThrow()
+            assertTrue(repo.observeAttempting().first())
+            h.local.promoteError = IllegalStateException("disk")
+
+            assertTrue(runCatching { repo.confirm(pending) }.isFailure)
+
+            assertFalse(repo.observeAttempting().first())
+        }
+
+    @Test
+    fun `RC-6 같은 설정에 새 토큰으로 연결하다 죽으면 시도 전 토큰으로 돌아온다`() =
+        runTest {
+            val h = Harness(tokens = FakeTokenStore("T0"), adapter = FakeAdapter(listOf(entry("a", "h1"))))
+            val running = h.connections()
+            val pending = running.begin(conn(), "T1")
+            running.syncPending(pending).getOrThrow()
+            assertEquals("T1", h.tokens.currentToken())
+
+            h.connections().recover()
+
+            assertEquals("T0", h.tokens.currentToken())
+            assertNull(h.state.attemptRecord)
+        }
+
+    @Test
+    fun `RC-15 공개 저장소로 바꾸면 확정 때 옛 토큰을 지운다`() =
+        runTest {
+            val h = Harness(tokens = FakeTokenStore("T0"), adapter = FakeAdapter(listOf(entry("x", "h1"))))
+
+            h.connections().connect(conn(owner = "other", repo = "repo", isPublic = true))
+
+            assertNull(h.tokens.currentToken())
+        }
+
+    @Test
+    fun `RC-7 한도로 넣은 토큰은 공개 연결에서도 남는다`() =
+        runTest {
+            val h = Harness(tokens = FakeTokenStore("T0"), adapter = FakeAdapter(listOf(entry("x", "h1"))))
+
+            h.connections().connect(conn(owner = "other", repo = "repo", isPublic = true), token = "T1")
+
+            assertEquals("T1", h.tokens.currentToken())
+        }
+
+    @Test
+    fun `RC-15 같은 저장소 변경은 확정 때 토큰을 지우지 않는다`() =
+        runTest {
+            val h = Harness(tokens = FakeTokenStore("T0"), adapter = FakeAdapter(listOf(entry("a", "h1"))))
+
+            h.connections().connect(conn(branch = "dev", isPublic = true))
+
+            assertEquals("T0", h.tokens.currentToken())
+        }
+
+    @Test
+    fun `RC-15 비공개로 바꾸면 토큰을 지우지 않는다`() =
+        runTest {
+            val h = Harness(tokens = FakeTokenStore("T0"), adapter = FakeAdapter(listOf(entry("x", "h1"))))
+
+            h.connections().connect(conn(owner = "other", repo = "repo", isPublic = false))
+
+            assertEquals("T0", h.tokens.currentToken())
         }
 }

@@ -2,8 +2,9 @@ package com.hancekim.mynote.core.data.datasource
 
 data class AttemptRecord(
     val sourceId: String,
-    val targetConfigJson: String,
+    val attemptId: String,
     val tokenBefore: String?,
+    val candidateToken: Boolean,
 )
 
 interface ConnectionStateStore {

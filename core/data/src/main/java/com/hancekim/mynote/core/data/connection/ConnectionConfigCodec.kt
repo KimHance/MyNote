@@ -7,6 +7,7 @@ import kotlinx.serialization.json.Json
 data class DecodedConfig(
     val connection: RepoConnection,
     val pending: Boolean,
+    val attemptId: String?,
 )
 
 object ConnectionConfigCodec {
@@ -21,6 +22,7 @@ object ConnectionConfigCodec {
     fun encode(
         connection: RepoConnection,
         pending: Boolean = false,
+        attemptId: String? = null,
     ): String =
         json.encodeToString(
             ConfigDto.serializer(),
@@ -31,6 +33,7 @@ object ConnectionConfigCodec {
                 indexPath = connection.indexPath,
                 isPublic = connection.isPublic,
                 pending = pending,
+                attemptId = attemptId,
             ),
         )
 
@@ -41,6 +44,7 @@ object ConnectionConfigCodec {
         return DecodedConfig(
             connection = RepoConnection(dto.owner, dto.repo, dto.branch, dto.indexPath, dto.isPublic),
             pending = dto.pending,
+            attemptId = dto.attemptId,
         )
     }
 }
@@ -53,4 +57,5 @@ private data class ConfigDto(
     val indexPath: String,
     val isPublic: Boolean,
     val pending: Boolean = false,
+    val attemptId: String? = null,
 )

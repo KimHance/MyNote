@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import java.util.UUID
 import javax.inject.Inject
 
 class ConnectionRepositoryImpl internal constructor(
@@ -110,7 +111,7 @@ class ConnectionRepositoryImpl internal constructor(
                         ?: (PendingConnection.Kind.New to newSourceId(sources))
                 }
             }
-        state.saveAttempt(AttemptRecord(id.value, ConnectionConfigCodec.encode(connection), tokens.currentToken()))
+        state.saveAttempt(AttemptRecord(id.value, UUID.randomUUID().toString(), tokens.currentToken(), token != null))
         if (kind == PendingConnection.Kind.New) {
             local.ensureSource(
                 SourceRecord(id, SourceKind.GitHub, ConnectionConfigCodec.encode(connection, pending = true)),
@@ -137,7 +138,16 @@ class ConnectionRepositoryImpl internal constructor(
         }
 
     override suspend fun confirm(pending: PendingConnection) {
-        val target = ConnectionConfigCodec.encode(pending.connection)
+        try {
+            withContext(NonCancellable) { confirmAtomically(pending) }
+        } finally {
+            attempting.value = false
+        }
+    }
+
+    private suspend fun confirmAtomically(pending: PendingConnection) {
+        val attempt = state.attempt()
+        val target = ConnectionConfigCodec.encode(pending.connection, attemptId = attempt?.attemptId)
         if (pending.kind == PendingConnection.Kind.New) {
             val replace =
                 local
@@ -149,12 +159,13 @@ class ConnectionRepositoryImpl internal constructor(
             local.promote(pending.sourceId, target, replace)
             replace.forEach { bookmarks.removeByPrefix("${it.value}/") }
             if (replace.isNotEmpty()) state.clearBookmarkSweep()
+            val dropsOldToken = replace.isNotEmpty() && pending.connection.isPublic && attempt?.candidateToken != true
+            if (dropsOldToken && tokens.currentToken() != null) tokens.saveToken(null)
         } else {
             local.updateConfig(pending.sourceId, target)
         }
         state.clearAttempt()
         state.clearSeedBlock()
-        attempting.value = false
     }
 
     override suspend fun discard(pending: PendingConnection) {
@@ -162,7 +173,12 @@ class ConnectionRepositoryImpl internal constructor(
             state.attempt()?.let { attempt ->
                 if (tokens.currentToken() != attempt.tokenBefore) tokens.saveToken(attempt.tokenBefore)
             }
-            if (pending.kind == PendingConnection.Kind.New) local.deleteSource(pending.sourceId)
+            if (pending.kind == PendingConnection.Kind.New) {
+                val row = local.sources().firstOrNull { it.id == pending.sourceId }
+                if (row != null && ConnectionConfigCodec.decode(row.configJson)?.pending != false) {
+                    local.deleteSource(pending.sourceId)
+                }
+            }
             state.clearAttempt()
             attempting.value = false
         }

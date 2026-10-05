@@ -58,7 +58,8 @@ class ConnectionRecovery @Inject constructor(
     private suspend fun restoreTokenOfUnconfirmedAttempt() {
         val attempt = state.attempt() ?: return
         val row = local.sources().firstOrNull { it.id.value == attempt.sourceId }
-        if (row?.configJson != attempt.targetConfigJson && tokens.currentToken() != attempt.tokenBefore) {
+        val confirmed = ConnectionConfigCodec.decode(row?.configJson)?.attemptId == attempt.attemptId
+        if (!confirmed && tokens.currentToken() != attempt.tokenBefore) {
             tokens.saveToken(attempt.tokenBefore)
         }
         state.clearAttempt()

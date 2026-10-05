@@ -113,6 +113,7 @@ internal class FakeLocal(
     internal val writeError: Throwable? = null,
     private val deleteError: Throwable? = null,
 ) : LocalNotesDataSource {
+    var promoteError: Throwable? = null
     val store = MutableStateFlow(initial.associateBy { it.key })
     private val rows =
         MutableStateFlow(((if (connected) listOf(CONNECTED_S0) else emptyList()) + sources).associateBy { it.id })
@@ -170,6 +171,7 @@ internal class FakeLocal(
         replace: List<SourceId>,
     ) {
         promoteCalls++
+        promoteError?.let { throw it }
         val replaced = replace.map { it.value }.toSet()
         store.update { current -> current.filterValues { it.sourceId !in replaced } }
         rows.update { current ->
@@ -229,6 +231,7 @@ internal class FakeBookmarkStore(
     initial: Map<String, Long> = emptyMap(),
 ) : BookmarkStore {
     val entries = MutableStateFlow(initial)
+    var onRemoveByPrefix: (suspend () -> Unit)? = null
 
     override fun observe(): Flow<Map<String, Long>> = entries
 
@@ -241,12 +244,10 @@ internal class FakeBookmarkStore(
 
     override suspend fun countByPrefix(prefix: String): Int = entries.value.keys.count { it.startsWith(prefix) }
 
-    override suspend fun removeByPrefix(prefix: String) =
-        entries.update { current ->
-            current.filterKeys {
-                !it.startsWith(prefix)
-            }
-        }
+    override suspend fun removeByPrefix(prefix: String) {
+        onRemoveByPrefix?.invoke()
+        entries.update { current -> current.filterKeys { !it.startsWith(prefix) } }
+    }
 }
 
 internal class FakeStateStore : ConnectionStateStore {

@@ -283,4 +283,20 @@ class SyncRunsTest {
 
             assertEquals(1, rig.notes.syncs)
         }
+
+    @Test
+    fun `SY-1 확정이 실패해 시도가 풀리면 토큰 변경 동기화가 다시 돈다`() =
+        runTest {
+            val rig = Rig()
+            backgroundScope.launch { rig.observe(rig.refreshes).toList(rig.runs) }
+            runCurrent()
+            val pending = BeginConnectionUseCase(rig.connections)(CONNECTION)
+            runCurrent()
+
+            DiscardConnectionUseCase(rig.connections)(pending)
+            rig.applied.state.value = "RESTORED"
+            runCurrent()
+
+            assertEquals(2, rig.notes.syncs)
+        }
 }

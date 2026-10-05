@@ -21,8 +21,9 @@ private val Context.connectionStateDataStore by
     )
 private val USED_IDS = stringSetPreferencesKey("used_source_ids")
 private val ATTEMPT_SOURCE = stringPreferencesKey("attempt_source")
-private val ATTEMPT_CONFIG = stringPreferencesKey("attempt_config")
+private val ATTEMPT_ID = stringPreferencesKey("attempt_id")
 private val ATTEMPT_TOKEN = stringPreferencesKey("attempt_token")
+private val ATTEMPT_CANDIDATE = booleanPreferencesKey("attempt_candidate")
 private val DISCONNECT_MARKER = stringPreferencesKey("disconnect_marker")
 private val SEED_BLOCKED = booleanPreferencesKey("seed_blocked")
 private val BOOKMARK_SWEEP = stringSetPreferencesKey("bookmark_sweep")
@@ -41,14 +42,15 @@ class DataStoreConnectionStateStore @Inject constructor(
     override suspend fun attempt(): AttemptRecord? {
         val prefs = read()
         val source = prefs[ATTEMPT_SOURCE] ?: return null
-        val config = prefs[ATTEMPT_CONFIG] ?: return null
-        return AttemptRecord(source, config, prefs[ATTEMPT_TOKEN])
+        val attemptId = prefs[ATTEMPT_ID] ?: return null
+        return AttemptRecord(source, attemptId, prefs[ATTEMPT_TOKEN], prefs[ATTEMPT_CANDIDATE] == true)
     }
 
     override suspend fun saveAttempt(record: AttemptRecord) {
         context.connectionStateDataStore.edit { prefs ->
             prefs[ATTEMPT_SOURCE] = record.sourceId
-            prefs[ATTEMPT_CONFIG] = record.targetConfigJson
+            prefs[ATTEMPT_ID] = record.attemptId
+            prefs[ATTEMPT_CANDIDATE] = record.candidateToken
             val before = record.tokenBefore
             if (before == null) prefs.remove(ATTEMPT_TOKEN) else prefs[ATTEMPT_TOKEN] = before
         }
@@ -57,7 +59,8 @@ class DataStoreConnectionStateStore @Inject constructor(
     override suspend fun clearAttempt() {
         context.connectionStateDataStore.edit { prefs ->
             prefs.remove(ATTEMPT_SOURCE)
-            prefs.remove(ATTEMPT_CONFIG)
+            prefs.remove(ATTEMPT_ID)
+            prefs.remove(ATTEMPT_CANDIDATE)
             prefs.remove(ATTEMPT_TOKEN)
         }
     }
