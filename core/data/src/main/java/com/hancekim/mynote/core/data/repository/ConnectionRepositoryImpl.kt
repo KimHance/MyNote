@@ -18,6 +18,7 @@ import com.hancekim.mynote.core.domain.model.RepoConnection
 import com.hancekim.mynote.core.domain.model.SourceId
 import com.hancekim.mynote.core.domain.model.SourceKind
 import com.hancekim.mynote.core.domain.model.SyncOutcome
+import com.hancekim.mynote.core.domain.repository.AppliedTokenSource
 import com.hancekim.mynote.core.domain.repository.ConnectionRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -26,9 +27,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 import java.util.UUID
 import javax.inject.Inject
@@ -42,6 +45,7 @@ class ConnectionRepositoryImpl internal constructor(
     private val ids: ConnectionIdGenerator,
     json: Json,
     private val recovery: ConnectionRecovery,
+    private val applied: AppliedTokenSource,
     now: () -> Long,
 ) : ConnectionRepository {
     @Inject
@@ -54,7 +58,8 @@ class ConnectionRepositoryImpl internal constructor(
         ids: ConnectionIdGenerator,
         json: Json,
         recovery: ConnectionRecovery,
-    ) : this(adapters, local, tokens, bookmarks, state, ids, json, recovery, System::currentTimeMillis)
+        applied: AppliedTokenSource,
+    ) : this(adapters, local, tokens, bookmarks, state, ids, json, recovery, applied, System::currentTimeMillis)
 
     private val reconciler = SourceReconciler(local, MyNoteJsonFormat(json), now)
     private val attempting = MutableStateFlow(false)
@@ -160,7 +165,10 @@ class ConnectionRepositoryImpl internal constructor(
             replace.forEach { bookmarks.removeByPrefix("${it.value}/") }
             if (replace.isNotEmpty()) state.clearBookmarkSweep()
             val dropsOldToken = replace.isNotEmpty() && pending.connection.isPublic && attempt?.candidateToken != true
-            if (dropsOldToken && tokens.currentToken() != null) tokens.saveToken(null)
+            if (dropsOldToken && tokens.currentToken() != null) {
+                tokens.saveToken(null)
+                withTimeoutOrNull(APPLY_TIMEOUT_MS) { applied.applied().first { it == null } }
+            }
         } else {
             local.updateConfig(pending.sourceId, target)
         }
@@ -235,3 +243,4 @@ internal fun confirmedOf(sources: List<SourceRecord>): Pair<SourceRecord, RepoCo
     }
 
 private const val MAX_ID_ATTEMPTS = 16
+private const val APPLY_TIMEOUT_MS = 5_000L

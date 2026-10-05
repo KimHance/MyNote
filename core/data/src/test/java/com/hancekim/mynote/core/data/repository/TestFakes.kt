@@ -12,12 +12,16 @@ import com.hancekim.mynote.core.data.datasource.SourceEntry
 import com.hancekim.mynote.core.data.datasource.SourceRecord
 import com.hancekim.mynote.core.data.datasource.TokenStore
 import com.hancekim.mynote.core.data.format.PARSER_VERSION
+import com.hancekim.mynote.core.domain.model.Category
 import com.hancekim.mynote.core.domain.model.RepoConnection
 import com.hancekim.mynote.core.domain.model.SourceId
 import com.hancekim.mynote.core.domain.model.SourceKind
+import com.hancekim.mynote.core.domain.model.SyncOutcome
+import com.hancekim.mynote.core.domain.repository.AppliedTokenSource
+import com.hancekim.mynote.core.domain.repository.NotesRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -212,9 +216,10 @@ internal class FakeLocal(
 }
 
 internal class FakeTokenStore(
-    initial: String? = null,
+    val initial: String? = null,
 ) : TokenStore {
     private val state = MutableStateFlow(initial)
+    var mirror: MutableStateFlow<String?>? = null
     val writes = mutableListOf<String?>()
 
     override suspend fun currentToken(): String? = state.value
@@ -222,6 +227,7 @@ internal class FakeTokenStore(
     override suspend fun saveToken(token: String?) {
         writes += token
         state.value = token
+        mirror?.value = token
     }
 
     override fun observeToken(): Flow<String?> = state
@@ -303,5 +309,24 @@ internal class FakeStateStore : ConnectionStateStore {
 
     override suspend fun clearBookmarkSweep() {
         sweep = emptySet()
+    }
+}
+
+internal class FakeAppliedToken(
+    initial: String? = null,
+) : AppliedTokenSource {
+    val state = MutableStateFlow(initial)
+
+    override fun applied(): Flow<String?> = state
+}
+
+internal class CountingNotes : NotesRepository {
+    var syncs = 0
+
+    override fun observeCategories(): Flow<List<Category>> = emptyFlow()
+
+    override suspend fun sync(): Result<SyncOutcome> {
+        syncs++
+        return Result.success(SyncOutcome())
     }
 }

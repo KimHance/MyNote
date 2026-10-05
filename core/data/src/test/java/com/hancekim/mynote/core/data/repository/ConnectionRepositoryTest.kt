@@ -5,6 +5,9 @@ import com.hancekim.mynote.core.data.datasource.AttemptRecord
 import com.hancekim.mynote.core.data.datasource.ConnectionIdGenerator
 import com.hancekim.mynote.core.data.datasource.SourceRecord
 import com.hancekim.mynote.core.data.dto.NotesJson
+import com.hancekim.mynote.core.domain.ObserveAppliedTokenUseCase
+import com.hancekim.mynote.core.domain.ObserveSyncRunsUseCase
+import com.hancekim.mynote.core.domain.SyncNotesUseCase
 import com.hancekim.mynote.core.domain.model.ConnectionState
 import com.hancekim.mynote.core.domain.model.ErasureCount
 import com.hancekim.mynote.core.domain.model.PendingConnection
@@ -13,9 +16,11 @@ import com.hancekim.mynote.core.domain.model.SourceId
 import com.hancekim.mynote.core.domain.model.SourceKind
 import com.hancekim.mynote.core.domain.model.SyncOutcome
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
@@ -40,7 +45,14 @@ private class Harness(
     val state: FakeStateStore = FakeStateStore(),
     val adapter: FakeAdapter = FakeAdapter(emptyList()),
     ids: List<String> = listOf("c1", "c2", "c3", "c4"),
+    autoApply: Boolean = true,
 ) {
+    val applied = FakeAppliedToken(tokens.initial)
+
+    init {
+        if (autoApply) tokens.mirror = applied.state
+    }
+
     private val queue = ArrayDeque(ids)
     private val generator = ConnectionIdGenerator { queue.removeFirst() }
 
@@ -56,6 +68,7 @@ private class Harness(
             generator,
             NotesJson,
             recovery(),
+            applied,
         ) { 1_000L }
 
     fun notes() = recovery().let { NotesRepositoryImpl(setOf(adapter), local, NotesJson, it::ensure) { 1_000L } }
@@ -721,5 +734,36 @@ class ConnectionRepositoryTest {
             h.connections().connect(conn(owner = "other", repo = "repo", isPublic = false))
 
             assertEquals("T0", h.tokens.currentToken())
+        }
+
+    @Test
+    fun `SY-1 확정 때 옛 토큰을 지워도 동기화는 다시 시작되지 않는다`() =
+        runTest {
+            val h =
+                Harness(
+                    tokens = FakeTokenStore("T0"),
+                    adapter = FakeAdapter(listOf(entry("x", "h1"))),
+                    autoApply = false,
+                )
+            val repo = h.connections()
+            val notes = CountingNotes()
+            val runs = ObserveSyncRunsUseCase(SyncNotesUseCase(notes), ObserveAppliedTokenUseCase(h.applied), repo)
+            backgroundScope.launch { runs(MutableStateFlow(0)).collect {} }
+            runCurrent()
+            assertEquals(1, notes.syncs)
+            val pending = repo.begin(conn(owner = "other", repo = "repo", isPublic = true), null)
+            runCurrent()
+            repo.syncPending(pending).getOrThrow()
+
+            val confirm = launch { repo.confirm(pending) }
+            runCurrent()
+            assertTrue(repo.observeAttempting().first())
+            h.applied.state.value = null
+            confirm.join()
+            runCurrent()
+
+            assertFalse(repo.observeAttempting().first())
+            assertNull(h.tokens.currentToken())
+            assertEquals(1, notes.syncs)
         }
 }
