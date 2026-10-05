@@ -6,7 +6,7 @@
 
 화면도 상태도 없다. 루트에 `MyNoteApplication`·`MainActivity`·`TokenSync`, `di/` 에 모듈 넷,
 `download/` 에 모델 내려받기 배선 셋이 있고 하는 일은 넷이다 — **Hilt 그래프 완성**,
-**`BuildConfig`/토큰 배선**, **Activity 껍데기**(edge-to-edge + `NotesRoute` 호출),
+**`BuildConfig`(debug 시드)/토큰 배선**, **Activity 껍데기**(edge-to-edge + `NotesRoute` 호출),
 **시스템과 닿는 지점**(알림 액션 리시버·딥링크·프로세스 라이프사이클). 기능 코드는 여기에 넣지 않는다.
 여기 파일이 늘어나는 건 "앱 전체에 하나뿐인 것" 이거나 "`PendingIntent`/매니페스트 컴포넌트가 필요한 것"이
 생겼을 때뿐이다.
@@ -43,8 +43,8 @@
   `:core:navigation` 은 Hilt 를 모르는 leaf 라 조립이 여기로 온다. `@Singleton` + 앱 스코프라
   백스택이 Activity/ViewModel 보다 오래 산다(회전에도 유지). 대신 프로세스가 죽으면 사라진다 —
   저장/복원은 없다.
-- **`GithubConfig`** (`RemoteConfigModule`) — owner/repo/branch 를 `BuildConfig` 에서 읽어 넘긴다.
-  `:core:network` 가 `BuildConfig` 를 모르게 하는 것이 이 모듈의 존재 이유다.
+- **`ConnectionSeed?`** (`RemoteConfigModule`) — `BuildConfig` 의 시드 필드를 읽어 넘긴다(비면 `null`).
+  `:core:network`·`:core:data` 가 `BuildConfig` 를 모르게 하는 것이 이 모듈의 존재 이유다.
 
 `:core:design-foundation`/`:core:design-system` 의존은 `:app` 코드가 참조하지 않고 `@Module` 도 없다 —
 `:feature:notes`(feature convention) → design-system → `api(design-foundation)` 로 이미 들어온다.
@@ -74,22 +74,32 @@ DataStore(DataStoreTokenStore) → TokenRepository → ObserveTokenUseCase
 영원히 생기지 않는다**(통계 카드가 자리째 없는 것과 구별이 안 된다). 앱 시작마다 `schedule()` 을 부르지만 같은 사양(태그
 `study-insights-spec-N`)의 작업이 이미 살아 있으면 아무것도 하지 않는다(`:core:ai` `StudyInsightWork`).
 
-폴백 순서는 `stored ?: BuildConfig.GITHUB_TOKEN.ifBlank { null }` — **저장된 토큰이 있으면 그게 이긴다.**
+**`TokenSync` 에 폴백이 없다 — 저장된 토큰만 holder 로 올린다**(결정 23). 끊기·토큰 지우기 뒤에 빌드 내장 토큰이 되살아나지
+않게 하려는 것이다. debug 내장 토큰은 `ConnectionSeed` 로 시드 연결을 할 때만 쓰이고(`ConsumeSeedUseCase`), 그때 저장 칸에
+쓴 뒤 적용되고 나서 첫 동기화가 돈다. 이미 저장된 토큰이 있으면 덮어쓰지 않는다(결정 14 · RC-22).
 
-### BuildConfig 필드
+### BuildConfig 필드 — debug 첫 실행 시드뿐이다
 
-`defaultConfig` 에 넷: `GITHUB_OWNER`·`GITHUB_REPO`·`GITHUB_BRANCH`·`GITHUB_TOKEN`.
+저장소 연결은 앱 화면(`:feature:notes` 연결 화면)에서 한다. 빌드가 넣는 값은 **debug 첫 실행 시드** 하나뿐이고
+`RemoteConfigModule` 이 이를 `ConnectionSeed?` 로 만든다(`GITHUB_OWNER`·`GITHUB_REPO` 둘 다 채워졌을 때만 시드).
+필드는 넷: `GITHUB_OWNER`·`GITHUB_REPO`·`GITHUB_BRANCH`·`GITHUB_TOKEN`.
 
-- 좌표 셋은 `local.properties` 의 `github.owner/repo/branch` 가 있으면 그 값, 없으면
-  `KimHance`/`MyNote`/`main`. (현재 `local.properties` 는 이 세 키가 주석 처리돼 기본값이 쓰인다.)
-- **`GITHUB_TOKEN` 은 `defaultConfig` 에서 빈 문자열이고 `debug` 블록에서만 덮어쓴다** —
-  release APK 에는 토큰이 들어가지 않는다(런타임 입력 전용, 입력 다이얼로그는 `:feature:notes`).
-  그래서 release 로 처음 켜면 노트가 안 보이는 게 정상 동작이다.
+- **`defaultConfig` 는 넷 다 빈 문자열이다 — 코드에 기본 저장소가 없다**(RC-19 d). `local.properties` 에 키가 없으면
+  시드 없음이고 첫 실행은 연결 화면이다.
+- **`debug` 블록만 `local.properties` 의 `github.owner`·`github.repo`·`github.branch`·`github.token` 으로 덮어쓴다.**
+  브랜치가 비면 저장소 기본 브랜치다.
+- **`release` 블록은 넷을 항상 빈 문자열로 못 박는다**(결정 22) — `local.properties` 에 값이 있어도 공개 APK 에는 시드·토큰이
+  들어가지 않는다. 그래서 release 로 처음 켜면 연결 화면이 뜨는 게 정상이다. 이 줄을 지우면 `defaultConfig` 가 바뀔 때
+  시드가 release 로 샐 수 있다.
+- `local.properties` 는 gitignore 되고, 키 이름만 안내한다: `github.owner`·`github.repo`·`github.branch`·`github.token`
+  (release 서명 키는 아래 release 절). 값을 문서·커밋·로그에 적지 않는다.
 - `buildFeatures { buildConfig = true }` 가 필요하다(AGP 9 기본 off). 이 한 줄이 빠지면 `BuildConfig`
-  자체가 사라져 `RemoteConfigModule`·`TokenSync` 가 함께 깨진다.
+  자체가 사라져 `RemoteConfigModule` 이 깨진다.
 - `local.properties` 를 configuration 단계에 읽지만 Gradle 이 설정 입력으로 추적한다 — 내용을 바꾸면
-  configuration cache 가 무효화되고 `BuildConfig` 가 다시 생성된다(확인함). 토큰을 바꿨는데 안 먹는
+  configuration cache 가 무효화되고 `BuildConfig` 가 다시 생성된다(확인함). 값을 바꿨는데 안 먹는
   현상을 캐시 탓으로 보지 말 것.
+- 확인: `assembleDebug`·`assembleRelease` 뒤 `app/build/generated/source/buildConfig/<변형>/…/BuildConfig.java` 에서 네 필드가
+  비었는지만 본다(값을 출력하지 않는다). release 는 전부 비어야 한다.
 
 ## Activity / Manifest
 
