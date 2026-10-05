@@ -2,8 +2,9 @@
 
 이 파일은 이 모듈에서 작업하는 에이전트를 위한 안내다.
 
-온디바이스 LLM(LiteRT-LM)으로 학습 노트에서 4지선다 퀴즈를 만든다. `:core:domain` 의
-`QuizGenerator` 를 구현하는 **바깥 레이어**다(인터페이스는 domain 소유 — DIP).
+온디바이스 LLM(LiteRT-LM)으로 학습 노트에서 4지선다 퀴즈를 만들고, 충전 중 백그라운드에서 한 주를
+정리하는 주간 요약·틀린 문제 패턴(통계 2·3단계, PRD 4.9.4)을 만든다. `:core:domain` 의 `QuizGenerator`·
+`InsightScheduler` 를 구현하는 **바깥 레이어**다(인터페이스는 domain 소유 — DIP).
 
 ---
 
@@ -11,13 +12,15 @@
 
 | 항목 | 값 |
 |---|---|
-| 구현하는 계약 | `core.domain.repository.QuizGenerator` (`isAvailable`, `generate`) |
+| 구현하는 계약 | `QuizGenerator` (`isAvailable`, `generate`) · `QuizModelSource`(`ModelDownloads`) · `InsightScheduler`(`insight/StudyInsightWork`) |
 | 바인딩 | `AiModule` 의 `@Binds @Singleton`. 그래프에 넣는 건 `:app` (`implementation(projects.core.ai)`) |
-| 의존 | `:core:common`(`runCatchingCancellable`) · `:core:domain` · litertlm-android **0.17.0** · coroutines · kotlinx-serialization |
+| 의존 | `:core:common`(`runCatchingCancellable`) · `:core:domain` · litertlm-android **0.17.0** · coroutines · kotlinx-serialization · work · lifecycle-process(워커의 포그라운드 판정) |
 | 없는 것 | Compose·Android UI·`:core:data`/`:core:network` |
 
 역할은 셋으로 갈린다 — **`ModelEngine`**(엔진 수명·동시성), **`LiteRtLmQuizGenerator`**(프롬프트·생성
-설정), **`QuizJsonParser`**(모델 출력 복구). 셋 다 서로의 이유가 다르니 섞지 말 것.
+설정), **`QuizJsonParser`**(모델 출력 복구). 셋 다 서로의 이유가 다르니 섞지 말 것. 통계 쪽은 `insight/` 에
+같은 결로 갈린다 — `InsightPrompts`(지시문·예시) · `InsightJsonParser`(JSON·길이) · `InsightGuards`(숫자·근거·베끼기)
+· `InsightGenerator`(호출 한 번 + 재시도) · `StudyInsightWorker`/`StudyInsightWork`(워커·예약). 아래 "통계 워커" 절.
 
 **입력을 자르는 책임은 이 모듈에 없다.** `GenerateQuizUseCase`(`:core:domain`)가 노트를 평문으로
 펴서 **2,000자**로 자른 뒤 넘긴다. 프롬프트 길이가 곧 TTFT 라 그 상한이 곧 성능 상한이다 —
@@ -39,8 +42,24 @@
 - **`ExperimentalFlags.enableSpeculativeDecoding = true` 는 `Engine(...)` 생성 *전에* 세팅해야 먹는다.**
   전역 object 를 엔진이 생성 시점에 읽는다. `create()` 첫 줄이 그 자리다 — 순서를 바꾸면
   에러 없이 조용히 무시된다.
-- **`Engine` 은 `AutoCloseable` 인데 우리는 닫지 않는다.** 의도다. 프로세스 종료가 유일한 해제.
-  닫는 코드를 넣으려면 "다음 요청에 다시 10초"를 받아들일지부터 정해야 한다.
+- **퀴즈(`use`)는 엔진을 닫지 않고, 워커(`tryUse`)가 새로 올린 엔진만 닫는다.** `use` 로 올린 엔진은
+  프로세스 종료(또는 모델 삭제의 `release()`)가 유일한 해제다 — 다음 퀴즈에 다시 3–12초를 쓰지 않으려는 것.
+  `tryUse(shouldRelease, block)` 은 `tryLock` 실패면 즉시 `EngineUse.Busy`(퀴즈가 쓰는 중이면 워커가 진다),
+  엔진이 없었으면 만들어 쓰고 **끝나는 시점에** `shouldRelease()`(워커는 "앱이 백그라운드인가")가 참이면 같은
+  락 안에서 닫는다(PRD D55 · 9.2 #41). 실행 중 앱이 앞으로 왔으면 남긴다(로그 `엔진 유지 · 앱이 포그라운드`).
+  이미 올라 있던 엔진(퀴즈가 올림)은 재사용만 하고 절대 닫지 않는다(`Done.initMillis == null`).
+  락·생성·닫기 규칙은 `EngineSlot`(제네릭, 가짜 엔진으로 `EngineSlotTest` 5건)에 있고 `ModelEngine` 은 위임만 한다.
+- **엔진 생성은 `NonCancellable` 안에서 끝까지 받아 필드에 넣는다.** `create()` 는 네이티브 블로킹이라 취소로 멈추지
+  않는데, 예전처럼 `withContext { create() }.also { engine = it }` 이면 취소된 호출자에게 결과가 버려져 2.6GB 엔진이
+  필드에도 없고 닫히지도 않았다(검수 S3). 지금은 받은 뒤 `tryUse` 가 "새로 만들었으면 닫기" `finally` 안에서
+  `ensureActive()` 를 부른다 — 퀴즈 init 중 그만두기는 엔진을 슬롯에 남겨 다음 퀴즈가 재사용한다. 이 줄을 되돌리면
+  `EngineSlotTest` 의 init 취소 2건이 빨간불이다.
+- **`ExperimentalFlags.enableBenchmark` 는 debug(`FLAG_DEBUGGABLE`) 빌드에서만 켠다**(`create()` 첫머리, 엔진 레벨이라
+  생성 전에만 먹는다). 측정·로그 전용이다 — 생성 로그의 `출력 Ntok · ttft · backend=GPU|CPU` 와 평가 하네스의 토큰 수가
+  여기서 나오고, release 로그는 `벤치마크 꺼짐`. 켜도 출력은 같다(S25: 같은 노트 퀴즈 914자로 켜기 전과 동일).
+  **판정은 이 값에 기대지 않는다** — 예전엔 잘림 재시도가 `lastDecodeTokenCount >= 예산` 을 봐서 끄면 릴리즈에서
+  잘림이 조용히 `Parse` 로 바뀌었다(검수 S4). 지금 잘림은 `InsightJsonParser.truncated`(첫 `{` 뒤 문자열 밖 괄호 짝이
+  닫히지 않음)로 판정한다.
 - `cacheDir = context.cacheDir.path` 는 컴파일된 셰이더 등의 캐시다. 지우면 2회차 init 이 다시 느려진다.
 - `EngineConfig.maxNumTokens`(컨텍스트 창)는 **엔진 레벨**이라 늘리려면 재init 이다. 현재 지정하지
   않고 라이브러리 기본값을 쓴다.
@@ -138,8 +157,12 @@ NPU 는 예전 실측에서 `Backend.NPU` 가 예외 없이 CPU 로 폴백했다
   그건 **코루틴만 푼다.** 네이티브 디코딩은 끝까지 돌고, 그동안 `ModelEngine` 의 `Mutex` 를
   계속 붙잡고 있다 → 취소 직후 들어온 다음 요청은 앞 생성이 끝날 때까지 **대기**한다.
   "취소했는데 여전히 느리다"의 정체가 이것이다.
-- 라이브러리에 `Conversation.cancelProcess()` 가 있지만 **아직 쓰지 않는다.** 진짜 취소를
-  원하면 그걸 엮어야 한다(미착수).
+- **그래서 모든 생성은 `ConversationExt.kt` 의 `sendCancellable` 로 보낸다**(퀴즈·워커 공유). 블로킹
+  `sendMessage` 를 `async` 로 돌리고, 기다리던 코루틴이 취소되면 `finally` 에서 `cancelProcess()` 를 불러 네이티브
+  디코딩을 실제로 멈춘다(로그 `cancelProcess · 생성 중 취소`). 이게 없으면 위 증상대로 `Mutex` 를 계속 쥔다.
+- **`cancelProcess()` 뒤 네이티브 호출은 `CancellationException` 이 아니라 JNI 예외로 끝난다.** 그대로 두면
+  취소가 "엔진 실패" 로 기록된다(S25 에서 실제로 그렇게 찍혔다). `cancellable()` 이 실패를 잡으면 먼저
+  `ensureActive()` 로 취소를 다시 던진다 — `CancellableTest` 가 지키고, 그 줄을 지우면 3건 중 2건이 빨간불이다.
 - 무거운 호출은 전부 `Dispatchers.Default` 로 보낸다. 메인에서 부르면 ANR 이다.
 - `runCatching` 이 아니라 `runCatchingCancellable` 을 쓰는 이유: `CancellationException` 을
   `Result.failure` 로 삼키면 취소가 실패 UI 로 보인다.
@@ -148,10 +171,8 @@ NPU 는 예전 실측에서 `Backend.NPU` 가 예외 없이 CPU 로 폴백했다
 
 ## 아직 안 잰 것 · 안 쓰는 것
 
-- **프롬프트 토큰 수 — 미측정.** 지시문을 영어로 바꿨지만 같은 커밋에서 규칙을 4개→8개로
-  늘렸다. 실제로 토큰이 줄었는지 **확인하지 못했다.** 재려면 `Conversation.getBenchmarkInfo()` →
-  `lastPrefillTokenCount` / `lastDecodeTokenCount` / `lastPrefill·DecodeTokensPerSecond`
-  (0.17.0 API 확인). 코드 어디서도 호출하지 않고, `ExperimentalFlags.enableBenchmark` 도 켜지 않는다.
+- **퀴즈 토큰 수 — 한 번 쟀다(S25, 2026-10-02).** 노트 `set` 3문제: 입력 787tok, 출력 430tok/914자
+  (≈ 2.1자/tok), 예산 1,020tok. 요약·패턴은 아래 "통계 워커" 절.
 - **`Capabilities` 는 쓰지 않는다.** 예전 실측에서 이 모델의 플래그가 틀려 있었다
   (`supportsFunctionCalling`/`supportsThinking` 이 `false` 인데 실제로는 동작). **능력 판단은
   플래그가 아니라 실제로 돌려서 한다.**
@@ -169,8 +190,51 @@ NPU 는 예전 실측에서 `Backend.NPU` 가 예외 없이 CPU 로 폴백했다
 
 ## 디버깅
 
-- 계측은 `Log.i("MyNoteAi", …)` 두 줄뿐이다 — 엔진 init ms, 생성 ms·응답 글자수.
-  어디서 멈췄는지 알아야 하면 **단계별 경과 시간을 더 찍어라.** 없으면 추측밖에 안 된다.
+- 계측은 `Log.i("MyNoteAi", …)` — 엔진 init ms, 생성마다 `ms · 글자 · 출력/입력 tok · ttft · prefill/decode tok/s ·
+  backend`, 워커의 판정·`skipped: <이유>`·대상별 ms·`release`/`엔진 유지`. **실제 GPU 여부**는 API 로 알 수 없다 —
+  `backend=` 는 TTFT(3초 미만 GPU)로 추정한 값이고, 확증은 같은 프로세스의 네이티브 로그
+  `tflite : Replacing 2068 out of 2068 node(s) with delegate (LITERT_CL)` 다(백그라운드 워커에서도 찍힌다).
 - 액티비티 재실행 전 `adb shell am force-stop com.hancekim.mynote`.
   살아 있으면 `am start` 가 `onCreate` 를 안 부른다.
 - `adb logcat` 을 붙여 뒀으면 반드시 회수한다(스트림이 남으면 기기가 잠들지 못한다).
+
+---
+
+## 통계 워커 (2·3단계) — `insight/`
+
+`StudyInsightWorker`(`@HiltWorker`, 1일 주기, 충전·배터리 부족 아님) 가 `InsightPlan`(domain) 판정대로 지난주 확정 →
+이번 주 요약 → 패턴을 최대 3번 부른다. 산술·판정은 전부 `:core:domain`(`WeeklyDigest`·`InsightPlan`)이고 이 모듈은
+엔진·프롬프트·파서·저장 호출만 한다. 예약/취소는 `:app` 의 `InsightScheduleSync` 가 "모델 Ready && 기록 on" 을 보고 한다.
+
+**2B(Gemma E2B) 약점을 코드로 막는 자리** — 모델이 지시를 어기면 화면에 가기 전에 버리거나 한 번 다시 시킨다:
+
+| 약점 | 막는 곳 |
+|---|---|
+| 숫자를 엉뚱한 대상에 붙임 | **요약 문장에는 숫자를 쓰지 않는다**(2라운드, 검수 B1). 규칙 `Do not write any digits…`, 예시도 숫자 없는 문장, 방향은 digest `trend`(more/less/same)로 말하게 한다. 가드는 headline·detail 에서 노트 제목·카테고리 id 를 지운 뒤 숫자가 남으면 `HasDigits` → "no digits" 한 줄을 붙여 **한 번** 재시도. 숫자는 카드 아래 숫자 칸이 보여 준다. 1라운드의 "숫자 ⊂ digest" 가드는 날짜 조각까지 허용 집합에 들어가 오결합(`82분을 android 노트에` — 82 는 합계)을 못 막았다. 패턴 문장은 여전히 "오답 원문에 있는 숫자만"(`O(1)` 같은 표기) |
+| 일반론·주제가 다른 태그 | 근거 말뭉치 = 카테고리 + **노트 제목**(`스택 (Stack)` 같은 이중 표기가 한–영 대응을 준다) + 문항 + 고른 보기 + 정답. 라틴 태그는 3자 이상 + 단어 경계 일치(`in` 처럼 짧은 것은 근거로 치지 않는다), 한 음절 한글 태그(`큐`)는 원문·문장 둘 다에 있을 때만. **태그는 근거가 있고 문장에도 나온 것만 남기고**, 하나도 없으면 문장 핵심어(근거 있는 것)로 바꾼다 — 다른 퀴즈의 태그만 남아 문장과 어긋나던 일(U3 `set` + 스택/큐 문장)을 막는다. 문장 핵심어가 원문과 하나도 안 겹치면 버린다. 프롬프트: `Copy each tag exactly as written in WRONG… Do not translate.`, `Use your tags in the sentence.`, 예시 태그에 한국어(`히스토리`) |
+| 예시 베끼기 | one-shot 예시(swift/linux, git rebase/merge — 앱에 없는 값)와 **글자 그대로 같거나, 예시에만 있는 낱말이 입력에 없는데 나오면** 버린다. 틀을 빌리는 것(`cs 노트에 시간을 가장 많이 썼습니다.`)은 정상이다 — 예전 bigram 유사도 0.7 판정은 짧은 카테고리 이름의 정상 문장을 버렸다(2라운드 r2-1 에서 2건) |
+| 키 이름 누출 | `least`·`top`·`stalled`·`reread`·`daysLeft`·`prev`·`change`·`trend`·`minutes`·`quizzes`·`accuracy` 가 (제목·id 를 지운) 문장에 나오면 버린다 |
+| 영어로 답함 | 한글이 한 글자도 없으면 버린다 |
+| 길이 초과·잘림 | 파서 상한(headline 48 · detail 100 · sentence 120 · tag 12). 초과 또는 **괄호가 닫히지 않은 잘린 JSON** 은 `TooLong` → "더 짧게" 한 줄로 **한 번만** 재시도(`HasDigits`·`MissingField` 와 같은 재시도 한 번을 나눠 쓴다 — 필드가 빠진 답은 "missed a field" 한 줄). 12자 넘는 태그 하나는 빼고 나머지를 살린다 |
+
+- **`focus` 는 모델이 고르지만 `least`(가장 적게 읽은 카테고리, domain 계산)를 고르라고 시킨다.** 1회차에서 모델이
+  가장 많이 읽은 카테고리를 초점으로 고르는 일이 잦아 digest 에 `top`/`least` 를 넣었다(2회차부터 10/10 이 `least`).
+- **출력 토큰 예산 = 실질 길이 상한** — `InsightGenerator.SUMMARY_TOKENS = 69`, `PATTERN_TOKENS = 50`(S25 출력 p95 46·33tok
+  의 1.5배, ≈ 2.9자/tok). 파서 상한(≈ 66–76tok 어치)보다 작으므로 길이를 실제로 자르는 건 예산이고 파서 상한은 안전망이다.
+  예산을 바꾸면 평가 하네스를 다시 돌린다(긴 제목 두 개를 옮기는 `long-stalled-titles` 추가 케이스가 잘림을 본다).
+- **결과 형식 버전 `InsightWork.SCHEMA_VERSION = 2`**(2라운드). 숫자가 든 1라운드 요약은 관찰에서 걸러져 화면에 안 나오고,
+  지난 요약의 그 주는 `요약 없음` 이 된다. 형식·프롬프트 계약을 바꾸면 올린다.
+- **예약은 사양 태그가 같으면 다시 등록하지 않는다**(`StudyInsightWork.schedule`, 검수 N2). 앱 시작마다 `UPDATE` 하면
+  generation 이 오르고 JobScheduler job 이 취소·재등록돼, 워커가 띄운 프로세스의 `onCreate` 가 막 시작한 job 을 끊을 수
+  있었다. 요청 사양을 바꾸면 `InsightWork.SPEC_TAG` 를 올린다(그때 한 번만 `UPDATE`).
+- **3분 타임아웃도 이미 만든 결과를 지킨다**(검수 N3) — `Outcome` 이 `withTimeout` 바깥에 있어 저장분은 success,
+  실패 시각·종류는 돌던 대상 기준(패턴에서 시간이 다 되면 요약 카드에 실패 줄을 안 띄운다).
+- **모델 삭제는 워커를 먼저 취소한다**(`ModelDownloads.deleteModel`, 검수 N7) — 그래야 `cancelProcess` 로 락이 1초 안에
+  풀리고 `release()` 가 최대 3분 기다리지 않는다.
+- 평가 하네스: `app/src/androidTest/…/insight/InsightEvalTest`(합성 digest 10 + 오답 6 + 추가 3, 실제 모델) — `:app`
+  AGENTS.md 의 "계측 테스트" 절. 요약 문장 속 숫자(제목 밖) 0, 태그가 문장에 없는 패턴 0 을 단언한다.
+  2라운드 r2-2: 요약 10/10 · 패턴 5/6(`mixed-eight` 은 문장을 빼먹음, backlog 9.2 #48) · 호출 p95 1.68초 · 추가 3/3.
+- 워커 실행 확인: 주기 작업은 한 번 돌면 다음 주기 전 `cmd jobscheduler run -f` 가 WorkManager 에서
+  "executed before schedule" 로 미뤄진다. 새로 돌리려면 설정 `학습 기록 남기기` 를 껐다 켜서(취소 + 새 enqueue) 첫 실행을
+  만든 뒤 `run -f -n androidx.work.systemjobscheduler com.hancekim.mynote <jobId>`. S25 는 `dumpsys battery set ac 1`
+  로 JobScheduler 의 CHARGING 을 만족시키지 못했다(USB 저전류라 `Considered charging: false`) — 그래서 `-f`.

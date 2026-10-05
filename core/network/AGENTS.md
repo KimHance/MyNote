@@ -4,30 +4,37 @@
 
 ## 이 모듈이 하는 일
 
-`:core:data` 의 **`RemoteNotesDataSource` 를 구현**한다(`:core:network → :core:data`). 반환 타입은 전부
-data 가 소유한 DTO 라서 **Retrofit/OkHttp 타입은 이 모듈 밖으로 나가지 않는다.**
-해시 비교·reconcile 은 전혀 모른다 — 그건 `core/data/AGENTS.md` 에 있다. 여기는 "요청을 어떻게
-만들고 응답을 어떻게 DTO 로 만드는가" 만 본다.
+`:core:data` 의 **`NoteSourceAdapter` 를 구현**한다 — `GithubManifestAdapter`(`kind = GitHub`, Hilt `@IntoSet`).
+(`:core:network → :core:data`). 반환 타입은 전부 data 가 소유한 타입(`SourceEntry`, 원문 `String`)이라
+**Retrofit/OkHttp 타입은 이 모듈 밖으로 나가지 않는다.** 리비전 비교·reconcile·**형식 해석**은 전혀 모른다 —
+그건 `core/data/AGENTS.md` 에 있다. 여기는 "요청을 어떻게 만들고 응답을 어떻게 넘기는가" 만 본다.
 
 엔드포인트는 두 개뿐이고 둘 다 GET 이다(앱에 write 없음):
 `repos/{owner}/{repo}/contents/notes/index.json` 과 `repos/{owner}/{repo}/contents/{path}`, 둘 다 `?ref={branch}`.
+`list()` 는 index 를 받아 `SourceEntry`(docId = index `id`, revision = index `hash`, category = 그룹 키)로 평탄화하고,
+`fetch()` 는 노트 파일을 **해석하지 않은 원문 문자열**로 돌려준다(`ResponseBody.string()`).
 
 ## 건드리면 깨지는 것
 
-- **`@Headers("Accept: application/vnd.github.raw+json")` 이 두 메서드의 반환 타입을 성립시킨다.**
+- **`@Headers("Accept: application/vnd.github.raw+json")` 이 두 메서드의 반환을 성립시킨다.**
   이 헤더가 없으면 GitHub Contents API 는 파일 내용이 아니라 `{ name, sha, content: "<base64>", … }`
-  메타데이터 envelope 을 준다. 그러면 `Map<String, List<IndexNoteDto>>` / `NoteDto` 직렬화가 통째로
-  실패한다. 헤더를 지우려면 base64 디코딩 계층을 새로 만들어야 한다는 뜻이다.
+  메타데이터 envelope 을 준다. 그러면 index 직렬화가 실패하고 노트 원문 자리에 envelope 이 들어간다.
+  헤더를 지우려면 base64 디코딩 계층을 새로 만들어야 한다는 뜻이다.
+- **`getNote` 는 `ResponseBody` 를 돌려준다. `NoteDto` 같은 DTO 로 되돌리지 말 것.** 본문을 Retrofit 컨버터가 디코드하면
+  깨진 노트 하나가 컨버터 예외 = 전송 실패가 되어 그 소스의 동기화 전체가 멈춘다(M0 이전의 F1–F3). 형식 해석은 `:core:data` 가
+  노트 단위로 가둔다. 회귀 장치: `GithubManifestAdapterTest` 의 `본문은 해석하지 않고 원문 문자열로 돌려준다`.
+  `@Streaming` 이 없어 Retrofit 이 본문을 메모리에 다 받은 뒤 돌려주므로 `string()` 은 네트워크를 다시 타지 않는다.
 - **`@Path(value = "path", encoded = true)`.** 노트 경로는 `notes/android/nav3.json` 처럼 `/` 를 포함한다.
   `encoded = true` 를 빼면 `/` 가 `%2F` 로 인코딩돼 URL 이 깨진다. `path` 는 index 가 준 값을 그대로 쓴다.
 - **index 평탄화는 이 모듈의 책임이다.** `index.json` 은 `{ "<group>": [ {id,title,date,path,hash}, … ] }`
-  형태의 **그룹 키 오브젝트**고, 그룹 이름은 값이 아니라 **키**에 있다. `RemoteNotesDataSourceImpl` 이
-  `flatMap` 으로 키를 `IndexEntryDto.group` 에 접어 넣는다. 그래서 DTO 가 두 개다 —
-  `IndexNoteDto`(파일 모양, group 없음) / `IndexEntryDto`(경계 타입, group 있음). 둘 다 `:core:data` 소유.
+  형태의 **그룹 키 오브젝트**고, 그룹 이름은 값이 아니라 **키**에 있다. `GithubManifestAdapter.list()` 가
+  `flatMap` 으로 키를 `SourceEntry.category` 에 접어 넣는다. 파일 모양 DTO `IndexNoteDto` 와 경계 타입 `SourceEntry` 둘 다 `:core:data` 소유.
+  index 는 지금처럼 Retrofit 컨버터가 디코드하고, 깨지면 그 소스의 동기화 실패(무반영)다 — 항목 단위로 관대하게 바꾸면
+  빠진 항목의 노트가 **지워지므로** 하지 않는다.
 - **`Json` 을 여기서 만들지 않는다.** `:core:data` 의 `DataModule` 이 제공하는 인스턴스를 주입받아
   Retrofit 컨버터에 꽂는다. 또 `@Provides Json` 하면 Hilt 중복 바인딩이다.
-- **에러를 삼키지 않는다.** 예외를 그대로 위로 던진다 — `Result` 로 감싸는 것도, 사용자 노출도
-  `:core:data`/`:feature:notes` 몫이다. 여기서 폴백을 넣으면 "전부 아니면 전무" 계약이 무성화된다.
+- **에러를 삼키지 않는다.** 예외를 그대로 위로 던진다 — 그것이 "전송 실패" 의 정의다. `Result` 로 감싸는 것도,
+  사용자 노출도 `:core:data`/`:feature:notes` 몫이다. 여기서 폴백을 넣으면 "전송 실패는 소스 단위로 무반영" 계약이 무성화된다.
 - **`GithubConfig`(owner/repo/branch)는 이 모듈이 정의하지만 제공하지 않는다.** `:app` 의
   `RemoteConfigModule` 이 `BuildConfig`(= `local.properties`)에서 읽어 제공한다. 그래서 `:core:network`
   단독으로는 Hilt 그래프가 닫히지 않는다.
@@ -61,5 +68,7 @@ data 가 소유한 DTO 라서 **Retrofit/OkHttp 타입은 이 모듈 밖으로 �
 
 ## 테스트
 
-이 모듈에는 테스트가 없다(컨벤션이 `failOnNoDiscoveredTests(false)` 로 풀어 뒀다).
-평탄화·reconcile 검증은 `:core:data` 의 `NotesReconcileTest` 가 fake `RemoteNotesDataSource` 로 대신한다.
+- `GithubManifestAdapterTest`(MockWebServer, `okhttp-mockwebserver`) — index 평탄화, 본문을 원문 문자열로(깨진 본문에도 던지지 않음),
+  요청 경로·`ref`·`Accept` 헤더와 경로의 `/` 가 인코딩되지 않음.
+- `NetworkStatusResolverTest`.
+- reconcile 검증은 `:core:data` 의 `NotesReconcileTest` 가 fake `NoteSourceAdapter` 로 한다.

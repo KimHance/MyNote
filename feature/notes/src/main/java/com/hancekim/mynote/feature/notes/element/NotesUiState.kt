@@ -7,19 +7,29 @@ import com.hancekim.mynote.core.designfoundation.token.MyNoteFontScale
 import com.hancekim.mynote.core.domain.model.ModelStatus
 import com.hancekim.mynote.core.navigation.key.MyNoteNavKey
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
+import com.hancekim.mynote.feature.notes.BookmarkUi
 import com.hancekim.mynote.feature.notes.CategoryUi
 import com.hancekim.mynote.feature.notes.NoteUi
 import com.hancekim.mynote.feature.notes.RecentNoteUi
 import com.hancekim.mynote.feature.notes.quiz.QuizUiState
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.persistentSetOf
 
 @Stable
 data class NoticeUi(
     val message: String,
-    val undoable: Boolean,
+    val undo: NotesIntent?,
+    val id: Int,
+)
+
+@Stable
+data class ReaderScrollRequest(
+    val noteId: String,
+    val fraction: Float,
     val id: Int,
 )
 
@@ -28,6 +38,8 @@ data class NotesUiState(
     val categories: ImmutableList<CategoryUi> = persistentListOf(),
     val visibleCategories: ImmutableList<CategoryUi> = persistentListOf(),
     val recentNotes: ImmutableList<RecentNoteUi> = persistentListOf(),
+    val bookmarkedIds: ImmutableSet<String> = persistentSetOf(),
+    val bookmarks: ImmutableList<BookmarkUi> = persistentListOf(),
     val backStack: ImmutableList<MyNoteNavKey> = persistentListOf(NotesNavKey.Home),
     val activeNoteId: String? = null,
     val isNavSettled: Boolean = true,
@@ -50,6 +62,8 @@ data class NotesUiState(
     val quiz: QuizUiState = QuizUiState.Idle,
     val quizUndoMessage: String? = null,
     val quizUndoId: Int = 0,
+    val studyLogEnabled: Boolean = true,
+    val readerScrollRequest: ReaderScrollRequest? = null,
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
 ) : MviState {
     val canPop: Boolean get() = backStack.size > 1
@@ -57,6 +71,27 @@ data class NotesUiState(
     val isQuizAvailable: Boolean get() = modelStatus == ModelStatus.Ready
 
     val isSettingsOpen: Boolean get() = backStack.lastOrNull() is NotesNavKey.Settings
+
+    val isBookmarksTop: Boolean get() = backStack.lastOrNull() is NotesNavKey.Bookmarks
+
+    val isStatsTop: Boolean get() = backStack.lastOrNull() is NotesNavKey.Stats
+
+    val isStatsHistoryTop: Boolean get() = backStack.lastOrNull() is NotesNavKey.StatsHistory
+
+    val selectedTab: NotesTab
+        get() =
+            when (
+                backStack.lastOrNull {
+                    it is NotesNavKey.Home || it is NotesNavKey.Bookmarks ||
+                        it is NotesNavKey.Stats
+                }
+            ) {
+                NotesNavKey.Bookmarks -> NotesTab.Bookmarks
+                NotesNavKey.Stats -> NotesTab.Stats
+                else -> NotesTab.Home
+            }
+
+    val isActiveNoteBookmarked: Boolean get() = activeNoteId != null && activeNoteId in bookmarkedIds
 
     val totalCount: Int get() = categories.sumOf { it.notes.size }
 

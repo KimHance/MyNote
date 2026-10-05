@@ -73,7 +73,7 @@ alias(`billboard-*`)·id(`hance.*`)·group·패키지가 네 갈래로 갈려 �
 
 | id | 적용 대상 | 스스로 적용/추가하는 것 |
 |---|---|---|
-| `hancenote.android.application` | `:app` | `com.android.application` · **`hancenote.ktlint`** · 공통 Kotlin/Android · `targetSdk` · release 서명 |
+| `hancenote.android.application` | `:app` | `com.android.application` · **`hancenote.ktlint`** · 공통 Kotlin/Android · `targetSdk` · `dependenciesInfo` 끄기 · release 서명 |
 | `hancenote.android.application.compose` | `:app` | ↑ **+** `org.jetbrains.kotlin.plugin.compose` · 공통 Compose 설정 |
 | `hancenote.android.library` | core 라이브러리 | `com.android.library` · **`hancenote.ktlint`** · 공통 Kotlin/Android · 계측 러너 |
 | `hancenote.android.library.compose` | Compose 쓰는 라이브러리 | ↑ **+** Compose 컴파일러 · 공통 Compose 설정 |
@@ -176,6 +176,17 @@ org.gradle.configuration-cache=true
 - 이상하면 `--no-build-cache` / `--no-configuration-cache` 로 끄고 비교한다.
 
 `build-logic/gradle.properties` 는 따로 `parallel`·`caching`·`configureondemand` 를 켠다.
+
+## `dependenciesInfo` — 끈다
+
+application 컨벤션이 `dependenciesInfo.includeInApk = false` · `includeInBundle = false` 를 넣는다. AGP 는 release 빌드에서
+의존성 목록을 Google Play 키로 암호화해 **APK 서명 블록**과 AAB 에 싣는데, F-Droid 는 그 블록을 알 수 없는 바이너리로 보고
+거부하고 배포는 GitHub Releases APK 라 읽을 주체도 없다. 블록 메서드(`dependenciesInfo { }`) 대신 getter + 대입으로 쓴다
+(AGP 9 주의사항과 같은 모양).
+
+확인은 태스크 그래프로 한다 — `./gradlew :app:assembleRelease :app:bundleRelease --dry-run` 에
+`collectReleaseDependencies`·`sdkReleaseDependencyData`·`configureReleaseDependencies` 가 **없어야** 한다(끄기 전에는 셋 다 있다).
+APK 로는 확인할 수 없다: debug 빌드는 원래 이 블록을 만들지 않고, 서명 키가 없는 release 는 `-unsigned.apk` 라 서명 블록 자체가 없다.
 
 ## release 서명 — 침묵과 경고를 구분한다
 

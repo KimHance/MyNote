@@ -1,25 +1,41 @@
 package com.hancekim.mynote.feature.notes
 
 import android.os.SystemClock
+import android.util.Log
 import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.viewModelScope
 import com.hancekim.mynote.core.common.mvi.MviViewModel
 import com.hancekim.mynote.core.designfoundation.token.MyNoteFontScale
+import com.hancekim.mynote.core.domain.AddBookmarkUseCase
 import com.hancekim.mynote.core.domain.CancelModelDownloadUseCase
+import com.hancekim.mynote.core.domain.ClearStudyLogUseCase
 import com.hancekim.mynote.core.domain.DeleteModelUseCase
 import com.hancekim.mynote.core.domain.DiscardPartialModelUseCase
 import com.hancekim.mynote.core.domain.GenerateQuizUseCase
 import com.hancekim.mynote.core.domain.GetCategoriesUseCase
 import com.hancekim.mynote.core.domain.ObserveAppliedTokenUseCase
+import com.hancekim.mynote.core.domain.ObserveBookmarksUseCase
 import com.hancekim.mynote.core.domain.ObserveFontScaleUseCase
 import com.hancekim.mynote.core.domain.ObserveModelStatusUseCase
+import com.hancekim.mynote.core.domain.ObserveStudyLogEnabledUseCase
+import com.hancekim.mynote.core.domain.RecordBookmarkEventUseCase
+import com.hancekim.mynote.core.domain.RecordQuizAttemptUseCase
+import com.hancekim.mynote.core.domain.RecordReadSessionUseCase
+import com.hancekim.mynote.core.domain.RemoveBookmarksUseCase
 import com.hancekim.mynote.core.domain.SaveTokenUseCase
 import com.hancekim.mynote.core.domain.SetFontScaleUseCase
+import com.hancekim.mynote.core.domain.SetStudyLogEnabledUseCase
 import com.hancekim.mynote.core.domain.StartModelDownloadUseCase
 import com.hancekim.mynote.core.domain.SyncNotesUseCase
+import com.hancekim.mynote.core.domain.model.Bookmark
+import com.hancekim.mynote.core.domain.model.BookmarkEvent
+import com.hancekim.mynote.core.domain.model.BookmarkEventKind
 import com.hancekim.mynote.core.domain.model.FontScale
 import com.hancekim.mynote.core.domain.model.ModelStatus
+import com.hancekim.mynote.core.domain.model.Moment
 import com.hancekim.mynote.core.domain.model.QuizFailure
+import com.hancekim.mynote.core.domain.model.ReadSession
+import com.hancekim.mynote.core.domain.model.ReadSessionTracker
 import com.hancekim.mynote.core.navigation.NavCommand
 import com.hancekim.mynote.core.navigation.NavResult
 import com.hancekim.mynote.core.navigation.Navigator
@@ -28,28 +44,40 @@ import com.hancekim.mynote.core.navigation.key.activeNoteId
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.element.NoticeUi
+import com.hancekim.mynote.feature.notes.element.ReaderScrollRequest
 import com.hancekim.mynote.feature.notes.element.maskToken
+import com.hancekim.mynote.feature.notes.mapper.bookmarkedNotes
 import com.hancekim.mynote.feature.notes.mapper.toUi
+import com.hancekim.mynote.feature.notes.navigation.switchTabCommand
 import com.hancekim.mynote.feature.notes.quiz.QuizAutoAdvancePolicy
+import com.hancekim.mynote.feature.notes.quiz.QuizMeta
 import com.hancekim.mynote.feature.notes.quiz.QuizUiState
+import com.hancekim.mynote.feature.notes.quiz.completedAttempt
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toImmutableSet
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
@@ -82,6 +110,15 @@ class NotesViewModel @Inject constructor(
     observeAppliedToken: ObserveAppliedTokenUseCase,
     observeFontScale: ObserveFontScaleUseCase,
     private val setFontScale: SetFontScaleUseCase,
+    observeBookmarks: ObserveBookmarksUseCase,
+    private val addBookmark: AddBookmarkUseCase,
+    private val removeBookmarks: RemoveBookmarksUseCase,
+    private val recordReadSession: RecordReadSessionUseCase,
+    private val recordQuizAttempt: RecordQuizAttemptUseCase,
+    private val recordBookmarkEvent: RecordBookmarkEventUseCase,
+    observeStudyLogEnabled: ObserveStudyLogEnabledUseCase,
+    private val setStudyLogEnabled: SetStudyLogEnabledUseCase,
+    private val clearStudyLog: ClearStudyLogUseCase,
     observeModelStatus: ObserveModelStatusUseCase,
     private val startModelDownload: StartModelDownloadUseCase,
     private val cancelModelDownload: CancelModelDownloadUseCase,
@@ -111,9 +148,11 @@ class NotesViewModel @Inject constructor(
     private val fontScale =
         observeFontScale()
             .map { it.toUi() }
+            .catch { emit(MyNoteFontScale.Normal) }
             .triggerIn(MyNoteFontScale.Normal, started = SharingStarted.Lazily)
     private val modelStatus =
         observeModelStatus()
+            .catch { emit(ModelStatus.Missing) }
             .triggerIn(ModelStatus.Missing, started = SharingStarted.Lazily)
     private val tokenEditing = trigger(false)
     private val notice = trigger<NoticeUi?>(null)
@@ -133,6 +172,33 @@ class NotesViewModel @Inject constructor(
     private val categoryList =
         categories
             .triggerIn(persistentListOf(), started = SharingStarted.Lazily)
+
+    private val bookmarkEntries =
+        observeBookmarks()
+            .catch { emit(emptyList()) }
+            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    private val bookmarkedIds =
+        bookmarkEntries
+            .map { entries -> entries.map { it.noteId }.toImmutableSet() }
+            .triggerIn(persistentSetOf())
+
+    private val bookmarks =
+        combine(categoryList, bookmarkEntries) { list, entries -> bookmarkedNotes(list, entries) }
+            .triggerIn(persistentListOf())
+
+    private var removedBookmark: Bookmark? = null
+    private var removedEventId: Long? = null
+
+    private val studyLogEnabled =
+        observeStudyLogEnabled()
+            .catch { emit(true) }
+            .triggerIn(true, started = SharingStarted.Lazily)
+
+    private val readerScrollRequest = trigger<ReaderScrollRequest?>(null)
+    private var scrollRequestSeq = 0
+    private val tracker = ReadSessionTracker()
+    private var quizMeta: QuizMeta? = null
 
     private val recentNotes =
         categoryList
@@ -166,15 +232,31 @@ class NotesViewModel @Inject constructor(
     private val sync =
         combine(appliedToken, refreshTicks) { _, tick -> tick }
             .flatMapLatest { tick -> syncFlow(announce = tick > 0) }
+            .catch { emit(SyncState(isLoading = false, errorMessage = messages.syncFailed(), errorId = ++errorSeq)) }
             .triggerIn(SyncState())
 
     private val snackbarHostState = SnackbarHostState()
+
+    init {
+        navigator.stack
+            .map { it.activeNoteId() }
+            .distinctUntilChanged()
+            .onEach { noteId -> recordSession(tracker.onTop(noteId, categoryOf(noteId), moment())) }
+            .launchIn(viewModelScope)
+        quiz
+            .map { it.coversReader }
+            .distinctUntilChanged()
+            .onEach { covered -> tracker.onCovered(covered, moment()) }
+            .launchIn(viewModelScope)
+    }
 
     override fun build() =
         NotesUiState(
             categories = categoryList.value,
             visibleCategories = visibleCategories.value,
             recentNotes = recentNotes.value,
+            bookmarkedIds = bookmarkedIds.value,
+            bookmarks = bookmarks.value,
             backStack = navStack.value.toImmutableList(),
             activeNoteId = navStack.value.activeNoteId(),
             isNavSettled = navSettled.value,
@@ -196,16 +278,58 @@ class NotesViewModel @Inject constructor(
             quiz = quiz.value,
             quizUndoMessage = quizUndo.value?.message,
             quizUndoId = quizUndo.value?.id ?: 0,
+            studyLogEnabled = studyLogEnabled.value,
+            readerScrollRequest = readerScrollRequest.value,
             snackbarHostState = snackbarHostState,
         )
 
-    override fun onIntent(event: NotesIntent) {
+    override fun onFailure(cause: Throwable) {
+        Log.e(TAG, "인텐트 처리 실패", cause)
+    }
+
+    override fun handleIntent(event: NotesIntent) {
         when (event) {
             is NotesIntent.SelectNote -> {
                 if (navigator.stack.value.lastOrNull() is NotesNavKey.Settings) {
                     navigator.dispatchImmediately(NavCommand.Pop)
                 }
-                navigator.push(NotesNavKey.Reader(event.id))
+                val result = navigator.push(NotesNavKey.Reader(event.id))
+                val resumeAt = event.resumeAt
+                if (resumeAt != null && result != NavResult.Throttled) {
+                    readerScrollRequest.value = ReaderScrollRequest(event.id, resumeAt, ++scrollRequestSeq)
+                }
+            }
+
+            is NotesIntent.OpenQuizFor -> {
+                if (navigator.stack.value.lastOrNull() is NotesNavKey.Settings) {
+                    navigator.dispatchImmediately(NavCommand.Pop)
+                }
+                if (navigator.push(NotesNavKey.Reader(event.noteId)) == NavResult.Throttled) return
+                if (modelStatus.value == ModelStatus.Ready && isReadable(event.noteId)) {
+                    cancelQuizWork()
+                    clearUndo()
+                    quiz.value = QuizUiState.Setup(event.noteId)
+                }
+            }
+
+            is NotesIntent.ForegroundChanged -> {
+                recordSession(tracker.onVisible(event.visible, moment()))
+            }
+
+            is NotesIntent.ReaderProgress -> {
+                tracker.onProgress(event.noteId, event.percent)
+            }
+
+            is NotesIntent.SetStudyLogEnabled -> {
+                launchSafely { setStudyLogEnabled(event.enabled) }
+            }
+
+            NotesIntent.ClearStudyLog -> {
+                removedEventId = null
+                launchSafely {
+                    clearStudyLog()
+                    announce(messages.studyLogCleared())
+                }
             }
 
             NotesIntent.OpenSettings -> {
@@ -222,7 +346,7 @@ class NotesViewModel @Inject constructor(
             }
 
             is NotesIntent.SetFontScale -> {
-                viewModelScope.launch { setFontScale(event.scale.toDomain()) }
+                launchSafely { setFontScale(event.scale.toDomain()) }
             }
 
             NotesIntent.StartModelDownload -> {
@@ -241,7 +365,7 @@ class NotesViewModel @Inject constructor(
             }
 
             NotesIntent.DeleteModel -> {
-                viewModelScope.launch {
+                launchSafely {
                     deleteModel()
                     announce(messages.modelDeleted())
                 }
@@ -259,8 +383,54 @@ class NotesViewModel @Inject constructor(
                 }
             }
 
-            NotesIntent.CloseNote -> {
-                navigator.pop()
+            is NotesIntent.SwitchTab -> {
+                navigator.dispatch(navigator.stack.value.switchTabCommand(event.tab))
+            }
+
+            NotesIntent.ToggleBookmark -> {
+                val noteId = navigator.stack.value.activeNoteId() ?: return
+                removedBookmark = null
+                removedEventId = null
+                if (bookmarkEntries.value.any { it.noteId == noteId }) {
+                    launchSafely {
+                        removeBookmarks(listOf(noteId))
+                        announce(messages.bookmarkRemoved())
+                    }
+                    recordBookmark(noteId, BookmarkEventKind.Removed)
+                } else {
+                    launchSafely {
+                        addBookmark(noteId)
+                        announce(messages.bookmarkAdded())
+                    }
+                    recordBookmark(noteId, BookmarkEventKind.Added)
+                }
+            }
+
+            is NotesIntent.RemoveBookmark -> {
+                val entry = bookmarkEntries.value.firstOrNull { it.noteId == event.noteId } ?: return
+                removedBookmark = entry
+                removedEventId = null
+                launchSafely {
+                    removeBookmarks(listOf(entry.noteId))
+                    announce(messages.bookmarkRemoved(), undo = NotesIntent.UndoRemoveBookmark)
+                }
+                recordBookmark(entry.noteId, BookmarkEventKind.Removed) { id ->
+                    if (removedBookmark === entry) removedEventId = id
+                }
+            }
+
+            NotesIntent.UndoRemoveBookmark -> {
+                val entry = removedBookmark ?: return
+                val eventId = removedEventId
+                removedBookmark = null
+                removedEventId = null
+                if (categoryList.value.none { c -> c.notes.any { it.id == entry.noteId } }) return
+                launchSafely { addBookmark(entry.noteId, entry.addedAt) }
+                if (eventId !=
+                    null
+                ) {
+                    launchSafely { withContext(NonCancellable) { recordBookmarkEvent.cancel(eventId) } }
+                }
             }
 
             NotesIntent.StartTokenEdit -> {
@@ -276,9 +446,9 @@ class NotesViewModel @Inject constructor(
                 if (token.isEmpty()) return
                 tokenEditing.value = false
                 clearedToken = null
-                viewModelScope.launch {
+                launchSafely {
                     saveToken(token)
-                    notice.value = NoticeUi(messages.tokenSaved(), undoable = false, id = ++noticeSeq)
+                    announce(messages.tokenSaved())
                 }
             }
 
@@ -287,16 +457,16 @@ class NotesViewModel @Inject constructor(
                 if (previous.isNullOrBlank()) return
                 tokenEditing.value = false
                 clearedToken = previous
-                viewModelScope.launch {
+                launchSafely {
                     saveToken("")
-                    notice.value = NoticeUi(messages.tokenCleared(), undoable = true, id = ++noticeSeq)
+                    announce(messages.tokenCleared(), undo = NotesIntent.UndoClearToken)
                 }
             }
 
             NotesIntent.UndoClearToken -> {
                 val previous = clearedToken ?: return
                 clearedToken = null
-                viewModelScope.launch { saveToken(previous) }
+                launchSafely { saveToken(previous) }
             }
 
             is NotesIntent.OpenQuizSetup -> {
@@ -338,7 +508,9 @@ class NotesViewModel @Inject constructor(
                 autoAdvanceJob?.cancel()
                 val solving = quiz.value as? QuizUiState.Solving ?: return
                 if (event.fromIndex != null && event.fromIndex != solving.index) return
-                quiz.value = solving.advance()
+                val next = solving.advance()
+                quiz.value = next
+                recordAttempt(solving, next)
             }
 
             NotesIntent.DismissQuiz -> {
@@ -367,13 +539,15 @@ class NotesViewModel @Inject constructor(
         clearUndo()
         quiz.value = QuizUiState.Loading(noteId, maxCount)
         quizJob =
-            viewModelScope.launch {
+            launchSafely {
                 val outcome = withTimeoutOrNull(GENERATE_TIMEOUT_MILLIS.milliseconds) { generateQuiz(noteId, maxCount) }
-                quiz.value =
+                val next =
                     outcome?.fold(
                         onSuccess = { questions -> solvingOrEmpty(questions.map { it.toUi() }, noteId, maxCount) },
                         onFailure = { QuizUiState.Failed(it.toFailKind(), maxCount, noteId) },
                     ) ?: QuizUiState.Failed(QuizUiState.Failed.Kind.Timeout, maxCount, noteId)
+                if (next is QuizUiState.Solving) quizMeta = QuizMeta(noteId, System.currentTimeMillis())
+                quiz.value = next
             }
     }
 
@@ -394,7 +568,7 @@ class NotesViewModel @Inject constructor(
     private fun armAutoAdvance(fromIndex: Int) {
         autoAdvanceJob?.cancel()
         autoAdvanceJob =
-            viewModelScope.launch {
+            launchSafely {
                 delay(QuizUiState.AUTO_ADVANCE_MILLIS.milliseconds)
                 onIntent(NotesIntent.NextQuestion(fromIndex = fromIndex))
             }
@@ -413,7 +587,7 @@ class NotesViewModel @Inject constructor(
         quizUndo.value = QuizUndo(messages.quizAbandoned(), ++undoSeq)
         undoJob?.cancel()
         undoJob =
-            viewModelScope.launch {
+            launchSafely {
                 delay(UNDO_WINDOW_MILLIS.milliseconds)
                 abandonedSolving = null
                 quizUndo.value = null
@@ -425,8 +599,62 @@ class NotesViewModel @Inject constructor(
         quizJob?.cancel()
     }
 
-    private fun announce(message: String) {
-        notice.value = NoticeUi(message, undoable = false, id = ++noticeSeq)
+    private fun moment(): Moment = Moment(System.currentTimeMillis(), SystemClock.elapsedRealtime())
+
+    private fun categoryOf(noteId: String?): String? {
+        if (noteId == null) return null
+        return categoryList.value.firstOrNull { c -> c.notes.any { it.id == noteId } }?.name
+    }
+
+    private fun isReadable(noteId: String): Boolean =
+        categoryList.value.firstNotNullOfOrNull { c -> c.notes.firstOrNull { it.id == noteId } }?.readable != false
+
+    private fun recordSession(session: ReadSession?) {
+        val closed = session ?: return
+        val resolved =
+            if (closed.category.isEmpty()) {
+                closed.copy(
+                    category = categoryOf(closed.noteId).orEmpty(),
+                )
+            } else {
+                closed
+            }
+        launchSafely { withContext(NonCancellable) { recordReadSession(resolved) } }
+    }
+
+    private fun recordAttempt(
+        before: QuizUiState,
+        after: QuizUiState,
+    ) {
+        val meta = quizMeta ?: return
+        val attempt =
+            completedAttempt(
+                before = before,
+                after = after,
+                meta = meta,
+                category = categoryOf(meta.noteId).orEmpty(),
+                finishedAt = System.currentTimeMillis(),
+            ) ?: return
+        launchSafely { withContext(NonCancellable) { recordQuizAttempt(attempt) } }
+    }
+
+    private fun recordBookmark(
+        noteId: String,
+        kind: BookmarkEventKind,
+        onRecorded: (Long) -> Unit = {},
+    ) {
+        val event = BookmarkEvent(noteId, categoryOf(noteId).orEmpty(), kind, System.currentTimeMillis())
+        launchSafely {
+            val id = withContext(NonCancellable) { recordBookmarkEvent(event) }
+            if (id != null) onRecorded(id)
+        }
+    }
+
+    private fun announce(
+        message: String,
+        undo: NotesIntent? = null,
+    ) {
+        notice.value = NoticeUi(message, undo = undo, id = ++noticeSeq)
     }
 
     private fun clearUndo() {
@@ -444,6 +672,10 @@ class NotesViewModel @Inject constructor(
                         val openNote = navigator.stack.value.activeNoteId()
                         if (openNote != null && openNote in outcome.deleted) {
                             navigator.dispatchImmediately(NavCommand.Pop)
+                        }
+                        if (outcome.deleted.isNotEmpty()) {
+                            val deleted = outcome.deleted
+                            launchSafely { removeBookmarks(deleted) }
                         }
                         if (announce && outcome.hasChanges) {
                             SyncState(
@@ -485,3 +717,5 @@ private fun MyNoteFontScale.toDomain(): FontScale =
         MyNoteFontScale.Normal -> FontScale.Normal
         MyNoteFontScale.Large -> FontScale.Large
     }
+
+private const val TAG = "MyNoteNotes"

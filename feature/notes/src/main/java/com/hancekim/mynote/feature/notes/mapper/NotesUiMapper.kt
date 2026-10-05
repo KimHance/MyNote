@@ -2,7 +2,10 @@ package com.hancekim.mynote.feature.notes.mapper
 
 import com.hancekim.mynote.core.domain.model.Category
 import com.hancekim.mynote.core.domain.model.Note
+import com.hancekim.mynote.core.domain.model.NoteBlock
 import com.hancekim.mynote.core.domain.model.QuizQuestion
+import com.hancekim.mynote.core.domain.model.UnsupportedReason
+import com.hancekim.mynote.core.domain.model.firstSentence
 import com.hancekim.mynote.feature.notes.CategoryUi
 import com.hancekim.mynote.feature.notes.NoteUi
 import com.hancekim.mynote.feature.notes.QuizQuestionUi
@@ -23,6 +26,8 @@ internal fun Note.toUi(): NoteUi =
         title = title,
         date = date,
         blocks = blocks.toContentBlocks(),
+        excerpt = firstSentence(),
+        readable = blocks.none { it is NoteBlock.Unsupported && it.reason == UnsupportedReason.BrokenNote },
     )
 
 internal fun QuizQuestion.toUi(): QuizQuestionUi =

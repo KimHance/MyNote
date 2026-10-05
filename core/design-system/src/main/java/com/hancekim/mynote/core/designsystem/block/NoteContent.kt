@@ -14,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -38,58 +39,80 @@ import kotlinx.collections.immutable.persistentListOf
 fun NoteContent(
     blocks: ImmutableList<NoteContentBlock>,
     modifier: Modifier = Modifier,
+    state: NoteContentState = rememberNoteContentState(),
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        blocks.forEach { block ->
-            when (block) {
-                is NoteContentBlock.Heading -> {
-                    Text(
-                        text = block.spans.toAnnotatedString(),
-                        style =
-                            if (block.level <= 2) {
-                                MyNoteTheme.textStyles.mdHeading2
-                            } else {
-                                MyNoteTheme.textStyles.mdHeading3
-                            },
-                        color = MyNoteTheme.colors.text,
-                    )
-                }
-
-                is NoteContentBlock.Paragraph -> {
-                    Text(
-                        text = block.spans.toAnnotatedString(),
-                        style = MyNoteTheme.textStyles.body,
-                        color = MyNoteTheme.colors.bodyText,
-                    )
-                }
-
-                is NoteContentBlock.Code -> {
-                    CodeBlock(block.code)
-                }
-
-                is NoteContentBlock.Quote -> {
-                    QuoteBlock(block.spans)
-                }
-
-                is NoteContentBlock.BulletList -> {
-                    ListBlock(block.items, ordered = false)
-                }
-
-                is NoteContentBlock.OrderedList -> {
-                    ListBlock(block.items, ordered = true)
-                }
-
-                NoteContentBlock.Divider -> {
-                    DividerBlock()
-                }
-
-                NoteContentBlock.Spacer -> {
-                    Spacer(Modifier.height(8.dp))
-                }
+        blocks.forEachIndexed { index, block ->
+            key(index) {
+                NoteBlockContent(block, index, state)
             }
+        }
+    }
+}
+
+@Composable
+private fun NoteBlockContent(
+    block: NoteContentBlock,
+    index: Int,
+    state: NoteContentState,
+) {
+    when (block) {
+        is NoteContentBlock.Heading -> {
+            Text(
+                text = block.spans.toAnnotatedString(),
+                style =
+                    if (block.level <= 2) {
+                        MyNoteTheme.textStyles.mdHeading2
+                    } else {
+                        MyNoteTheme.textStyles.mdHeading3
+                    },
+                color = MyNoteTheme.colors.text,
+            )
+        }
+
+        is NoteContentBlock.Paragraph -> {
+            Text(
+                text = block.spans.toAnnotatedString(),
+                style = MyNoteTheme.textStyles.body,
+                color = MyNoteTheme.colors.bodyText,
+            )
+        }
+
+        is NoteContentBlock.Code -> {
+            CodeBlock(block.code)
+        }
+
+        is NoteContentBlock.Quote -> {
+            QuoteBlock(block.spans)
+        }
+
+        is NoteContentBlock.BulletList -> {
+            ListBlock(block.items, ordered = false)
+        }
+
+        is NoteContentBlock.OrderedList -> {
+            ListBlock(block.items, ordered = true)
+        }
+
+        NoteContentBlock.Divider -> {
+            DividerBlock()
+        }
+
+        NoteContentBlock.Spacer -> {
+            Spacer(Modifier.height(8.dp))
+        }
+
+        is NoteContentBlock.Unsupported -> {
+            UnsupportedBlock(
+                block = block,
+                expanded = state.isExpanded(index),
+                showAll = state.isShowingAll(index),
+                onToggle = { state.toggle(index) },
+                onShowAll = { state.showAll(index) },
+            )
         }
     }
 }
@@ -220,6 +243,12 @@ private val previewBlocks: ImmutableList<NoteContentBlock> =
             ),
         ),
         NoteContentBlock.Code("val x = 1"),
+        NoteContentBlock.Unsupported(
+            kind = UnsupportedKind.UnknownType,
+            salvaged = "1. 클라이언트 → 서버: SYN\n2. 서버 → 클라이언트: SYN+ACK",
+            raw = "{\n  \"type\": \"timeline\",\n  \"fallback\": \"…\"\n}",
+        ),
+        NoteContentBlock.Paragraph(persistentListOf(NoteContentSpan("상자 다음 단락.", NoteSpanStyle.Normal))),
     )
 
 @Preview(showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 360)

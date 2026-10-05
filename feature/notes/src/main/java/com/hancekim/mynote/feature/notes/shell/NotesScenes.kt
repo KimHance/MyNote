@@ -57,20 +57,29 @@ internal fun rememberNotesHeaderSlot(
     val currentMenu = rememberUpdatedState(onMenu)
     val homeTitle = stringResource(R.string.notes_app_title)
     val settingsTitle = stringResource(R.string.notes_settings)
+    val bookmarksTitle = stringResource(R.string.notes_nav_bookmark)
+    val statsTitle = stringResource(R.string.notes_nav_stats)
+    val historyTitle = stringResource(R.string.notes_stats_history_title)
 
-    return remember(homeTitle, settingsTitle) {
+    return remember(homeTitle, settingsTitle, bookmarksTitle, statsTitle, historyTitle) {
         @Composable {
             val state = currentState.value
             NotesTopBar(
                 title =
                     when {
                         state.isSettingsOpen -> settingsTitle
+                        state.isBookmarksTop -> bookmarksTitle
+                        state.isStatsTop -> statsTitle
+                        state.isStatsHistoryTop -> historyTitle
                         else -> state.activeNote?.title ?: homeTitle
                     },
-                showBack = state.isSettingsOpen,
+                showBack = state.isSettingsOpen || state.isStatsHistoryTop,
+                showRefresh = !state.isStatsHistoryTop,
+                bookmarked = if (state.activeNoteId != null) state.isActiveNoteBookmarked else null,
                 onMenu = { currentMenu.value() },
                 onBack = { currentIntent.value(NotesIntent.Back) },
                 onRefresh = { currentIntent.value(NotesIntent.Refresh) },
+                onToggleBookmark = { currentIntent.value(NotesIntent.ToggleBookmark) },
             )
         }
     }

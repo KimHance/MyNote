@@ -28,6 +28,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.hancekim.mynote.core.designsystem.component.MyNoteSnackbarHost
@@ -58,11 +60,25 @@ internal fun NotesShell(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     var panelExpanded by rememberSaveable { mutableStateOf(true) }
-    var selectedNavItem by rememberSaveable { mutableStateOf(NAV_HOME) }
 
     val backdrop = rememberLayerBackdrop()
     val navScroll = rememberFloatingNavScrollState()
-    LaunchedEffect(uiState.activeNoteId) { navScroll.reset() }
+    LaunchedEffect(uiState.backStack.lastOrNull()) { navScroll.reset() }
+
+    val focusManager = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
+    LaunchedEffect(drawerState.targetValue) {
+        if (drawerState.targetValue == DrawerValue.Closed) {
+            focusManager.clearFocus(force = true)
+            keyboard?.hide()
+        }
+    }
+    LaunchedEffect(panelExpanded) {
+        if (!panelExpanded) {
+            focusManager.clearFocus(force = true)
+            keyboard?.hide()
+        }
+    }
 
     val drawerEngaged = drawerState.isOpen || drawerState.targetValue == DrawerValue.Open
     val drawerOpening = drawerEngaged && !drawerState.isOpen
@@ -85,8 +101,20 @@ internal fun NotesShell(
         label = "pillReserve",
     )
 
-    val layout = rememberNotesLayout()
-    val scroll = rememberNotesScrollState(uiState.activeNoteId)
+    val layout = rememberNotesLayout(panelOpen = collapsiblePanelOpen)
+    val scroll =
+        rememberNotesScrollState(
+            uiState.activeNoteId,
+            uiState.isBookmarksTop,
+            uiState.isStatsTop,
+            uiState.isStatsHistoryTop,
+        )
+    ReaderProgressEffect(noteId = uiState.activeNoteId, reader = scroll.reader, onIntent = onIntent)
+    ReaderScrollRequestEffect(
+        request = uiState.readerScrollRequest,
+        activeNoteId = uiState.activeNoteId,
+        scroll = scroll,
+    )
 
     val panelSlot = rememberNotesPanelSlot(uiState, onIntent)
     val headerSlot =
@@ -130,7 +158,9 @@ internal fun NotesShell(
                             sceneStrategies = sceneStrategies,
                             stackedScenes = useDrawer,
                             contentBottomPadding = layout.contentBottomPadding,
+                            contentEndPadding = layout.contentEndPadding,
                             contentTopPadding = contentTopPadding,
+                            twoPane = layout.twoPane,
                             onEnableNotifications = onEnableNotifications,
                             scroll = scroll,
                             onQuizAction = { noteId, action ->
@@ -154,11 +184,6 @@ internal fun NotesShell(
                         navScroll = navScroll,
                         backdrop = backdrop,
                         pillVisible = pillVisible,
-                        selectedNavItem = selectedNavItem,
-                        onSelectNavItem = { id ->
-                            selectedNavItem = id
-                            if (id == NAV_HOME) onIntent(NotesIntent.CloseNote)
-                        },
                         quizStartInset = if (collapsiblePanelOpen) adaptive.paneWidth + 1.dp else 0.dp,
                     )
                 }

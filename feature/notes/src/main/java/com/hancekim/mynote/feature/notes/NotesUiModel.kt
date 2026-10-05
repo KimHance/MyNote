@@ -11,6 +11,8 @@ data class NoteUi(
     val title: String,
     val date: String,
     val blocks: ImmutableList<NoteContentBlock> = persistentListOf(),
+    val excerpt: String? = null,
+    val readable: Boolean = true,
 )
 
 @Immutable
@@ -23,6 +25,13 @@ data class CategoryUi(
 data class RecentNoteUi(
     val note: NoteUi,
     val categoryName: String,
+)
+
+@Immutable
+data class BookmarkUi(
+    val note: NoteUi,
+    val categoryName: String,
+    val addedAt: Long,
 )
 
 @Immutable

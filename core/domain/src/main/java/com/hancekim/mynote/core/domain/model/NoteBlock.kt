@@ -29,7 +29,16 @@ sealed interface NoteBlock {
     data object Divider : NoteBlock
 
     data object Spacer : NoteBlock
+
+    data class Unsupported(
+        val reason: UnsupportedReason,
+        val type: String?,
+        val text: String?,
+        val raw: String,
+    ) : NoteBlock
 }
+
+enum class UnsupportedReason { UnknownType, BrokenBlock, BrokenNote }
 
 data class NoteListItem(
     val spans: List<NoteSpan>,

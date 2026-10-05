@@ -4,24 +4,19 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class CategoryDto(
-    val name: String,
-    val notes: List<NoteDto>,
-)
-
-@Serializable
-data class NoteDto(
-    val id: String,
-    val title: String,
-    val date: String,
-    val blocks: List<NoteBlockDto>,
-)
-
-@Serializable
 sealed interface NoteBlockDto {
     @Serializable
     @SerialName("unknown")
     data object Unknown : NoteBlockDto
+
+    @Serializable
+    @SerialName("unsupported")
+    data class Unsupported(
+        val reason: UnsupportedReasonDto = UnsupportedReasonDto.BROKEN_BLOCK,
+        val original: String? = null,
+        val text: String? = null,
+        val raw: String,
+    ) : NoteBlockDto
 
     @Serializable
     @SerialName("heading")
@@ -72,6 +67,18 @@ sealed interface NoteBlockDto {
 }
 
 @Serializable
+enum class UnsupportedReasonDto {
+    @SerialName("unknown_type")
+    UNKNOWN_TYPE,
+
+    @SerialName("broken_block")
+    BROKEN_BLOCK,
+
+    @SerialName("broken_note")
+    BROKEN_NOTE,
+}
+
+@Serializable
 data class NoteListItemDto(
     val spans: List<NoteSpanDto>,
 )
@@ -97,16 +104,6 @@ enum class SpanStyleDto {
 @Serializable
 data class IndexNoteDto(
     val id: String,
-    val title: String,
-    val date: String,
-    val path: String,
-    val hash: String,
-)
-
-@Serializable
-data class IndexEntryDto(
-    val id: String,
-    val group: String,
     val title: String,
     val date: String,
     val path: String,

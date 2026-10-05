@@ -22,7 +22,10 @@ import androidx.compose.ui.unit.dp
 import com.hancekim.mynote.core.designsystem.block.NoteContent
 import com.hancekim.mynote.core.designsystem.block.NoteContentBlock
 import com.hancekim.mynote.core.designsystem.block.NoteContentSpan
+import com.hancekim.mynote.core.designsystem.block.NoteContentState
 import com.hancekim.mynote.core.designsystem.block.NoteSpanStyle
+import com.hancekim.mynote.core.designsystem.block.UnsupportedKind
+import com.hancekim.mynote.core.designsystem.block.rememberNoteContentState
 import com.hancekim.mynote.core.designsystem.component.CategoryChip
 import com.hancekim.mynote.core.designsystem.component.fadingEdges
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
@@ -41,6 +44,7 @@ internal fun NoteReaderScreen(
     contentBottomPadding: Dp = 0.dp,
     contentTopPadding: Dp = 0.dp,
     scrollState: ScrollState = rememberScrollState(),
+    contentState: NoteContentState = rememberNoteContentState(),
     onQuizAction: ((CtaAction) -> Unit)? = null,
     modelStatus: ModelStatus = ModelStatus.Ready,
 ) {
@@ -80,8 +84,8 @@ internal fun NoteReaderScreen(
                     color = MyNoteTheme.colors.text,
                     modifier = shared.title,
                 )
-                NoteContent(blocks = note.blocks)
-                if (onQuizAction != null) {
+                NoteContent(blocks = note.blocks, state = contentState)
+                if (onQuizAction != null && note.readable) {
                     QuizCtaCard(status = modelStatus, onAction = onQuizAction)
                 }
             }
@@ -141,5 +145,55 @@ private fun NoteReaderScreenNoModelPreview() {
             onQuizAction = {},
             modelStatus = ModelStatus.Missing,
         )
+    }
+}
+
+private val previewUnsupportedNote =
+    previewNote.copy(
+        blocks =
+            persistentListOf(
+                NoteContentBlock.Paragraph(
+                    persistentListOf(NoteContentSpan("TCP 는 연결을 맺을 때 세 번 주고받는다.", NoteSpanStyle.Normal)),
+                ),
+                NoteContentBlock.Unsupported(
+                    kind = UnsupportedKind.UnknownType,
+                    salvaged = "1. 클라이언트 → 서버: SYN\n2. 서버 → 클라이언트: SYN+ACK\n3. 클라이언트 → 서버: ACK",
+                    raw = "{\n  \"type\": \"table\",\n  \"rows\": []\n}",
+                ),
+                NoteContentBlock.Code("socket.connect(address)"),
+                NoteContentBlock.Unsupported(
+                    kind = UnsupportedKind.BrokenBlock,
+                    salvaged = null,
+                    raw = "{\n  \"type\": \"heading\"\n}",
+                ),
+            ),
+    )
+
+private val previewBrokenNote =
+    previewNote.copy(
+        blocks =
+            persistentListOf(
+                NoteContentBlock.Unsupported(
+                    kind = UnsupportedKind.BrokenNote,
+                    salvaged = null,
+                    raw = "{\n  \"id\": \"compose-state\",\n  \"blocks\": \"깨짐\"\n",
+                ),
+            ),
+        readable = false,
+    )
+
+@Preview(name = "Reader · 모르는 블록", showBackground = true, widthDp = 400, heightDp = 720)
+@Composable
+private fun NoteReaderScreenUnsupportedPreview() {
+    MyNoteTheme {
+        NoteReaderScreen(note = previewUnsupportedNote, categoryName = "Network", onQuizAction = {})
+    }
+}
+
+@Preview(name = "Reader · 읽지 못한 노트", showBackground = true, widthDp = 400, heightDp = 720)
+@Composable
+private fun NoteReaderScreenBrokenNotePreview() {
+    MyNoteTheme {
+        NoteReaderScreen(note = previewBrokenNote, categoryName = "Android", onQuizAction = {})
     }
 }

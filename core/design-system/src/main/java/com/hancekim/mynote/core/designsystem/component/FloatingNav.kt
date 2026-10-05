@@ -68,6 +68,7 @@ data class FloatingNavItem(
 
 object FloatingNavDefaults {
     val BarHeight: Dp = 60.dp
+    val RailWidth: Dp get() = RailItemSize + RailPadding * 2
 }
 
 private const val LABEL_FADE_IN_MILLIS = 150
@@ -135,7 +136,7 @@ fun FloatingNavRail(
             },
     ) {
         Column(
-            modifier = Modifier.padding(8.dp),
+            modifier = Modifier.padding(RailPadding),
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             items.forEach { item ->
@@ -357,6 +358,7 @@ private val ItemHorizontalPadding = 13.dp
 private val IconSize = 21.dp
 private val RailItemSize = 46.dp
 private val RailItemRadius = 15.dp
+private val RailPadding = 8.dp
 private const val SELECTED_ICON_SCALE = 1.1f
 
 private val previewNavItems: ImmutableList<FloatingNavItem> =

@@ -25,7 +25,7 @@
   `@Binds` 는 구현체를 가진 `:core:data`/`:core:network`/`:core:ai` 의 모듈이 한다.
 - **Gradle 태스크 이름이 다르다.** `:core:domain:compileKotlin` / `:core:domain:test` 이고
   `compileDebugKotlin`·`testDebugUnitTest`·`assembleDebug` 는 **존재하지 않는다.**
-  루트에서 `./gradlew testDebugUnitTest` 를 돌려도 이 모듈은 조용히 건너뛴다(현재 `src/test/` 도 없다).
+  루트에서 `./gradlew testDebugUnitTest` 를 돌려도 이 모듈은 조용히 건너뛴다. `./gradlew test` 나 `:core:domain:test` 로 돌린다.
 
 ## 인터페이스는 여기가 소유하고 바깥이 구현한다
 
@@ -33,7 +33,10 @@
 |---|---|---|
 | `NotesRepository` | `observeCategories(): Flow<List<Category>>` + `suspend sync(): Result<SyncOutcome>` | `NotesRepositoryImpl` (`:core:data`) |
 | `TokenRepository` | 저장된 토큰 read/write/observe | `TokenRepositoryImpl` (`:core:data` → DataStore in `:core:database`) |
-| `SettingsRepository` | 본문 글자 크기(`FontScale`) observe/write | `SettingsRepositoryImpl` (`:core:data` → DataStore in `:core:database`) |
+| `SettingsRepository` | 본문 글자 크기(`FontScale`) · 학습 기록 켜짐 observe/write | `SettingsRepositoryImpl` (`:core:data` → DataStore in `:core:database`) |
+| `StudyLogRepository` | 학습 기록 쓰기(세션·시도·북마크 이벤트) · 구간/노트별 관찰 · 오답 조회 · 지우기(요약 캐시 포함) · 365일 정리 | `StudyLogRepositoryImpl` (`:core:data` → Room in `:core:database`) |
+| `InsightRepository` | 주간 요약·패턴 캐시(`stamp` 로 거른 관찰) · 워커 상태(성공/실패/포기·`log_epoch`) · 26주 정리 | `InsightRepositoryImpl` (`:core:data` → Room + DataStore `study_insights`) |
+| `InsightScheduler` | 워커 예약·취소 · "생성 중" 상태 · 현재 `InsightStamp`(모델 commit + 출력 형식 버전) | `StudyInsightWork` (`:core:ai`) |
 | `AppliedTokenSource` | 지금 **실제로 먹은** 토큰 | `GithubTokenHolder` (`:core:network`) |
 | `QuizGenerator` | `isAvailable()` + `generate(title, text, count)` | `LiteRtLmQuizGenerator` (`:core:ai`) |
 
@@ -60,8 +63,10 @@ debug 에서 항상 없다고 나온다. `ObserveAppliedTokenUseCase` 가 그 �
 
 1. **노트를 찾는다** — `observeCategories().first()` 로 **캐시된 트리**에서 찾는다. 네트워크를 타지 않는다
    (SSOT 는 Room). 못 찾으면 `QuizFailure.Empty`. 즉 호출부가 `Note` 를 들고 오지 않아도 된다.
-2. **블록을 평문으로 편다** — 8종 블록의 exhaustive `when`. `Divider`/`Spacer` 는 버리고 코드블록 본문은
-   **포함한다**(코드에서도 문제를 낼 수 있게). 리스트는 `- ` 를 붙여 한 줄씩.
+2. **블록을 평문으로 편다** — 9종 블록의 exhaustive `when`. `Divider`/`Spacer` 는 버리고 코드블록 본문은
+   **포함한다**(코드에서도 문제를 낼 수 있게). 리스트는 `- ` 를 붙여 한 줄씩. **`Unsupported` 는 건진 글자(`text`)만**
+   넣고 원문(`raw`, JSON 조각)은 넣지 않는다 — 건진 글자는 상자 안에 보이는 글이라 퀴즈 근거를 노트에서 찾을 수 있다
+   (`GenerateQuizUseCaseTest`).
 3. **`take(2_000)` — 본문을 자르는 책임이 여기 있다.** 프롬프트 길이가 곧 prefill 이고 prefill 이 곧 TTFT다
    (온디바이스 2B/GPU 기준 첫 토큰이 본문 길이에 비례해 늘어난다). 컨텍스트 창(`EngineConfig.maxNumTokens`)은
    엔진 레벨이라 늘리려면 재init 10초짜리라서, 실질적으로 조절 가능한 손잡이는 입력 길이뿐이다.
@@ -75,6 +80,31 @@ debug 에서 항상 없다고 나온다. `ObserveAppliedTokenUseCase` 가 그 �
   `QuizUiState.Failed.Kind` 에는 `Timeout` 이 있는데 `QuizFailure` 에는 없다 — 불일치가 아니라 소유자가 다르다.
 - `isAvailable()` 은 UseCase 를 거치지 않는다. feature 가 `QuizGenerator` 를 직접 주입받아 부른다
   (도메인 인터페이스라 경계 위반은 아니다). 모델 파일 존재 여부를 묻는 것뿐이라 감싸도 얻는 게 없다.
+
+## 학습 기록과 통계 — 규칙은 전부 여기 있는 순수 함수다
+
+- `model/ReadSessionTracker` — 열람 세션 상태기계. 시계(`Moment`: 벽시계 + `elapsedRealtime`)를 호출자가 넘긴다.
+  30초 미만 버림, 60분 절단, 덮인 동안 일시정지, 같은 노트로 `onTop` 반복은 무시. `NotesViewModel` 이 먹인다.
+  읽은 비율 최댓값은 **트래커만** 세션 단위로 들고, top 노트의 마지막 비율을 기억해 보임 재개 세션을 거기서
+  시작한다(top 노트가 바뀌면 버린다). 셸은 지금 비율만 보낸다.
+- `stats/StatsPeriodRange` — 이번 주(월요일 시작)·이번 달(달 경계로 자른 주)·전체(최근 12개월) 칸과 비교 구간.
+  시간대는 넘겨받은 `ZonedDateTime` 의 것. 14일 미만이면 `shortRangeDays`.
+- `stats/StudyStatsCalculator` — 숫자 4칸·칸별 합·카테고리 축(현재 노트 ∪ 기간 이벤트, 이름순)·멈춘 노트·
+  재도전·오래 안 본 북마크. **SQL 이 아니라 여기서 센다.** 상수는 `StatsThresholds` 한 곳.
+- 기록 UseCase 셋(`RecordReadSession`·`RecordQuizAttempt`·`RecordBookmarkEvent`)이 **`study_log_enabled` 를 한 곳에서
+  거른다.** 호출부마다 거르지 않는다. `RecordBookmarkEventUseCase` 는 행 id 를 돌려주고 `cancel(id)` 로 되돌린다.
+- `stats/InsightPlan` — 워커가 무엇을 만들지(지난주 확정 · 이번 주 첫 요약/재생성 · 패턴) 정하는 순수 판정(PRD D54).
+  엔진을 깨우기 전에 돈다. 상수는 `StatsThresholds`.
+- `stats/WeeklyDigest(Builder)` — 요약 입력의 **모든 숫자**(그 주·지난주 같은 구간·차이·카테고리별 분·정답·`top`/`least`)를
+  여기서 만든다. 모델은 숫자를 계산하지 않고 이 값만 옮긴다 — `:core:ai` 가 출력 숫자를 이 집합과 대조해 환각을 버린다.
+- `stats/WeeklyHistory` — 지난 요약 화면의 주 목록(최대 52주, 원시 기록에서 숫자 재계산, D64).
+- `ClearStudyLogUseCase` 순서: 워커 취소 → `log_epoch` +1 → 기록·캐시 삭제 → 상태 키 삭제 → 조건(`insightsWanted`)이면 재예약.
+  `PruneStudyLogUseCase` 는 365일 기록 + **90일 `quiz_answers`**(문항 텍스트, D44 갱신) + 26주 요약·패턴을 같이 정리한다.
+- `WeeklyDigest.trend`(more/less/same, `change.minutes` 부호)·`titles`(stalled + reread) — 요약 문장에 숫자를 쓰지 않으므로
+  방향은 말로, 제목 속 숫자는 가드에서 지우고 본다(`:core:ai` 검수 B1).
+- 테스트(`:core:domain:test`): `NoteKeyTest`·`GenerateQuizUseCaseTest`·`ReadSessionTrackerTest`·`StatsPeriodRangeTest`(DST·윤년·시간대 포함)·
+  `StudyStatsCalculatorTest`·`StudyLogUseCaseTest`(지우기 순서·재예약·26주 정리 포함)·`InsightPlanTest`·`WeeklyDigestTest`·
+  `WeeklyHistoryTest`.
 
 ## `QuizFailure` 의 메시지는 개발자용이다
 
@@ -99,13 +129,22 @@ debug 에서 항상 없다고 나온다. `ObserveAppliedTokenUseCase` 가 그 �
 
 ## 모델
 
-- `Category`/`Note`/`NoteBlock`/`NoteListItem`/`NoteSpan`/`SpanStyle` + `QuizQuestion` + `SyncOutcome`.
+- `Category`/`Note`/`NoteBlock`/`NoteListItem`/`NoteSpan`/`SpanStyle` + `QuizQuestion` + `SyncOutcome` + `NoteKey`/`SourceId`/`SourceKind`.
+- **`Note.id` 는 `String` 이고 값이 `NoteKey` 문자열이다** — `"<sourceId>/<docId>"`, 기존 노트는 `s0/graph`. 북마크·학습 기록·
+  `SyncOutcome.deleted`·내비 키가 전부 이 문자열로 맞물린다. 소비자는 id 를 불투명하게 다룬다(쪼개거나 파싱하지 않는다).
+  `NoteKey.parse` 는 **첫 `/`** 에서 자른다 — `SourceId` 에는 `/` 가 없고 `docId` 에는 있을 수 있다(M1 의 경로 기반 id).
+  `s0` 는 레포 좌표를 담지 않는다 — 노트 레포를 옮겨도 키가 바뀌지 않게(`NoteKeyTest`).
+- **`NoteBlock.Unsupported(reason, type, text, raw)`** 는 앱 내부 전용 블록이다(와이어에 없는 타입). `reason` =
+  `UnknownType`(앱이 모르는 type)·`BrokenBlock`(아는 type 인데 필드 누락·타입 오류, type 없음)·`BrokenNote`(노트 파일 전체를
+  못 읽음 — 이때 `blocks` 는 이 블록 하나). `text` = 건진 글자(없으면 `null`), `raw` = 원문 보기용(빈 문자열 = 원문 없음, v4 에서
+  옮긴 캐시의 옛 `unknown`). 만드는 규칙은 `core/data/AGENTS.md` "형식".
 - **`NoteBlock` 은 같은 모양이 세 번 나온다:** `NoteBlockDto`(`:core:data`, `@Serializable`) →
   **`NoteBlock`(여기)** → `NoteContentBlock`(`:core:design-system`, `@Immutable`). 이 중복이 경계의 값이다 —
   DTO 가 UI 까지 새지 않고, UI stability 가 도메인을 오염시키지 않는다.
   블록 타입을 하나 추가하면 exhaustive `when` 이 있는 자리(`NoteMapper`, `NoteBlockMapper`,
-  `GenerateQuizUseCase.toPlainText`)는 컴파일 에러로 잡히지만 **`notes/gen_index.py` 의 `BLOCK_TYPES` 와
-  `notes/SCHEMA.md` 는 컴파일러가 잡아 주지 않는다.**
+  `GenerateQuizUseCase.toPlainText`)는 컴파일 에러로 잡히지만 **`:core:data` 의 `PARSER_VERSION`, `notes/gen_index.py` 의
+  `BLOCK_TYPES` 와 `notes/SCHEMA.md` 는 컴파일러가 잡아 주지 않는다.**
 - **`SyncOutcome` 은 값이 아니라 판단까지 준다** — `changed`(added+updated)·`hasChanges`. 스낵바를 띄울지
   (`hasChanges`)와 문구(`added`/`updated`/`deleted`)를 같은 자리에서 못 세면 "변경 없음"인데 안내가 뜬다.
-  `deleted` 는 개수가 아니라 **id 목록**이다 — 삭제된 노트를 보고 있으면 화면을 옮겨야 해서 호출부가 id 를 쓴다.
+  `deleted` 는 개수가 아니라 **`NoteKey` 문자열 목록**이다 — 삭제된 노트를 보고 있으면 화면을 옮기고 그 노트의 북마크를 지워야 해서
+  호출부가 키를 쓴다. 업데이트 직후 원문을 채우려고 다시 받은 노트는 `updated` 에 세지 않는다(`:core:data`).

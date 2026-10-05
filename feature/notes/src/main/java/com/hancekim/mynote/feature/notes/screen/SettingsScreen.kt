@@ -125,6 +125,7 @@ internal fun SettingsScreen(
                 verticalArrangement = Arrangement.spacedBy(SECTION_GAP),
             ) {
                 ReadingSection(uiState = uiState, onIntent = onIntent)
+                StudyLogSection(enabled = uiState.studyLogEnabled, onIntent = onIntent)
                 ModelSection(
                     card = modelCardUi(uiState.modelStatus),
                     notificationsEnabled = uiState.notificationsEnabled,
@@ -170,13 +171,71 @@ private fun FontScaleRow(
     large: Boolean,
     onChange: (Boolean) -> Unit,
 ) {
+    SettingsSwitchRow(
+        title = stringResource(R.string.notes_settings_font_title),
+        description = stringResource(R.string.notes_settings_font_desc),
+        checked = large,
+        onChange = onChange,
+    )
+}
+
+@Composable
+private fun StudyLogSection(
+    enabled: Boolean,
+    onIntent: (NotesIntent) -> Unit,
+) {
+    var confirmClear by rememberSaveable { mutableStateOf(false) }
+    if (confirmClear) {
+        StudyLogClearDialog(
+            onDismiss = { confirmClear = false },
+            onConfirm = {
+                confirmClear = false
+                onIntent(NotesIntent.ClearStudyLog)
+            },
+        )
+    }
+    SettingsSection(label = stringResource(R.string.notes_settings_section_studylog)) {
+        SettingsCard {
+            SettingsSwitchRow(
+                title = stringResource(R.string.notes_settings_studylog_title),
+                description = stringResource(R.string.notes_settings_studylog_desc),
+                checked = enabled,
+                onChange = { onIntent(NotesIntent.SetStudyLogEnabled(it)) },
+            )
+            HorizontalDivider(
+                color = MyNoteTheme.colors.border,
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
+            Box(Modifier.padding(16.dp)) {
+                SecondaryButton(
+                    text = stringResource(R.string.notes_settings_studylog_clear),
+                    onClick = { confirmClear = true },
+                )
+            }
+        }
+        Text(
+            text = stringResource(R.string.notes_settings_studylog_help),
+            style = MyNoteTheme.textStyles.caption,
+            color = MyNoteTheme.colors.text3,
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 10.dp),
+        )
+    }
+}
+
+@Composable
+private fun SettingsSwitchRow(
+    title: String,
+    description: String,
+    checked: Boolean,
+    onChange: (Boolean) -> Unit,
+) {
     val colors = MyNoteTheme.colors
     Row(
         modifier =
             Modifier
                 .fillMaxWidth()
                 .heightIn(min = 68.dp)
-                .toggleable(value = large, role = Role.Switch, onValueChange = onChange)
+                .toggleable(value = checked, role = Role.Switch, onValueChange = onChange)
                 .semantics(mergeDescendants = true) {}
                 .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -184,18 +243,18 @@ private fun FontScaleRow(
     ) {
         Column(Modifier.weight(1f)) {
             Text(
-                text = stringResource(R.string.notes_settings_font_title),
+                text = title,
                 style = MyNoteTheme.textStyles.cardTitle,
                 color = colors.text,
             )
             Text(
-                text = stringResource(R.string.notes_settings_font_desc),
+                text = description,
                 style = MyNoteTheme.textStyles.caption,
                 color = colors.text3,
             )
         }
         Switch(
-            checked = large,
+            checked = checked,
             onCheckedChange = null,
             colors =
                 SwitchDefaults.colors(

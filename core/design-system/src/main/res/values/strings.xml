@@ -10,4 +10,17 @@
 
     <string name="ds_scroll_to_top">맨 위로</string>
     <string name="ds_search_hint">노트 검색</string>
+    <string name="ds_bookmarked">북마크됨</string>
+
+    <string name="ds_unsupported_unknown_text">이 앱 버전이 모르는 형식이라 글자만 표시했습니다.</string>
+    <string name="ds_unsupported_unknown_empty">이 앱 버전이 모르는 형식이라 표시하지 못했습니다.</string>
+    <string name="ds_unsupported_broken_text">형식이 맞지 않아 글자만 표시했습니다.</string>
+    <string name="ds_unsupported_broken_empty">형식이 맞지 않아 표시하지 못했습니다.</string>
+    <string name="ds_unsupported_update_hint">앱을 업데이트하면 보일 수 있습니다.</string>
+    <string name="ds_unsupported_show_raw">원문 보기</string>
+    <string name="ds_unsupported_hide_raw">원문 숨기기</string>
+    <string name="ds_unsupported_more_lines">%1$d줄 더 보기</string>
+    <string name="ds_unsupported_truncated">앞 %1$d줄만 표시했습니다.</string>
+    <string name="ds_unsupported_note_title">이 노트를 읽지 못했습니다</string>
+    <string name="ds_unsupported_note_body">노트 파일의 형식을 알아볼 수 없습니다. 파일이 바뀌거나 앱을 업데이트하면 다시 읽습니다.</string>
 </resources>

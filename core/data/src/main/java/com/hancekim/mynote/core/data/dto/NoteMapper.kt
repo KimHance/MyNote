@@ -1,21 +1,19 @@
 package com.hancekim.mynote.core.data.dto
 
 import com.hancekim.mynote.core.data.datasource.CachedNote
+import com.hancekim.mynote.core.data.format.MyNoteJsonFormat
 import com.hancekim.mynote.core.domain.model.Category
 import com.hancekim.mynote.core.domain.model.Note
 import com.hancekim.mynote.core.domain.model.NoteBlock
 import com.hancekim.mynote.core.domain.model.NoteListItem
 import com.hancekim.mynote.core.domain.model.NoteSpan
 import com.hancekim.mynote.core.domain.model.SpanStyle
-import kotlinx.serialization.json.Json
+import com.hancekim.mynote.core.domain.model.UnsupportedReason
 
-fun CategoryDto.toDomain(): Category = Category(name = name, notes = notes.map { it.toDomain() })
-
-fun NoteDto.toDomain(): Note = Note(id = id, title = title, date = date, blocks = blocks.mapNotNull { it.toDomain() })
-
-fun NoteBlockDto.toDomain(): NoteBlock? =
+fun NoteBlockDto.toDomain(): NoteBlock =
     when (this) {
-        NoteBlockDto.Unknown -> null
+        NoteBlockDto.Unknown -> NoteBlock.Unsupported(UnsupportedReason.UnknownType, type = null, text = null, raw = "")
+        is NoteBlockDto.Unsupported -> NoteBlock.Unsupported(reason.toDomain(), original, text, raw)
         is NoteBlockDto.Heading -> NoteBlock.Heading(level, spans.toDomainSpans())
         is NoteBlockDto.Paragraph -> NoteBlock.Paragraph(spans.toDomainSpans())
         is NoteBlockDto.Code -> NoteBlock.Code(code)
@@ -26,8 +24,14 @@ fun NoteBlockDto.toDomain(): NoteBlock? =
         NoteBlockDto.Spacer -> NoteBlock.Spacer
     }
 
-private fun List<NoteSpanDto>.toDomainSpans(): List<NoteSpan> =
-    map { NoteSpan(it.text, it.style.toDomain()) }
+private fun UnsupportedReasonDto.toDomain(): UnsupportedReason =
+    when (this) {
+        UnsupportedReasonDto.UNKNOWN_TYPE -> UnsupportedReason.UnknownType
+        UnsupportedReasonDto.BROKEN_BLOCK -> UnsupportedReason.BrokenBlock
+        UnsupportedReasonDto.BROKEN_NOTE -> UnsupportedReason.BrokenNote
+    }
+
+private fun List<NoteSpanDto>.toDomainSpans(): List<NoteSpan> = map { NoteSpan(it.text, it.style.toDomain()) }
 
 private fun SpanStyleDto.toDomain(): SpanStyle =
     when (this) {
@@ -36,13 +40,18 @@ private fun SpanStyleDto.toDomain(): SpanStyle =
         SpanStyleDto.CODE -> SpanStyle.Code
     }
 
-fun List<CachedNote>.toCategories(json: Json): List<Category> =
-    groupBy { it.group }.mapNotNull { (group, cached) ->
-        val notes = cached.mapNotNull { runCatching { it.toDomainNote(json) }.getOrNull() }
-        if (notes.isEmpty()) null else Category(name = group, notes = notes)
+fun List<CachedNote>.toCategories(format: MyNoteJsonFormat): List<Category> =
+    groupBy { it.group }.map { (group, cached) ->
+        Category(name = group, notes = cached.map { it.toDomainNote(format) })
     }
 
-fun CachedNote.toDomainNote(json: Json): Note {
-    val blocks = json.decodeFromString<List<NoteBlockDto>>(blocksJson).mapNotNull { it.toDomain() }
-    return Note(id = id, title = title, date = date, blocks = blocks)
-}
+fun CachedNote.toDomainNote(format: MyNoteJsonFormat): Note =
+    Note(id = key, title = title, date = date.orEmpty(), blocks = cachedBlocks(format).map { it.toDomain() })
+
+private fun CachedNote.cachedBlocks(format: MyNoteJsonFormat): List<NoteBlockDto> =
+    try {
+        format.decode(blocksJson)
+    } catch (_: IllegalArgumentException) {
+        raw?.let(format::parse)
+            ?: listOf(NoteBlockDto.Unsupported(UnsupportedReasonDto.BROKEN_NOTE, raw = blocksJson))
+    }

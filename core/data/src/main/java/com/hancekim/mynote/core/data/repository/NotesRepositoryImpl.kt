@@ -1,72 +1,75 @@
 package com.hancekim.mynote.core.data.repository
 
 import com.hancekim.mynote.core.common.result.runCatchingCancellable
-import com.hancekim.mynote.core.data.datasource.CachedNote
 import com.hancekim.mynote.core.data.datasource.LocalNotesDataSource
-import com.hancekim.mynote.core.data.datasource.RemoteNotesDataSource
-import com.hancekim.mynote.core.data.dto.IndexEntryDto
+import com.hancekim.mynote.core.data.datasource.NoteSourceAdapter
+import com.hancekim.mynote.core.data.datasource.SourceRecord
 import com.hancekim.mynote.core.data.dto.toCategories
+import com.hancekim.mynote.core.data.format.MyNoteJsonFormat
+import com.hancekim.mynote.core.data.format.PARSER_VERSION
 import com.hancekim.mynote.core.domain.model.Category
+import com.hancekim.mynote.core.domain.model.SourceId
+import com.hancekim.mynote.core.domain.model.SourceKind
 import com.hancekim.mynote.core.domain.model.SyncOutcome
 import com.hancekim.mynote.core.domain.repository.NotesRepository
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.flatMapMerge
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
-@OptIn(ExperimentalCoroutinesApi::class)
-class NotesRepositoryImpl @Inject constructor(
-    private val remote: RemoteNotesDataSource,
+class NotesRepositoryImpl internal constructor(
+    private val adapters: Set<NoteSourceAdapter>,
     private val local: LocalNotesDataSource,
-    private val json: Json,
+    json: Json,
+    now: () -> Long,
 ) : NotesRepository {
+    @Inject
+    constructor(
+        adapters: Set<@JvmSuppressWildcards NoteSourceAdapter>,
+        local: LocalNotesDataSource,
+        json: Json,
+    ) : this(adapters, local, json, System::currentTimeMillis)
+
+    private val format = MyNoteJsonFormat(json)
+    private val reconciler = SourceReconciler(local, format, now)
+
     override fun observeCategories(): Flow<List<Category>> =
         local
             .observeNotes()
-            .map { it.toCategories(json) }
+            .map { it.toCategories(format) }
             .flowOn(Dispatchers.Default)
 
     override suspend fun sync(): Result<SyncOutcome> =
         withContext(Dispatchers.Default) {
             runCatchingCancellable {
-                val index = remote.getIndex()
-                val localHashes = local.loadHashes()
-
-                val fetched = fetchAll(index.filter { localHashes[it.id] != it.hash })
-                val deleteIds = (localHashes.keys - index.mapTo(mutableSetOf()) { it.id }).toList()
-
-                if (fetched.isNotEmpty() || deleteIds.isNotEmpty()) {
-                    local.applySync(fetched, deleteIds)
-                }
-
-                val added = fetched.count { localHashes[it.id] == null }
-                SyncOutcome(added, fetched.size - added, deleteIds)
+                rederiveStale()
+                local.ensureSource(LEGACY_SOURCE)
+                local
+                    .sources()
+                    .mapNotNull { source -> adapters.firstOrNull { it.kind == source.kind }?.let { source to it } }
+                    .fold(SyncOutcome()) { total, (source, adapter) -> total + reconciler.reconcile(source, adapter) }
             }
         }
 
-    private suspend fun fetchAll(entries: List<IndexEntryDto>): List<CachedNote> =
-        entries
-            .asFlow()
-            .flatMapMerge { entry -> flow { emit(fetch(entry)) } }
-            .toList()
-
-    private suspend fun fetch(entry: IndexEntryDto): CachedNote {
-        val note = remote.getNote(entry.path)
-        return CachedNote(
-            id = entry.id,
-            group = entry.group,
-            title = entry.title,
-            date = entry.date,
-            contentHash = entry.hash,
-            blocksJson = json.encodeToString(note.blocks),
+    private suspend fun rederiveStale() {
+        val stale = local.loadStale(PARSER_VERSION)
+        if (stale.isEmpty()) return
+        local.replaceDerived(
+            stale.mapNotNull { row ->
+                val raw = row.raw ?: return@mapNotNull null
+                val derived = format.derive(raw)
+                row.copy(blocksJson = derived.blocksJson, excerpt = derived.excerpt, parserVersion = PARSER_VERSION)
+            },
         )
     }
+
+    private companion object {
+        val LEGACY_SOURCE = SourceRecord(SourceId.Legacy, SourceKind.GitHub, configJson = null)
+    }
 }
+
+private operator fun SyncOutcome.plus(other: SyncOutcome): SyncOutcome =
+    SyncOutcome(added + other.added, updated + other.updated, deleted + other.deleted)

@@ -48,10 +48,15 @@ fun NotesRoute(viewModel: NotesViewModel = hiltViewModel()) {
     val context = LocalContext.current
     var notificationsEnabled by remember { mutableStateOf(notificationsAllowed(context)) }
     val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
+    DisposableEffect(lifecycleOwner, viewModel) {
         val observer =
             LifecycleEventObserver { _, event ->
-                if (event == Lifecycle.Event.ON_RESUME) notificationsEnabled = notificationsAllowed(context)
+                when (event) {
+                    Lifecycle.Event.ON_RESUME -> notificationsEnabled = notificationsAllowed(context)
+                    Lifecycle.Event.ON_START -> viewModel.onIntent(NotesIntent.ForegroundChanged(visible = true))
+                    Lifecycle.Event.ON_STOP -> viewModel.onIntent(NotesIntent.ForegroundChanged(visible = false))
+                    else -> Unit
+                }
             }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
@@ -133,10 +138,10 @@ internal fun NotesScreen(
             val result =
                 snackbarHostState.showSnackbar(
                     message = notice.message,
-                    actionLabel = if (notice.undoable) undoLabel else null,
+                    actionLabel = if (notice.undo != null) undoLabel else null,
                     duration = SnackbarDuration.Short,
                 )
-            if (result == SnackbarResult.ActionPerformed) undoIntent(NotesIntent.UndoClearToken)
+            if (result == SnackbarResult.ActionPerformed) notice.undo?.let(undoIntent)
         }
     }
 

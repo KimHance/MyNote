@@ -3,8 +3,8 @@
 이 파일은 이 모듈에서 작업하는 에이전트를 위한 안내다.
 
 앱의 UI 는 전부 여기 있다. `MainActivity` 는 `NotesRoute()` 하나만 부르고, 그 아래에
-ViewModel 하나 · `NavDisplay` 하나 · `MyNoteTheme` 하나가 있고 그 안에서 화면 8개
-(Home · ListPanel · NoteReader · Settings · 퀴즈 4개)가 돈다. "새 화면을 추가한다" 는 대개 새 모듈이
+ViewModel 하나(+ 통계 `StatsViewModel`) · `NavDisplay` 하나 · `MyNoteTheme` 하나가 있고 그 안에서 화면 11개
+(Home · Bookmarks · Stats · StatsHistory · ListPanel · NoteReader · Settings · 퀴즈 4개)가 돈다. "새 화면을 추가한다" 는 대개 새 모듈이
 아니라 이 구조 안에 끼우는 일이다.
 
 의존은 컨벤션(`hancenote.android.feature`)이 `:core:common` · `:core:design-system` ·
@@ -21,7 +21,17 @@ UseCase 와 `QuizGenerator` 인터페이스로만 들어온다.
 |---|---|---|
 | `NotesViewModel` | 화면이 그리는 거의 전부 + 퀴즈 진행 + 스낵바 호스트 | 재조립형 MVI 단일 상태 |
 | `Navigator`(`:core:navigation`, `@Singleton`) | **백스택** | 소유자가 하나여야 하고, 입구가 하나라 거기서 쓰로틀을 건다 |
-| 컴포지션 로컬(`rememberSaveable`) | 드로어 열림 · 고정 패널 펼침 · **토큰 입력 draft·보기여부** · 확인 다이얼로그 · 선택된 내비 아이템 | 목적지가 아니고 레이아웃 상태다. 백스택 엔트리가 아니다 |
+| 컴포지션 로컬(`rememberSaveable`) | 드로어 열림 · 고정 패널 펼침 · **토큰 입력 draft·보기여부** · 확인 다이얼로그 | 목적지가 아니고 레이아웃 상태다. 백스택 엔트리가 아니다 |
+
+플로팅 내비의 선택은 이 셋 어디에도 없다 — `NotesUiState.selectedTab`(`Reader`·`Settings` 를 건너뛴 가장 위의
+`Home`/`Bookmarks`/`Stats`)으로 **백스택에서 파생**한다. 선택 상태를 따로 두면 화면과 어긋난다.
+
+통계 화면만 예외로 ViewModel 이 하나 더 있다 — `stats/StatsViewModel`. **Activity 스코프를 명시해서**
+(`hiltViewModel(viewModelStoreOwner = activity)`) 얻고, 기간·섹션은 `SavedStateHandle` 에 둔다. 집계 Flow 는
+`navigator.stack` 의 top 이 `Stats` 일 때만 `flatMapLatest` 로 붙고 아니면 `emptyFlow()` 라 리더에 가 있는 동안
+Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `SharingStarted.Lazily` 로 바꾸면 한 번 연 뒤
+앱이 끝날 때까지 집계가 돈다 — 쓰지 말 것. 리더·퀴즈 진입은 `NotesIntent`(`SelectNote(id, resumeAt)`·
+`OpenQuizFor`)로 넘긴다.
 
 세 번째를 ViewModel 로 올리려는 충동을 참아라. 드로어/패널은 창 크기에 따라 존재 자체가
 사라지는 값이라 상태로 올리면 폼팩터 전환 때 의미가 없어진다. 대신 **뒤로가기는 먹는다**
@@ -56,9 +66,10 @@ UseCase 와 `QuizGenerator` 인터페이스로만 들어온다.
 
 - 이동은 `navigator.push`/`pop` 으로만. 둘 다 `dispatch` 를 타므로 전환이 끝나기 전에 들어온
   이동은 **버려진다**(`NavResult.Throttled`).
-- **`Back` 과 `CloseNote` 는 다르다.** 둘 다 pop 이지만 더 갈 데가 없을 때가 정반대다 —
-  `Back` 은 종료 안내/종료로 이어지고, 하단 내비 홈 버튼(`CloseNote`)은 아무 일도 없어야 한다.
-  종료 판단은 화면이 아니라 `pop() == NavResult.Ignored` 가 내린다.
+- **`Back` 과 `SwitchTab` 은 다르다.** `Back` 은 pop 하나이고 더 갈 데가 없으면 종료 안내/종료로
+  이어진다. 플로팅 내비의 `SwitchTab(Home)` 은 `ReplaceAll([Home])`, `SwitchTab(Bookmarks)` 는
+  `[Home]` 에서 `Push(Bookmarks)` / 그 외 `ReplaceAll([Home, Bookmarks])` 이고(`navigation/TabSwitch.kt`),
+  이미 그 자리면 `Ignored` 로 아무 일도 없어야 한다. 종료 판단은 화면이 아니라 `pop() == NavResult.Ignored` 가 내린다.
 - 두 번 누르기(`EXIT_WINDOW_MILLIS`)는 ViewModel 이 `SystemClock` 으로 센다. 상태로 나가는 건
   `exitHintId`/`exitRequestId` 뿐이고 `finish()` 는 화면이 부른다.
 - 사용자 입력이 아닌 정정은 게이트를 우회한다 — 동기화 중 열린 노트가 삭제되면
@@ -118,7 +129,10 @@ UseCase 와 `QuizGenerator` 인터페이스로만 들어온다.
   홈 그리드든 리더든 스크롤이 플로팅 내비 숨김 판정으로 올라와야 한다. 노트가 바뀌면
   `navScroll.reset()` 으로 다시 보여 준다.
 - `NotesScrollState` 의 리더 스크롤은 `key(activeNoteId) { rememberScrollState() }` 다 — 노트마다
-  스크롤 위치가 따로다.
+  스크롤 위치가 따로다. 리더 본문의 원문 펼침 상태(`readerContent` = design-system `NoteContentState`)도 같은 자리·같은 키다.
+  **창 등급이 바뀌면(접기·펴기·회전) 셸이 `if (useDrawer) ModalNavigationDrawer(content = scaffold) else scaffold()` 의 다른
+  가지로 옮겨 `NavDisplay` 가 통째로 다시 만들어진다** — 항목 안의 `remember`/`rememberSaveable` 은 키를 명시해도 그때 사라진다.
+  창 등급을 넘어 남아야 하는 리더 상태는 여기(셸, 그 분기 위)에 둔다(관문 2 S1).
 
 ---
 
@@ -140,10 +154,48 @@ UseCase 와 `QuizGenerator` 인터페이스로만 들어온다.
 - 넓은 창은 헤더가 씬 안이라 `Scaffold` 의 topBar 가 밀어 주지 않는다 — 플로팅 레일은
   `NotesLayout.headerOffset`(= `headerHeight + statusBar`)을 직접 뺀다. Compact 는 0 이다.
 - `Scaffold(contentWindowInsets = WindowInsets(0))` 이므로 하단 여백은 `contentBottomPadding` 으로
-  명시 전달한다(하단 바가 뜨는 형태면 `FLOATING_BAR_RESERVE` 를 더한다).
+  명시 전달한다(하단 바가 뜨는 형태면 `FLOATING_BAR_RESERVE` 를 더한다). 레일이 뜨는 형태면 오른쪽도
+  `contentEndPadding`(`FloatingNavDefaults.RailWidth` + 간격 − `page`)으로 예약해 홈 그리드와 북마크 화면이
+  레일 왼쪽에서 끝나게 한다 — 북마크 행의 해제 버튼이 레일 아래 깔리면 누를 수 없다.
 - 홈 그리드는 `GridCells.Adaptive(minSize = adaptive.cardMinWidth)`. 고정 열 수 금지.
+- 북마크 화면의 2단 여부(`twoPane`)는 화면이 `BoxWithConstraints` 로 재지 않고 **셸 `NotesLayout` 이
+  계산**한다 — `창 폭 − 펴진 고정 패널 − page − contentEndPadding − page ≥ 640dp`(`bookmarksTwoPane`).
+  패널을 접으면 2단으로 바뀌는 이유가 이것이다. 가로 폰의 큰 카드 축소는 단 수가 아니라 `heightClass == Compact` 다.
 
-플로팅 내비의 3칸 중 실제로 배선된 건 홈뿐이다(`CloseNote`). 북마크·통계는 하이라이트만 바뀐다.
+북마크 화면(`screen/bookmarks/`)은 홈형 그리드가 아니다 — `bookmarks[0]` 하나가 큰 카드(`FeaturedBookmarkCard`),
+나머지가 `02` 부터 번호 행(`BookmarkRow`)이다. `LazyColumn` 의 큰 카드 키는 `"featured"` 로 **고정**이라 맨 앞을 해제하면
+카드가 움직이지 않고 내용만 `Crossfade` 로 다음 노트로 바뀐다(승격). 큰 카드의 발췌 `NoteUi.excerpt` 는 저장하지 않고
+`:core:domain` 의 `Note.firstSentence()` 로 `NotesUiMapper` 가 파생한다. 홈 카드의 북마크 표기는 design-system
+`NoteCard(bookmarked = …)` 의 모서리 리본이고, 목록 패널 행만 12dp 글리프를 유지한다.
+
+플로팅 내비의 3칸이 전부 `SwitchTab` 으로 배선돼 있다. 통계는 북마크와 같은 규칙이다 — `[Home]` 에서 push,
+그 밖에서 `ReplaceAll([Home, Stats])`, 이미 top 이면 `Ignored`(`navigation/TabSwitch.kt`, `TabSwitchTest`).
+통계 화면(`screen/stats/`)의 2단 여부도 북마크와 같은 `NotesLayout.contentTwoPane`(콘텐츠 폭 ≥ 640dp)이고,
+가로 막대·낮은 차트 같은 축소 변형은 `heightClass == Compact` 로 갈린다. 2단 오른쪽 칸 항목 키는 배치마다
+다르게 둔다(`side-*`) — 같은 키를 쓰면 `LazyListState` 가 키를 따라가 폴드 전환 때 오른쪽 칸이 아래로 밀린다.
+
+### 요약 카드 · 지난 요약 · 패턴 (통계 2·3단계)
+
+- 카드·패턴의 보임 규칙은 순수 함수 `stats/SummaryCardRules.kt`(`summaryCardOf`·`patternOf`) 와 `stats/GeneratedAgo` 에 있고
+  `SummaryCardRulesTest`·`GeneratedAgoTest` 가 지킨다. Composable 안에서 `latest`/`lastFailureAt` 을 다시 비교하지 말 것.
+- **카드는 별도 LazyColumn 항목이 아니라 `"segment"` 항목 안(기록 꺼짐 안내 아래, 세그먼트 위)에 있다.** 워커가 끝나 카드가
+  나타날 때 별도 항목이면 목록이 첫 보이는 키(`segment`)를 붙잡아 카드가 화면 위로 숨는다(8.2 #64 와 같은 원인).
+- 인사이트 Flow 는 `Stats` 가 top 일 때만, 지난 요약 목록은 `StatsHistory` 가 top 일 때만 붙는다(집계와 같은 게이트).
+- `StatsHistory` 는 백스택 엔트리라 뒤로가기는 `NavDisplay` pop(5순위)이 받는다. 상단 바는 `←` + `지난 요약`,
+  `NotesTopBar(showRefresh = false)`, 플로팅 내비는 그대로 보인다. 행 펼침은 화면 로컬 `rememberSaveable`(키 `weekStart`).
+- 초점 표시는 `SummaryCardUi.focusInLegend`(이번 주 기간 && 이번 주 요약 && 오래되지 않음)일 때만 범례에 붙는다.
+
+### 학습 기록 배선 (통계 0단계)
+
+`NotesViewModel` 이 `:core:domain` 의 `ReadSessionTracker` 를 들고 네 입력을 먹인다 — `init` 의 수집기 둘
+(스택 top 의 `activeNoteId`, 퀴즈 `coversReader`)과 인텐트 둘(`ForegroundChanged` = `NotesRoute` 의 라이프사이클
+옵저버가 `ON_START`/`ON_STOP` 에 보냄, `ReaderProgress` = 셸 `ReaderScrollEffects.kt` 가 **지금 본 비율이 바뀔
+때마다** 보냄). **세션 안 최댓값은 트래커만 든다** — 셸이 최댓값을 들면 `ON_STOP`→`ON_START` 로 열린 새 세션이
+0% 로 저장된다(셸 효과는 다시 시작되지 않아 같은 비율을 다시 보내지 않는다). 그래서 트래커가 top 노트의 마지막
+비율을 기억해 새 세션을 거기서 시작한다(PRD D39, 검수 blocker #1). 닫힌 세션·퀴즈 결과·북마크 이벤트는 `launchSafely { withContext(NonCancellable) { … } }` 로 쓴다 —
+`ON_STOP` 직후 스코프가 취소돼도 한 행은 끝까지 간다. 퀴즈 결과 → `QuizAttempt` 변환은 순수 함수
+`quiz/QuizAttemptRecord.kt` 의 `completedAttempt()` 이고 `QuizAttemptRecordTest` 가 "결과까지 간 것만" 을 지킨다.
+북마크 화면 해제의 되돌리기는 `added` 를 새로 쓰지 않고 그 해제 이벤트 행을 지운다(`removedEventId`).
 
 ---
 
@@ -151,6 +203,12 @@ UseCase 와 `QuizGenerator` 인터페이스로만 들어온다.
 
 진입점은 헤더가 아니라 리더 본문 **맨 끝 CTA**(`QuizCtaCard`)다. 모델이 없어도 숨기지 않고
 흐리게 두고, 누르면 왜 안 되는지 스낵바로 말해 준다(`NotesShell` 의 `onOpenQuiz`).
+
+**예외 하나 — 노트 파일 전체를 읽지 못한 노트(`NoteBlock.Unsupported(BrokenNote)` 하나뿐인 노트)는 CTA 를 아예 그리지
+않는다.** 퀴즈에 넣을 평문이 없어서다. 판정은 `NotesUiMapper` 가 파생하는 `NoteUi.readable` 하나이고(`NotesUiMapperTest`),
+통계의 "다시 풀기"(`OpenQuizFor`)도 같은 값으로 리더만 열고 퀴즈 설정을 띄우지 않는다(띄우면 `GenerateQuizUseCase` 가
+빈 평문으로 `QuizFailure.Empty`). 블록 몇 개만 못 그린 노트(`UnknownType`·`BrokenBlock`)는 평소대로다. 그 블록은
+`NoteBlockMapper` 가 빈 `text`·`raw` 를 `null` 로 바꿔 design-system `NoteContentBlock.Unsupported` 로 넘긴다(`NoteBlockMapperTest`).
 
 `QuizUiState`(sealed)는 `NotesUiState.quiz` 한 칸에 들어가고, `QuizOverlay` 가 리더 **위에 덮인다**.
 `Navigator` 를 건드리지 않으므로 백스택에 없고, 뒤로가기는 오버레이가 한 번 받아 `DismissQuiz` 를 쏜다.

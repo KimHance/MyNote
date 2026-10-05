@@ -24,6 +24,9 @@ import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.screen.HomeScreen
 import com.hancekim.mynote.feature.notes.screen.NoteReaderScreen
 import com.hancekim.mynote.feature.notes.screen.SettingsScreen
+import com.hancekim.mynote.feature.notes.screen.bookmarks.BookmarksScreen
+import com.hancekim.mynote.feature.notes.screen.stats.StatsHistoryRoute
+import com.hancekim.mynote.feature.notes.screen.stats.StatsRoute
 
 @Composable
 internal fun NotesNavDisplay(
@@ -32,7 +35,9 @@ internal fun NotesNavDisplay(
     sceneStrategies: List<SceneStrategy<MyNoteNavKey>>,
     stackedScenes: Boolean,
     contentBottomPadding: Dp,
+    contentEndPadding: Dp,
     contentTopPadding: Dp,
+    twoPane: Boolean,
     scroll: NotesScrollState,
     onQuizAction: (String, CtaAction) -> Unit,
     onEnableNotifications: () -> Unit,
@@ -61,8 +66,53 @@ internal fun NotesNavDisplay(
                                     isLoading = uiState.isLoading,
                                     onIntent = onIntent,
                                     contentBottomPadding = contentBottomPadding,
+                                    contentEndPadding = contentEndPadding,
                                     contentTopPadding = contentTopPadding,
                                     gridState = scroll.homeGrid,
+                                    bookmarkedIds = uiState.bookmarkedIds,
+                                )
+                            }
+                        }
+                        entry<NotesNavKey.Bookmarks> {
+                            ProvideNavAnimatedScope {
+                                val edgeProgress = rememberSceneEdgeProgress()
+                                BookmarksScreen(
+                                    bookmarks = uiState.bookmarks,
+                                    isLoading = uiState.isLoading && uiState.categories.isEmpty(),
+                                    twoPane = twoPane,
+                                    onIntent = onIntent,
+                                    modifier = if (stackedScenes) Modifier.sceneEdge(edgeProgress) else Modifier,
+                                    contentBottomPadding = contentBottomPadding,
+                                    contentEndPadding = contentEndPadding,
+                                    contentTopPadding = contentTopPadding,
+                                    listState = scroll.bookmarksList,
+                                )
+                            }
+                        }
+                        entry<NotesNavKey.Stats> {
+                            ProvideNavAnimatedScope {
+                                val edgeProgress = rememberSceneEdgeProgress()
+                                StatsRoute(
+                                    twoPane = twoPane,
+                                    onNotesIntent = { currentIntent.value(it) },
+                                    listState = scroll.statsList,
+                                    sideState = scroll.statsSide,
+                                    modifier = if (stackedScenes) Modifier.sceneEdge(edgeProgress) else Modifier,
+                                    contentBottomPadding = contentBottomPadding,
+                                    contentTopPadding = contentTopPadding,
+                                    contentEndPadding = contentEndPadding,
+                                )
+                            }
+                        }
+                        entry<NotesNavKey.StatsHistory> {
+                            ProvideNavAnimatedScope {
+                                val edgeProgress = rememberSceneEdgeProgress()
+                                StatsHistoryRoute(
+                                    listState = scroll.statsHistory,
+                                    modifier = if (stackedScenes) Modifier.sceneEdge(edgeProgress) else Modifier,
+                                    contentBottomPadding = contentBottomPadding,
+                                    contentTopPadding = contentTopPadding,
+                                    contentEndPadding = contentEndPadding,
                                 )
                             }
                         }
@@ -90,6 +140,7 @@ internal fun NotesNavDisplay(
                                         contentBottomPadding = contentBottomPadding,
                                         contentTopPadding = contentTopPadding,
                                         scrollState = scroll.reader,
+                                        contentState = scroll.readerContent,
                                         onQuizAction = { action -> currentQuizAction.value(note.id, action) },
                                         modelStatus = currentState.value.modelStatus,
                                     )

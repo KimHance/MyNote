@@ -8,6 +8,15 @@ sealed interface NotesNavKey : MyNoteNavKey {
     data object Home : NotesNavKey
 
     @Serializable
+    data object Bookmarks : NotesNavKey
+
+    @Serializable
+    data object Stats : NotesNavKey
+
+    @Serializable
+    data object StatsHistory : NotesNavKey
+
+    @Serializable
     data class Reader(
         val noteId: String,
     ) : NotesNavKey

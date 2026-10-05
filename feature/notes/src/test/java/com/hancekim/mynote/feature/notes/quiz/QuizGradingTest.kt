@@ -148,4 +148,20 @@ class QuizGradingTest {
 
         assertTrue(parse.canRetryWithFewer)
     }
+
+    @Test
+    fun `picks 는 marks 와 같은 길이로 고른 번호를 쌓는다`() {
+        val first = solving(1, 2).pick(3)
+        val second = (first.advance() as QuizUiState.Solving).pick(2)
+
+        assertEquals(listOf(3, 2), second.picks)
+        assertEquals(second.marks.size, second.picks.size)
+    }
+
+    @Test
+    fun `같은 문제를 두 번 탭해도 picks 는 하나다`() {
+        val graded = solving(1, 2).pick(0).pick(1)
+
+        assertEquals(listOf(0), graded.picks)
+    }
 }

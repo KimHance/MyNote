@@ -48,7 +48,7 @@ private class RaceViewModel : MviViewModel<RaceState, RaceIntent>() {
         return snapshot
     }
 
-    override fun onIntent(event: RaceIntent) = Unit
+    override fun handleIntent(event: RaceIntent) = Unit
 }
 
 /** 안드로이드 메인루퍼 흉내 — 자기 스레드에서 부르면 디스패치 없이 인라인 실행(`Main.immediate`). */

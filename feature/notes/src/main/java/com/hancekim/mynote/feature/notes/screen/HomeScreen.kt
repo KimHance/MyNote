@@ -42,7 +42,9 @@ import com.hancekim.mynote.feature.notes.RecentNoteUi
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.navigation.rememberNoteSharedModifiers
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentSetOf
 
 @Composable
 internal fun HomeScreen(
@@ -52,7 +54,9 @@ internal fun HomeScreen(
     modifier: Modifier = Modifier,
     contentBottomPadding: Dp = 0.dp,
     contentTopPadding: Dp = 0.dp,
+    contentEndPadding: Dp = 0.dp,
     gridState: LazyGridState = rememberLazyGridState(),
+    bookmarkedIds: ImmutableSet<String> = persistentSetOf(),
 ) {
     val adaptive = MyNoteTheme.adaptive
     val reading = adaptive.readingMaxWidth
@@ -84,7 +88,7 @@ internal fun HomeScreen(
                     contentPadding =
                         PaddingValues(
                             start = adaptive.page,
-                            end = adaptive.page,
+                            end = adaptive.page + contentEndPadding,
                             top = adaptive.padY + contentTopPadding,
                             bottom = adaptive.page + contentBottomPadding,
                         ),
@@ -109,6 +113,7 @@ internal fun HomeScreen(
                             date = recent.note.date,
                             title = recent.note.title,
                             onClick = { onIntent(NotesIntent.SelectNote(recent.note.id)) },
+                            bookmarked = recent.note.id in bookmarkedIds,
                             chipModifier = shared.chip,
                             dateModifier = shared.date,
                             titleModifier = shared.title,
@@ -181,6 +186,19 @@ private val previewRecent =
 private fun HomeScreenCompactPreview() {
     MyNoteTheme {
         HomeScreen(recentNotes = previewRecent, isLoading = false, onIntent = {})
+    }
+}
+
+@Preview(name = "Home · 북마크 리본", showBackground = true, widthDp = 360, heightDp = 640)
+@Composable
+private fun HomeScreenBookmarkedPreview() {
+    MyNoteTheme {
+        HomeScreen(
+            recentNotes = previewRecent,
+            isLoading = false,
+            onIntent = {},
+            bookmarkedIds = persistentSetOf("a", "c"),
+        )
     }
 }
 

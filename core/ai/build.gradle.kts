@@ -18,6 +18,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.okhttp)
     implementation(libs.androidx.work.runtime)
+    implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.hilt.work)
     ksp(libs.androidx.hilt.compiler)
 

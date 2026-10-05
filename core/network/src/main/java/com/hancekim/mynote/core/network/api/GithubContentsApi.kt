@@ -1,7 +1,7 @@
 package com.hancekim.mynote.core.network.api
 
 import com.hancekim.mynote.core.data.dto.IndexNoteDto
-import com.hancekim.mynote.core.data.dto.NoteDto
+import okhttp3.ResponseBody
 import retrofit2.http.GET
 import retrofit2.http.Headers
 import retrofit2.http.Path
@@ -23,7 +23,7 @@ interface GithubContentsApi {
         @Path("repo") repo: String,
         @Path(value = "path", encoded = true) path: String,
         @Query("ref") branch: String,
-    ): NoteDto
+    ): ResponseBody
 
     companion object {
         const val BASE_URL = "https://api.github.com/"

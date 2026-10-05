@@ -11,6 +11,7 @@ import com.hancekim.mynote.core.ai.download.transfer.ModelFiles
 import com.hancekim.mynote.core.ai.download.work.DownloadNotifications
 import com.hancekim.mynote.core.ai.download.work.ModelDownloadIntents
 import com.hancekim.mynote.core.ai.download.work.ModelDownloadWorker
+import com.hancekim.mynote.core.ai.insight.InsightWork
 import com.hancekim.mynote.core.domain.model.ModelStatus
 import com.hancekim.mynote.core.domain.repository.QuizModelSource
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -61,6 +62,7 @@ class ModelDownloads
         }
 
         override suspend fun deleteModel() {
+            WorkManager.getInstance(context).cancelUniqueWork(InsightWork.NAME)
             engine.release()
             modelFilesOf(context).target.delete()
             revisions.update { it + 1 }

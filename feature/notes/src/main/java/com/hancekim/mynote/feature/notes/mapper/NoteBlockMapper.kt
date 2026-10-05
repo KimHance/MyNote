@@ -3,10 +3,12 @@ package com.hancekim.mynote.feature.notes.mapper
 import com.hancekim.mynote.core.designsystem.block.NoteContentBlock
 import com.hancekim.mynote.core.designsystem.block.NoteContentSpan
 import com.hancekim.mynote.core.designsystem.block.NoteSpanStyle
+import com.hancekim.mynote.core.designsystem.block.UnsupportedKind
 import com.hancekim.mynote.core.domain.model.NoteBlock
 import com.hancekim.mynote.core.domain.model.NoteListItem
 import com.hancekim.mynote.core.domain.model.NoteSpan
 import com.hancekim.mynote.core.domain.model.SpanStyle
+import com.hancekim.mynote.core.domain.model.UnsupportedReason
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 
@@ -23,6 +25,21 @@ private fun NoteBlock.toContentBlock(): NoteContentBlock =
         is NoteBlock.OrderedList -> NoteContentBlock.OrderedList(items.toItemSpans())
         NoteBlock.Divider -> NoteContentBlock.Divider
         NoteBlock.Spacer -> NoteContentBlock.Spacer
+        is NoteBlock.Unsupported -> toContentUnsupported()
+    }
+
+private fun NoteBlock.Unsupported.toContentUnsupported(): NoteContentBlock.Unsupported =
+    NoteContentBlock.Unsupported(
+        kind = reason.toUi(),
+        salvaged = text?.takeIf { it.isNotBlank() },
+        raw = raw.takeIf { it.isNotBlank() },
+    )
+
+private fun UnsupportedReason.toUi(): UnsupportedKind =
+    when (this) {
+        UnsupportedReason.UnknownType -> UnsupportedKind.UnknownType
+        UnsupportedReason.BrokenBlock -> UnsupportedKind.BrokenBlock
+        UnsupportedReason.BrokenNote -> UnsupportedKind.BrokenNote
     }
 
 private fun List<NoteListItem>.toItemSpans(): ImmutableList<ImmutableList<NoteContentSpan>> =

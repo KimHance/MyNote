@@ -53,10 +53,29 @@ private class PlainViewModel : MviViewModel<PlainState, TestIntent>() {
         return PlainState(keyword.value, note)
     }
 
-    override fun onIntent(event: TestIntent) {
+    override fun handleIntent(event: TestIntent) {
         when (event) {
             is TestIntent.Type -> keyword.value = event.text
             TestIntent.NextPage -> Unit
+        }
+    }
+}
+
+/** 인텐트와 코루틴이 던지는 경로 — 예외 경계가 없으면 컴포즈 콜스택으로 올라가 크래시한다. */
+private class ThrowingViewModel : MviViewModel<PlainState, TestIntent>() {
+    val keyword = trigger("")
+    val failures = mutableListOf<Throwable>()
+
+    override fun build() = PlainState(keyword.value, "n")
+
+    override fun onFailure(cause: Throwable) {
+        failures += cause
+    }
+
+    override fun handleIntent(event: TestIntent) {
+        when (event) {
+            is TestIntent.Type -> error("동기 실패")
+            TestIntent.NextPage -> launchSafely { error("코루틴 실패") }
         }
     }
 }
@@ -73,7 +92,7 @@ private class SimpleStreamViewModel(
 
     override fun build() = CountState(count.value)
 
-    override fun onIntent(event: TestIntent) = Unit
+    override fun handleIntent(event: TestIntent) = Unit
 }
 
 /** upstream 을 살려두도록 옵트인한 VM. */
@@ -84,7 +103,7 @@ private class LazyStreamViewModel(
 
     override fun build() = CountState(count.value)
 
-    override fun onIntent(event: TestIntent) = Unit
+    override fun handleIntent(event: TestIntent) = Unit
 }
 
 private data class StreamState(
@@ -101,7 +120,7 @@ private class StreamViewModel(
 
     override fun build() = StreamState(count.value, doubled.value)
 
-    override fun onIntent(event: TestIntent) = Unit
+    override fun handleIntent(event: TestIntent) = Unit
 }
 
 /** Flow 를 return 하는 유스케이스. 호출 인자를 기록하고, 결과는 [delayMs] 뒤에 방출 */
@@ -141,7 +160,7 @@ private class SearchViewModel(
 
     override fun build() = SearchState(keyword.value, page.value, results.value)
 
-    override fun onIntent(event: TestIntent) {
+    override fun handleIntent(event: TestIntent) {
         when (event) {
             is TestIntent.Type -> keyword.value = event.text
             TestIntent.NextPage -> page.value += 1
@@ -445,5 +464,46 @@ class MviViewModelTest {
             vm.onIntent(TestIntent.NextPage)
             advanceUntilIdle()
             assertEquals(2, vm.state.value.page)
+        }
+
+    // --- 예외 경계 ---
+
+    @Test
+    fun `handleIntent 가 던져도 호출자에게 번지지 않고 onFailure 로 온다`() =
+        runTest(dispatcher) {
+            val vm = ThrowingViewModel()
+
+            vm.onIntent(TestIntent.Type("x"))
+
+            assertEquals(1, vm.failures.size)
+            assertEquals("동기 실패", vm.failures.single().message)
+        }
+
+    @Test
+    fun `handleIntent 가 던진 뒤에도 다음 인텐트가 상태를 바꾼다`() =
+        runTest(dispatcher) {
+            val vm = ThrowingViewModel()
+            subscribe(vm)
+
+            vm.onIntent(TestIntent.Type("x"))
+            vm.keyword.value = "살아있음"
+            advanceUntilIdle()
+
+            assertEquals("살아있음", vm.state.value.keyword)
+        }
+
+    @Test
+    fun `launchSafely 안에서 던져도 스코프가 죽지 않고 onFailure 로 온다`() =
+        runTest(dispatcher) {
+            val vm = ThrowingViewModel()
+            subscribe(vm)
+
+            vm.onIntent(TestIntent.NextPage)
+            advanceUntilIdle()
+            vm.keyword.value = "그다음"
+            advanceUntilIdle()
+
+            assertEquals(listOf("코루틴 실패"), vm.failures.map { it.message })
+            assertEquals("그다음", vm.state.value.keyword)
         }
 }

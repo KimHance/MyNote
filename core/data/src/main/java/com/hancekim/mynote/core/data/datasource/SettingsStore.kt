@@ -7,4 +7,8 @@ interface SettingsStore {
     fun observeFontScale(): Flow<FontScale>
 
     suspend fun setFontScale(scale: FontScale)
+
+    fun observeStudyLogEnabled(): Flow<Boolean>
+
+    suspend fun setStudyLogEnabled(enabled: Boolean)
 }

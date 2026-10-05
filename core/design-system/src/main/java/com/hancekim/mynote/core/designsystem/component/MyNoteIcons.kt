@@ -43,6 +43,17 @@ object MyNoteIcons {
         }
     }
 
+    val BookmarkFilled: ImageVector by lazy {
+        filledIcon("bookmark_filled") {
+            moveTo(6f, 3.5f)
+            lineTo(18f, 3.5f)
+            lineTo(18f, 20.5f)
+            lineTo(12f, 15.8f)
+            lineTo(6f, 20.5f)
+            close()
+        }
+    }
+
     val Stats: ImageVector by lazy {
         strokeIcon("nav_stats") {
             moveTo(5f, 20f)
@@ -176,6 +187,26 @@ private fun PathBuilder.fourPointStar(
     curveTo(cx - far, cy - near, cx - near, cy - far, cx, cy - r)
     close()
 }
+
+private fun filledIcon(
+    name: String,
+    pathBuilder: PathBuilder.() -> Unit,
+): ImageVector =
+    ImageVector
+        .Builder(
+            name = name,
+            defaultWidth = 21.dp,
+            defaultHeight = 21.dp,
+            viewportWidth = 24f,
+            viewportHeight = 24f,
+        ).path(
+            fill = SolidColor(Color.White),
+            stroke = SolidColor(Color.White),
+            strokeLineWidth = 1.7f,
+            strokeLineCap = StrokeCap.Round,
+            strokeLineJoin = StrokeJoin.Round,
+            pathBuilder = pathBuilder,
+        ).build()
 
 private fun strokeIcon(
     name: String,

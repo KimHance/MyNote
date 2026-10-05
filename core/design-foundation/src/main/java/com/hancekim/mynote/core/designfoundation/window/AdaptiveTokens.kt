@@ -102,7 +102,7 @@ private fun widthTokensFor(windowClass: MyNoteWindowClass): WidthTokens =
         }
 
         MyNoteWindowClass.Expanded -> {
-            WidthTokens(32.dp, 14.dp, 300.dp, 720.dp, 220.dp, useModalDrawer = false)
+            WidthTokens(32.dp, 14.dp, 300.dp, 720.dp, 200.dp, useModalDrawer = false)
         }
 
         MyNoteWindowClass.Large -> {

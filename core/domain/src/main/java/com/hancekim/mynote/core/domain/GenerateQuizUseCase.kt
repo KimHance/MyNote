@@ -52,6 +52,7 @@ private fun Note.toPlainText(): String =
                 is NoteBlock.Code -> block.code
                 is NoteBlock.BulletList -> block.items.joinItems()
                 is NoteBlock.OrderedList -> block.items.joinItems()
+                is NoteBlock.Unsupported -> block.text
                 NoteBlock.Divider, NoteBlock.Spacer -> null
             }.takeIf { !it.isNullOrBlank() }
         }.joinToString("\n")

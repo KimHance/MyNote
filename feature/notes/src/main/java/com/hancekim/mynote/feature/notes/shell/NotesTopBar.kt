@@ -1,5 +1,15 @@
 package com.hancekim.mynote.feature.notes.shell
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
@@ -10,8 +20,29 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.hancekim.mynote.core.designsystem.component.MyNoteIcons
+import com.hancekim.mynote.core.designsystem.component.PressIndication
+import com.hancekim.mynote.core.designsystem.component.throttledProcess
+import com.hancekim.mynote.core.designsystem.motion.rememberReduceMotion
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.core.designsystem.R as DsR
@@ -21,9 +52,12 @@ import com.hancekim.mynote.core.designsystem.R as DsR
 internal fun NotesTopBar(
     title: String,
     showBack: Boolean,
+    bookmarked: Boolean?,
     onMenu: () -> Unit,
     onBack: () -> Unit,
     onRefresh: () -> Unit,
+    onToggleBookmark: () -> Unit,
+    showRefresh: Boolean = true,
 ) {
     val colors = MyNoteTheme.colors
     TopAppBar(
@@ -53,12 +87,18 @@ internal fun NotesTopBar(
             }
         },
         actions = {
-            IconButton(onClick = onRefresh) {
-                Icon(
-                    imageVector = Icons.Default.Refresh,
-                    contentDescription = stringResource(R.string.notes_action_refresh),
-                    tint = colors.accent,
-                )
+            if (bookmarked != null) {
+                BookmarkToggle(bookmarked = bookmarked, onToggle = onToggleBookmark)
+                Spacer(Modifier.width(ACTION_GAP))
+            }
+            if (showRefresh) {
+                IconButton(onClick = onRefresh) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = stringResource(R.string.notes_action_refresh),
+                        tint = colors.accent,
+                    )
+                }
             }
         },
         colors =
@@ -69,4 +109,127 @@ internal fun NotesTopBar(
                 actionIconContentColor = colors.accent,
             ),
     )
+}
+
+@Composable
+private fun BookmarkToggle(
+    bookmarked: Boolean,
+    onToggle: () -> Unit,
+) {
+    val colors = MyNoteTheme.colors
+    val shape = RoundedCornerShape(TOGGLE_RADIUS)
+    val indication = remember(colors, shape) { PressIndication(shape, pressColor = colors.surface2) }
+    val reduceMotion = rememberReduceMotion()
+    var bounces by remember { mutableIntStateOf(0) }
+    val toggle =
+        throttledProcess {
+            if (!bookmarked) bounces++
+            onToggle()
+        }
+    val tint =
+        animateColorAsState(
+            targetValue = if (bookmarked) colors.accent else colors.bodyText,
+            animationSpec = tween(TINT_MILLIS),
+            label = "bookmarkTint",
+        )
+    val scale = remember { Animatable(1f) }
+    LaunchedEffect(bounces) {
+        if (bounces > 0 && !reduceMotion) {
+            scale.snapTo(1f)
+            scale.animateTo(BOUNCE_SCALE, tween(BOUNCE_MILLIS / 2, easing = BounceEasing))
+            scale.animateTo(1f, tween(BOUNCE_MILLIS / 2, easing = BounceEasing))
+        }
+    }
+    val actionLabel = stringResource(R.string.notes_bookmark_action)
+    val stateLabel =
+        stringResource(if (bookmarked) R.string.notes_bookmark_state_on else R.string.notes_bookmark_state_off)
+
+    Box(
+        modifier =
+            Modifier
+                .size(width = TOGGLE_SIZE, height = minOf(TOGGLE_SIZE, MyNoteTheme.adaptive.headerHeight))
+                .clip(shape)
+                .toggleable(
+                    value = bookmarked,
+                    interactionSource = null,
+                    indication = indication,
+                    role = Role.Checkbox,
+                    onValueChange = { toggle() },
+                ).semantics {
+                    contentDescription = actionLabel
+                    stateDescription = stateLabel
+                },
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = if (bookmarked) MyNoteIcons.BookmarkFilled else MyNoteIcons.Bookmark,
+            contentDescription = null,
+            tint = Color.Unspecified,
+            modifier =
+                Modifier
+                    .size(TOGGLE_ICON)
+                    .graphicsLayer {
+                        scaleX = scale.value
+                        scaleY = scale.value
+                        colorFilter = ColorFilter.tint(tint.value)
+                    },
+        )
+    }
+}
+
+private val TOGGLE_SIZE = 44.dp
+private val TOGGLE_ICON = 22.dp
+private val TOGGLE_RADIUS = 12.dp
+private val ACTION_GAP = 2.dp
+private const val TINT_MILLIS = 160
+private const val BOUNCE_MILLIS = 240
+private const val BOUNCE_SCALE = 1.2f
+private val BounceEasing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
+
+@Preview(name = "TopBar · 리더 · 북마크 꺼짐", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 400)
+@Composable
+private fun NotesTopBarReaderPreview() {
+    MyNoteTheme {
+        NotesTopBar(
+            title = "TCP 3-way handshake",
+            showBack = false,
+            bookmarked = false,
+            onMenu = {},
+            onBack = {},
+            onRefresh = {},
+            onToggleBookmark = {},
+        )
+    }
+}
+
+@Preview(name = "TopBar · 리더 · 북마크 켜짐", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 400)
+@Composable
+private fun NotesTopBarBookmarkedPreview() {
+    MyNoteTheme {
+        NotesTopBar(
+            title = "TCP 3-way handshake",
+            showBack = false,
+            bookmarked = true,
+            onMenu = {},
+            onBack = {},
+            onRefresh = {},
+            onToggleBookmark = {},
+        )
+    }
+}
+
+@Preview(name = "TopBar · 홈", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 400)
+@Composable
+private fun NotesTopBarHomePreview() {
+    MyNoteTheme {
+        NotesTopBar(
+            title = "공부 기록",
+            showBack = false,
+            bookmarked = null,
+            onMenu = {},
+            onBack = {},
+            onRefresh = {},
+            onToggleBookmark = {},
+        )
+    }
 }

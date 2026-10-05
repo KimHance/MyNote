@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.hancekim.mynote.core.designfoundation.token.MyNoteRadius
@@ -23,6 +24,8 @@ fun CategoryChip(
         text = text,
         style = MyNoteTheme.textStyles.caption,
         color = MyNoteTheme.colors.accent,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
         modifier =
             modifier
                 .background(MyNoteTheme.colors.accentSoft, RoundedCornerShape(MyNoteRadius.chip))

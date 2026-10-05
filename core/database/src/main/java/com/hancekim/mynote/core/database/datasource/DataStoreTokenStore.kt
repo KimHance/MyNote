@@ -1,7 +1,9 @@
 package com.hancekim.mynote.core.database.datasource
 
 import android.content.Context
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.hancekim.mynote.core.data.datasource.TokenStore
@@ -11,7 +13,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-private val Context.tokenDataStore by preferencesDataStore(name = "github_token")
+private val Context.tokenDataStore by
+    preferencesDataStore(
+        name = "github_token",
+        corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
+    )
 private val TOKEN_KEY = stringPreferencesKey("github_token")
 
 class DataStoreTokenStore @Inject constructor(

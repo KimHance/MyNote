@@ -2,12 +2,17 @@
 
 이 문서는 `notes/` 노트 파일의 **계약**이다. 데스크탑 write-note 도구와 손편집 모두 이 스키마를 따른다.
 
-> **단일 출처는 앱 DTO** (`:core:data` 의 `NoteBlockDto` / `NoteSpanDto` / `NoteDto`).
+> **단일 출처는 앱 DTO** (`:core:data` 의 `NoteBlockDto` / `NoteSpanDto`). 노트 envelope 에서 앱이 읽는 것은 `blocks` 하나뿐이다
+> (`format/MyNoteJsonFormat`) — 제목·날짜는 `index.json` 값을 쓴다.
 > 이 문서/`gen_index.py` 검증은 그 DTO 를 사람이 읽게 옮긴 것일 뿐이다. DTO 가 바뀌면 여기도 같이 바꾼다.
 >
 > **닫힌 집합 원칙:** 콘텐츠는 서버 드리븐이지만 **블록 타입·인라인 스타일 집합은 앱 버전에 바인딩**된다.
-> 앱이 모르는 `type`/`style` 은 렌더할 수 없다 → 새 컴포넌트는 **앱 업데이트**가 선행돼야 한다.
+> 앱이 모르는 `type` 이나 필드가 빠진 블록은 동기화를 멈추지 않는다 — 앱은 그 블록 자리에 상자와 `원문 보기` 를
+> 보이고 나머지는 그대로 그린다. 모르는 `style` 은 일반 글자로 보인다. 그래서 새 컴포넌트를 *제대로* 보이려면
+> **앱 업데이트**가 먼저 나가야 한다.
 > `gen_index.py` 가 생성 단계에서 미지의 값을 거부하므로, 깨진 노트는 `index.json` 에 실리지 않는다(1차 방어선).
+> 앱의 관대한 해석은 훅을 거치지 않은 커밋(GitHub 웹 편집 등)에 대한 2차 방어선이다(앱 테스트 `core/data`
+> `MyNoteJsonFormatTest`).
 
 ---
 
@@ -101,8 +106,8 @@ notes/
 - 각 항목 `hash` = **노트 파일 raw 바이트의 `sha256`(hex)**. 앱은 이 값을 **비교만** 한다
   (같으면 skip, 다르면 재fetch). 앱은 hash 를 만들지 않는다.
 - 항목 필드: `id` · `title` · `date` · `path`(레포 루트 기준) · `hash`.
-- 앱 매핑: 와이어 DTO `IndexNoteDto`(group 없음) → 원격 구현체가 group 을 펼쳐 `IndexEntryDto`(group 포함)로
-  평탄화 → reconcile.
+- 앱 매핑: 와이어 DTO `IndexNoteDto`(group 없음) → `:core:network` 의 `GithubManifestAdapter` 가 group 을 펼쳐
+  `SourceEntry`(`category` 포함)로 평탄화 → reconcile(`:core:data` `SourceReconciler`).
 
 ## 6. 노트 추가/수정 절차
 

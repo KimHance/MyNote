@@ -13,6 +13,10 @@ class MyNoteApplication : Application(), Configuration.Provider {
 
     @Inject lateinit var modelWaitNotice: ModelWaitNotice
 
+    @Inject lateinit var studyLogMaintenance: StudyLogMaintenance
+
+    @Inject lateinit var insightScheduleSync: InsightScheduleSync
+
     @Inject lateinit var workerFactory: HiltWorkerFactory
 
     override val workManagerConfiguration: Configuration
@@ -22,5 +26,7 @@ class MyNoteApplication : Application(), Configuration.Provider {
         super.onCreate()
         tokenSync.start()
         modelWaitNotice.start()
+        studyLogMaintenance.start()
+        insightScheduleSync.start()
     }
 }

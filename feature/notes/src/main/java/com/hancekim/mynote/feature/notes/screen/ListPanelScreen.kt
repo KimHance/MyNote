@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,11 +28,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
@@ -59,6 +64,7 @@ import com.hancekim.mynote.feature.notes.element.fractionOrNull
 import com.hancekim.mynote.feature.notes.element.isBusy
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.coroutines.flow.filter
 
 @Composable
 internal fun ListPanelScreen(
@@ -70,6 +76,18 @@ internal fun ListPanelScreen(
     val colors = MyNoteTheme.colors
     val adaptive = MyNoteTheme.adaptive
     val listState = rememberLazyListState()
+    val focusManager = LocalFocusManager.current
+    val dispatch: (NotesIntent) -> Unit = { intent ->
+        if (intent !is NotesIntent.QueryChanged) focusManager.clearFocus()
+        onIntent(intent)
+    }
+
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.isScrollInProgress }
+            .filter { it }
+            .collect { focusManager.clearFocus() }
+    }
+
     val topFade by animateDpAsState(
         targetValue = if (listState.canScrollBackward) TOP_FADE else 0.dp,
         animationSpec = tween(FADE_MILLIS),
@@ -81,7 +99,13 @@ internal fun ListPanelScreen(
         label = "bottomFade",
     )
 
-    Surface(modifier = modifier.fillMaxSize(), color = colors.surface) {
+    Surface(
+        modifier =
+            modifier
+                .fillMaxSize()
+                .pointerInput(Unit) { detectTapGestures { focusManager.clearFocus() } },
+        color = colors.surface,
+    ) {
         Column(
             modifier =
                 Modifier
@@ -98,7 +122,7 @@ internal fun ListPanelScreen(
             Box(Modifier.padding(horizontal = 12.dp)) {
                 SearchField(
                     query = uiState.query,
-                    onQueryChange = { onIntent(NotesIntent.QueryChanged(it)) },
+                    onQueryChange = { dispatch(NotesIntent.QueryChanged(it)) },
                 )
             }
             Spacer(Modifier.height(12.dp))
@@ -123,7 +147,7 @@ internal fun ListPanelScreen(
                                     name = category.name,
                                     count = category.notes.size,
                                     expanded = uiState.isExpanded(category.name),
-                                    onClick = { onIntent(NotesIntent.ToggleCategory(category.name)) },
+                                    onClick = { dispatch(NotesIntent.ToggleCategory(category.name)) },
                                 )
                             }
                             if (uiState.isExpanded(category.name)) {
@@ -131,7 +155,8 @@ internal fun ListPanelScreen(
                                     NoteRow(
                                         title = note.title,
                                         active = note.id == uiState.activeNoteId,
-                                        onClick = { onIntent(NotesIntent.SelectNote(note.id)) },
+                                        onClick = { dispatch(NotesIntent.SelectNote(note.id)) },
+                                        bookmarked = note.id in uiState.bookmarkedIds,
                                     )
                                 }
                             }
@@ -144,7 +169,7 @@ internal fun ListPanelScreen(
                 selected = inFixedPanel && uiState.isSettingsOpen,
                 tokenMissing = !uiState.hasToken,
                 modelStatus = uiState.modelStatus,
-                onClick = { onIntent(NotesIntent.OpenSettings) },
+                onClick = { dispatch(NotesIntent.OpenSettings) },
                 modifier =
                     Modifier
                         .padding(horizontal = 10.dp, vertical = 0.dp)

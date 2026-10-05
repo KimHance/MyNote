@@ -12,4 +12,8 @@ class SettingsRepositoryImpl @Inject constructor(
     override fun observeFontScale(): Flow<FontScale> = settingsStore.observeFontScale()
 
     override suspend fun setFontScale(scale: FontScale) = settingsStore.setFontScale(scale)
+
+    override fun observeStudyLogEnabled(): Flow<Boolean> = settingsStore.observeStudyLogEnabled()
+
+    override suspend fun setStudyLogEnabled(enabled: Boolean) = settingsStore.setStudyLogEnabled(enabled)
 }

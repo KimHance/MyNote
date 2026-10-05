@@ -17,6 +17,9 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
             extensions.configure<ApplicationExtension> {
                 configureKotlinAndroid(this)
                 defaultConfig.targetSdk = libs.findVersion("targetSdk").get().requiredVersion.toInt()
+                defaultConfig.testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+                dependenciesInfo.includeInApk = false
+                dependenciesInfo.includeInBundle = false
                 configureReleaseSigning(this)
             }
         }

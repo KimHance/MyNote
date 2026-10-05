@@ -8,6 +8,8 @@
 
 `MyNoteTheme`(토큰 배선) + 재사용 위젯/Modifier + 서버드리븐 콘텐츠 렌더러. **순수 UI 레이어**다.
 
+**디자인 시스템의 기준은 루트 `DESIGN.md` 다** — 토큰·창 크기·모션·컴포넌트·문구·접근성 규칙과 디자인 ↔ 코드 차이 표. 화면을 새로 그리기 전에 읽어라.
+
 의존은 네 줄뿐이고 각 줄이 의도를 가진다:
 
 | 선언 | 이유 |
@@ -172,9 +174,28 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
   `rememberReduceMotion()` 은 `LocalInspectionMode` 를 OR 로 물고 있어 **프리뷰에서는 항상 true** 다.
 - **`component/`** — 재사용 위젯 + `Modifier` 확장(`fadingEdges`/`riseIn`/`aiShine`/`flip`) +
   상태 홀더(`FloatingNavScrollState`) + 아이콘. 화면 전용 위젯은 여기가 아니라 feature 에 둔다.
+  `NoteCard(bookmarked = true)` 는 `BookmarkRibbon`(12 × 17dp, `text2`)을 카드 `TopEnd` 에 `offset(-16, -1)` 로 건다 —
+  카드 테두리 1dp 를 덮어야 해서 `Column` 의 `clip` **바깥** `Box` 에 그린다. 메타 줄 end 패딩 24dp 는 북마크 여부와
+  무관하게 항상 있어 켜고 꺼도 칩 말줄임 위치가 안 변한다. 리본은 desc 가 없고 카드 노드의 `stateDescription` 이 `ds_bookmarked` 다.
+  `BookmarkGlyph`(12dp) 는 `NoteRow` 전용으로 남아 있다.
+- **`chart/`** — 통계 차트 Canvas 5종(`TimeBars`·`CategoryDonut`·`CategoryStackBar`·`HBarRow`·`DivergingBars`).
+  등장 애니메이션은 `progress: () -> Float` 하나를 받아 **그리기 람다 안에서** 읽는다(`rememberChartProgress(key)` 가
+  만든다, 감속 모션이면 처음부터 1). 칸마다 지연·곡선은 `ChartMotion` 한 곳. 글자는 `TextMeasurer` 로 데이터가 바뀔
+  때만 잰다. 색은 `chartAccent2/3`·`chartFuture`(foundation) + 기존 토큰. `NumberedRow`·`SectionLabel` 은
+  `component/` 에 있다(북마크의 `BookmarkRow` 와 아직 통합 전).
 - **`block/`** — 서버드리븐 콘텐츠의 UI 모델(`NoteContentBlock` 닫힌 sealed 집합)과 렌더러(`NoteContent`).
   블록 종류를 늘리려면 `notes/SCHEMA.md` · data DTO · feature 의 매퍼 · 이 sealed 집합 · `NoteContent`
   의 `when` 이 **한 세트로** 움직인다.
+  `Unsupported(kind, salvaged, raw)` 만 와이어에 없는 **앱 내부 블록**이다 — 그리지 못한 블록·노트를 버리지 않고
+  `UnsupportedBlock` 점선 상자로 그린다. `kind` 는 domain `UnsupportedReason` 을 옮긴 UI enum(이 모듈은 domain 을 모른다),
+  빈 `salvaged`·`raw` 는 feature 매퍼가 `null` 로 바꿔 넘긴다(`raw == null` 이면 원문 보기 버튼이 없다). 펼침·2단은
+  `UnsupportedBlock` 안이 아니라 **`NoteContentState`**(블록 index 집합 둘, `Saver` 로 저장)에 있고 `NoteContent(state = …)` 로
+  받는다 — 블록 안 `rememberSaveable` 은 창 등급이 바뀌어 `NavDisplay` 가 다시 만들어질 때 키를 명시해도 사라진다(관문 2 S1).
+  그래서 feature 셸이 리더 스크롤과 같은 자리·같은 키로 들고 내려 준다(`NotesScrollState.readerContent`, `NoteContentStateTest`).
+  기본값 `rememberNoteContentState()` 는 프리뷰·다른 호출부용이다. 원문 자르기(앞 40줄 → 최대 200줄·10,000자)는 순수 함수 `sliceRaw`
+  (`RawSlice.kt`, `RawSliceTest`)다. 원문은 **줄마다 `Text` 하나**로 그린다 — 한 `Text` 에 줄마다 `ParagraphStyle` 을
+  걸면 복사한 글자에서 줄바꿈이 사라진다(`SelectionContainer` 는 `Text` 사이를 `'\n'` 으로 잇는다). 대신 패널 `Column` 을
+  `mergeDescendants` 로 묶어 TalkBack 에는 한 노드다. 치수·문구는 `DESIGN.md` §8.6, 핸드오프 `docs/oss/m0/design/README.md`.
 
 ---
 
@@ -201,7 +222,7 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
 - `resourcePrefix = "ds_"` 가 Gradle 에서 **강제**된다. 라이브러리 리소스는 앱에 병합될 때
   이름이 겹치면 조용히 덮이므로, 접두사를 안 붙이면 빌드가 막히게 해 둔 것이다.
 - `strings.xml` 에는 **여러 feature 가 공유하는 액션 문구**(확인/취소/저장/닫기/다시 시도/되돌리기)와
-  이 모듈 컴포넌트가 쓰는 문구(`ds_scroll_to_top`·`ds_search_hint`)만 둔다.
+  이 모듈 컴포넌트가 쓰는 문구(`ds_scroll_to_top`·`ds_search_hint`·`UnsupportedBlock` 의 `ds_unsupported_*` 11개)만 둔다.
   feature 는 `import com.hancekim.mynote.core.designsystem.R as DsR` 로 참조한다.
 - **파라미터 기본값에 문자열 리터럴을 두지 않는다.** `SearchField(placeholder: String? = null)` 처럼
   `null` 기본값 + `stringResource` 폴백으로 받는다 — 기본값에 리터럴을 두면 리소스를 우회한다.
@@ -211,7 +232,8 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
 
 ## 테스트
 
-계측 테스트는 없다. 유일한 단위 테스트가 `FloatingNavScrollStateTest` 인데, 그게 가능한 이유는
+계측 테스트는 없다. 단위 테스트는 `FloatingNavScrollStateTest`·`RawSliceTest`(원문 자르기 `sliceRaw`)·`NoteContentStateTest`(펼침 상태와 저장) 셋인데, 가능한 이유는
+같다 — 판정을 Compose 밖 순수 함수·클래스로 뺐다. `FloatingNavScrollStateTest` 가 가능한 이유는
 `FloatingNavScrollState` 가 **Compose 를 모르고 px 두 개만 받는 순수 클래스**이고
 `rememberFloatingNavScrollState()` 가 density 변환만 담당하도록 갈라 뒀기 때문이다.
 숨김/표시 판정 같은 로직을 추가할 때는 이 형태(순수 상태 홀더 + `remember…` 어댑터)를 따르면

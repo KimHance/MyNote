@@ -1,19 +1,14 @@
 package com.hancekim.mynote.core.ai
 
 import android.util.Log
-import com.google.ai.edge.litertlm.Content
 import com.google.ai.edge.litertlm.Contents
-import com.google.ai.edge.litertlm.Conversation
 import com.google.ai.edge.litertlm.ConversationConfig
-import com.google.ai.edge.litertlm.Message
 import com.google.ai.edge.litertlm.SamplerConfig
 import com.google.ai.edge.litertlm.ThinkingConfig
 import com.hancekim.mynote.core.common.result.runCatchingCancellable
 import com.hancekim.mynote.core.domain.model.QuizFailure
 import com.hancekim.mynote.core.domain.model.QuizQuestion
 import com.hancekim.mynote.core.domain.repository.QuizGenerator
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import javax.inject.Inject
 
 class LiteRtLmQuizGenerator @Inject constructor(
@@ -31,7 +26,8 @@ class LiteRtLmQuizGenerator @Inject constructor(
                 e.createConversation(conversationConfig(count)).use { conversation ->
                     val started = System.currentTimeMillis()
                     val raw = conversation.sendCancellable(prompt(noteTitle, noteText, count)).text()
-                    Log.i(TAG, "생성 ${System.currentTimeMillis() - started}ms · ${raw.length}자")
+                    val bench = conversation.benchmarkOrNull()?.describe().orEmpty()
+                    Log.i(TAG, "퀴즈 생성 ${System.currentTimeMillis() - started}ms · ${raw.length}자 · $bench")
                     raw
                 }
             }
@@ -74,19 +70,6 @@ class LiteRtLmQuizGenerator @Inject constructor(
         Format:
         [{"question":"...","choices":["...","...","...","..."],"answerIndex":0,"explanation":"..."}]
         """.trimIndent()
-
-    private suspend fun Conversation.sendCancellable(prompt: String): Message =
-        coroutineScope {
-            val call = async { sendMessage(prompt) }
-            try {
-                call.await()
-            } finally {
-                if (!call.isCompleted) cancelProcess()
-            }
-        }
-
-    private fun Message.text(): String =
-        contents.contents.filterIsInstance<Content.Text>().joinToString("") { it.text }
 
     private companion object {
         const val TAG = "MyNoteAi"

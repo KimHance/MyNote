@@ -26,6 +26,12 @@ class NotesMessages
 
         fun modelDeleted(): String = context.getString(R.string.notes_model_deleted)
 
+        fun bookmarkAdded(): String = context.getString(R.string.notes_bookmark_added)
+
+        fun bookmarkRemoved(): String = context.getString(R.string.notes_bookmark_removed)
+
+        fun studyLogCleared(): String = context.getString(R.string.notes_settings_studylog_cleared)
+
         fun syncApplied(outcome: SyncOutcome): String {
             val parts =
                 buildList {

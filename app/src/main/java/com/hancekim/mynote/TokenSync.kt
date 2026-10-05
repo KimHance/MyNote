@@ -5,8 +5,10 @@ import com.hancekim.mynote.core.network.config.GithubTokenHolder
 import com.hancekim.mynote.di.ApplicationScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,9 +24,12 @@ class TokenSync @Inject constructor(
         if (job != null) return
         job =
             scope.launch {
-                observeToken().distinctUntilChanged().collect { stored ->
-                    holder.update(stored ?: BuildConfig.GITHUB_TOKEN.ifBlank { null })
-                }
+                observeToken()
+                    .catch { cause -> if (cause is IOException) emit(null) else throw cause }
+                    .distinctUntilChanged()
+                    .collect { stored ->
+                        holder.update(stored ?: BuildConfig.GITHUB_TOKEN.ifBlank { null })
+                    }
             }
     }
 }

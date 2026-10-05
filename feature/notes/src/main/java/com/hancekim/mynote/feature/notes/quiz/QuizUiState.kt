@@ -25,6 +25,7 @@ sealed interface QuizUiState {
         val index: Int = 0,
         val picked: Int? = null,
         val marks: ImmutableList<Boolean> = persistentListOf(),
+        val picks: ImmutableList<Int> = persistentListOf(),
         val partial: Boolean = false,
         val autoAdvancing: Boolean = false,
     ) : QuizUiState {
@@ -40,7 +41,11 @@ sealed interface QuizUiState {
             if (revealed || choice !in current.choices.indices) {
                 this
             } else {
-                copy(picked = choice, marks = (marks + (choice == current.answerIndex)).toImmutableList())
+                copy(
+                    picked = choice,
+                    marks = (marks + (choice == current.answerIndex)).toImmutableList(),
+                    picks = (picks + choice).toImmutableList(),
+                )
             }
 
         fun advance(): QuizUiState =

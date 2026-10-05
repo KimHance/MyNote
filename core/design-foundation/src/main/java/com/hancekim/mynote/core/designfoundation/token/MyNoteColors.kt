@@ -32,6 +32,9 @@ data class MyNoteColors(
     val navItemSpecular: Color,
     val navItemCaustic: Color,
     val navItemPressed: Color,
+    val chartAccent2: Color,
+    val chartAccent3: Color,
+    val chartFuture: Color,
 )
 
 val StudyNotesDarkColors: MyNoteColors =
@@ -63,4 +66,7 @@ val StudyNotesDarkColors: MyNoteColors =
         navItemSpecular = Color(0x59FFFFFF),
         navItemCaustic = Color(0x4DB8D4FF),
         navItemPressed = Color(0x0FFFFFFF),
+        chartAccent2 = Color(0xFF4F7FC4),
+        chartAccent3 = Color(0xFF3A5A88),
+        chartFuture = Color(0xFF3A4450),
     )

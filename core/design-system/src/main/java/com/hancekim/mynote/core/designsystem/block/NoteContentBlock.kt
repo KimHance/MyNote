@@ -39,7 +39,16 @@ sealed interface NoteContentBlock {
     data object Divider : NoteContentBlock
 
     data object Spacer : NoteContentBlock
+
+    @Immutable
+    data class Unsupported(
+        val kind: UnsupportedKind,
+        val salvaged: String?,
+        val raw: String?,
+    ) : NoteContentBlock
 }
+
+enum class UnsupportedKind { UnknownType, BrokenBlock, BrokenNote }
 
 @Immutable
 data class NoteContentSpan(

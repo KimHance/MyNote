@@ -55,6 +55,24 @@ internal fun ModelDeleteDialog(
 }
 
 @Composable
+internal fun StudyLogClearDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+    backdrop: Backdrop? = null,
+) {
+    ModelDialog(
+        title = stringResource(R.string.notes_settings_studylog_clear_title),
+        body = stringResource(R.string.notes_settings_studylog_clear_body),
+        dismissLabel = stringResource(DsR.string.ds_action_cancel),
+        confirmLabel = stringResource(R.string.notes_settings_studylog_clear_confirm),
+        destructive = true,
+        onDismiss = onDismiss,
+        onConfirm = onConfirm,
+        backdrop = backdrop,
+    )
+}
+
+@Composable
 private fun ModelDialog(
     title: String,
     body: String,

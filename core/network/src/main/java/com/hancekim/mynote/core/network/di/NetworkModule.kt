@@ -1,12 +1,12 @@
 package com.hancekim.mynote.core.network.di
 
-import com.hancekim.mynote.core.data.datasource.RemoteNotesDataSource
+import com.hancekim.mynote.core.data.datasource.NoteSourceAdapter
 import com.hancekim.mynote.core.domain.repository.AppliedTokenSource
 import com.hancekim.mynote.core.domain.repository.NetworkStatusSource
 import com.hancekim.mynote.core.network.api.GithubContentsApi
 import com.hancekim.mynote.core.network.config.GithubTokenHolder
 import com.hancekim.mynote.core.network.config.GithubTokenProvider
-import com.hancekim.mynote.core.network.datasource.RemoteNotesDataSourceImpl
+import com.hancekim.mynote.core.network.datasource.GithubManifestAdapter
 import com.hancekim.mynote.core.network.interceptor.AuthInterceptor
 import com.hancekim.mynote.core.network.status.NetworkStatusSourceImpl
 import dagger.Binds
@@ -14,6 +14,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import dagger.multibindings.IntoSet
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -55,8 +56,8 @@ object NetworkModule {
 @InstallIn(SingletonComponent::class)
 abstract class RemoteDataSourceModule {
     @Binds
-    @Singleton
-    abstract fun bindRemoteNotesDataSource(impl: RemoteNotesDataSourceImpl): RemoteNotesDataSource
+    @IntoSet
+    abstract fun bindManifestAdapter(impl: GithubManifestAdapter): NoteSourceAdapter
 
     @Binds
     @Singleton

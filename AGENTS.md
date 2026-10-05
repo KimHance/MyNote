@@ -54,9 +54,9 @@ app  ─────────────────────────
  ├─ feature/notes  ───────────────  화면 · ViewModel · 퀴즈
  │    └→ core/{common, design-system, domain, navigation}   (feature convention 이 자동 주입)
  │
- ├─ core/ai        ──→ core/domain  LiteRT-LM 으로 QuizGenerator 구현
+ ├─ core/ai        ──→ core/domain  LiteRT-LM 으로 QuizGenerator · 통계 워커(InsightScheduler) 구현
  ├─ core/network   ──→ core/data    GitHub Contents API
- ├─ core/database  ──→ core/data    Room3 캐시 + DataStore
+ ├─ core/database  ──→ core/data    Room3 캐시·학습 기록·요약 캐시 + DataStore
  ├─ core/data      ──→ core/domain  DataSource 인터페이스 소유 + reconcile
  ├─ core/domain    ─────────────────  순수 JVM. 인터페이스를 소유한다(DIP)
  ├─ core/navigation ─→ core/common   nav3 계약. 테마·도메인을 모른다
@@ -66,6 +66,8 @@ app  ─────────────────────────
 ```
 
 **화살표는 항상 바깥→안쪽이다.** 인터페이스는 안쪽이 소유하고 바깥이 구현한다.
+
+**디자인 시스템의 기준은 루트 `DESIGN.md` 다** — 토큰·창 크기·모션·컴포넌트·문구·접근성 규칙과 디자인 ↔ 코드 차이 표. 화면을 새로 그리기 전에 읽어라.
 
 지켜야 할 것:
 - **feature 는 `:core:data`/`:core:network`/`:core:database` 를 직접 의존하지 않는다.** `:core:domain`
@@ -87,19 +89,27 @@ app  ─────────────────────────
 
 한 모듈만 봐서는 안 보이는 것들이다. 각각 해당 모듈 `AGENTS.md` 에 자세히 있다.
 
-**모르는 블록 타입 하나가 동기화 전체를 죽인다.**
-본문 블록은 `@SerialName` 으로 고정된 닫힌 집합이고, `sync()` 는 전부-아니면-전무다.
-원격 `notes/` 에 앱이 모르는 `type` 이 올라가면 그 노트 하나가 아니라 **모든 기기의 동기화가
-실패한다.** → **앱 업데이트가 콘텐츠보다 먼저 나가야 한다.** (`core/data/AGENTS.md`)
+**콘텐츠가 앱보다 먼저 나가면 새 블록은 옛 앱에서 상자로 보인다.**
+본문 블록은 `@SerialName` 으로 고정된 닫힌 집합이다. 원격 `notes/` 에 앱이 모르는 `type` 이나 필드가 빠진 블록이
+올라가도 **동기화는 멈추지 않는다** — 그 블록만 `NoteBlock.Unsupported` 가 되어 리더에 점선 상자 + `원문 보기` 로 보이고,
+노트의 나머지와 다른 노트는 그대로 반영된다. 모르는 인라인 `style` 은 일반 글자로 읽는다. 파일이 아예 JSON 이 아니면
+그 노트는 목록에 남고 본문이 상자 하나가 된다. 동기화 전체가 실패하는 것은 **전송** 실패(index·본문을 받지 못함,
+index 자체가 깨짐)뿐이다. 그래도 새 블록을 *제대로* 보이려면 앱 업데이트가 먼저 나가야 한다. 캐시가 원문(`raw`)을
+들고 있어 앱을 올리면 네트워크 없이 다시 변환된다. 근거 테스트: `core/data` `MyNoteJsonFormatTest`(모르는 type·필드
+누락·모르는 style·JSON 아님), `NotesReconcileTest`(`형식 오류 노트는 격리하고 나머지는 반영한다`·`본문 전송이 하나라도
+실패하면 아무것도 반영하지 않는다`). (`core/data/AGENTS.md`)
 
 **`MyNoteApplication` 의 `@Inject lateinit var tokenSync` 를 지우면 조용히 인증이 없어진다.**
 그 필드 한 줄이 `TokenSync` 를 살아 있게 하는 유일한 참조이고, `GithubTokenHolder` 를 채우는
 유일한 호출자다. 지워도 컴파일·실행은 되고 private 레포 요청만 무인증으로 나간다. (`app/AGENTS.md`)
 
-**60초 타임아웃이 퀴즈 엔진을 못 푼다.**
-`Conversation.sendMessage()` 는 블로킹이라(suspend 아님) 코루틴을 취소해도 네이티브 디코딩이
-계속 돌고 `Mutex` 를 계속 쥔다. 라이브러리에 `cancelProcess()` 가 있는데 아직 안 쓴다.
-(`core/ai/AGENTS.md`)
+**엔진은 하나이고 퀴즈와 통계 워커가 나눠 쓴다.**
+`Conversation.sendMessage()` 는 블로킹이라 코루틴 취소만으로는 네이티브 디코딩이 멈추지 않는다 — 모든 생성은
+`sendCancellable`(→ `cancelProcess()`)로 보낸다. 워커는 `tryUse` 로만 엔진을 잡고(퀴즈가 쓰는 중이면 포기), 자기가 올린
+엔진은 끝날 때 앱이 백그라운드면 닫는다. (`core/ai/AGENTS.md`)
+
+**`connectedAndroidTest` 는 기본으로 앱을 uninstall 한다 → 2.6GB 모델이 지워진다.**
+`gradle.properties` 의 `android.injected.androidTest.leaveApksInstalledAfterRun=true` 가 막고 있다. 지우지 말 것. (`app/AGENTS.md`)
 
 **퀴즈 모델 상태 타입은 `:core:domain` 이 소유한다.**
 받는 구현은 `:core:ai` 지만 feature 는 `:core:ai` 를 의존하지 않는다. `ModelStatus`·`ModelFailure`·
@@ -141,7 +151,8 @@ ktlint·Compose 의존·Hilt 는 컨벤션이 자동으로 넣는다. (`build-lo
 - 노트 추가·수정·삭제는 `write-note` 스킬로 한다. 손으로 파일을 만들지 않는다.
 - **`notes/index.json`·해시·`gen_index.py` 를 직접 건드리지 않는다.** pre-commit 훅이 커밋 순간
   `gen_index.py` 로 재생성해 같은 커밋에 넣는다(작문은 LLM, 결정적 변환은 훅).
-- 블록은 `notes/SCHEMA.md` 의 닫힌 집합만. 새 타입을 넣으려면 위의 "동기화 전체가 죽는다" 를 먼저 읽어라.
+- 블록은 `notes/SCHEMA.md` 의 닫힌 집합만. 새 타입은 앱 업데이트가 먼저다 — 옛 앱에서는 그 블록이 `원문 보기`
+  상자로 보인다(위 "콘텐츠가 앱보다 먼저 나가면").
 - **`git push` 까지 해야 반영된다.** 앱은 원격을 읽지 로컬 클론을 읽지 않는다.
 
 ---

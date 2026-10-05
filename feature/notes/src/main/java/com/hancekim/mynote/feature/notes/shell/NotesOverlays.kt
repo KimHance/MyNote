@@ -18,6 +18,7 @@ import com.hancekim.mynote.core.designsystem.component.ScrollToTopButton
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.NotesIntent
+import com.hancekim.mynote.feature.notes.element.NotesTab
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.quiz.QuizOverlay
 import com.hancekim.mynote.feature.notes.quiz.QuizUiState
@@ -27,6 +28,8 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.launch
 
 internal const val NAV_HOME = "home"
+internal const val NAV_BOOKMARK = "bookmark"
+internal const val NAV_STATS = "stats"
 
 @Composable
 internal fun BoxScope.NotesOverlays(
@@ -37,8 +40,6 @@ internal fun BoxScope.NotesOverlays(
     navScroll: FloatingNavScrollState,
     backdrop: Backdrop,
     pillVisible: Boolean,
-    selectedNavItem: String,
-    onSelectNavItem: (String) -> Unit,
     quizStartInset: Dp,
 ) {
     val adaptive = MyNoteTheme.adaptive
@@ -55,8 +56,19 @@ internal fun BoxScope.NotesOverlays(
     )
 
     FloatingNav(
-        selectedId = selectedNavItem,
-        onSelect = onSelectNavItem,
+        selectedId =
+            when (uiState.selectedTab) {
+                NotesTab.Home -> NAV_HOME
+                NotesTab.Bookmarks -> NAV_BOOKMARK
+                NotesTab.Stats -> NAV_STATS
+            },
+        onSelect = { id ->
+            when (id) {
+                NAV_HOME -> onIntent(NotesIntent.SwitchTab(NotesTab.Home))
+                NAV_BOOKMARK -> onIntent(NotesIntent.SwitchTab(NotesTab.Bookmarks))
+                NAV_STATS -> onIntent(NotesIntent.SwitchTab(NotesTab.Stats))
+            }
+        },
         hidden = navScroll.hidden || quizOpen || uiState.isSettingsOpen,
         layout = layout,
         backdrop = backdrop,
@@ -140,8 +152,8 @@ private fun rememberFloatingNavItems(): ImmutableList<FloatingNavItem> {
     return remember(home, bookmark, stats) {
         persistentListOf(
             FloatingNavItem(NAV_HOME, home, MyNoteIcons.Home),
-            FloatingNavItem("bookmark", bookmark, MyNoteIcons.Bookmark),
-            FloatingNavItem("stats", stats, MyNoteIcons.Stats),
+            FloatingNavItem(NAV_BOOKMARK, bookmark, MyNoteIcons.Bookmark),
+            FloatingNavItem(NAV_STATS, stats, MyNoteIcons.Stats),
         )
     }
 }

@@ -6,7 +6,27 @@ import com.hancekim.mynote.core.designfoundation.token.MyNoteFontScale
 sealed interface NotesIntent : MviEvent {
     data class SelectNote(
         val id: String,
+        val resumeAt: Float? = null,
     ) : NotesIntent
+
+    data class OpenQuizFor(
+        val noteId: String,
+    ) : NotesIntent
+
+    data class ForegroundChanged(
+        val visible: Boolean,
+    ) : NotesIntent
+
+    data class ReaderProgress(
+        val noteId: String,
+        val percent: Int,
+    ) : NotesIntent
+
+    data class SetStudyLogEnabled(
+        val enabled: Boolean,
+    ) : NotesIntent
+
+    data object ClearStudyLog : NotesIntent
 
     data class QueryChanged(
         val query: String,
@@ -24,7 +44,17 @@ sealed interface NotesIntent : MviEvent {
 
     data object Back : NotesIntent
 
-    data object CloseNote : NotesIntent
+    data class SwitchTab(
+        val tab: NotesTab,
+    ) : NotesIntent
+
+    data object ToggleBookmark : NotesIntent
+
+    data class RemoveBookmark(
+        val noteId: String,
+    ) : NotesIntent
+
+    data object UndoRemoveBookmark : NotesIntent
 
     data class OpenQuizSetup(
         val noteId: String,

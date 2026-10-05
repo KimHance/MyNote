@@ -20,10 +20,12 @@
 | 계약 (소유) | 구현 | `@Module` 위치 |
 |---|---|---|
 | `NotesRepository`·`TokenRepository` (domain) | `NotesRepositoryImpl`·`TokenRepositoryImpl` | `:core:data` |
-| `RemoteNotesDataSource` (data) | `RemoteNotesDataSourceImpl` | `:core:network` |
+| `NoteSourceAdapter` (data, `@IntoSet`) | `GithubManifestAdapter` | `:core:network` |
 | `GithubTokenProvider`(network) + `AppliedTokenSource`(domain) | `GithubTokenHolder` — **한 인스턴스가 두 계약** | `:core:network` |
 | `LocalNotesDataSource`·`TokenStore` (data) | `LocalNotesDataSourceImpl`·`DataStoreTokenStore` | `:core:database` |
 | `QuizGenerator` (domain) | `LiteRtLmQuizGenerator` | `:core:ai` |
+| `InsightScheduler` (domain) | `StudyInsightWork`(통계 워커 예약·상태) | `:core:ai` |
+| `StudyLogRepository`·`InsightRepository` (domain) | `StudyLogRepositoryImpl`·`InsightRepositoryImpl` | `:core:data` |
 | `ModelDownloadIntents` (ai) — `@BindsOptionalOf` 로 비워 둔 구멍 | `AppModelDownloadIntents` | **`:app`** (`di/DownloadIntentsModule`) |
 
 **마지막 줄이 방향이 반대인 유일한 항목이다.** `:core:ai` 가 `@BindsOptionalOf` 로 `Optional<ModelDownloadIntents>`
@@ -64,6 +66,14 @@ DataStore(DataStoreTokenStore) → TokenRepository → ObserveTokenUseCase
 `ModelWaitNotice` 도 같은 모양이다 — `@Inject lateinit var modelWaitNotice` + `onCreate` 의 `start()`
 한 줄이 유일한 참조이고, 지우면 Wi-Fi 대기 알림만 조용히 사라진다.
 
+`StudyLogMaintenance` 도 같다 — `@Inject lateinit var studyLogMaintenance` + `onCreate` 의 `start()` 가 앱 시작마다
+365일 지난 학습 기록과 26주 지난 요약·패턴을 지우는 유일한 자리다. 지우면 컴파일·실행은 되고 기록만 무한히 쌓인다.
+
+`InsightScheduleSync` 도 같다 — `@Inject lateinit var insightScheduleSync` + `onCreate` 의 `start()` 가 "모델 Ready &&
+학습 기록 on" 을 관찰해 통계 워커(`study-insights`)를 예약/취소하는 유일한 자리다. 지우면 컴파일·실행은 되고 **주간 요약이
+영원히 생기지 않는다**(통계 카드가 자리째 없는 것과 구별이 안 된다). 앱 시작마다 `schedule()` 을 부르지만 같은 사양(태그
+`study-insights-spec-N`)의 작업이 이미 살아 있으면 아무것도 하지 않는다(`:core:ai` `StudyInsightWork`).
+
 폴백 순서는 `stored ?: BuildConfig.GITHUB_TOKEN.ifBlank { null }` — **저장된 토큰이 있으면 그게 이긴다.**
 
 ### BuildConfig 필드
@@ -98,6 +108,13 @@ DataStore(DataStoreTokenStore) → TokenRepository → ObserveTokenUseCase
 - **`<uses-native-library>` 두 줄(`libvndksupport.so`·`libOpenCL.so`, `required="false"`)은 LiteRT-LM 의
   GPU 백엔드용이다.** 없으면 예외도 로그도 없이 CPU 로 떨어지고, 판정은 TTFT 로만 가능하다(커밋 `c522d30`).
   매니페스트 정리하다 지우기 쉬운 자리다.
+- **백업 규칙(`res/xml/data_extraction_rules.xml`)은 토큰 DataStore(`datastore/github_token.preferences_pb`)와 모델
+  (`external` 전체 + 외부 저장소가 없을 때 `filesDir` 에 생기는 `gemma-4-E2B-it.litertlm`·`.part`·`.plan`)을 클라우드 백업과
+  기기 이전 **둘 다**에서 뺀다.** `minSdk` 32 라 이 파일만 읽히고 `backup_rules.xml` 은 같은 규칙의 사본이다.
+  `<device-transfer>` 구역이 없으면 그 모드는 전부 옮긴다. 모델이 한 번이라도 클라우드 백업 대상에 들어가면 앱별 한도
+  25MB 를 넘어 **그 앱의 백업 전체가 조용히 멈춘다** — 북마크·학습 기록도 같이 안 올라간다(기기 이전 한도는 2GB 라
+  모델이 넘는다). `include` 를 하나라도 쓰면 나머지가 전부 빠지므로 `exclude` 만 쓴다. DataStore 이름이나 모델 파일
+  이름을 바꾸면 이 파일도 같이 고친다.
 - `<receiver android:name=".download.ModelRetryReceiver" android:exported="false" />` — 인텐트 필터가 없다.
   `PendingIntent` 가 컴포넌트를 명시하는 explicit intent 라 필터가 필요 없고, 필터를 붙이면 그 순간부터
   `exported` 판정이 달라진다.
@@ -192,5 +209,25 @@ APK 85.4MB → 60.6MB. **되돌릴 조건은 하나다: 인텔 맥에서 x86_64 
   `dependencies` 블록은 모듈 목록 + `core-ktx`·`lifecycle-runtime`·`lifecycle-process`·
   `work-runtime`·`hilt-work` 뿐이다. `lifecycle-process` 는 `ProcessLifecycleOwner` 때문에,
   `work-runtime`/`hilt-work` 는 `HiltWorkerFactory` 배선 때문에 여기 있다.
-- `:app` 에는 테스트 소스가 없다(`src/test`·`src/androidTest` 둘 다 없음). 여기 코드는 배선뿐이라
-  검증은 `./gradlew :app:compileDebugKotlin`(= Hilt 그래프 검증)으로 한다.
+- `:app` 의 테스트는 계측 하나뿐이다 — `src/androidTest/…/insight/InsightEvalTest`(통계 LLM 평가 하네스). 배선 검증은
+  여전히 `./gradlew :app:compileDebugKotlin`(= Hilt 그래프 검증)이다.
+
+## 계측 테스트 — 평가 하네스와 "앱이 지워지지 않게"
+
+- **`gradle.properties` 의 `android.injected.androidTest.leaveApksInstalledAfterRun=true` 를 지우지 말 것.** AGP 의
+  `connectedAndroidTest` 는 기본으로 끝난 뒤 **테스트 APK 와 대상 앱을 uninstall** 한다. `:app` 의 대상 앱을 지우면
+  `/sdcard/Android/data/com.hancekim.mynote/files/` 의 2.6GB 모델까지 사라진다. 에뮬레이터에서 이 플래그로 돌린 뒤
+  `firstInstallTime`·모델 파일이 그대로인 것을 확인했다. 부작용은 `com.hancekim.mynote.test` 가 기기에 남는 것뿐이다.
+- 하네스는 `evalRound` 인자가 있을 때만 돈다(없으면 skip — 2.6GB 엔진을 올리는 무거운 테스트라서). 실제 모델·실제
+  `InsightGenerator` 로 합성 digest 10종 + 오답 묶음 6종을 돌려 `files/eval/eval-round<N>.json` 에 쓴다:
+
+  ```bash
+  ANDROID_SERIAL=<기기> ./gradlew :app:connectedDebugAndroidTest \
+      -Pandroid.testInstrumentationRunnerArguments.evalRound=3
+  adb -s <기기> pull /sdcard/Android/data/com.hancekim.mynote/files/eval/eval-round3.json .
+  ```
+
+  `calibrate=true` 를 더하면 24tok 예산으로 잘림 위치를 재는 보정 3건을 더한다. 기준(요약 ≥ 9/10, 패턴 ≥ 5/6, 호출 p95
+  ≤ 20초)을 못 넘으면 테스트가 실패한다(JSON 은 그 전에 쓴다). 앱 프로세스 안에서 돌므로 시작할 때 `study-insights` 를
+  취소한다 — 같은 프로세스에서 워커가 두 번째 엔진을 올리는 것을 막으려는 것이고, 앱을 다시 켜면 `InsightScheduleSync` 가 되살린다.
+- application 컨벤션이 `testInstrumentationRunner = AndroidJUnitRunner` 를 넣는다(라이브러리 컨벤션과 같다).
