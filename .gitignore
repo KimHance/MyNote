@@ -196,7 +196,9 @@ secrets.properties
 .kotlin/
 
 # 내부 작업 문서(superpowers spec/plan 등) — 깃에 올리지 않음
-/docs/
+/docs/*
+!/docs/spec/
+!/docs/design/
 
 ### AndroidStudio Patch ###
 !/gradle/wrapper/gradle-wrapper.jar
