@@ -1,5 +1,6 @@
 package com.hancekim.mynote.core.database.datasource
 
+import com.hancekim.mynote.core.data.connection.ConnectionConfigCodec
 import com.hancekim.mynote.core.data.datasource.CachedNote
 import com.hancekim.mynote.core.data.datasource.CachedNoteState
 import com.hancekim.mynote.core.data.datasource.LocalNotesDataSource
@@ -15,7 +16,26 @@ import javax.inject.Inject
 class LocalNotesDataSourceImpl @Inject internal constructor(
     private val dao: NoteDao,
 ) : LocalNotesDataSource {
-    override fun observeNotes(): Flow<List<CachedNote>> = dao.observeNotes().map { rows -> rows.map { it.toCached() } }
+    override fun observeNotes(): Flow<List<CachedNote>> =
+        dao.observeNotes(ConnectionConfigCodec.PENDING_MARKER).map { rows -> rows.map { it.toCached() } }
+
+    override fun observeSources(): Flow<List<SourceRecord>> =
+        dao.observeSources().map { rows -> rows.mapNotNull { it.toRecord() } }
+
+    override suspend fun updateConfig(
+        source: SourceId,
+        configJson: String?,
+    ) = dao.updateConfig(source.value, configJson)
+
+    override suspend fun noteCount(source: SourceId): Int = dao.noteCount(source.value)
+
+    override suspend fun deleteSource(source: SourceId) = dao.deleteSource(source.value)
+
+    override suspend fun promote(
+        source: SourceId,
+        configJson: String,
+        replace: List<SourceId>,
+    ) = dao.promote(source.value, configJson, replace.map { it.value })
 
     override suspend fun ensureSource(record: SourceRecord) =
         dao.ensureSource(
@@ -27,10 +47,7 @@ class LocalNotesDataSourceImpl @Inject internal constructor(
             ),
         )
 
-    override suspend fun sources(): List<SourceRecord> =
-        dao.sources().mapNotNull { row ->
-            row.kind.toSourceKind()?.let { kind -> SourceRecord(SourceId(row.id), kind, row.configJson) }
-        }
+    override suspend fun sources(): List<SourceRecord> = dao.sources().mapNotNull { it.toRecord() }
 
     override suspend fun loadSourceState(source: SourceId): Map<String, CachedNoteState> =
         dao.loadSourceState(source.value).associate {
@@ -51,6 +68,9 @@ class LocalNotesDataSourceImpl @Inject internal constructor(
 
     override suspend fun replaceDerived(rows: List<CachedNote>) = dao.replaceDerived(rows.map { it.toEntity() })
 }
+
+private fun SourceEntity.toRecord(): SourceRecord? =
+    kind.toSourceKind()?.let { SourceRecord(SourceId(id), it, configJson) }
 
 private fun SourceNoteEntity.toCached() =
     CachedNote(

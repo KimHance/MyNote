@@ -49,9 +49,9 @@ design-foundation 은 Compose 를 들고 있어서 domain 이 그걸 의존하�
 ### 토큰 인터페이스가 둘인 이유 (중복이 아니다)
 
 `TokenRepository` = 사용자가 **저장한** 값. `AppliedTokenSource` = 네트워크 클라에 **꽂힌** 값.
-`:app` 의 `TokenSync` 가 저장값을 관찰해 holder 에 밀어넣으면서 `BuildConfig.GITHUB_TOKEN` 을 폴백으로 얹는다.
-그래서 debug 는 저장값이 없어도 붙는다 — 화면이 "토큰 있음"을 판정할 때 `ObserveTokenUseCase` 를 보면
-debug 에서 항상 없다고 나온다. `ObserveAppliedTokenUseCase` 가 그 판정용이다(`NotesViewModel` 이 그걸 쓴다).
+`:app` 의 `TokenSync` 가 연결 복구(`RecoverConnectionUseCase`)를 기다린 뒤 저장값을 관찰해 holder 에 밀어넣는다. 폴백은 없다 —
+debug 내장 토큰은 시드 연결(`ConsumeSeedUseCase`)이 저장 칸에 쓰고, 저장된 토큰이 이미 있으면 덮어쓰지 않는다.
+`ObserveAppliedTokenUseCase` 는 holder 에 실제로 꽂힌 값을 보는 판정용이고, `SyncPendingConnectionUseCase` 가 "저장값 = 적용값" 을 기다린 뒤 첫 동기화를 시작한다.
 
 ## UseCase 가 어디까지 하는가
 

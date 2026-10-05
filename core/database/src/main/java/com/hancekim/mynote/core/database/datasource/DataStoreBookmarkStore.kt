@@ -10,6 +10,7 @@ import com.hancekim.mynote.core.data.datasource.BookmarkStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -43,5 +44,21 @@ class DataStoreBookmarkStore @Inject constructor(
     override suspend fun remove(noteIds: Collection<String>) {
         if (noteIds.isEmpty()) return
         context.bookmarkDataStore.edit { prefs -> noteIds.forEach { prefs.remove(longPreferencesKey(it)) } }
+    }
+
+    override suspend fun countByPrefix(prefix: String): Int =
+        context.bookmarkDataStore.data
+            .first()
+            .asMap()
+            .count { (key, value) -> value is Long && key.name.startsWith(prefix) }
+
+    override suspend fun removeByPrefix(prefix: String) {
+        context.bookmarkDataStore.edit { prefs ->
+            prefs
+                .asMap()
+                .keys
+                .filter { it.name.startsWith(prefix) }
+                .forEach { prefs.remove(it) }
+        }
     }
 }

@@ -35,9 +35,10 @@
   Retrofit 컨버터에 꽂는다. 또 `@Provides Json` 하면 Hilt 중복 바인딩이다.
 - **에러를 삼키지 않는다.** 예외를 그대로 위로 던진다 — 그것이 "전송 실패" 의 정의다. `Result` 로 감싸는 것도,
   사용자 노출도 `:core:data`/`:feature:notes` 몫이다. 여기서 폴백을 넣으면 "전송 실패는 소스 단위로 무반영" 계약이 무성화된다.
-- **`GithubConfig`(owner/repo/branch)는 이 모듈이 정의하지만 제공하지 않는다.** `:app` 의
-  `RemoteConfigModule` 이 `BuildConfig`(= `local.properties`)에서 읽어 제공한다. 그래서 `:core:network`
-  단독으로는 Hilt 그래프가 닫히지 않는다.
+- **저장소 좌표는 이 모듈이 갖지 않는다.** 어댑터는 요청마다 `SourceRecord.configJson` 을 `:core:data` 의
+  `ConnectionConfigCodec` 으로 읽어(저장소 · 브랜치 · 목록 위치) 요청을 만든다. 연결 정보가 없는 소스는
+  `requireNotNull` 로 실패한다(동기화가 그런 소스를 아예 안 부른다). 브랜치가 빈 문자열이면 `ref` 를 보내지 않는다(저장소 기본 브랜치).
+  목록 파일 경로도 `{path}`(인코딩 안 함)이고, 항목 `path` 는 저장소 루트 기준 그대로다.
 - OkHttp 타임아웃은 connect 10s / read 15s / write 10s 로 고정돼 있다. **`okhttp-logging` 이 의존성에는
   있지만 인터셉터로 등록돼 있지 않다** — 네트워크 로그가 안 보이는 건 정상이고, 보려면 직접 추가해야 한다.
 
@@ -49,7 +50,7 @@
 ```
 [입력] SaveTokenUseCase → TokenRepository(domain) → TokenStore(data) → DataStoreTokenStore(database, 영속)
 [반영] :app TokenSync(@Singleton, ObserveTokenUseCase 구독, distinctUntilChanged)
-         → GithubTokenHolder.update(저장값 ?: BuildConfig.GITHUB_TOKEN)   ← debug 만 값이 있음
+         → GithubTokenHolder.update(저장값)   ← 폴백 없음. debug 내장 토큰은 시드 연결 때 저장 칸에만 쓴다(ConsumeSeedUseCase)
 [사용] AuthInterceptor: 매 요청마다 holder.currentToken() → "Authorization: Bearer …"
 [되돌림] GithubTokenHolder.applied() → AppliedTokenSource(domain) → NotesViewModel 이 재sync 트리거
 ```

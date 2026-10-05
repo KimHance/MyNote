@@ -15,9 +15,44 @@ import kotlinx.coroutines.flow.Flow
 internal interface NoteDao {
     @Query(
         "SELECT * FROM source_notes " +
+            "WHERE source_id NOT IN (SELECT id FROM sources WHERE config_json LIKE '%' || :pendingMarker || '%') " +
             "ORDER BY epoch_day IS NULL, epoch_day DESC, first_seen_at DESC, title",
     )
-    fun observeNotes(): Flow<List<SourceNoteEntity>>
+    fun observeNotes(pendingMarker: String): Flow<List<SourceNoteEntity>>
+
+    @Query("SELECT * FROM sources ORDER BY id")
+    fun observeSources(): Flow<List<SourceEntity>>
+
+    @Query("SELECT COUNT(*) FROM source_notes WHERE source_id = :sourceId")
+    suspend fun noteCount(sourceId: String): Int
+
+    @Query("UPDATE sources SET config_json = :configJson WHERE id = :sourceId")
+    suspend fun updateConfig(
+        sourceId: String,
+        configJson: String?,
+    )
+
+    @Query("DELETE FROM source_notes WHERE source_id = :sourceId")
+    suspend fun deleteNotesOf(sourceId: String)
+
+    @Query("DELETE FROM sources WHERE id = :sourceId")
+    suspend fun deleteSourceRow(sourceId: String)
+
+    @Transaction
+    suspend fun deleteSource(sourceId: String) {
+        deleteNotesOf(sourceId)
+        deleteSourceRow(sourceId)
+    }
+
+    @Transaction
+    suspend fun promote(
+        sourceId: String,
+        configJson: String,
+        replaceIds: List<String>,
+    ) {
+        replaceIds.forEach { deleteSource(it) }
+        updateConfig(sourceId, configJson)
+    }
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun ensureSource(source: SourceEntity)

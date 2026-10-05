@@ -14,7 +14,7 @@
 **노트의 SSOT 는 이 모듈의 `source_notes` 테이블이다**(v5 에서 `notes` 를 대신했다). 화면이 보는 Flow 는 원격이 아니라
 Room 에서 나온다(`observeCategories()` → `LocalNotesDataSource.observeNotes()` → `NoteDao.observeNotes()`).
 원격은 이 테이블을 갱신하는 입력일 뿐이고, 갱신 규칙(리비전 비교·add/update/skip/delete·재변환)은
-`core/data/AGENTS.md` 에 있다. 소스 목록은 `sources` 테이블이다(`s0` = 빌드 속성의 GitHub 레포).
+`core/data/AGENTS.md` 에 있다. 소스 목록은 `sources` 테이블이다(`s0` = 연결 정보 없이 이어받는 옛 노트의 소스, 연결되면 `config_json` 이 채워진다. 새 연결은 UUID).
 
 ## Room 타입을 가두는 방식
 
@@ -65,7 +65,7 @@ Room 에서 나온다(`observeCategories()` → `LocalNotesDataSource.observeNot
 
 | 테이블 | 키 | 열 |
 |---|---|---|
-| `sources` | PK `id`(`s0`) | `kind`(`github`·`link`·`local`) · `config_json`(NULL = 빌드 기본값) · `added_at` |
+| `sources` | PK `id`(`s0`) | `kind`(`github`·`link`·`local`) · `config_json`(NULL = 연결 정보 없음 · `ConnectionConfigCodec` JSON, `"pending":true` = 미확정이라 `observeNotes` 쿼리가 그 소스 노트를 가린다) · `added_at` |
 | `source_notes` | PK `note_key`(= `NoteKey` 문자열 `s0/graph`) · UNIQUE(`source_id`, `doc_id`) | `path` · `group_name` · `title` · `date`(표시용) · `epoch_day`(정렬, NULL 허용) · `first_seen_at` · `revision`(index sha256) · `fetched_at` · `parser_version` · `raw`(원문) · `blocks_json`(파생) · `excerpt` · 자리만 둔 열 `kind`·`summary`·`aliases_json`·`source_url`·`tags_json`·`warnings_json` |
 
 - `key` 는 SQL 키워드라 열 이름이 `note_key` 다. FK 는 두지 않는다 — 소유 삭제는 DAO 가 `source_id` 조건으로 명시적으로 한다.

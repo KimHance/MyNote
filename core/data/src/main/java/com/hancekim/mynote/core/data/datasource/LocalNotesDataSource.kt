@@ -6,7 +6,24 @@ import kotlinx.coroutines.flow.Flow
 interface LocalNotesDataSource {
     fun observeNotes(): Flow<List<CachedNote>>
 
+    fun observeSources(): Flow<List<SourceRecord>>
+
     suspend fun ensureSource(record: SourceRecord)
+
+    suspend fun updateConfig(
+        source: SourceId,
+        configJson: String?,
+    )
+
+    suspend fun noteCount(source: SourceId): Int
+
+    suspend fun deleteSource(source: SourceId)
+
+    suspend fun promote(
+        source: SourceId,
+        configJson: String,
+        replace: List<SourceId>,
+    )
 
     suspend fun sources(): List<SourceRecord>
 

@@ -8,12 +8,13 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface GithubContentsApi {
-    @GET("repos/{owner}/{repo}/contents/notes/index.json")
+    @GET("repos/{owner}/{repo}/contents/{path}")
     @Headers("Accept: application/vnd.github.raw+json")
     suspend fun getIndex(
         @Path("owner") owner: String,
         @Path("repo") repo: String,
-        @Query("ref") branch: String,
+        @Path(value = "path", encoded = true) path: String,
+        @Query("ref") branch: String?,
     ): Map<String, List<IndexNoteDto>>
 
     @GET("repos/{owner}/{repo}/contents/{path}")
@@ -22,7 +23,7 @@ interface GithubContentsApi {
         @Path("owner") owner: String,
         @Path("repo") repo: String,
         @Path(value = "path", encoded = true) path: String,
-        @Query("ref") branch: String,
+        @Query("ref") branch: String?,
     ): ResponseBody
 
     companion object {

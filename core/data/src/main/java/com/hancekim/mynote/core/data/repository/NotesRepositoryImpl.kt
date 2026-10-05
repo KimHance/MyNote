@@ -1,6 +1,7 @@
 package com.hancekim.mynote.core.data.repository
 
 import com.hancekim.mynote.core.common.result.runCatchingCancellable
+import com.hancekim.mynote.core.data.connection.ConnectionConfigCodec
 import com.hancekim.mynote.core.data.datasource.LocalNotesDataSource
 import com.hancekim.mynote.core.data.datasource.NoteSourceAdapter
 import com.hancekim.mynote.core.data.datasource.SourceRecord
@@ -8,7 +9,6 @@ import com.hancekim.mynote.core.data.dto.toCategories
 import com.hancekim.mynote.core.data.format.MyNoteJsonFormat
 import com.hancekim.mynote.core.data.format.PARSER_VERSION
 import com.hancekim.mynote.core.domain.model.Category
-import com.hancekim.mynote.core.domain.model.SourceId
 import com.hancekim.mynote.core.domain.model.SourceKind
 import com.hancekim.mynote.core.domain.model.SyncOutcome
 import com.hancekim.mynote.core.domain.repository.NotesRepository
@@ -24,6 +24,7 @@ class NotesRepositoryImpl internal constructor(
     private val adapters: Set<NoteSourceAdapter>,
     private val local: LocalNotesDataSource,
     json: Json,
+    private val awaitRecovery: suspend () -> Unit,
     now: () -> Long,
 ) : NotesRepository {
     @Inject
@@ -31,7 +32,8 @@ class NotesRepositoryImpl internal constructor(
         adapters: Set<@JvmSuppressWildcards NoteSourceAdapter>,
         local: LocalNotesDataSource,
         json: Json,
-    ) : this(adapters, local, json, System::currentTimeMillis)
+        recovery: ConnectionRecovery,
+    ) : this(adapters, local, json, recovery::ensure, System::currentTimeMillis)
 
     private val format = MyNoteJsonFormat(json)
     private val reconciler = SourceReconciler(local, format, now)
@@ -45,10 +47,11 @@ class NotesRepositoryImpl internal constructor(
     override suspend fun sync(): Result<SyncOutcome> =
         withContext(Dispatchers.Default) {
             runCatchingCancellable {
+                awaitRecovery()
                 rederiveStale()
-                local.ensureSource(LEGACY_SOURCE)
                 local
                     .sources()
+                    .filter { it.isSyncable() }
                     .mapNotNull { source -> adapters.firstOrNull { it.kind == source.kind }?.let { source to it } }
                     .fold(SyncOutcome()) { total, (source, adapter) -> total + reconciler.reconcile(source, adapter) }
             }
@@ -65,11 +68,10 @@ class NotesRepositoryImpl internal constructor(
             },
         )
     }
-
-    private companion object {
-        val LEGACY_SOURCE = SourceRecord(SourceId.Legacy, SourceKind.GitHub, configJson = null)
-    }
 }
+
+private fun SourceRecord.isSyncable(): Boolean =
+    kind != SourceKind.GitHub || ConnectionConfigCodec.decode(configJson)?.pending == false
 
 private operator fun SyncOutcome.plus(other: SyncOutcome): SyncOutcome =
     SyncOutcome(added + other.added, updated + other.updated, deleted + other.deleted)

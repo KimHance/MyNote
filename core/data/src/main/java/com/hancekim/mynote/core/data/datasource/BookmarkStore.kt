@@ -11,4 +11,8 @@ interface BookmarkStore {
     )
 
     suspend fun remove(noteIds: Collection<String>)
+
+    suspend fun countByPrefix(prefix: String): Int
+
+    suspend fun removeByPrefix(prefix: String)
 }
