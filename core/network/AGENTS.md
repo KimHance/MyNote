@@ -33,8 +33,12 @@
   빠진 항목의 노트가 **지워지므로** 하지 않는다.
 - **`Json` 을 여기서 만들지 않는다.** `:core:data` 의 `DataModule` 이 제공하는 인스턴스를 주입받아
   Retrofit 컨버터에 꽂는다. 또 `@Provides Json` 하면 Hilt 중복 바인딩이다.
-- **에러를 삼키지 않는다.** 예외를 그대로 위로 던진다 — 그것이 "전송 실패" 의 정의다. `Result` 로 감싸는 것도,
+- **에러를 삼키지 않는다.** 어댑터는 실패를 `SyncFailure` 6종(`failure/GithubFailures.kt`: 401 · 404/403 · 한도 · 5xx/시간 초과 · 형식 · 오프라인)으로
+  **바꿔 던진다** — 원인은 `cause` 에 남는다. 한도 = 429, 403+`x-ratelimit-remaining: 0`, 403+`retry-after`. `Result` 로 감싸는 것도,
   사용자 노출도 `:core:data`/`:feature:notes` 몫이다. 여기서 폴백을 넣으면 "전송 실패는 소스 단위로 무반영" 계약이 무성화된다.
+- **연결 확인(`GithubConnectProbe`)은 `AuthInterceptor` 가 없는 별도 클라이언트(`@ProbeClient`)로 간다.** 토큰은 요청 인자 하나(`Authorization`)로만
+  싣고 holder 를 의존하지 않는다 — 저장된 토큰이 무인증 확인에 실리면 공개 저장소 판정이 틀어진다(`ConnectProbeTest` `RC-4 …`).
+  `ConnectProbeApi` 는 `Response<T>` 를 돌려줘 상태 코드와 헤더로 분류한다. 후보는 순서대로 시도하고 404 에서만 다음으로 넘어간다.
 - **저장소 좌표는 이 모듈이 갖지 않는다.** 어댑터는 요청마다 `SourceRecord.configJson` 을 `:core:data` 의
   `ConnectionConfigCodec` 으로 읽어(저장소 · 브랜치 · 목록 위치) 요청을 만든다. 연결 정보가 없는 소스는
   `requireNotNull` 로 실패한다(동기화가 그런 소스를 아예 안 부른다). 브랜치가 빈 문자열이면 `ref` 를 보내지 않는다(저장소 기본 브랜치).
@@ -71,5 +75,5 @@
 
 - `GithubManifestAdapterTest`(MockWebServer, `okhttp-mockwebserver`) — index 평탄화, 본문을 원문 문자열로(깨진 본문에도 던지지 않음),
   요청 경로·`ref`·`Accept` 헤더와 경로의 `/` 가 인코딩되지 않음.
-- `NetworkStatusResolverTest`.
+- `ConnectProbeTest`(확인 요청 · 응답 분류 · 후보) · `SyncFailureMappingTest`(SY-5) · `NetworkStatusResolverTest`.
 - reconcile 검증은 `:core:data` 의 `NotesReconcileTest` 가 fake `NoteSourceAdapter` 로 한다.

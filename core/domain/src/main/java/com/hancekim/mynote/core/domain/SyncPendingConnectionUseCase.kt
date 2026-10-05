@@ -1,6 +1,7 @@
 package com.hancekim.mynote.core.domain
 
 import com.hancekim.mynote.core.domain.model.PendingConnection
+import com.hancekim.mynote.core.domain.model.SyncFailure
 import com.hancekim.mynote.core.domain.model.SyncOutcome
 import com.hancekim.mynote.core.domain.repository.AppliedTokenSource
 import com.hancekim.mynote.core.domain.repository.ConnectionRepository
@@ -18,7 +19,7 @@ class SyncPendingConnectionUseCase @Inject constructor(
         val stored = tokens.currentToken()
         val settled = withTimeoutOrNull(APPLY_TIMEOUT_MS) { applied.applied().first { it == stored } }
         if (settled == null && stored != null) {
-            return Result.failure(IllegalStateException("저장한 토큰이 적용되지 않았습니다"))
+            return Result.failure(SyncFailure.Server(IllegalStateException("저장한 토큰이 적용되지 않았습니다")))
         }
         return connections.syncPending(pending)
     }
