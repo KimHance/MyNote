@@ -19,7 +19,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -29,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -62,7 +62,7 @@ internal fun monoAnnotated(
     @StringRes res: Int,
     vararg args: String,
 ): AnnotatedString {
-    val text = keepWordsResource(res, *args)
+    val text = stringResource(res, *args)
     val mono = SpanStyle(fontFamily = MyNoteTheme.textStyles.mono.fontFamily, color = MyNoteTheme.colors.bodyText)
     return remember(text, mono) {
         buildAnnotatedString {
@@ -134,7 +134,7 @@ internal fun FieldLabel(
     text: String,
     modifier: Modifier = Modifier,
 ) {
-    Text(
+    KeepWordsText(
         text = text,
         style =
             MyNoteTheme.textStyles.caption
@@ -190,8 +190,8 @@ internal fun LinkField(
     FieldBox(locked = locked, warn = warn, modifier = modifier) {
         Box(Modifier.weight(1f).padding(end = 8.dp)) {
             if (value.isEmpty()) {
-                Text(
-                    text = keepWordsResource(R.string.notes_connect_link_hint),
+                KeepWordsText(
+                    text = stringResource(R.string.notes_connect_link_hint),
                     style = MyNoteTheme.textStyles.mono,
                     color = colors.text3,
                     maxLines = 1,
@@ -231,8 +231,8 @@ internal fun TokenField(
     FieldBox(locked = locked, warn = warn, modifier = modifier) {
         Box(Modifier.weight(1f)) {
             if (draft.text.isEmpty()) {
-                Text(
-                    text = keepWordsResource(R.string.notes_settings_token_placeholder),
+                KeepWordsText(
+                    text = stringResource(R.string.notes_settings_token_placeholder),
                     style = MyNoteTheme.textStyles.mono,
                     color = colors.text3,
                     maxLines = 1,
@@ -263,11 +263,11 @@ internal fun TokenField(
         }
         QuietButton(
             text =
-                keepWordsResource(
+                stringResource(
                     if (draft.revealed) R.string.notes_settings_token_hide else R.string.notes_settings_token_show,
                 ),
             contentDescription =
-                keepWordsResource(
+                stringResource(
                     if (draft.revealed) {
                         R.string.notes_settings_token_hide_a11y
                     } else {
@@ -306,18 +306,18 @@ private fun HowToLine(
 ) {
     val colors = MyNoteTheme.colors
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(
-            text = keepWordsResource(label),
+        KeepWordsText(
+            text = stringResource(label),
             style = MyNoteTheme.textStyles.bodySmall,
             color = colors.text2,
         )
-        Text(
+        KeepWordsText(
             text = "·",
             style = MyNoteTheme.textStyles.bodySmall,
             color = colors.text3,
         )
-        Text(
-            text = keepWordsResource(value),
+        KeepWordsText(
+            text = stringResource(value),
             style =
                 MyNoteTheme.textStyles.bodySmall
                     .copy(fontWeight = FontWeight.W600),
@@ -332,7 +332,7 @@ internal fun TokenCreateButton(
     modifier: Modifier = Modifier,
 ) {
     SecondaryButton(
-        text = keepWordsResource(R.string.notes_token_create),
+        text = stringResource(R.string.notes_token_create),
         onClick = onClick,
         trailingIcon = ConnectIcons.External,
         modifier = modifier,
@@ -363,7 +363,7 @@ internal fun NoticeBox(
             tint = colors.warn,
             modifier = Modifier.padding(top = 2.dp).size(18.dp),
         )
-        Text(
+        KeepWordsText(
             text = text,
             style = MyNoteTheme.textStyles.bodySmall,
             color = colors.warnText,
@@ -384,7 +384,7 @@ internal fun VerifyingLine(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         ProgressRing()
-        Text(
+        KeepWordsText(
             text = text,
             style =
                 MyNoteTheme.textStyles.caption

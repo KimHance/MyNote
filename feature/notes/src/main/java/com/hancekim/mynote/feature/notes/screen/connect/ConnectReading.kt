@@ -8,10 +8,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -33,14 +33,14 @@ internal fun ConnectReadingScreen(modifier: Modifier = Modifier) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                Text(
-                    text = keepWordsResource(R.string.notes_app_title),
+                KeepWordsText(
+                    text = stringResource(R.string.notes_app_title),
                     style = MyNoteTheme.textStyles.sectionTitle,
                     color = colors.text,
                 )
                 ProgressRing()
-                Text(
-                    text = keepWordsResource(R.string.notes_connect_reading),
+                KeepWordsText(
+                    text = stringResource(R.string.notes_connect_reading),
                     style = MyNoteTheme.textStyles.caption,
                     color = colors.text3,
                 )

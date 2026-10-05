@@ -75,7 +75,7 @@ internal fun BoxScope.NotesOverlays(
     )
 
     ScrollToTopButton(
-        visible = scroll.showScrollToTop && !quizOpen && !uiState.isConnectOpen,
+        visible = scroll.showScrollToTop && !quizOpen && !uiState.isConnectOpen && !uiState.tokenEditing,
         onClick = {
             navScroll.reset()
             scope.launch { scroll.scrollToTop() }

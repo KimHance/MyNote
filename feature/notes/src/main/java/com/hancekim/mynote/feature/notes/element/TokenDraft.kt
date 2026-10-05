@@ -36,6 +36,14 @@ class TokenDraft {
 class NotesDrafts {
     val connectToken = TokenDraft()
     val settingsToken = TokenDraft()
+
+    private var handledResetCount = 0
+
+    fun consumeReset(count: Int) {
+        if (count == handledResetCount) return
+        handledResetCount = count
+        connectToken.clear()
+    }
 }
 
 fun isClassicToken(token: String): Boolean = token.trim().startsWith(CLASSIC_PREFIX)

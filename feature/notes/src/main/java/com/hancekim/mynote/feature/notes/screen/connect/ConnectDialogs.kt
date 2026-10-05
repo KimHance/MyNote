@@ -14,10 +14,10 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
@@ -75,18 +75,18 @@ internal fun ConnectConfirmContent(
     val body =
         when (confirm.kind) {
             ConfirmKind.Switch -> {
-                val base = keepWordsResource(R.string.notes_dialog_switch_body, confirm.notes, confirm.bookmarks)
-                if (confirm.dropsToken) base + " " + keepWordsResource(R.string.notes_dialog_switch_token) else base
+                val base = stringResource(R.string.notes_dialog_switch_body, confirm.notes, confirm.bookmarks)
+                if (confirm.dropsToken) base + " " + stringResource(R.string.notes_dialog_switch_token) else base
             }
 
             ConfirmKind.Adopt -> {
-                keepWordsResource(R.string.notes_dialog_adopt_body, confirm.notes)
+                stringResource(R.string.notes_dialog_adopt_body, confirm.notes)
             }
         }
     ActionDialog(
-        title = keepWordsResource(title),
+        title = stringResource(title),
         body = body,
-        confirmLabel = keepWordsResource(confirmLabel),
+        confirmLabel = stringResource(confirmLabel),
         destructive = confirm.kind == ConfirmKind.Switch,
         onDismiss = onDismiss,
         onConfirm = onConfirm,
@@ -116,14 +116,14 @@ internal fun DisconnectDialogContent(
     onConfirm: () -> Unit,
 ) {
     ActionDialog(
-        title = keepWordsResource(R.string.notes_dialog_disconnect_title),
+        title = stringResource(R.string.notes_dialog_disconnect_title),
         body =
             if (notes == 0 && bookmarks == 0) {
-                keepWordsResource(R.string.notes_dialog_disconnect_empty)
+                stringResource(R.string.notes_dialog_disconnect_empty)
             } else {
-                keepWordsResource(R.string.notes_dialog_disconnect_body, notes, bookmarks)
+                stringResource(R.string.notes_dialog_disconnect_body, notes, bookmarks)
             },
-        confirmLabel = keepWordsResource(R.string.notes_dialog_disconnect_confirm),
+        confirmLabel = stringResource(R.string.notes_dialog_disconnect_confirm),
         destructive = true,
         onDismiss = onDismiss,
         onConfirm = onConfirm,
@@ -163,13 +163,13 @@ private fun ActionDialog(
                             .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    Text(
+                    KeepWordsText(
                         text = title,
                         style = MyNoteTheme.textStyles.sectionTitle,
                         color = colors.text,
                         modifier = Modifier.semantics { heading() },
                     )
-                    Text(
+                    KeepWordsText(
                         text = body,
                         style = MyNoteTheme.textStyles.bodySmall,
                         color = colors.bodyText,
@@ -180,7 +180,7 @@ private fun ActionDialog(
                     horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    SecondaryButton(text = keepWordsResource(DsR.string.ds_action_cancel), onClick = onDismiss)
+                    SecondaryButton(text = stringResource(DsR.string.ds_action_cancel), onClick = onDismiss)
                     if (destructive) {
                         SolidDestructiveButton(text = confirmLabel, onClick = onConfirm)
                     } else {

@@ -106,6 +106,8 @@ private const val UNDO_WINDOW_MILLIS = 3200L
 
 private const val GENERATE_TIMEOUT_MILLIS = 60_000L
 
+private const val NOTES_SETTLE_MILLIS = 1_000L
+
 private data class CategoryLoad(
     val loaded: Boolean,
     val list: ImmutableList<CategoryUi>,
@@ -189,6 +191,8 @@ class NotesViewModel @Inject constructor(
     private val seedPending = trigger(true)
     private val lastSync = trigger<LastSync>(LastSync.None)
     private val disconnectDialog = trigger<DisconnectDialogUi?>(null)
+    private val awaitingNotes = trigger(false)
+    private var settleJob: Job? = null
     private val notice = trigger<NoticeUi?>(null)
     private var clearedToken: String? = null
     private var noticeSeq = 0
@@ -326,6 +330,7 @@ class NotesViewModel @Inject constructor(
             seedPending = seedPending.value,
             lastSync = lastSync.value,
             disconnectDialog = disconnectDialog.value,
+            awaitingNotes = awaitingNotes.value,
             notice = notice.value,
             infoMessage = sync.value.infoMessage,
             infoId = sync.value.infoId,
@@ -792,6 +797,17 @@ class NotesViewModel @Inject constructor(
                 quiz.value = QuizUiState.Idle
             }
             lastSync.value = if (next is ConnectionState.Connected) LastSync.Succeeded else LastSync.None
+            settleJob?.cancel()
+            if (next is ConnectionState.Connected) {
+                awaitingNotes.value = true
+                settleJob =
+                    launchSafely {
+                        delay(NOTES_SETTLE_MILLIS.milliseconds)
+                        awaitingNotes.value = false
+                    }
+            } else {
+                awaitingNotes.value = false
+            }
         }
         connection.value = next
     }

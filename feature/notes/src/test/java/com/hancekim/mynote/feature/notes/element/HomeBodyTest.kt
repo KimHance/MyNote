@@ -1,5 +1,8 @@
 package com.hancekim.mynote.feature.notes.element
 
+import com.hancekim.mynote.core.domain.model.ConnectionState
+import com.hancekim.mynote.core.domain.model.RepoConnection
+import com.hancekim.mynote.core.domain.model.SourceId
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -25,4 +28,34 @@ class HomeBodyTest {
         assertEquals(HomeBody.NoNotes, homeBodyOf(connected = false, noteCount = 0, syncing = true))
         assertEquals(HomeBody.Notes, homeBodyOf(connected = false, noteCount = 4, syncing = false))
     }
+
+    @Test
+    fun `RC-21 확정 직후 노트가 아직 안 왔으면 노트 없음이 아니라 받는 중이다`() {
+        val connected =
+            NotesUiState(
+                connection = ConnectionState.Connected(SourceId("s1"), repo),
+                notesLoaded = true,
+                seedPending = false,
+                isLoading = false,
+            )
+
+        assertEquals(HomeBody.NoNotes, connected.homeBody)
+        assertEquals(HomeBody.Receiving, connected.copy(awaitingNotes = true).homeBody)
+        assertEquals(HomeBody.Receiving, connected.copy(isLoading = true).homeBody)
+    }
+
+    @Test
+    fun `RC-1 확정 직후에도 연결 있음 홈은 연결 화면이 아니다`() {
+        val connected =
+            NotesUiState(
+                connection = ConnectionState.Connected(SourceId("s1"), repo),
+                notesLoaded = true,
+                seedPending = false,
+                awaitingNotes = true,
+            )
+
+        assertEquals(StartDestination.Shell, connected.start)
+    }
+
+    private val repo = RepoConnection("octo-learner", "android-notes", "main", "notes/index.json", isPublic = true)
 }

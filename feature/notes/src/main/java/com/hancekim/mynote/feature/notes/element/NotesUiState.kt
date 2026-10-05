@@ -68,6 +68,7 @@ data class NotesUiState(
     val seedPending: Boolean = true,
     val lastSync: LastSync = LastSync.None,
     val disconnectDialog: DisconnectDialogUi? = null,
+    val awaitingNotes: Boolean = false,
     val notice: NoticeUi? = null,
     val infoMessage: String? = null,
     val infoId: Int = 0,
@@ -112,7 +113,7 @@ data class NotesUiState(
 
     val repoCard: RepoCardUi get() = repoCardUi(connectedRepo, hasToken, lastSync)
 
-    val homeBody: HomeBody get() = homeBodyOf(connectedRepo != null, recentNotes.size, isLoading)
+    val homeBody: HomeBody get() = homeBodyOf(connectedRepo != null, recentNotes.size, isLoading || awaitingNotes)
 
     val showConnectBand: Boolean get() = connection == ConnectionState.None && recentNotes.isNotEmpty()
 
