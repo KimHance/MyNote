@@ -788,4 +788,36 @@ class ConnectionRepositoryTest {
             assertNull(h.tokens.currentToken())
             assertEquals(1, notes.syncs)
         }
+
+    @Test
+    fun `SY-1 실패 폐기로 토큰을 되돌려도 동기화는 다시 시작되지 않는다`() =
+        runTest {
+            val h =
+                Harness(
+                    tokens = FakeTokenStore("T0"),
+                    adapter = FakeAdapter(listOf(entry("x", "h1"))),
+                    autoApply = false,
+                )
+            val repo = h.connections()
+            val notes = CountingNotes()
+            val runs = ObserveSyncRunsUseCase(SyncNotesUseCase(notes), ObserveAppliedTokenUseCase(h.applied), repo)
+            backgroundScope.launch { runs(MutableStateFlow(0)).collect {} }
+            runCurrent()
+            assertEquals(1, notes.syncs)
+            val pending = repo.begin(conn(owner = "other", repo = "repo", isPublic = false), "T1")
+            h.applied.state.value = "T1"
+            runCurrent()
+            repo.syncPending(pending).getOrThrow()
+
+            val discard = launch { repo.discard(pending) }
+            runCurrent()
+            assertTrue(repo.observeAttempting().first())
+            h.applied.state.value = "T0"
+            discard.join()
+            runCurrent()
+
+            assertFalse(repo.observeAttempting().first())
+            assertEquals("T0", h.tokens.currentToken())
+            assertEquals(1, notes.syncs)
+        }
 }
