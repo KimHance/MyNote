@@ -6,6 +6,7 @@ import androidx.navigation3.scene.SceneStrategyScope
 import com.hancekim.mynote.core.navigation.key.MyNoteNavKey
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -55,6 +56,28 @@ class ListDetailSceneStrategyTest {
         // previousEntries 가 비면 NavDisplay 가 뒤로가기를 가져가지 않고 앱 종료 핸들러로 넘어간다
         val scene = sceneOf(NotesNavKey.Home)
         assertTrue(scene.previousEntries.isEmpty())
+    }
+
+    @Test
+    fun `RC-14 연결 화면은 넓은 창에서도 한 칸이다`() {
+        val scope = SceneStrategyScope<MyNoteNavKey>()
+
+        val stacked =
+            with(strategy) {
+                scope.calculateScene(
+                    listOf(entry(NotesNavKey.Home), entry(NotesNavKey.Settings), entry(NotesNavKey.Connect)),
+                )
+            }
+        val root = with(strategy) { scope.calculateScene(listOf(entry(NotesNavKey.Connect))) }
+
+        assertNull(stacked)
+        assertNull(root)
+    }
+
+    @Test
+    fun `RC-14 연결 화면이 맨 위가 아니면 장면은 그대로다`() {
+        val scene = sceneOf(NotesNavKey.Connect, NotesNavKey.Home)
+        assertEquals(entry(NotesNavKey.Home).contentKey, scene.entries.single().contentKey)
     }
 
     private companion object {
