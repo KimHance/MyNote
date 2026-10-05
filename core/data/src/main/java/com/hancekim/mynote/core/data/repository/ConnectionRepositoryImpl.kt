@@ -187,7 +187,10 @@ class ConnectionRepositoryImpl internal constructor(
     override suspend fun discard(pending: PendingConnection) {
         withContext(NonCancellable) {
             state.attempt()?.let { attempt ->
-                if (tokens.currentToken() != attempt.tokenBefore) tokens.saveToken(attempt.tokenBefore)
+                if (tokens.currentToken() != attempt.tokenBefore) {
+                    tokens.saveToken(attempt.tokenBefore)
+                    withTimeoutOrNull(APPLY_TIMEOUT_MS) { applied.applied().first { it == attempt.tokenBefore } }
+                }
             }
             if (pending.kind == PendingConnection.Kind.New) {
                 val row = local.sources().firstOrNull { it.id == pending.sourceId }
