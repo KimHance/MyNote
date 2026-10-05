@@ -47,13 +47,16 @@ class ConnectLinkParserTest {
                 "https://github.com/owner/repo/tree/main" to
                     accepted("owner", "repo", named("main", "notes/index.json")),
                 "https://github.com/owner/repo/tree/main/docs" to
-                    accepted("owner", "repo", named("main", "docs/index.json")),
+                    accepted("owner", "repo", named("main", "docs/index.json"), named("main/docs", "notes/index.json")),
+                "https://github.com/owner/repo/tree/feature/x" to
+                    accepted("owner", "repo", named("feature", "x/index.json"), named("feature/x", "notes/index.json")),
                 "https://github.com/owner/repo/tree/feature/x/docs" to
                     accepted(
                         "owner",
                         "repo",
                         named("feature/x", "docs/index.json"),
                         named("feature", "x/docs/index.json"),
+                        named("feature/x/docs", "notes/index.json"),
                     ),
                 "https://github.com/owner/repo/tree/a/b/c/d/e" to
                     accepted(

@@ -120,25 +120,18 @@ private fun readRepo(path: List<String>): RepoRead {
     }
 }
 
-private fun treeCandidates(parts: List<String>): List<ConnectCandidate> =
-    when (parts.size) {
-        0 -> {
-            listOf(defaultCandidate())
+private fun treeCandidates(parts: List<String>): List<ConnectCandidate> {
+    if (parts.isEmpty()) return listOf(defaultCandidate())
+    val split =
+        splitPoints(parts.size - 1).map { k ->
+            ConnectCandidate(
+                ConnectBranch.Named(parts.take(k).joinToString("/")),
+                parts.drop(k).joinToString("/") + "/$INDEX_FILE",
+            )
         }
-
-        1 -> {
-            listOf(ConnectCandidate(ConnectBranch.Named(parts.first()), DEFAULT_INDEX_PATH))
-        }
-
-        else -> {
-            splitPoints(parts.size - 1).map { k ->
-                ConnectCandidate(
-                    ConnectBranch.Named(parts.take(k).joinToString("/")),
-                    parts.drop(k).joinToString("/") + "/$INDEX_FILE",
-                )
-            }
-        }
-    }
+    val whole = ConnectCandidate(ConnectBranch.Named(parts.joinToString("/")), DEFAULT_INDEX_PATH)
+    return (split + whole).distinct().take(MAX_CANDIDATES)
+}
 
 private fun fileCandidates(parts: List<String>): List<ConnectCandidate>? {
     if (parts.size < 2 || parts.last() != INDEX_FILE) return null
