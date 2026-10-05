@@ -114,4 +114,23 @@ class CategoryLoadTest {
             assertEquals(2, h.sources.size)
             assertEquals(notes, h.latest().list)
         }
+
+    @Test
+    fun `RC-21 노트를 담은 목록이 왔는데 recentNotes 가 아직 비어도 노트 없음이 아니다`() {
+        val state =
+            NotesUiState(
+                connection = connected,
+                notesLoaded = true,
+                seedPending = false,
+                isLoading = false,
+                categories = notes,
+                recentNotes = persistentListOf(),
+            )
+
+        assertEquals(HomeBody.Notes, state.homeBody)
+        assertEquals(
+            true,
+            state.copy(connection = ConnectionState.None).showConnectBand,
+        )
+    }
 }

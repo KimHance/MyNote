@@ -113,9 +113,9 @@ data class NotesUiState(
 
     val repoCard: RepoCardUi get() = repoCardUi(connectedRepo, hasToken, lastSync)
 
-    val homeBody: HomeBody get() = homeBodyOf(connectedRepo != null, recentNotes.size, isLoading || awaitingNotes)
+    val homeBody: HomeBody get() = homeBodyOf(connectedRepo != null, totalCount, isLoading || awaitingNotes)
 
-    val showConnectBand: Boolean get() = connection == ConnectionState.None && recentNotes.isNotEmpty()
+    val showConnectBand: Boolean get() = connection == ConnectionState.None && totalCount > 0
 
     val isBookmarksTop: Boolean get() = backStack.lastOrNull() is NotesNavKey.Bookmarks
 
