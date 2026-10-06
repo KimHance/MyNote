@@ -64,7 +64,7 @@ internal fun NoteSpansText(
     )
 }
 
-internal fun ImmutableList<NoteContentSpan>.toAnnotatedString(
+private fun ImmutableList<NoteContentSpan>.toAnnotatedString(
     colors: MyNoteColors,
     uprightItalic: Boolean,
     keepCodeTogether: Boolean,

@@ -105,16 +105,16 @@ MyNote 는 GitHub 의 JSON 노트를 받아 **읽기만 하는** 학습 노트 �
 
 | 이름 | 코드 값 | RGB · 불투명도 | 쓰는 자리 |
 |---|---|---|---|
-| `bg` | `0xFF0E1217` | `#0E1217` · 100% | 화면 배경(`Surface(color = colors.bg)`), 유리 폴백의 합성 바탕, 페이드 끝색 |
+| `bg` | `0xFF0E1217` | `#0E1217` · 100% | 화면 배경(`Surface(color = colors.bg)`), 유리 폴백의 합성 바탕, 페이드 끝색, 표 가로 스크롤 페이드 |
 | `surface` | `0xFF161C24` | `#161C24` · 100% | 카드 면(`NoteCard`, 북마크 큰 카드), 고정 패널, 눌림 면 |
-| `surface2` | `0xFF1B232D` | `#1B232D` · 100% | 한 단 더 올라온 면 — 스낵바, 검색칸, 코드 블록·인라인 코드 바탕, 모델 카드 진행 막대 트랙(카드 면은 `SettingsCard` 의 `surface`) |
-| `border` | `0xFF283039` | `#283039` · 100% | 카드 테두리 1dp, 구분선, 차트 트랙 |
+| `surface2` | `0xFF1B232D` | `#1B232D` · 100% | 한 단 더 올라온 면 — 스낵바, 검색칸, 코드 블록·인라인 코드 바탕, 표 머리 행 바탕, 모델 카드 진행 막대 트랙(카드 면은 `SettingsCard` 의 `surface`) |
+| `border` | `0xFF283039` | `#283039` · 100% | 카드 테두리 1dp, 구분선, 차트 트랙, 표 바깥 테두리·칸 선 |
 
 #### 강조
 
 | 이름 | 코드 값 | RGB · 불투명도 | 쓰는 자리 |
 |---|---|---|---|
-| `accent` | `0xFF6EA8FE` | `#6EA8FE` · 100% | 가장 많이 쓰는 색(65회). 칩 글자, 선택 탭 아이콘·라벨, 커서, 인용 막대, 인라인 코드 글자, 스낵바 액션, 주 버튼 면, 차트 1순위 |
+| `accent` | `0xFF6EA8FE` | `#6EA8FE` · 100% | 가장 많이 쓰는 색(65회). 칩 글자, 선택 탭 아이콘·라벨, 커서, 인용 막대, 인라인 코드 글자(취소선 줄 포함), 스낵바 액션, 주 버튼 면, 차트 1순위 |
 | `accentPressed` | `0xFF5B98F0` | `#5B98F0` · 100% | 주 버튼 눌림색(`PressIndication(pressColor = …)`) |
 | `accentSoft` | `0x246EA8FE` | `#6EA8FE` · 14% | 칩 바탕, 활성 `NoteRow` 바탕 |
 | `accentSoftBorder` | `0x426EA8FE` | `#6EA8FE` · 26% | 칩 테두리(`CategoryChip` 만) |
@@ -135,9 +135,9 @@ MyNote 는 GitHub 의 JSON 노트를 받아 **읽기만 하는** 학습 노트 �
 
 | 이름 | 코드 값 | RGB · 불투명도 | 쓰는 자리 |
 |---|---|---|---|
-| `text` | `0xFFE6EDF3` | `#E6EDF3` · 100% | 제목·강조 글자, 본문의 굵은 구간 |
-| `bodyText` | `0xFFC8D2DC` | `#C8D2DC` · 100% | 본문 단락·목록 항목(`NoteContent`) |
-| `text2` | `0xFF9AA7B4` | `#9AA7B4` · 100% | 보조 글자, 비선택 내비 아이콘, 인용, 목록 기호, 북마크 리본 |
+| `text` | `0xFFE6EDF3` | `#E6EDF3` · 100% | 제목·강조 글자, 본문의 굵은 구간, 표 머리 칸 |
+| `bodyText` | `0xFFC8D2DC` | `#C8D2DC` · 100% | 본문 단락·목록 항목·표 칸(`NoteContent`) |
+| `text2` | `0xFF9AA7B4` | `#9AA7B4` · 100% | 보조 글자, 비선택 내비 아이콘, 인용, 목록 기호·체크 상자, 북마크 리본 |
 | `text3` | `0xFF687585` | `#687585` · 100% | 3순위 — 날짜·캡션·개수·placeholder·섹션 라벨·북마크 글리프 |
 
 #### 유리·오버레이
@@ -303,7 +303,7 @@ MyNote 는 GitHub 의 JSON 노트를 받아 **읽기만 하는** 학습 노트 �
 | `caption` | 13 | 400 | — | — | 가장 많이 쓴다(50회). 칩·날짜·차트 라벨·알약 라벨 |
 | `mdHeading2` | 본문 + 5 | 700 | — | −0.01em | 본문 블록 제목 level ≤ 2 |
 | `mdHeading3` | 본문 + 1 | 600 | — | — | 본문 블록 제목 level ≥ 3 |
-| `body` | 16 · 크게 18 | 400 | ×1.78 | — | 본문 단락, 검색칸 |
+| `body` | 16 · 크게 18 | 400 | ×1.78 | — | 본문 단락·목록, 검색칸. 표 칸은 줄 높이만 ×1.5 로 덮어 쓴다(머리 칸 600) |
 | `bodyCompact` | 15 | 400 | ×1.5 | — | 퀴즈 풀이 화면 |
 | `bodySmall` | 14 | 400 | ×1.7 | — | 다이얼로그 설명, 통계 |
 | `button` | 15.5 | 700 | — | — | 버튼 라벨 |
@@ -343,7 +343,7 @@ MyNote 는 GitHub 의 JSON 노트를 받아 **읽기만 하는** 학습 노트 �
 
 | 위계 | 스타일(큰 것 → 작은 것) | 쓰는 화면 |
 |---|---|---|
-| **읽기** | `noteTitle`(+창 크기 토큰 크기) → `mdHeading2` → `mdHeading3` → `body` → `mono`(코드) | 노트 리더 본문 |
+| **읽기** | `noteTitle`(+창 크기 토큰 크기) → `mdHeading2` → `mdHeading3` → `body`(표 칸 포함) → `mono`(코드) | 노트 리더 본문 |
 | **UI** | `display` → `title` → `headline` → `sectionTitle` → `screenTitle` → `cardTitle` → `treeLabel` → `caption` → `overline` · `monoLabel` · `monoSmall` | 그 밖 전부 |
 
 스타일은 **크기가 아니라 역할로 고른다.** 3.1 표의 "쓰는 자리" 와 같은 역할이면 같은 스타일이다 — 화면 큰 제목은 `title`, 상단 바 제목은 `sectionTitle`, 다이얼로그 제목은 `screenTitle`(지금 둘로 갈려 있다 — 15절 #25), 카드·행 제목은 `cardTitle`/`treeLabel`, 메타는 `caption`, 묶음 이름은 `overline`.
@@ -353,6 +353,7 @@ MyNote 는 GitHub 의 JSON 노트를 받아 **읽기만 하는** 학습 노트 �
 
 - **"본문 글자 크게" 는 읽기 위계만 키운다**(`body`·`mdHeading2`·`mdHeading3` — 3.2). UI 글자는 그대로다. 크롬이 본문과 함께 커지면 읽을 자리가 줄어든다.
   그래서 새 스타일이 "본문의 일부" 인지 "UI" 인지 먼저 정한다. 본문 안에 들어가는 것(인용·목록·코드)만 읽기 위계다.
+- **본문 안 치수는 em 으로 잰다.** 1em = `body.fontSize` 를 dp 로 한 번 바꾼 값이고, 표 열 폭(목표 16em · 최소 6em) · 체크 상자(칸 1.625em · 아이콘 1.25em)는 거기에 곱한다. `(n × fontSize)` 를 바꾸면 비선형 글자 배율(API 34+)에서 값이 달라진다. 목록 기호 칸은 상수가 아니라 기호 글자를 잰다. 선 · 여백 · 페이드는 dp 다.
 - **짧은 창(높이 Compact)은 큰 숫자·제목만 줄인다**(`display`·`screenTitle` — 3.2). 본문은 줄이지 않는다 — 짧은 창일수록 한 줄에 담기는 글이 소중하다.
 - **숫자·시각·코드·카운터는 모노**다. 자릿수가 고정돼 정렬이 맞고, "읽는 문장이 아니라 값" 이라는 신호가 된다(BM3 §3.3 시각, §3.4 번호, STA §4.1 값 라벨).
 - **섹션 라벨은 작고 조용하다**(`overline` + `text3`). 제목처럼 키우지 않는다 — 묶음의 이름이지 내용이 아니다.
@@ -807,7 +808,7 @@ MyNote 는 GitHub 의 JSON 노트를 받아 **읽기만 하는** 학습 노트 �
 
 ## 7. 아이콘
 
-`ds/component/MyNoteIcons.kt` 의 `object MyNoteIcons` — 손으로 그린 `ImageVector` 13개. 접근은 `MyNoteIcons.<이름>`.
+`ds/component/MyNoteIcons.kt` 의 `object MyNoteIcons` — 손으로 그린 `ImageVector` 15개. 접근은 `MyNoteIcons.<이름>`.
 Material 아이콘 세트를 쓰지 않는다.
 
 | 이름 | 형태 | 쓰는 자리 |
@@ -822,6 +823,8 @@ Material 아이콘 세트를 쓰지 않는다.
 | `ArrowUp` | 선 | 맨 위로 |
 | `Sparkle` | 채움(별 두 개, 작은 별 55%) | 퀴즈·AI — CTA, 오브, 설정 다이얼로그, 모델 카드, 실패 화면 |
 | `Check` | 선 | 완료 — 상태 알약·모델 알약, 퀴즈 정답·결과 |
+| `CheckBox` | 선(상자 3–21 · 반경 4) | 목록 체크 항목 끔 |
+| `CheckBoxChecked` | 채움(상자 바깥선까지 · 체크는 `PathFillType.EvenOdd` 구멍 — 바탕이 보인다) | 목록 체크 항목 켬 |
 | `Close` | 선 | 퀴즈 닫기·오답 |
 | `ChevronRight` | 선 | 퀴즈 CTA |
 | `Warn` | 선 | 주의 — 상태 알약·모델 알약, 퀴즈 풀이 |
@@ -835,7 +838,7 @@ Material 아이콘 세트를 쓰지 않는다.
 | 선 | 1.7, 둥근 끝(`StrokeCap.Round`), 둥근 이음(`StrokeJoin.Round`) |
 | 채움 | 흰색. 쓰는 쪽이 `tint` 로 색을 입힌다 |
 
-자주 쓰는 표시 크기: 내비 아이콘 21dp, 맨 위로 21dp, 상태 알약 14dp(링 18 − 4), 북마크 글리프 12dp.
+자주 쓰는 표시 크기: 내비 아이콘 21dp, 맨 위로 21dp, 상태 알약 14dp(링 18 − 4), 북마크 글리프 12dp, 체크 상자 1.25em(본문 16sp 에서 20dp — 본문 글자와 같이 커진다).
 
 ### 7.1 아이콘 사용 규칙
 
@@ -915,6 +918,7 @@ foundation 기본값 `DefaultDebugIndication`(눌림 검정 30% 사각 덮개, �
 | `Modifier.aiShine` | AI 기능 테두리를 도는 빛 | `color`, `baseColor`, `radius`, `width`(1.5dp), `running` | `ds/component/AiShine.kt` |
 | `rememberFlipState` + `Modifier.flip` | `AnimatedVisibility` 안에서 X축으로 뒤집히며 등장·퇴장 | `degrees`(78), `startScale`(0.52), `transformOrigin`, `cameraDistance`(16), `inMillis`(460), `outMillis`(260), `bounce`(0.68) | `ds/component/Flip.kt` |
 | `Modifier.fadingEdges` | 스크롤 영역 위·아래 끝을 투명하게 | `top`, `bottom` | `ds/component/FadingEdges.kt` |
+| `Modifier.horizontalScrollFade` | 가로 스크롤에서 가려진 쪽 끝을 바탕색으로 덮는다(처음 = 끝 쪽 · 중간 = 양쪽 · 끝 = 시작 쪽). 스크롤 값은 그리기 단계에서만 읽는다 | `state`, `width`, `color` | `ds/component/FadingEdges.kt` |
 
 ### 8.5 아이콘
 
@@ -929,13 +933,14 @@ foundation 기본값 `DefaultDebugIndication`(눌림 검정 30% 사각 덮개, �
 | `Heading(level, spans)` | level ≤ 2 → `mdHeading2`, 그 외 `mdHeading3`. `text` |
 | `Paragraph(spans)` | `body`, `bodyText` |
 | `Code(code)` | `mono`, `text`, `surface2` 바탕, 반경 10dp, 안쪽 14 × 12, 줄바꿈 없이 가로 스크롤 |
-| `Quote(spans)` | `body` 기울임, `text2`, 왼쪽 3dp `accent` 막대, 시작 여백 12 |
-| `BulletList(items)` / `OrderedList(items)` | 항목 사이 6dp, 기호 `•` / `n.` 는 `text2`, 내용은 `bodyText` |
+| `Quote(spans)` | `body` 기울임, `text2`, 왼쪽 3dp `accent` 막대, 시작 여백 12. 안의 기울임 구간은 세워 구별한다 |
+| `BulletList(items)` / `OrderedList(items, start)` | 항목 사이 6dp, 기호 `text2`, 내용 `bodyText`. 기호 칸 = 그 목록 기호를 잰 최댓값(글머리 `•  ` · 번호 `n. ` · 체크가 있으면 상자 칸 1.625em) — 한 자리 번호 · 1단 글머리는 글자 폭 그대로다. 번호는 `start` 부터 칸 끝 맞춤, 글머리는 깊이마다 `•` `◦` `▪`. 체크 항목은 `CheckBox`/`CheckBoxChecked` 1.25em `text2`, 첫 줄 가운데, 번호 목록이면 번호 칸 뒤. 기호는 내용의 첫 기준선에 맞춘다. 항목의 하위 블록은 항목 글 시작선에서 시작하고 글 ↔ 하위 · 하위끼리 6dp. 들여쓰기는 3단에서 목록만 멈춘다 — 4단부터 목록은 3단 기호 x, 그 항목의 다른 하위 블록은 자기 글 시작선. 첫 문단 없는 항목은 첫 하위 블록이 기호 옆에서 시작한다. 낭독: 체크 항목 글에 상태 설명 `ds_block_checked` · `ds_block_unchecked`(글이 없으면 상자가 읽는다), 역할 · 클릭 없음. 파일 `NoteList.kt` |
+| `Table(header, rows, align)` | 칸 격자 — 바깥 1dp `border` 반경 10, 칸 사이 1dp `border`, 머리 행 `surface2`. 칸 `body` 줄 높이 ×1.5 `bodyText`, 머리 600 `text`, 안쪽 12 × 8, 열 정렬(없음 = 시작). 칸 안 코드는 앞뒤 여백까지 한 낱말(줄이 안 바뀌는 공백). 열 폭: 목표 T = 가장 긴 줄(≤ 16em) · 최소 M = min(T, max(가장 긴 낱말, 6em)) → ΣT 가 들어가면 T · ΣM 이 들어가면 M + 남는 폭을 (T − M) 비율로(표 = 본문 폭) · 아니면 M 으로 가로 스크롤. 표 폭은 내용 폭이고 시작 쪽에 붙는다. 가려진 쪽 24dp `bg` 페이드(`horizontalScrollFade`), 스크롤바 없음. 낭독: `collectionInfo`(행 · 열) · 칸 `collectionItemInfo` · 머리 칸 `heading()`. 파일 `NoteTable.kt`, 열 폭 순수 함수 `TableColumnWidths.kt` |
 | `Divider` | 1dp `border`, 위아래 8dp |
 | `Spacer` | 8dp |
-| `Unsupported(kind, salvaged, raw)` | 앱이 그리지 못한 블록(모르는 종류 · 깨진 블록 · 노트 전체). 면 없는 1dp 점선 `border`(대시 4 · 간격 3) 상자, 반경 10, 안쪽 시작 14 · 끝 14 · 위 12 · 아래 4(버튼 없으면 12). 안내 `bodySmall` `text2`(노트 전체면 제목 `cardTitle` `text` + 본문) → 8 → 건진 글자 `body` `text2` → 4 → 조용한 버튼 `원문 보기`/`원문 숨기기`(44dp, `button`/500 `text2`, `ChevronRight` 90°/−90°). 펼치면 `surface2` 패널(반경 8, 12 × 10) `mono` `text2`, 줄바꿈 + 감긴 줄은 (앞 공백 + 2)칸 들여쓰기, 앞 40줄 → `N줄 더 보기` → 최대 200줄 · 10,000자, 길게 눌러 복사. `accent`·`warn`·`wrong` 없음. 파일 `UnsupportedBlock.kt`, 원문 자르기 `RawSlice.kt` |
+| `Unsupported(kind, salvaged, raw)` | 앱이 그리지 못한 블록(모르는 종류 `UnknownType` · 깨진 블록 `BrokenBlock` · 노트 전체 `BrokenNote` · 한도 넘음 `LimitExceeded(maxDepth, maxKilobytes)`). 면 없는 1dp 점선 `border`(대시 4 · 간격 3) 상자, 반경 10, 안쪽 시작 14 · 끝 14 · 위 12 · 아래 4(버튼 없으면 12). 안내 `bodySmall` `text2`(노트 전체 · 한도 넘음이면 제목 `cardTitle` `text` + 본문 — 한도 넘음 문구 `ds_unsupported_limit_*` 의 두 숫자는 화면 모델 인자라 화면 쪽에 다시 적지 않는다) → 8 → 건진 글자 `body` `text2` → 4 → 조용한 버튼 `원문 보기`/`원문 숨기기`(44dp, `button`/500 `text2`, `ChevronRight` 90°/−90°). 펼치면 `surface2` 패널(반경 8, 12 × 10) `mono` `text2`, 줄바꿈 + 감긴 줄은 (앞 공백 + 2)칸 들여쓰기, 앞 40줄 → `N줄 더 보기` → 최대 200줄 · 10,000자, 길게 눌러 복사. `accent`·`warn`·`wrong` 없음. 파일 `UnsupportedBlock.kt`, 원문 자르기 `RawSlice.kt` |
 
-블록 사이는 12dp. 구간 스타일 `NoteSpanStyle` 은 `Normal` · `Bold`(700, `text`) · `Code`(고정폭, `surface2` 바탕, `accent` 글자, 앞뒤 공백 한 칸).
+블록 사이는 12dp. 구간 스타일 `NoteSpanStyle` 은 `Normal` · `Bold`(700, `text`) · `Code`(고정폭, `surface2` 바탕, `accent` 글자, 앞뒤 공백 한 칸). 여기에 `italic`(`FontStyle.Italic` — 인용 안에서는 세움) · `strike`(`LineThrough`, 줄 색 = 그 구간 글자 색)가 겹친다. 코드에는 취소선만 붙는다. 취소선 구간이 있는 글은 낭독에서 `ds_block_strike_start` … `ds_block_strike_end` 로 감싼다. 파일 `NoteSpans.kt`. 목록 하위 자리의 `Unsupported` 는 원문 보기 없이 안내만 보인다(펼침 상태는 맨 위 블록 자리에만 있다).
 
 블록 종류를 늘리려면 `notes/SCHEMA.md` · data DTO · feature 매퍼 · 이 sealed 집합 · `NoteContent` 의 `when` 이 **한 세트로** 움직여야 한다.
 앱이 모르는 블록은 동기화를 멈추지 않고 그 자리에 `Unsupported` 상자로 보인다(루트 `AGENTS.md` "콘텐츠가 앱보다 먼저 나가면", 테스트 `core/data` `MyNoteJsonFormatTest`).

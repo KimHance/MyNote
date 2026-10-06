@@ -1,5 +1,8 @@
 package com.hancekim.mynote.feature.notes.screen
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -340,6 +343,7 @@ private fun NoteFormatSamplePreview(
         NoteReaderScreen(
             note = sample.note,
             categoryName = "Kotlin",
+            contentTopPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
             onQuizAction = {},
         )
     }

@@ -68,7 +68,6 @@ private val BULLETS = listOf("•", "◦", "▪")
 
 private fun bulletMarker(depth: Int): String = "${bulletGlyph(depth)}  "
 
-/** 한 목록의 기호 칸 치수(px). */
 @Immutable
 private data class ListMetrics(
     val cell: Int,
@@ -211,7 +210,7 @@ private fun ListItem(
     }
 }
 
-/** 부모 기호 칸만큼 왼쪽으로 내어 놓는다 — 보이는 들여쓰기 한도를 넘은 목록이 한도 단의 기호 자리에 선다. */
+/** 주어진 폭(px)만큼 시작 쪽으로 내어 놓고, 그만큼 넓혀 잰다. */
 internal fun Modifier.hangLeft(amount: Int): Modifier =
     layout { measurable, constraints ->
         if (amount <= 0 || !constraints.hasBoundedWidth) {

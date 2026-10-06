@@ -187,7 +187,9 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
   블록 종류를 늘리려면 `notes/SCHEMA.md` · data DTO · feature 의 매퍼 · 이 sealed 집합 · `NoteContent`
   의 `when` 이 **한 세트로** 움직인다.
   `Unsupported(kind, salvaged, raw)` 만 와이어에 없는 **앱 내부 블록**이다 — 그리지 못한 블록·노트를 버리지 않고
-  `UnsupportedBlock` 점선 상자로 그린다. `kind` 는 domain `UnsupportedReason` 을 옮긴 UI enum(이 모듈은 domain 을 모른다),
+  `UnsupportedBlock` 점선 상자로 그린다. `kind` 는 domain `UnsupportedReason` 을 옮긴 UI sealed 종류(이 모듈은 domain 을 모른다) —
+  한도 넘음 `LimitExceeded(maxDepth, maxKilobytes)` 는 문구 숫자를 들고 온다. 숫자를 이 모듈 소스에 다시 적지 않는다.
+  `UnsupportedBlock` 은 종류를 `when` 으로 가르니 종류가 늘면 컴파일이 잡는다.
   빈 `salvaged`·`raw` 는 feature 매퍼가 `null` 로 바꿔 넘긴다(`raw == null` 이면 원문 보기 버튼이 없다). 펼침·2단은
   `UnsupportedBlock` 안이 아니라 **`NoteContentState`**(블록 index 집합 둘, `Saver` 로 저장)에 있고 `NoteContent(state = …)` 로
   받는다 — 블록 안 `rememberSaveable` 은 창 등급이 바뀌어 `NavDisplay` 가 다시 만들어질 때 키를 명시해도 사라진다(관문 2 S1).
@@ -196,6 +198,13 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
   (`RawSlice.kt`, `RawSliceTest`)다. 원문은 **줄마다 `Text` 하나**로 그린다 — 한 `Text` 에 줄마다 `ParagraphStyle` 을
   걸면 복사한 글자에서 줄바꿈이 사라진다(`SelectionContainer` 는 `Text` 사이를 `'\n'` 으로 잇는다). 대신 패널 `Column` 을
   `mergeDescendants` 로 묶어 TalkBack 에는 한 노드다. 치수·문구는 `DESIGN.md` §8.6.
+  리더는 지연 없는 `verticalScroll` Column 이라 블록 · 표 칸 · 하위 블록을 노트를 열 때 전부 재고, 그래서 렌더 셋은 측정을
+  한 번에 끝낸다. 글자 구간(`NoteSpans.kt`)은 한 함수에서 모양을 겹치고 취소선 구간을 낭독 글자로 감싼다. 표(`NoteTable.kt`)는
+  `Layout` 하나 — 칸마다 고유 폭 둘을 읽고 고정 폭으로 한 번만 잰다(`BoxWithConstraints`·`SubcomposeLayout`·`IntrinsicSize`
+  금지). 열 폭은 순수 함수 `tableColumnWidths`(`TableColumnWidthsTest`), 선 · 머리 바탕은 측정이 상태에 남긴 자리를 그리기
+  단계에서만 읽는다(`ScrollState.maxValue` 와 같은 길). 목록(`NoteList.kt`)은 기호 칸을 상수가 아니라 기호 글자를 재서 정하고
+  항목을 첫 기준선으로 맞춘다. 4단부터 목록은 `hangLeft` 로 부모 기호 칸만큼 당겨 3단 기호 자리에 선다. 하위 블록은
+  `NoteBlockContent` 를 다시 부르고, 하위 자리의 `Unsupported` 는 펼침 상태가 없어 원문 보기 없이 그린다.
 
 ---
 
@@ -206,7 +215,7 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
   `0xFF0E1217` = `bg`, `0xFF161C24` = `surface` 를 **손으로 베낀 값**이라 팔레트를 바꾸면 같이 고쳐야 한다.)
 - **`MaterialTheme` 참조 0건.** 위의 "테마" 절 참조.
 - **컬렉션 파라미터는 `ImmutableList`** — `NoteContent(blocks)`, `FloatingNavBar(items)`,
-  `NoteContentBlock.BulletList(items: ImmutableList<ImmutableList<…>>)`. `List<T>` 금지.
+  `NoteContentBlock.BulletList(items: ImmutableList<NoteContentListItem>)`. `List<T>` 금지.
 - **UI 를 그리는 Composable 은 같은 파일에 `@Preview` 동반**, `MyNoteTheme { }` 로 감싸고 다크 배경 지정.
   프리뷰가 없는 파일은 **UI 를 emit 하지 않는 것**들뿐이다(`NoteContentBlock`=데이터,
   `FloatingNavScrollState`=상태 홀더, `MyNoteIcons`=`ImageVector`, `Motion`, `MyNoteTheme`).
@@ -222,7 +231,7 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
 - `resourcePrefix = "ds_"` 가 Gradle 에서 **강제**된다. 라이브러리 리소스는 앱에 병합될 때
   이름이 겹치면 조용히 덮이므로, 접두사를 안 붙이면 빌드가 막히게 해 둔 것이다.
 - `strings.xml` 에는 **여러 feature 가 공유하는 액션 문구**(확인/취소/저장/닫기/다시 시도/되돌리기)와
-  이 모듈 컴포넌트가 쓰는 문구(`ds_scroll_to_top`·`ds_search_hint`·`UnsupportedBlock` 의 `ds_unsupported_*` 11개)만 둔다.
+  이 모듈 컴포넌트가 쓰는 문구(`ds_scroll_to_top`·`ds_search_hint`·`UnsupportedBlock` 의 `ds_unsupported_*` 13개·본문 블록 낭독 `ds_block_*` 4개)만 둔다.
   feature 는 `import com.hancekim.mynote.core.designsystem.R as DsR` 로 참조한다.
 - **파라미터 기본값에 문자열 리터럴을 두지 않는다.** `SearchField(placeholder: String? = null)` 처럼
   `null` 기본값 + `stringResource` 폴백으로 받는다 — 기본값에 리터럴을 두면 리소스를 우회한다.
@@ -232,7 +241,8 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
 
 ## 테스트
 
-계측 테스트는 없다. 단위 테스트는 `FloatingNavScrollStateTest`·`RawSliceTest`(원문 자르기 `sliceRaw`)·`NoteContentStateTest`(펼침 상태와 저장) 셋인데, 가능한 이유는
+계측 테스트는 없다. 단위 테스트는 `FloatingNavScrollStateTest`·`RawSliceTest`(원문 자르기 `sliceRaw`)·`NoteContentStateTest`(펼침 상태와 저장)·
+`TableColumnWidthsTest`(표 열 폭)·`NoteListMarkerTest`(글머리 · 들여쓰기 멈춤)·`NoteSpansTest`(취소선 낭독)인데, 가능한 이유는
 같다 — 판정을 Compose 밖 순수 함수·클래스로 뺐다. `FloatingNavScrollStateTest` 가 가능한 이유는
 `FloatingNavScrollState` 가 **Compose 를 모르고 px 두 개만 받는 순수 클래스**이고
 `rememberFloatingNavScrollState()` 가 density 변환만 담당하도록 갈라 뒀기 때문이다.

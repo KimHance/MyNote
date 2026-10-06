@@ -165,7 +165,6 @@ internal fun NoteTable(
     }
 }
 
-/** 측정이 남긴 표 선 자리 — 그리기 단계만 읽는다. */
 @Immutable
 private data class TableGrid(
     val width: Int,
