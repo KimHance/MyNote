@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "mynote-notes",
+  "owner": {
+    "name": "<OWNER>"
+  },
+  "metadata": {
+    "description": "노트 저장소에 노트를 쓰고 검사하는 스킬 모음"
+  },
+  "plugins": [
+    {
+      "name": "mynote-notes",
+      "source": "./plugins/mynote-notes",
+      "description": "노트 저장소에 노트를 저장 · 수정 · 삭제하고(write-note) 규격에 맞는지 검사한다(check-notes)",
+      "license": "<LICENSE>",
+      "category": "productivity"
+    }
+  ]
+}
