@@ -1,8 +1,5 @@
-package com.hancekim.mynote.core.data.format
+package com.hancekim.mynote.core.format
 
-import com.hancekim.mynote.core.data.dto.NoteBlockDto
-import com.hancekim.mynote.core.data.dto.UnsupportedReasonDto
-import com.hancekim.mynote.core.data.dto.toDomain
 import com.hancekim.mynote.core.domain.model.Note
 import com.hancekim.mynote.core.domain.model.firstSentence
 import kotlinx.serialization.descriptors.elementNames
@@ -12,17 +9,13 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
-const val PARSER_VERSION: Int = 1
-
-private val CACHE_ONLY_TYPES = setOf("unknown", "unsupported")
-
 internal val WIRE_TYPES: Set<String> =
-    NoteBlockDto
+    WireBlockDto
         .serializer()
         .descriptor
         .getElementDescriptor(1)
         .elementNames
-        .toSet() - CACHE_ONLY_TYPES
+        .toSet()
 
 private val prettyJson =
     Json {
@@ -30,12 +23,7 @@ private val prettyJson =
         prettyPrintIndent = "  "
     }
 
-data class DerivedNote(
-    val blocksJson: String,
-    val excerpt: String?,
-)
-
-class MyNoteJsonFormat(
+internal class MyNoteJsonFormat(
     private val json: Json,
 ) {
     fun parse(raw: String): List<NoteBlockDto> {
@@ -51,8 +39,9 @@ class MyNoteJsonFormat(
         return blocks.map(::parseBlock)
     }
 
-    fun derive(raw: String): DerivedNote {
-        val blocks = parse(raw)
+    fun derive(raw: String): DerivedNote = derive(parse(raw))
+
+    fun derive(blocks: List<NoteBlockDto>): DerivedNote {
         val excerpt = Note(id = "", title = "", date = "", blocks = blocks.map { it.toDomain() }).firstSentence()
         return DerivedNote(blocksJson = encode(blocks), excerpt = excerpt)
     }
@@ -76,7 +65,7 @@ class MyNoteJsonFormat(
 
             else -> {
                 try {
-                    json.decodeFromJsonElement(NoteBlockDto.serializer(), block)
+                    json.decodeFromJsonElement(WireBlockDto.serializer(), block).toCache()
                 } catch (_: IllegalArgumentException) {
                     unsupported(UnsupportedReasonDto.BROKEN_BLOCK, type, text, block)
                 }

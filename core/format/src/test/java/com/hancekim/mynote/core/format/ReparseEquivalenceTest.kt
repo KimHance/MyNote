@@ -1,8 +1,5 @@
-package com.hancekim.mynote.core.data.format
+package com.hancekim.mynote.core.format
 
-import com.hancekim.mynote.core.data.dto.NoteBlockDto
-import com.hancekim.mynote.core.data.dto.NotesJson
-import com.hancekim.mynote.core.data.dto.toDomain
 import com.hancekim.mynote.core.domain.model.Note
 import com.hancekim.mynote.core.domain.model.firstSentence
 import kotlinx.serialization.builtins.ListSerializer
@@ -27,15 +24,15 @@ private val ALL_BLOCKS =
     """.trimIndent()
 
 class ReparseEquivalenceTest {
-    private val format = MyNoteJsonFormat(NotesJson)
+    private val format = MyNoteJsonFormat(BlockJson)
 
     private fun oldCachePath(raw: String): Note {
         val blocks =
-            NotesJson.decodeFromJsonElement(
+            BlockJson.decodeFromJsonElement(
                 ListSerializer(NoteBlockDto.serializer()),
-                NotesJson.parseToJsonElement(raw).jsonObject.getValue("blocks"),
+                BlockJson.parseToJsonElement(raw).jsonObject.getValue("blocks"),
             )
-        val cached = NotesJson.encodeToString(blocks)
+        val cached = BlockJson.encodeToString(blocks)
         return Note("k", "t", "d", format.decode(cached).map { it.toDomain() })
     }
 

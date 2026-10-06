@@ -6,24 +6,23 @@ import com.hancekim.mynote.core.data.datasource.LocalNotesDataSource
 import com.hancekim.mynote.core.data.datasource.NoteSourceAdapter
 import com.hancekim.mynote.core.data.datasource.SourceRecord
 import com.hancekim.mynote.core.data.dto.toCategories
-import com.hancekim.mynote.core.data.format.MyNoteJsonFormat
-import com.hancekim.mynote.core.data.format.PARSER_VERSION
 import com.hancekim.mynote.core.domain.model.Category
 import com.hancekim.mynote.core.domain.model.SourceKind
 import com.hancekim.mynote.core.domain.model.SyncOutcome
 import com.hancekim.mynote.core.domain.repository.NotesRepository
+import com.hancekim.mynote.core.format.NoteFormat
+import com.hancekim.mynote.core.format.PARSER_VERSION
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 class NotesRepositoryImpl internal constructor(
     private val adapters: Set<NoteSourceAdapter>,
     private val local: LocalNotesDataSource,
-    json: Json,
+    private val format: NoteFormat,
     private val awaitRecovery: suspend () -> Unit,
     now: () -> Long,
 ) : NotesRepository {
@@ -31,11 +30,10 @@ class NotesRepositoryImpl internal constructor(
     constructor(
         adapters: Set<@JvmSuppressWildcards NoteSourceAdapter>,
         local: LocalNotesDataSource,
-        json: Json,
+        format: NoteFormat,
         recovery: ConnectionRecovery,
-    ) : this(adapters, local, json, recovery::ensure, System::currentTimeMillis)
+    ) : this(adapters, local, format, recovery::ensure, System::currentTimeMillis)
 
-    private val format = MyNoteJsonFormat(json)
     private val reconciler = SourceReconciler(local, format, now)
 
     override fun observeCategories(): Flow<List<Category>> =
@@ -63,7 +61,7 @@ class NotesRepositoryImpl internal constructor(
         local.replaceDerived(
             stale.mapNotNull { row ->
                 val raw = row.raw ?: return@mapNotNull null
-                val derived = format.derive(raw)
+                val derived = format.derive(row.path, raw)
                 row.copy(blocksJson = derived.blocksJson, excerpt = derived.excerpt, parserVersion = PARSER_VERSION)
             },
         )

@@ -80,7 +80,7 @@ alias(`billboard-*`)·id(`hance.*`)·group·패키지가 네 갈래로 갈려 �
 | `hancenote.android.feature` | `:feature:*` | `library.compose` **+ `android.hilt`** · `:core:{common,design-system,domain,navigation}` · lifecycle(runtime/runtimeCompose/viewModelCompose) · `kotlinx-coroutines-android` |
 | `hancenote.android.hilt` | Hilt 쓰는 모듈 | `com.google.devtools.ksp` · `com.google.dagger.hilt.android` · `hilt-android` + `ksp(hilt-android-compiler)` |
 | `hancenote.android.room` | `:core:database` | `androidx.room3` · KSP · `schemaDirectory("$projectDir/schemas")` · room3 runtime + compiler |
-| `hancenote.jvm.library` | `:core:domain` | `org.jetbrains.kotlin.jvm` · **`hancenote.ktlint`** · Java 17 · `useJUnit()` |
+| `hancenote.jvm.library` | `:core:domain` · `:core:format` | `org.jetbrains.kotlin.jvm` · **`hancenote.ktlint`** · Java 17 · `useJUnit()` |
 | `hancenote.ktlint` | (다른 컨벤션이 자동 적용) | `org.jlleitschuh.gradle.ktlint` · ktlint 버전 고정 · `ktlintRuleset(compose-rules)` |
 
 두 가지 주의:
@@ -105,6 +105,7 @@ alias(`billboard-*`)·id(`hance.*`)·group·패키지가 네 갈래로 갈려 �
 | `:core:design-system` | `android.library.compose` | `resourcePrefix = "ds_"` |
 | `:core:navigation` | `android.library.compose` + `kotlin-serialization` | — |
 | `:core:domain` | **`jvm.library`** | — |
+| `:core:format` | **`jvm.library`** + `kotlin-serialization` | — |
 | `:feature:notes` | **`android.feature`** (Compose·Hilt 포함) | `resourcePrefix = "notes_"` |
 
 ## 헬퍼가 실제로 켜는 것
@@ -299,7 +300,8 @@ import(`getValue`/`setValue`)는 켜도 오탐 위험이 있으니 지울 때 �
 
 ## 순수 JVM 모듈 — `hancenote.jvm.library`
 
-`:core:domain` 전용이다. 왜 Android 라이브러리가 아닌가:
+`:core:domain` 과 `:core:format`(+ `kotlin-serialization` 별칭)이 쓴다. Hilt 컨벤션은 Android 플러그인이라 붙지 않으므로
+두 모듈은 `javax.inject` 생성자 주입만 쓴다. 왜 Android 라이브러리가 아닌가:
 
 1. 매니페스트·R 클래스·리소스 머지·계측 러너가 전부 딸려오는데 **하나도 안 쓴다.**
 2. 더 중요한 건 **`import android.*` 가 컴파일 에러로 막힌다**는 것이다. "domain 은 순수
@@ -353,9 +355,9 @@ e: .../ZzAndroidProbe.kt:3:8 Unresolved reference 'android'.
 
 - AGP 9.4.1 · Gradle 9.6.0(wrapper) · Kotlin 2.4.20 · KSP 2.3.6 · Hilt 2.60.1 · Room3 3.0.3
 - `compileSdk` 37 · `targetSdk` 36 · `minSdk` 32 · Java/JVM 타깃 17(build-logic 자신도 17)
-- 모듈 11개 = `:app` + core 9(`common`, `ai`, `data`, `database`, `design-foundation`,
-  `design-system`, `domain`, `navigation`, `network`) + feature 1(`notes`)
-- 테스트가 있는 모듈: `core/{ai, common, data, design-foundation, design-system, navigation}`,
+- 모듈 12개 = `:app` + core 10(`common`, `ai`, `data`, `database`, `design-foundation`,
+  `design-system`, `domain`, `format`, `navigation`, `network`) + feature 1(`notes`)
+- 테스트가 있는 모듈: `core/{ai, common, data, design-foundation, design-system, format, navigation}`,
   `feature/notes`. `core/{database, domain, network}` 와 `app` 은 없다.
 - 없는 것(과거에 있었으나 제거됨): Circuit convention · android test(benchmark) convention ·
   product flavor(prod/demo). 되살릴 땐 카탈로그 alias 부터 다시 추가해야 한다.
