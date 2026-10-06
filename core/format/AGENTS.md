@@ -32,8 +32,9 @@
 ## 마크다운 — 한도를 먼저 보고 변환기를 부른다
 
 1. `exceedsMarkdownLimits(raw)` 가 참이면 변환기를 부르지 않고 `Unsupported(limit_exceeded, raw = 원문)` 하나로 둔다.
-   - 크기: UTF-8 524,288 바이트 초과(할당 없이 센다).
-   - 중첩: 줄 앞 컨테이너(`>` · 목록 표시) 32단 초과. CommonMark 의 컨테이너 잇기를 따라 줄마다 센다 — 탭은 4칸, 표시 뒤 공백
+   한도 값은 domain `NoteLimits.Default` 다 — 화면 매퍼가 같은 값을 상자 문구 숫자로 쓰므로 여기에 숫자를 다시 적지 않는다.
+   - 크기: UTF-8 `maxBytes`(524,288 바이트) 초과(할당 없이 센다).
+   - 중첩: 줄 앞 컨테이너(`>` · 목록 표시) `maxDepth`(32단) 초과. CommonMark 의 컨테이너 잇기를 따라 줄마다 센다 — 탭은 4칸, 표시 뒤 공백
      1–4칸, 줄 끝 LF · CRLF · CR, 맨 앞 BOM. 이어지는 글 줄(lazy)은 열린 컨테이너를 닫지 않고 둔다(크게 세는 쪽).
    - 줄 상한: 줄 하나의 앞부분이 품을 수 있는 컨테이너 수(표시 수 + 공백 칸 ÷ 2)가 64 를 넘어도 한도 넘음이다. 줄 잇기는 문단
      상태를 모르므로 이어지는 글로 끊어 보인 중첩을 놓칠 수 있다. 이 상한이 그 경우에도 실제 깊이를 64 이하로 묶는다.
@@ -52,7 +53,7 @@
 | | 와이어 `WireBlockDto` (`WireDto.kt`) | 캐시 `NoteBlockDto` (`CacheDto.kt`) |
 |---|---|---|
 | 무엇 | 원격 JSON 원문 — 형식 1 | `blocks_json` 열 — 파생 캐시 |
-| 집합 | 블록 8종 · 모양 3종. **동결** | 와이어 + `unknown` · `unsupported`. 새 블록 · 필드는 여기에만 |
+| 집합 | 블록 8종 · 모양 3종. **동결** | 와이어 + `unknown` · `unsupported` · `table` + 기본값 필드(`italic` · `strike` · `checked` · `children` · `start`). 새 블록 · 필드는 여기에만 |
 
 - `MyNoteJsonFormat.parse(raw)` 는 던지지 않는다. 루트가 객체가 아니거나 `blocks` 가 배열이 아니면(JSON 문법 오류 · 끝 쉼표 포함)
   `broken_note` 하나. 아니면 블록마다:
@@ -77,7 +78,7 @@
 | `unknown_type` | `UnknownType` | JSON 블록의 type 을 모른다 |
 | `broken_block` | `BrokenBlock` | 아는 type 인데 필드 누락 · 타입 오류, type 없음 |
 | `broken_note` | `BrokenNote` | JSON 이 아니다 · 해석이 던졌다 |
-| `limit_exceeded` | `BrokenNote` | 마크다운이 해석 전 한도를 넘었다. 도메인 종류는 `note-model` 단위가 더한다 — 더하면 `BlockMapper.kt` 의 이 줄을 바꾼다 |
+| `limit_exceeded` | `LimitExceeded` | 마크다운이 해석 전 한도를 넘었다 |
 
 ## 새 블록 · 필드를 더할 때
 
@@ -93,6 +94,15 @@
 
 필드 없는 블록은 `data object`(`Divider` · `Spacer`)로 둔다 — `{"type":"divider"}` 만으로 라운드트립된다.
 
+캐시 모양(필드 이름이 저장 형식이다 — 바꾸면 `PARSER_VERSION` 을 올려 다시 만든다):
+
+| 자리 | 캐시 JSON |
+|---|---|
+| 구간 | `{"text":…,"style":"bold","italic":true,"strike":true}` — 기본값(`text` · `false`)은 생략 |
+| 목록 항목 | `{"spans":[…],"checked":true,"children":[블록…]}` — `checked` 없음 = 체크 항목 아님, `children` 빈 목록은 생략 |
+| 번호 목록 | `{"type":"orderedList","items":[…],"start":3}` — `start` 1 은 생략 |
+| 표 | `{"type":"table","header":[{"spans":[…]}],"rows":[[{"spans":[…]}]],"align":["left","center","right","none"]}` |
+
 ## 시험
 
 JVM 모듈이라 태스크가 `:core:format:test` 다(`testDebugUnitTest` 없음). 전부 JUnit4.
@@ -103,6 +113,7 @@ JVM 모듈이라 태스크가 `:core:format:test` 다(`testDebugUnitTest` 없음
 | `NoteFormatTest` | NF-2 형식 고르기 · 던지지 않음 · 캐시 손상 대체, NF-8 엔진 호출 0 · 해석 실패 상자 |
 | `MarkdownLimitsTest` | NF-8 32단 / 33단 · 512KB · CR · BOM · 컨테이너가 아닌 줄 · 줄 상한 |
 | `CacheCompatTest` | NF-12 형식 1 밖 type · 필드 · 캐시 바이트 · 옛 캐시 행 |
+| `BlockCacheTest` | NF-4 · 5 · 6 새 모양의 캐시 왕복 · 바이트, 32단 하위 블록, NF-8 한도 넘음 종류 · 거르기가 도메인 한도 값을 씀, NF-12 변환기 길의 지금 블록 바이트 |
 
 동기화를 지나는 시험(연결 첫 동기화 · 캐시 손상 행 · 한도 넘은 노트 격리 · 재변환 실패 행)은 `:core:data` 의 `NoteFormatSyncTest` 다.
 `ReparseEquivalenceTest` 의 레포 노트 시험은 루트 `notes/` 를 읽기만 하고 태스크 입력으로 선언하지 않았다 — 노트만 바뀌었으면 `--rerun`.

@@ -1,14 +1,15 @@
 package com.hancekim.mynote.core.format
 
-internal const val MAX_MARKDOWN_BYTES = 524_288
-internal const val MAX_CONTAINER_DEPTH = 32
+import com.hancekim.mynote.core.domain.model.NoteLimits
 
 private const val TAB_STOP = 4
 private const val QUOTE = -1
 private const val MAX_ITEM_PADDING = 4
 
-internal fun exceedsMarkdownLimits(raw: String): Boolean =
-    utf8LengthExceeds(raw, MAX_MARKDOWN_BYTES) || containerDepthExceeds(raw, MAX_CONTAINER_DEPTH)
+internal fun exceedsMarkdownLimits(
+    raw: String,
+    limits: NoteLimits = NoteLimits.Default,
+): Boolean = utf8LengthExceeds(raw, limits.maxBytes) || containerDepthExceeds(raw, limits.maxDepth)
 
 internal fun utf8LengthExceeds(
     text: String,

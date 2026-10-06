@@ -38,6 +38,9 @@ private fun mdEntry(
 private fun brokenNote(raw: String) =
     listOf(NoteBlock.Unsupported(UnsupportedReason.BrokenNote, type = null, text = null, raw = raw))
 
+private fun limitNote(raw: String) =
+    listOf(NoteBlock.Unsupported(UnsupportedReason.LimitExceeded, type = null, text = null, raw = raw))
+
 private val DEEP_LIST = "- ".repeat(1_000) + "x"
 
 class NoteFormatSyncTest {
@@ -118,7 +121,7 @@ class NoteFormatSyncTest {
             assertEquals(DEEP_LIST, deep.raw)
             assertTrue(deep.blocksJson.contains("\"reason\":\"limit_exceeded\""))
             val blocks = repo.blocks()
-            assertEquals(brokenNote(DEEP_LIST), blocks.getValue("s0/deep"))
+            assertEquals(limitNote(DEEP_LIST), blocks.getValue("s0/deep"))
             assertEquals(md("a"), blocks.getValue("s0/a"))
             assertEquals(listOf(NoteBlock.Paragraph(listOf(NoteSpan("b")))), blocks.getValue("s0/b"))
             assertEquals(listOf("a"), markdown.seen)
@@ -204,7 +207,7 @@ class NoteFormatSyncTest {
             }
             val blocks = repo.blocks()
             assertEquals(brokenNote(FAIL), blocks.getValue("s0/bad"))
-            assertEquals(brokenNote(DEEP_LIST), blocks.getValue("s0/deep"))
+            assertEquals(limitNote(DEEP_LIST), blocks.getValue("s0/deep"))
             assertEquals(md("ok"), blocks.getValue("s0/ok"))
             assertEquals(listOf(NoteBlock.Paragraph(listOf(NoteSpan("new")))), blocks.getValue("s0/new"))
         }

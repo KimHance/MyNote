@@ -4,6 +4,8 @@ import com.hancekim.mynote.core.domain.model.NoteBlock
 import com.hancekim.mynote.core.domain.model.NoteListItem
 import com.hancekim.mynote.core.domain.model.NoteSpan
 import com.hancekim.mynote.core.domain.model.SpanStyle
+import com.hancekim.mynote.core.domain.model.TableAlign
+import com.hancekim.mynote.core.domain.model.TableCell
 import com.hancekim.mynote.core.domain.model.UnsupportedReason
 
 internal fun WireBlockDto.toCache(): NoteBlockDto =
@@ -38,10 +40,31 @@ internal fun NoteBlockDto.toDomain(): NoteBlock =
         is NoteBlockDto.Paragraph -> NoteBlock.Paragraph(spans.toDomainSpans())
         is NoteBlockDto.Code -> NoteBlock.Code(code)
         is NoteBlockDto.Quote -> NoteBlock.Quote(spans.toDomainSpans())
-        is NoteBlockDto.BulletList -> NoteBlock.BulletList(items.map { NoteListItem(it.spans.toDomainSpans()) })
-        is NoteBlockDto.OrderedList -> NoteBlock.OrderedList(items.map { NoteListItem(it.spans.toDomainSpans()) })
+        is NoteBlockDto.BulletList -> NoteBlock.BulletList(items.map { it.toDomain() })
+        is NoteBlockDto.OrderedList -> NoteBlock.OrderedList(items.map { it.toDomain() }, start)
+        is NoteBlockDto.Table -> toDomainTable()
         NoteBlockDto.Divider -> NoteBlock.Divider
         NoteBlockDto.Spacer -> NoteBlock.Spacer
+    }
+
+private fun NoteBlockDto.Table.toDomainTable(): NoteBlock.Table =
+    NoteBlock.Table(
+        header = header.map { it.toDomain() },
+        rows = rows.map { row -> row.map { it.toDomain() } },
+        align = align.map { it.toDomain() },
+    )
+
+private fun NoteListItemDto.toDomain(): NoteListItem =
+    NoteListItem(spans.toDomainSpans(), checked, children.map { it.toDomain() })
+
+private fun TableCellDto.toDomain(): TableCell = TableCell(spans.toDomainSpans())
+
+private fun TableAlignDto.toDomain(): TableAlign =
+    when (this) {
+        TableAlignDto.NONE -> TableAlign.None
+        TableAlignDto.LEFT -> TableAlign.Left
+        TableAlignDto.CENTER -> TableAlign.Center
+        TableAlignDto.RIGHT -> TableAlign.Right
     }
 
 private fun UnsupportedReasonDto.toDomain(): UnsupportedReason =
@@ -49,10 +72,11 @@ private fun UnsupportedReasonDto.toDomain(): UnsupportedReason =
         UnsupportedReasonDto.UNKNOWN_TYPE -> UnsupportedReason.UnknownType
         UnsupportedReasonDto.BROKEN_BLOCK -> UnsupportedReason.BrokenBlock
         UnsupportedReasonDto.BROKEN_NOTE -> UnsupportedReason.BrokenNote
-        UnsupportedReasonDto.LIMIT_EXCEEDED -> UnsupportedReason.BrokenNote
+        UnsupportedReasonDto.LIMIT_EXCEEDED -> UnsupportedReason.LimitExceeded
     }
 
-private fun List<NoteSpanDto>.toDomainSpans(): List<NoteSpan> = map { NoteSpan(it.text, it.style.toDomain()) }
+private fun List<NoteSpanDto>.toDomainSpans(): List<NoteSpan> =
+    map { NoteSpan(it.text, it.style.toDomain(), it.italic, it.strike) }
 
 private fun SpanStyleDto.toDomain(): SpanStyle =
     when (this) {
@@ -67,11 +91,32 @@ internal fun NoteBlock.toCache(): NoteBlockDto =
         is NoteBlock.Paragraph -> NoteBlockDto.Paragraph(spans.toCacheSpans())
         is NoteBlock.Code -> NoteBlockDto.Code(code)
         is NoteBlock.Quote -> NoteBlockDto.Quote(spans.toCacheSpans())
-        is NoteBlock.BulletList -> NoteBlockDto.BulletList(items.map { NoteListItemDto(it.spans.toCacheSpans()) })
-        is NoteBlock.OrderedList -> NoteBlockDto.OrderedList(items.map { NoteListItemDto(it.spans.toCacheSpans()) })
+        is NoteBlock.BulletList -> NoteBlockDto.BulletList(items.map { it.toCache() })
+        is NoteBlock.OrderedList -> NoteBlockDto.OrderedList(items.map { it.toCache() }, start)
+        is NoteBlock.Table -> toCacheTable()
         NoteBlock.Divider -> NoteBlockDto.Divider
         NoteBlock.Spacer -> NoteBlockDto.Spacer
         is NoteBlock.Unsupported -> NoteBlockDto.Unsupported(reason.toCache(), type, text, raw)
+    }
+
+private fun NoteBlock.Table.toCacheTable(): NoteBlockDto.Table =
+    NoteBlockDto.Table(
+        header = header.map { it.toCache() },
+        rows = rows.map { row -> row.map { it.toCache() } },
+        align = align.map { it.toCache() },
+    )
+
+private fun NoteListItem.toCache(): NoteListItemDto =
+    NoteListItemDto(spans.toCacheSpans(), checked, children.map { it.toCache() })
+
+private fun TableCell.toCache(): TableCellDto = TableCellDto(spans.toCacheSpans())
+
+private fun TableAlign.toCache(): TableAlignDto =
+    when (this) {
+        TableAlign.None -> TableAlignDto.NONE
+        TableAlign.Left -> TableAlignDto.LEFT
+        TableAlign.Center -> TableAlignDto.CENTER
+        TableAlign.Right -> TableAlignDto.RIGHT
     }
 
 private fun UnsupportedReason.toCache(): UnsupportedReasonDto =
@@ -79,6 +124,7 @@ private fun UnsupportedReason.toCache(): UnsupportedReasonDto =
         UnsupportedReason.UnknownType -> UnsupportedReasonDto.UNKNOWN_TYPE
         UnsupportedReason.BrokenBlock -> UnsupportedReasonDto.BROKEN_BLOCK
         UnsupportedReason.BrokenNote -> UnsupportedReasonDto.BROKEN_NOTE
+        UnsupportedReason.LimitExceeded -> UnsupportedReasonDto.LIMIT_EXCEEDED
     }
 
 private fun List<NoteSpan>.toCacheSpans(): List<NoteSpanDto> =
@@ -90,5 +136,7 @@ private fun List<NoteSpan>.toCacheSpans(): List<NoteSpanDto> =
                 SpanStyle.Bold -> SpanStyleDto.BOLD
                 SpanStyle.Code -> SpanStyleDto.CODE
             },
+            it.italic,
+            it.strike,
         )
     }

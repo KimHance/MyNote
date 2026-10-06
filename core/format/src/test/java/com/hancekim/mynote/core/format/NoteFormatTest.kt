@@ -25,6 +25,9 @@ private fun brokenNote(raw: String) =
 
 private fun limitBox(raw: String) = listOf(NoteBlockDto.Unsupported(UnsupportedReasonDto.LIMIT_EXCEEDED, raw = raw))
 
+private fun limitNote(raw: String) =
+    listOf(NoteBlock.Unsupported(UnsupportedReason.LimitExceeded, type = null, text = null, raw = raw))
+
 class NoteFormatTest {
     private val markdown = CountingMarkdown()
     private val format = NoteFormat(markdown)
@@ -107,7 +110,7 @@ class NoteFormatTest {
 
         over.forEach { raw ->
             assertEquals(raw.take(20), limitBox(raw), format.blocks("x.md", raw))
-            assertEquals(raw.take(20), brokenNote(raw), format.parse("x.md", raw))
+            assertEquals(raw.take(20), limitNote(raw), format.parse("x.md", raw))
             assertTrue(format.derive("x.md", raw).blocksJson.contains("\"reason\":\"limit_exceeded\""))
         }
         assertTrue(markdown.seen.isEmpty())

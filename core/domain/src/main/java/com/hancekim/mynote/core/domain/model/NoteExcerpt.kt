@@ -20,14 +20,16 @@ private fun List<NoteBlock>.firstParagraphSpans(): List<NoteSpan>? =
 
 private fun List<NoteBlock>.firstListItemSpans(): List<NoteSpan>? =
     asSequence()
-        .flatMap { block ->
-            when (block) {
-                is NoteBlock.BulletList -> block.items.asSequence()
-                is NoteBlock.OrderedList -> block.items.asSequence()
-                else -> emptySequence()
-            }
-        }.map { it.spans }
+        .flatMap { it.listItems() }
+        .map { it.spans }
         .firstOrNull { spans -> spans.any { it.text.isNotBlank() } }
+
+private fun NoteBlock.listItems(): Sequence<NoteListItem> =
+    when (this) {
+        is NoteBlock.BulletList -> items.asSequence()
+        is NoteBlock.OrderedList -> items.asSequence()
+        else -> emptySequence()
+    }.flatMap { item -> sequenceOf(item) + item.children.asSequence().flatMap { it.listItems() } }
 
 private class FlatText(
     val text: String,

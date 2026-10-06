@@ -6,6 +6,7 @@ import com.hancekim.mynote.core.domain.model.NoteListItem
 import com.hancekim.mynote.core.domain.model.NoteSpan
 import com.hancekim.mynote.core.domain.model.QuizFailure
 import com.hancekim.mynote.core.domain.model.QuizQuestion
+import com.hancekim.mynote.core.domain.model.TableCell
 import com.hancekim.mynote.core.domain.repository.NotesRepository
 import com.hancekim.mynote.core.domain.repository.QuizGenerator
 import kotlinx.coroutines.flow.first
@@ -42,21 +43,56 @@ class GenerateQuizUseCase
         }
     }
 
-private fun Note.toPlainText(): String =
-    blocks
-        .mapNotNull { block ->
-            when (block) {
-                is NoteBlock.Heading -> block.spans.joinText()
-                is NoteBlock.Paragraph -> block.spans.joinText()
-                is NoteBlock.Quote -> block.spans.joinText()
-                is NoteBlock.Code -> block.code
-                is NoteBlock.BulletList -> block.items.joinItems()
-                is NoteBlock.OrderedList -> block.items.joinItems()
-                is NoteBlock.Unsupported -> block.text
-                NoteBlock.Divider, NoteBlock.Spacer -> null
-            }.takeIf { !it.isNullOrBlank() }
-        }.joinToString("\n")
+private const val INDENT = "  "
+private const val STRIKE = "~~"
 
-private fun List<NoteSpan>.joinText(): String = joinToString("") { it.text }
+private fun Note.toPlainText(): String = blocks.plainLines(depth = 0).joinToString("\n")
 
-private fun List<NoteListItem>.joinItems(): String = joinToString("\n") { "- " + it.spans.joinText() }
+private fun List<NoteBlock>.plainLines(depth: Int): List<String> = flatMap { it.plainLines(depth) }
+
+private fun NoteBlock.plainLines(depth: Int): List<String> =
+    when (this) {
+        is NoteBlock.Heading -> spans.plain().indented(depth)
+        is NoteBlock.Paragraph -> spans.plain().indented(depth)
+        is NoteBlock.Quote -> spans.plain().indented(depth)
+        is NoteBlock.Code -> code.indented(depth)
+        is NoteBlock.BulletList -> items.flatMap { it.plainLines(depth) }
+        is NoteBlock.OrderedList -> items.flatMap { it.plainLines(depth) }
+        is NoteBlock.Table -> (listOf(header) + rows).flatMap { row -> row.plainRow().indented(depth) }
+        is NoteBlock.Unsupported -> text.indented(depth)
+        NoteBlock.Divider, NoteBlock.Spacer -> emptyList()
+    }
+
+private fun NoteListItem.plainLines(depth: Int): List<String> {
+    val mark =
+        when (checked) {
+            true -> "- [x] "
+            false -> "- [ ] "
+            null -> "- "
+        }
+    val text = spans.plain()
+    val line = if (text.isBlank()) emptyList() else (mark + text).indented(depth)
+    return line + children.plainLines(depth + 1)
+}
+
+private fun List<TableCell>.plainRow(): String = joinToString(" | ") { it.spans.plain() }
+
+private fun List<NoteSpan>.plain(): String =
+    buildString {
+        var striking = false
+        for (span in this@plain) {
+            if (span.text.isEmpty()) continue
+            if (span.strike != striking) {
+                append(STRIKE)
+                striking = span.strike
+            }
+            append(span.text)
+        }
+        if (striking) append(STRIKE)
+    }
+
+private fun String?.indented(depth: Int): List<String> {
+    if (isNullOrBlank()) return emptyList()
+    val prefix = INDENT.repeat(depth)
+    return split("\n").map { prefix + it }
+}

@@ -97,6 +97,10 @@ private fun NoteBlockContent(
             ListBlock(block.items, ordered = true)
         }
 
+        is NoteContentBlock.Table -> {
+            Unit
+        }
+
         NoteContentBlock.Divider -> {
             DividerBlock()
         }
@@ -107,7 +111,7 @@ private fun NoteBlockContent(
 
         is NoteContentBlock.Unsupported -> {
             UnsupportedBlock(
-                block = block,
+                block = block.asNoteBox(),
                 expanded = state.isExpanded(index),
                 showAll = state.isShowingAll(index),
                 onToggle = { state.toggle(index) },
@@ -116,6 +120,9 @@ private fun NoteBlockContent(
         }
     }
 }
+
+private fun NoteContentBlock.Unsupported.asNoteBox(): NoteContentBlock.Unsupported =
+    if (kind is UnsupportedKind.LimitExceeded) copy(kind = UnsupportedKind.BrokenNote) else this
 
 @Composable
 private fun CodeBlock(code: String) {
@@ -169,9 +176,9 @@ private fun DividerBlock() {
 }
 
 @Composable
-private fun ListBlock(items: ImmutableList<ImmutableList<NoteContentSpan>>, ordered: Boolean) {
+private fun ListBlock(items: ImmutableList<NoteContentListItem>, ordered: Boolean) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        items.forEachIndexed { index, spans ->
+        items.forEachIndexed { index, item ->
             Row {
                 Text(
                     text = if (ordered) "${index + 1}. " else "•  ",
@@ -179,7 +186,7 @@ private fun ListBlock(items: ImmutableList<ImmutableList<NoteContentSpan>>, orde
                     color = MyNoteTheme.colors.text2,
                 )
                 Text(
-                    text = spans.toAnnotatedString(),
+                    text = item.spans.toAnnotatedString(),
                     style = MyNoteTheme.textStyles.body,
                     color = MyNoteTheme.colors.bodyText,
                 )
@@ -238,8 +245,8 @@ private val previewBlocks: ImmutableList<NoteContentBlock> =
         NoteContentBlock.Heading(3, persistentListOf(NoteContentSpan("divider 아래 새 섹션", NoteSpanStyle.Normal))),
         NoteContentBlock.BulletList(
             persistentListOf(
-                persistentListOf(NoteContentSpan("첫째", NoteSpanStyle.Normal)),
-                persistentListOf(NoteContentSpan("둘째", NoteSpanStyle.Normal)),
+                NoteContentListItem(persistentListOf(NoteContentSpan("첫째", NoteSpanStyle.Normal))),
+                NoteContentListItem(persistentListOf(NoteContentSpan("둘째", NoteSpanStyle.Normal))),
             ),
         ),
         NoteContentBlock.Code("val x = 1"),

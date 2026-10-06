@@ -47,4 +47,12 @@ class NotesUiMapperTest {
 
         assertNull(ui.excerpt)
     }
+
+    @Test
+    fun `NF-8 한도 넘음 노트는 퀴즈 카드를 숨긴다`() {
+        val ui = note(unsupported(UnsupportedReason.LimitExceeded)).toUi()
+
+        assertFalse(ui.readable)
+        assertNull(ui.excerpt)
+    }
 }
