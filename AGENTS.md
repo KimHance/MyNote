@@ -9,9 +9,8 @@ GitHub 의 JSON 노트를 받아 읽는 **읽기 전용** 안드로이드 학습
 **모듈마다 `AGENTS.md` 가 따로 있다. 어떤 모듈을 건드리든 그 파일을 먼저 읽어라.**
 여기에는 모듈 하나만 봐서는 알 수 없는 것만 적는다.
 
-> `README.md` 는 사람용 소개이고 지금 낡았다 — AGP·Kotlin 버전이 옛 값이고 모듈 트리에
-> `core/ai`·`core/navigation`·`core/common` 이 빠져 있다. 사실 확인은 `gradle/libs.versions.toml`
-> 과 `settings.gradle.kts` 로 해라.
+> `README.md` 는 사람용 소개다(2026-10-07 에 지금 사실로 맞췄다). 버전 · 모듈의 정본은 여전히
+> `gradle/libs.versions.toml` 과 `settings.gradle.kts` 다 — README 와 다르면 이쪽을 믿고 README 를 고쳐라.
 
 ---
 

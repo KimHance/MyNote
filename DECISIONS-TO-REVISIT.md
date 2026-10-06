@@ -49,7 +49,13 @@
 
 **왜 보류** — 배포 정책(GitHub Releases APK)과 버전 코드 규칙을 아직 정하지 않았다.
 
-**지금** — 실기기 설치 전 사본·해시 대조 순서를 `docs/oss/m0/acceptance.md` §4 에 적어 두었다. 에뮬레이터 확인도 v4 → v5 한 방향으로만 했다.
+**지금** — 에뮬레이터 확인은 v4 → v5 한 방향으로만 했다. 실기기에 처음 깔 때는 이 순서를 따른다:
+1. **사본** — 앱을 force-stop 하고 `databases/`(`notes.db` · `-wal` · `-shm`)와 DataStore `bookmarks` · `settings` · `study_insights` 를 레포 밖에 복사한다(디버그 빌드면 `adb exec-out run-as com.hancekim.mynote tar …`). 토큰 파일(`github_token.preferences_pb`)은 넣지 않는다.
+2. **해시 대조** — 사본의 `room_master_table.identity_hash` 가 `core/database/schemas/…/4.json` 의 `identityHash` 와 같은지 본다. 다르면 설치하지 않는다.
+3. **기록** — 홈 · 목록 패널 · 북마크 · 통계 화면을 캡처한다(설정의 토큰 끝자리는 잘라 낸다).
+4. **설치** — `adb uninstall` 없이 `installDebug` 로 덮어 깐다(모델 파일은 남는다). 첫 실행은 비행기 모드로 — 노트가 다 보이고 열려야 한다.
+5. **대조** — 3 과 노트 수 · 순서 · 카테고리 순서 · 북마크 · 통계 숫자가 같은지, 네트워크를 켜고 새로고침해도 스낵바가 안 뜨는지 본다.
+6. **되돌릴 때** — 옛 빌드를 그냥 깔지 않는다. 앱을 실행하지 않은 채 1 의 사본을 `run-as` 로 되돌린 뒤 깐다(확인하지 않은 절차).
 
 **결정에 필요한 것** — 릴리스마다 `appVersionCode` 를 올리는 규칙(첫 공개 전). 올리면 다운그레이드를 시스템이 막는다.
 
@@ -93,7 +99,7 @@
 
 **무엇** — M0 는 Fold 에뮬레이터로만 확인했다(사용자 지시). S25 실데이터 마이그레이션 · TalkBack · 백업 복원 왕복은 미검증.
 
-**결정에 필요한 것** — S25 설치 전에 `docs/oss/m0/acceptance.md` §4 순서를 따른다.
+**결정에 필요한 것** — S25 설치 전에 4번 항목의 사본 · 해시 대조 순서를 따른다.
 
 ---
 

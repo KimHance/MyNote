@@ -156,7 +156,6 @@ M0 에 쓰는 코드가 없어 여기에 없다 — 쓰는 단계에서 더한�
   재변환(원격 0회), 원문 채우기(세지 않음), 자기 소유 삭제, 소스 단위 가드, 처음 본 시각, epochDay, excerpt, 캐시 손상 대체, 동시 수신.
   fake 어댑터는 `failOn`(실패 주입)과 `gate`(`MutableStateFlow` 배리어로 동시성 강제)를 갖는다. reconcile 을 손대면 **여기부터** 고친다.
 - `MyNoteJsonFormatTest` — F1–F3·모르는 type·노트 전체 실패·건진 글자·`WIRE_TYPES`·캐시 라운드트립·옛 `unknown`.
-  기준선에서 먼저 실패시킨 기록은 `docs/oss/m0/spec-data.md` §14 에 있다.
 - `ReparseEquivalenceTest` — 8종 블록 픽스처와 레포 루트 `notes/` 의 실제 노트(있을 때만, 복사하지 않고 읽기만)로
   옛 캐시 경로 = 새 변환 경로 = `excerpt` 를 확인한다. `notes/` 는 태스크 입력으로 선언하지 않았으니 노트만 바뀌었을 때는 `--rerun` 으로 돌린다.
 - `NoteDtoSerializationTest` — polymorphic discriminator, `style` 생략 시 `TEXT`, `divider`/`spacer` 라운드트립, 캐시의 모르는 type → `Unknown`.

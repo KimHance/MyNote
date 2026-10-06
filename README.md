@@ -1,66 +1,77 @@
 # MyNote
 
-> GitHub 의 JSON 노트를 받아 "블로그 글처럼" 보는 **읽기 전용** 안드로이드 학습 노트 앱.
+> GitHub 저장소의 JSON 노트를 받아 "블로그 글처럼" 보는 **읽기 전용** 안드로이드 학습 노트 앱.
+> 노트로 온디바이스 LLM 퀴즈를 풀고, 공부 기록을 통계로 본다.
 
-다크 단일 테마 · 멀티 폼팩터(반응형) · 앱 내 쓰기 없음.
+다크 단일 테마 · 멀티 폼팩터(반응형 · 폴더블) · 앱 내 쓰기 없음.
 
-콘텐츠는 **서버드리븐**이다. 레포 루트 `notes/` 의 `index.json`(group→노트 + 해시)과 노트별 JSON 을
-**GitHub Contents API**(private 레포 + 토큰)로 받아 **Room 에 캐싱**하고, 해시를 비교해 변경분만 동기화한다
-(없으면 받고 · 해시 다르면 갱신 · index 에 없으면 삭제).
+콘텐츠는 **서버드리븐**이다. 앱 안에서 GitHub 저장소 링크를 붙여 연결하고(공개는 바로 · 비공개는 읽기 전용 토큰),
+`notes/index.json`(그룹 → 노트 + 해시)과 노트별 JSON 을 **GitHub Contents API** 로 받아 **Room 에 캐싱**한다.
+해시를 비교해 변경분만 동기화한다(없으면 받고 · 해시가 다르면 갱신 · index 에 없으면 삭제).
+노트 형식은 [`notes/SCHEMA.md`](notes/SCHEMA.md) 의 닫힌 블록 집합이다
+(`heading · paragraph · code · quote · bulletList · orderedList · divider · spacer`).
 
-## 화면 (`feature:notes`)
+## 기능 (`feature:notes`)
 
-| 화면 | 역할 |
+| 기능 | 내용 |
 |---|---|
-| HomeScreen | 카테고리 · 최근 노트 진입점 |
-| ListPanelScreen | 노트 목록 (목록-상세의 list pane) |
-| NoteReaderScreen | 노트 본문 렌더 (서버드리븐 블록) |
-
-본문 블록: `heading · paragraph · code · quote · bulletList · orderedList · divider · spacer` (닫힌 집합, 스키마는 [`notes/SCHEMA.md`](notes/SCHEMA.md)).
+| 홈 · 목록 · 리더 | 카테고리 · 최근 노트, 목록-상세(2-pane), 서버드리븐 블록 렌더 |
+| 북마크 | 노트 북마크 화면 |
+| 통계 | 읽은 시간 · 퀴즈 결과 대시보드, 온디바이스 요약 카드 |
+| 퀴즈 | 노트에서 4지선다 퀴즈를 온디바이스 LLM(LiteRT-LM · Gemma 4 E2B)으로 생성 |
+| 퀴즈 모델 | 2.6GB 모델을 앱에서 받는다(WorkManager · 포그라운드 알림 · 이어 받기 · sha256 검증) |
+| 저장소 연결 | 링크로 연결 · 바꾸기 · 끊기, 템플릿으로 새 저장소 만들기 입구 |
+| 설정 | 글자 크기 · 학습 기록 · 모델 · 저장소 · 토큰 |
 
 ## 기술 스택
 
 | 영역 | 기술 |
 |---|---|
 | 언어 / UI | Kotlin · Jetpack Compose · Material3 |
-| 프레젠테이션 | MVI (`UiState` + `Intent` + `onIntent()`) |
-| 내비게이션 | Navigation 3 + Material3 adaptive (`ListDetailSceneStrategy`, 2-pane) |
+| 프레젠테이션 | MVI (`MviViewModel` · `UiState` + `Intent`) |
+| 내비게이션 | Navigation 3 + Scenes(목록-상세) |
 | DI | Hilt |
-| 네트워크 | Retrofit · OkHttp(`AuthInterceptor`) · GitHub Contents API |
-| 로컬 | Room 3 (노트 캐시 · SSOT) · DataStore (토큰) |
-| 직렬화 | kotlinx.serialization (polymorphic blocks) |
-| 비동기 / 컬렉션 | Coroutines · Flow · kotlinx-collections-immutable |
-| 빌드 | AGP 9.2.1 · Kotlin 2.3.21 · convention plugins(`:build-logic`) · version catalog |
+| 네트워크 | Retrofit · OkHttp · GitHub Contents API |
+| 로컬 | Room 3 (노트 캐시 · 학습 기록 · SSOT) · DataStore |
+| 온디바이스 AI | LiteRT-LM (퀴즈 · 통계 요약) · WorkManager (모델 받기 · 요약 워커) |
+| 직렬화 | kotlinx.serialization |
+| 빌드 | AGP 9.4.1 · Kotlin 2.4.20 · convention plugins(`:build-logic`) · version catalog |
 
-compileSdk 37 · targetSdk 36 · minSdk 32
+compileSdk 37 · targetSdk 36 · minSdk 32. 버전의 정본은 [`gradle/libs.versions.toml`](gradle/libs.versions.toml) 이다.
 
 ## 모듈 구조
 
 ```
-app                     Application(Hilt), MainActivity, NotesRoute 호스트, 레포좌표·TokenSync
+app                     composition root — Application(Hilt), MainActivity, 구현체 바인딩, 모델 받기 알림 조정
+feature/notes           화면 · ViewModel · 퀴즈 · 통계 · 저장소 연결
 core/
-  design-foundation     디자인 토큰(색·타이포·간격), AdaptiveTokens(반응형 5단계)
-  design-system         MyNoteTheme, 공용 컴포넌트, 본문 블록 렌더
-  domain                모델 + Repository 인터페이스(DIP 소유) + UseCase
-  data                  DataSource 인터페이스 + DTO·Mapper + reconcile + Hilt
-  network               GitHub Contents API, 토큰 인터셉터/홀더
-  database              Room 노트 캐시 + DataStore 토큰 저장
-feature/notes           NotesViewModel/UiState/Intent, 화면 3개, Nav3 그래프
+  ai                    LiteRT-LM 퀴즈 생성 · 통계 요약 워커 · 모델 받기
+  network               GitHub Contents API · 저장소 확인 요청
+  database              Room 캐시 · 학습 기록 · DataStore
+  data                  DataSource 인터페이스 + reconcile(동기화)
+  domain                순수 JVM — 모델 + Repository 인터페이스(DIP 소유) + UseCase
+  navigation            Navigation 3 계약
+  design-system         MyNoteTheme · 공용 컴포넌트 · 본문 블록 렌더
+  design-foundation     디자인 토큰(색 · 타이포 · AdaptiveTokens)
+  common                MVI base · Throttler
+public-repos/           남에게 공개할 노트 규격 · 도구 · 템플릿 저장소 원본(아직 공개 전)
 ```
 
-의존 방향은 항상 바깥→안쪽: `network`/`database` → `data` → `domain`. 인터페이스는 안쪽이 소유하고
-바깥이 구현하며, `:app` 만 구현체를 알고 Hilt 로 바인딩한다(클린 아키텍처 / DIP). **SSOT 는 Room.**
+의존 방향은 항상 바깥 → 안쪽이다. 인터페이스는 안쪽이 소유하고 바깥이 구현하며, `:app` 만 구현체를 알고
+Hilt 로 묶는다(DIP). **SSOT 는 Room.** 에이전트용 안내는 [`AGENTS.md`](AGENTS.md)(모듈마다 따로 있다),
+디자인 기준은 [`DESIGN.md`](DESIGN.md), 기능 문서는 [`docs/spec/`](docs/spec/) 에 있다.
 
 ## 빌드 & 실행
 
 ```bash
-./gradlew :app:compileDebugKotlin      # 컴파일 검증
-./gradlew :core:data:testDebugUnitTest # 단위 테스트(reconcile·직렬화)
-./gradlew :app:assembleDebug           # 디버그 APK
-python3 notes/gen_index.py             # 노트 수정 후 index.json 재생성(검증 + 해시)
+./gradlew ktlintCheck :app:assembleDebug test lintDebug   # 한 번에 검증 (test — testDebugUnitTest 아님)
+python3 -I -m unittest discover public-repos/tests && python3 -I -m unittest discover public-repos/notes-kit/tests
+./gradlew :app:installDebug                               # 기기 설치 (uninstall 하면 기기의 모델 파일이 지워진다)
+git config core.hooksPath .githooks                       # 머신당 1회 — 노트를 커밋하면 index.json 을 다시 만든다
 ```
 
-**토큰**: private 레포 read 용 fine-grained PAT 가 필요하다. release 는 앱에서 런타임 입력(자물쇠 아이콘),
-debug 는 `local.properties` 의 `github.token` 을 내장한다(둘 다 git 에 올라가지 않음).
+**저장소 · 토큰**: 노트 저장소는 앱 안에서 링크로 연결한다. 비공개 저장소는 읽기 전용 fine-grained 토큰이 필요하다.
+debug 빌드는 `local.properties` 의 `github.owner` · `github.repo` · `github.token` 이 있으면 첫 실행에 시드로 연결한다
+(git 에 올라가지 않는다 · release 에는 들어가지 않는다).
 
 **Package:** `com.hancekim.mynote`

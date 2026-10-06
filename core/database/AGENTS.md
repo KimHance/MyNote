@@ -70,7 +70,7 @@ Room 에서 나온다(`observeCategories()` → `LocalNotesDataSource.observeNot
 
 - `key` 는 SQL 키워드라 열 이름이 `note_key` 다. FK 는 두지 않는다 — 소유 삭제는 DAO 가 `source_id` 조건으로 명시적으로 한다.
 - **자리만 둔 열(`kind`·`summary`·`aliases_json`·`source_url`·`tags_json`·`warnings_json`)은 `CachedNote` 에 없어서 `@Upsert` 가 매번 `NULL` 로 덮는다.** M0 에는 채우는 코드가 없어 문제없지만, 다른 경로(M1 front matter 등)가 이 열을 채우게 되면 그 전에 `CachedNote`·매핑에 열을 더해야 한다 — 아니면 다음 동기화가 지운다.
-- **4→5 는 손으로 쓴 `Migration` 이다**("손으로 SQL 을 쓰지 않는다" 의 유일한 예외, `docs/oss/m0/spec-data.md` §5).
+- **4→5 는 손으로 쓴 `Migration` 이다**("손으로 SQL 을 쓰지 않는다" 의 유일한 예외 — `DECISIONS-TO-REVISIT.md` 2).
   `notes` → `source_notes` 는 PK·열 이름이 바뀌고 값을 변환하며(`'s0/' || id`), 학습 기록 `UPDATE` 는 자동 마이그레이션이 못 만든다.
   `@DeleteTable` 은 `onPostMigrate` 전에 테이블을 지워서 복사할 수 없다. 대신 **`CREATE` 문은 5.json 의 `createSql` 을 그대로 옮겼고**,
   `runMigrationsAndValidate(5, listOf(MIGRATION_4_5))` 가 열·타입·NULL·기본값·인덱스를 5.json 과 대조한다. 엔티티를 고치면 5.json 이

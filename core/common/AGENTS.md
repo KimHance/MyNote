@@ -98,8 +98,8 @@ class NotesViewModel @Inject constructor(
 }
 ```
 
-화면 쪽 배선(`Route` / `Screen` 분리, `collectAsStateWithLifecycle`)은 루트
-`.claude/rules/01-architecture.md` 를 따른다.
+화면 쪽 배선은 `XxxRoute` 가 `hiltViewModel()` 과 `collectAsStateWithLifecycle()` 로 상태를 모아
+`XxxScreen(uiState, onIntent)`(ViewModel 없이 프리뷰되는 stateless)을 부르는 모양이다. 화면별 규칙은 `feature/notes/AGENTS.md`.
 
 ---
 

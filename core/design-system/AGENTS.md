@@ -195,7 +195,7 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
   기본값 `rememberNoteContentState()` 는 프리뷰·다른 호출부용이다. 원문 자르기(앞 40줄 → 최대 200줄·10,000자)는 순수 함수 `sliceRaw`
   (`RawSlice.kt`, `RawSliceTest`)다. 원문은 **줄마다 `Text` 하나**로 그린다 — 한 `Text` 에 줄마다 `ParagraphStyle` 을
   걸면 복사한 글자에서 줄바꿈이 사라진다(`SelectionContainer` 는 `Text` 사이를 `'\n'` 으로 잇는다). 대신 패널 `Column` 을
-  `mergeDescendants` 로 묶어 TalkBack 에는 한 노드다. 치수·문구는 `DESIGN.md` §8.6, 핸드오프 `docs/oss/m0/design/README.md`.
+  `mergeDescendants` 로 묶어 TalkBack 에는 한 노드다. 치수·문구는 `DESIGN.md` §8.6.
 
 ---
 

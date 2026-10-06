@@ -376,7 +376,7 @@ MyNote 는 GitHub 의 JSON 노트를 받아 **읽기만 하는** 학습 노트 �
 
 ### 4.1 반경
 
-`foundation/token/Dimens.kt` 의 `object MyNoteRadius`. 접근은 `MyNoteRadius.<이름>`(테마를 거치지 않는 상수).
+`foundation/token/MyNoteRadius.kt` 의 `object MyNoteRadius`. 접근은 `MyNoteRadius.<이름>`(테마를 거치지 않는 상수).
 
 | 이름 | 값 | 쓰는 자리 |
 |---|---|---|
@@ -406,11 +406,9 @@ MyNote 는 GitHub 의 JSON 노트를 받아 **읽기만 하는** 학습 노트 �
 
 ### 4.2 간격
 
-`foundation/token/Dimens.kt` 의 `object Spacing` — `xs` 4 · `sm` 8 · `md` 12 · `lg` 16 · `xl` 24 · `xxl` 32 (dp).
-
-**정의만 있고 코드에서 쓰는 곳이 0이다.** 실제 여백은 dp 리터럴과 창 크기 토큰(`page`·`cardGap`·`padY`)으로 정한다.
+간격 단계 토큰은 없다(쓰는 곳이 0이던 `Spacing` 은 2026-10-07 정리 때 지웠다 — 15절 #1). 실제 여백은 dp 리터럴과 창 크기 토큰(`page`·`cardGap`·`padY`)으로 정한다.
 레이아웃 리터럴(padding·spacedBy·Spacer·height·width)에서 많이 나오는 값은 16 > 10 > 8 > 12 > 6 > 20 > 14 > 2 > 4dp 순이다
-(grep 근사치). 10·6·14dp 는 `Spacing` 단계에 없다.
+(grep 근사치).
 
 자주 반복되는 컴포넌트 안쪽 여백(코드 사실):
 
@@ -488,7 +486,7 @@ MyNote 는 GitHub 의 JSON 노트를 받아 **읽기만 하는** 학습 노트 �
 - **화면과 화면 사이의 리듬은 창 크기 토큰**이 정한다 — 좌우 여백 `page`, 카드 사이 `cardGap`, 세로 리듬 `padY`. 화면이 이 숫자를 새로 정하지 않는다.
 - **한 부품의 생김새는 부품 상수**다. 카드 안쪽 16/15, 행 들여쓰기 29 처럼 단계 밖이어도 된다(4.2). 대신 그 컴포넌트 파일 한 곳에 둔다.
 - 묶음 사이는 "같은 묶음이면 가깝게, 다른 묶음이면 멀게" 하나로 판단한다. 라벨↔카드보다 섹션↔섹션이 멀어야 한다(ST §4.1: 라벨↔카드 10, 섹션 사이 28).
-- `Spacing` 단계는 지금 쓰는 곳이 없다(15절 #1). 정리할 때 디자인 쪽 기대는 "레이아웃 간격은 한 단계표에서 고른다" 이고, 단계표에 실제로 반복되는 값(6·10·14)을 넣을지 함께 정한다.
+- 간격 단계표는 없다(15절 #1). 단계표가 필요해지면 실제로 반복되는 값(16·10·8·12·6·20·14)으로 새로 만들고 화면이 그것을 쓰게 한다.
 
 #### 반경 — 안에 든 것은 작게, 떠 있는 것은 크게
 
@@ -935,7 +933,7 @@ foundation 기본값 `DefaultDebugIndication`(눌림 검정 30% 사각 덮개, �
 | `BulletList(items)` / `OrderedList(items)` | 항목 사이 6dp, 기호 `•` / `n.` 는 `text2`, 내용은 `bodyText` |
 | `Divider` | 1dp `border`, 위아래 8dp |
 | `Spacer` | 8dp |
-| `Unsupported(kind, salvaged, raw)` | 앱이 그리지 못한 블록(모르는 종류 · 깨진 블록 · 노트 전체). 면 없는 1dp 점선 `border`(대시 4 · 간격 3) 상자, 반경 10, 안쪽 시작 14 · 끝 14 · 위 12 · 아래 4(버튼 없으면 12). 안내 `bodySmall` `text2`(노트 전체면 제목 `cardTitle` `text` + 본문) → 8 → 건진 글자 `body` `text2` → 4 → 조용한 버튼 `원문 보기`/`원문 숨기기`(44dp, `button`/500 `text2`, `ChevronRight` 90°/−90°). 펼치면 `surface2` 패널(반경 8, 12 × 10) `mono` `text2`, 줄바꿈 + 감긴 줄은 (앞 공백 + 2)칸 들여쓰기, 앞 40줄 → `N줄 더 보기` → 최대 200줄 · 10,000자, 길게 눌러 복사. `accent`·`warn`·`wrong` 없음. 파일 `UnsupportedBlock.kt`, 원문 자르기 `RawSlice.kt`. 핸드오프 `docs/oss/m0/design/README.md` |
+| `Unsupported(kind, salvaged, raw)` | 앱이 그리지 못한 블록(모르는 종류 · 깨진 블록 · 노트 전체). 면 없는 1dp 점선 `border`(대시 4 · 간격 3) 상자, 반경 10, 안쪽 시작 14 · 끝 14 · 위 12 · 아래 4(버튼 없으면 12). 안내 `bodySmall` `text2`(노트 전체면 제목 `cardTitle` `text` + 본문) → 8 → 건진 글자 `body` `text2` → 4 → 조용한 버튼 `원문 보기`/`원문 숨기기`(44dp, `button`/500 `text2`, `ChevronRight` 90°/−90°). 펼치면 `surface2` 패널(반경 8, 12 × 10) `mono` `text2`, 줄바꿈 + 감긴 줄은 (앞 공백 + 2)칸 들여쓰기, 앞 40줄 → `N줄 더 보기` → 최대 200줄 · 10,000자, 길게 눌러 복사. `accent`·`warn`·`wrong` 없음. 파일 `UnsupportedBlock.kt`, 원문 자르기 `RawSlice.kt` |
 
 블록 사이는 12dp. 구간 스타일 `NoteSpanStyle` 은 `Normal` · `Bold`(700, `text`) · `Code`(고정폭, `surface2` 바탕, `accent` 글자, 앞뒤 공백 한 칸).
 
@@ -1313,7 +1311,7 @@ Canvas 로 그리는 통계 차트 5종. 전부 `progress: () -> Float`(`remembe
 | 색 | `:core:design-foundation` | `MyNoteColors` 에 필드 + `StudyNotesDarkColors` 에 값. 테마는 홀더를 통째로 들고 있어 자동으로 따라온다 |
 | 텍스트 스타일 | `:core:design-foundation` | `MyNoteTextStyles` 필드 + `myNoteTextStyles()`. 짧은 창 분기(`short`)인지 본문 배율(`bodySizeSp`)인지 먼저 정한다 |
 | 창 크기에 따라 변하는 값 | `:core:design-foundation` | `AdaptiveTokens` — "가로 구조" 면 `WidthTokens`, "세로 리듬" 이면 `HeightTokens`. 두 축의 함수면 계산 프로퍼티 |
-| 반경·간격 | `:core:design-foundation` | `MyNoteRadius`/`Spacing`(`object` + `val`) |
+| 반경 | `:core:design-foundation` | `MyNoteRadius`(`object` + `val`) |
 | 새 **종류**의 홀더(CompositionLocal) | `:core:design-system` | `theme/MyNoteTheme.kt` 에 Local 하나 더 + `remember(키)` |
 | 모션 상수·이징 | `:core:design-system` | `motion/`. `theme/` 에 넣지 않는다 |
 | 재사용 위젯·Modifier | `:core:design-system` | `component/` |
@@ -1325,7 +1323,7 @@ Canvas 로 그리는 통계 차트 5종. 전부 `progress: () -> Float`(`remembe
 
 - `Color(0x…)` 리터럴은 `MyNoteColors.kt` 에만. 예외는 `@Preview(backgroundColor = …)` 뿐인데, 애노테이션 인자는 상수만 받아 토큰을 못 쓴다.
   `0xFF0E1217` = `bg`, `0xFF161C24` = `surface` 를 **손으로 베낀 값**이라 팔레트를 바꾸면 같이 고친다.
-- 토큰 홀더는 멤버가 진짜 불변이라 `@Immutable` 이다. `MyNoteRadius`/`Spacing` 은 `object` + `val` 이라 본래 stable 이라 붙이지 않는다.
+- 토큰 홀더는 멤버가 진짜 불변이라 `@Immutable` 이다. `MyNoteRadius` 는 `object` + `val` 이라 본래 stable 이라 붙이지 않는다.
 - foundation 에는 `@Composable`·`Context`·리소스를 들이지 않는다. 들이면 JUnit4 만으로 도는 `AdaptiveTokensTest` 가 계측 테스트로 밀린다.
 - **안 쓰는 토큰은 남기지 않는다.** 팔레트가 유일한 출처라서 안 쓰는 이름도 "있는 값" 처럼 읽힌다.
 - 한 화면 전용 타이포 스케일을 그 화면에 두지 않는다(퀴즈가 자기 스케일 11종을 들고 있다가 foundation 으로 합쳐졌다).
@@ -1412,7 +1410,7 @@ if (adaptive.useFloatingRail) { /* 레일 형태 */ }
 
 | # | 항목 | 코드(사실) | 디자인/기대 | 제안 | 출처 |
 |---|---|---|---|---|---|
-| 1 | 간격 토큰 | `Spacing`(4·8·12·16·24·32) 정의, 사용 0회. 실제 여백은 dp 리터럴(16·10·8·12·6·20·14 순 — 4.2) | 레이아웃 간격은 한 단계표에서 고른다(SN Spacing, 4.6) | 지우거나("안 쓰는 토큰은 남기지 않는다"), 실제 반복되는 6·10·14 를 넣어 단계를 다시 정하고 쓰게 한다 | 개발자 |
+| 1 | 간격 토큰 | **해결(2026-10-07)** — 쓰는 곳이 0이던 `Spacing`(4·8·12·16·24·32)을 지웠다("안 쓰는 토큰은 남기지 않는다"). 실제 여백은 dp 리터럴(16·10·8·12·6·20·14 순 — 4.2)과 창 크기 토큰 | 레이아웃 간격은 한 단계표에서 고른다(SN Spacing, 4.6) | 단계표가 필요해지면 실제 반복 값으로 새로 만든다 | 개발자 |
 | 2 | 반경 토큰 | `MyNoteRadius` 는 14·10·8·5. `inlineCode`(5) 사용 0회 — 인라인 코드는 `SpanStyle` 배경이라 반경이 없다. 토큰 밖 리터럴 30·26·24·23·22·20·18·15·14·13·12·10·9·8·7·4·3·2dp(4.1) | 반경 위계(4.6). 12·18·26 이 여러 핸드오프에 반복(TK `dimension` 은 dialog 26·cta 18·button 15 를 "퀴즈 화면 상수" 로 둠) | `control 12` · `feature 18` · `dialog 26` 을 토큰 후보로. `inlineCode` 는 지우거나 반경을 그릴 방법을 정한다 | 둘 다 |
 | 3 | 알파 파생색 · 선택 면 | `copy(alpha = …)` 26곳·19가지(2.2). 선택 면 14%(`accentSoft`·`CHIP_TINT`·`FOCUS_TINT`)와 16%(`SELECTED_FILL`·퀴즈 설정 아이콘 상자), 선택 테두리 26%(`accentSoftBorder`·`FOCUS_BORDER`)와 32%(`SELECTED_STROKE`)로 갈렸다 | 같은 뜻이면 같은 알파(2.3 알파 표). 핸드오프도 14%(QZ §3.2)와 16%(NAV §4-4, STA §2)로 갈려 있어 의도된 차이로 보기 어렵다 | 선택 면은 `accentSoft`, 선택 테두리는 `accentSoftBorder` 하나로 모은다. 같은 뜻·같은 알파가 세 곳 이상이면 이름 붙은 토큰으로(13.0) | 둘 다 |
 | 4 | 타이포 덮어쓰기 | `copy(fontSize = …)` 54곳, `fontSize = N.sp` 직접 약 55곳(12sp 21회). 내비 라벨은 스타일 없이 12sp/600(3.4) | 스타일은 역할로 고르고 화면에서 `copy` 로 크기를 바꾸지 않는다(3.5) | 12sp 라벨 계열과 15sp 행 제목을 스타일로 올릴지 검토 | 개발자 |

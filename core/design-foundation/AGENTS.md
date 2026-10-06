@@ -37,7 +37,7 @@
   하나 추가하면 `StudyNotesDarkColors` 만 채우면 되고 테마는 홀더를 통째로 들고 있으므로 자동으로 따라온다.
   design-system 을 건드려야 하는 건 **새 종류의 홀더**를 만들어 CompositionLocal 을 하나 더 뚫을 때뿐이다.
 - 토큰 홀더는 멤버가 전부 진짜 불변(`Color`/`Dp`/`TextUnit`/`TextStyle`/enum)이라 **`@Immutable`**.
-  `MyNoteRadius`/`Spacing` 은 `object` + `val` 이라 본래 stable이라서 **어노테이션을 붙이지 않는다.**
+  `MyNoteRadius` 는 `object` + `val` 이라 본래 stable이라서 **어노테이션을 붙이지 않는다.**
 
 ## `AdaptiveTokens` — 너비 × 높이 양축
 
