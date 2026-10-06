@@ -931,7 +931,7 @@ foundation 기본값 `DefaultDebugIndication`(눌림 검정 30% 사각 덮개, �
 
 | 블록 | 그리는 법 |
 |---|---|
-| `Heading(level, spans)` | level ≤ 2 → `mdHeading2`, 그 외 `mdHeading3`. `text` |
+| `Heading(level, spans)` | level ≤ 2 → `mdHeading2`, 그 외 `mdHeading3`. `text`. 낭독: `heading()` |
 | `Paragraph(spans)` | `body`, `bodyText` |
 | `Code(code)` | `mono`, `text`, `surface2` 바탕, 반경 10dp, 안쪽 14 × 12, 줄바꿈 없이 가로 스크롤 |
 | `Quote(spans)` | `body` 기울임, `text2`, 왼쪽 3dp `accent` 막대, 시작 여백 12. 안의 기울임 구간은 세워 구별하고, 코드 구간도 서 있다 |
@@ -1134,6 +1134,7 @@ Canvas 로 그리는 통계 차트 5종. 전부 `progress: () -> Float`(`remembe
 - 장식 아이콘은 `contentDescription = null`. 내비 바는 선택된 항목의 라벨이 보이므로 그 아이콘의 설명을 뺀다(비선택 항목·레일은 라벨을 설명으로 단다).
 - 북마크 리본은 설명이 없고, 카드 노드의 `stateDescription` 이 `ds_bookmarked` 다. 글리프는 자체 설명 `ds_bookmarked` 를 단다.
 - `SectionLabel` 은 `heading()`, `NumberedRow` 는 `mergeDescendants` + 문장 하나로 된 `contentDescription`.
+- 리더의 노트 제목과 본문 제목 블록은 `heading()` — TalkBack 제목 단위 이동이 절 제목에 선다(표 머리 칸도 `heading()`).
 - 차트는 전부 `contentDescription` 을 필수로 받는다.
 - `correct`/`wrong` 은 아이콘·글자와 함께 쓴다(2.1).
 - TalkBack(터치 탐색)이 켜지면 퀴즈 자동 진행을 끄고 버튼을 띄운다(`feat/quiz/QuizAutoAdvancePolicy.kt`).

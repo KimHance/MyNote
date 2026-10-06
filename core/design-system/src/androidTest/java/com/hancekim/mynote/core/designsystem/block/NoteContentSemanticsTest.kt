@@ -30,6 +30,19 @@ class NoteContentSemanticsTest {
     }
 
     @Test
+    fun `NF-3 제목 블록은 낭독에서 제목이다`() {
+        show(
+            NoteContentBlock.Heading(2, plain("절 제목")),
+            NoteContentBlock.Heading(4, plain("작은 제목")),
+            NoteContentBlock.Paragraph(plain("문단")),
+        )
+
+        rule.onNodeWithText("절 제목").assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Heading))
+        rule.onNodeWithText("작은 제목").assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Heading))
+        rule.onNodeWithText("문단").assert(SemanticsMatcher.keyNotDefined(SemanticsProperties.Heading))
+    }
+
+    @Test
     fun `NF-6 체크 항목의 글이 켬과 끔을 상태 설명으로 싣는다`() {
         show(
             NoteContentBlock.BulletList(
