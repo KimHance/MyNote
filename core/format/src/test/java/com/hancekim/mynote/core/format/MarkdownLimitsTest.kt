@@ -12,6 +12,14 @@ private fun nestedLines(
     marker: String = "- ",
 ): String = (0 until depth).joinToString("\n") { step.repeat(it) + marker + "x" }
 
+private fun quotedList(
+    depth: Int,
+    marker: String,
+): String {
+    val quotes = "> ".repeat(depth - 16)
+    return (0 until 16).joinToString("\n") { quotes + "  ".repeat(it) + marker + "x" }
+}
+
 private fun mixedLines(depth: Int): String =
     (0 until depth).joinToString("\n") { level ->
         buildString {
@@ -46,6 +54,10 @@ class MarkdownLimitsTest {
                 "번호 목록 들여쓰기" to { nestedLines(it, "   ", marker = "1. ") },
                 "> 줄마다 한 단" to { n -> (1..n).joinToString("\n") { ">".repeat(it) + " x" } },
                 "> 와 목록을 섞은 들여쓰기" to { mixedLines(it) },
+                "표시 뒤 공백 다섯" to { nestedLines(it, "  ", marker = "-     ") },
+                "표시 뒤 탭 둘" to { nestedLines(it, "  ", marker = "-\t\t") },
+                "인용과 섞은 표시 뒤 공백 다섯 목록" to { quotedList(it, "-     ") },
+                "인용과 섞은 표시 뒤 탭 둘 목록" to { quotedList(it, "-\t\t") },
             )
 
         cases.forEach { (name, build) ->
