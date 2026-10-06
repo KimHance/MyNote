@@ -67,7 +67,6 @@ private fun List<NoteListItem>.toContentItems(limits: NoteLimits): ImmutableList
         )
     }.toImmutableList()
 
-// 상자의 펼침 상태는 최상위 블록 자리로 저장하므로 하위 블록에는 상자를 두지 않고 건진 글자만 남긴다.
 private fun List<NoteBlock>.toChildBlocks(limits: NoteLimits): ImmutableList<NoteContentBlock> =
     mapNotNull { block ->
         if (block is NoteBlock.Unsupported) {
