@@ -11,11 +11,11 @@
 의존은 `:core:domain` 과 마크다운 엔진(`org.jetbrains:markdown`, 판은 `libs.versions.toml`)이고, 이 모듈을 아는 것은 `:core:data` 뿐이다.
 network · database · feature 는 모른다. `org.intellij.markdown` import 는 이 모듈 밖에 두지 않는다.
 
-공개 API 는 넷이고 나머지(DTO · `BlockJson` · 매퍼 · 한도 · 마크다운 변환기)는 전부 `internal` 이다.
+공개 API 는 넷이고 나머지(DTO · `BlockJson` · 캐시 코덱 `BlockCache` · 매퍼 · 한도 · 마크다운 변환기)는 전부 `internal` 이다.
 
 | 이름 | 하는 일 |
 |---|---|
-| `NoteFormat` | 진입점 — `parse(path, raw)` · `derive(path, raw)` · `read(blocksJson, path, raw)`. `@Inject constructor()` 라 `@Binds` 가 필요 없다 |
+| `NoteFormat` | 진입점 — `parse(path, raw)` · `derive(path, raw)` · `read(blocksJson, path) { 원문 }`(suspend). `@Inject constructor()` 라 `@Binds` 가 필요 없다 |
 | `MarkdownConverter` | 한도 안의 마크다운 원문 → 도메인 블록. `NoteFormat(markdown)` 으로 바꿔 끼운다 |
 | `DerivedNote` | 캐시에 두는 값 — `blocksJson` · `excerpt` |
 | `PARSER_VERSION` | 해석 판 번호. 이보다 낮은 판의 캐시 행은 원문에서 다시 만든다 |
@@ -27,10 +27,13 @@ network · database · feature 는 모른다. `org.intellij.markdown` import 는
   (`NotesRepositoryImpl.rederiveStale`, 행의 `path`) · 연결 첫 동기화(`ConnectionRepositoryImpl` 이 따로 만드는 reconciler) ·
   캐시 손상 대체(`NoteMapper` → `read`). **형식을 고르는 코드를 다른 곳에 새로 두지 않는다.** 하나만 빠뜨려도 `.md` 가 JSON 으로
   해석된 상자로 현재 판 번호에 굳고, 내용이 바뀔 때까지 다시 변환되지 않는다.
-- **세 함수는 어떤 입력에도 던지지 않는다.** `Exception` · `StackOverflowError` 는 원문 전체를 든 노트 전체 상자(`broken_note`)가 된다.
+- **세 함수는 어떤 입력에도 던지지 않는다.** `Exception` · `StackOverflowError` 는 노트 전체 상자(`broken_note`)가 된다.
   재변환은 소스 격리 밖에서 모든 소스보다 먼저 돌아서, 한 행이 던지면 그 행이 옛 판으로 남아 동기화가 매번 실패한다.
-- `read` 는 캐시를 못 읽으면 원문을 경로로 다시 해석하고, 원문도 없으면 캐시 글자를 든 노트 전체 상자를 돌려준다.
-  형식 때문에 노트가 목록에서 사라지는 길은 없다.
+- **노트 전체 상자(`broken_note` · `limit_exceeded`)는 캐시에 원문을 두지 않는다**(`"raw":""`). 원문은 `raw` 열에 이미 있고,
+  캐시에 다시 넣으면 한 행이 원문의 두 배가 된다. `parse` 가 돌려주는 블록에는 원문이 들어 있다.
+- `read` 는 원문을 람다로 받아 **노트 전체 상자이거나 캐시를 못 읽을 때만** 부른다 — 목록이 원문 열을 읽지 않게. 상자면 원문으로
+  `raw` 를 채우고(옛 캐시처럼 이미 든 상자는 그대로), 캐시를 못 읽으면 원문을 경로로 다시 해석하고, 원문도 없으면 캐시 글자를 든
+  노트 전체 상자를 돌려준다. 형식 때문에 노트가 목록에서 사라지는 길은 없다.
 
 ## 마크다운 — 한도를 먼저 보고 변환기를 부른다
 
@@ -46,6 +49,21 @@ network · database · feature 는 모른다. `org.intellij.markdown` import 는
    - 예외를 잡는 것으로 한도를 대신하지 않는다. 엔진 메모리는 중첩에 따라 빠르게 늘어 20KB 노트 하나로 바닥나고, 직렬화는
      하위 목록 200단에서 스택이 넘친다(note-format 결정 11).
 2. 한도 안이면 `MarkdownConverter.convert(raw)` → 도메인 블록 → 캐시 DTO. `@Inject constructor()` 가 끼우는 것은 `GfmMarkdownConverter` 다.
+
+### 결과 한도 — 캐시 한 행이 커서 창에 들어가게
+
+원문 한도만으로는 결과 크기가 묶이지 않는다. 짧은 줄이 많은 노트는 캐시 JSON 이 원문의 13–15배가 되고(제목 · 문단 한 글자씩),
+모자란 표 칸을 채우면 10KB 원문이 칸 200만 개가 된다. Room 은 한 행을 커서 창(2MB) 하나로 읽어서, 창보다 큰 행이 하나라도
+있으면 목록 질의가 던지고 홈의 노트가 전부 사라진다. 그래서 변환 결과에도 한도를 두고, 넘으면 노트 전체가 한도 넘음 상자다.
+
+- 표 칸: 변환기가 노트 전체 표 칸 수(머리 열 × (본문 행 + 1))를 더해 가다 `maxTableCells` 를 넘으면 멈춘다. 모자란 칸을 채우기
+  전에 센다. 값은 리더 그리기 비용으로 골랐다 — 표는 Layout 하나로 다 그려서 디버그 빌드에서 3×300 칸 2.7초 · 3×2,000 칸 6.4초 ·
+  3×6,000 칸 15초에 ANR 이다. 노트 전체로 세는 것은 메모리 때문이다 — 표 하나마다 세면 작고 넓은 표 여러 개로 같은 증폭이 난다.
+- 캐시 크기: `BlockCache.encode(blocks, maxBytes)` 가 상한 있는 스트림으로 쓰다 `maxCacheBytes` 를 넘으면 그 자리에서 멈춘다.
+  JSON 노트도 같다. 다 쓴 뒤 재면 수 MB 문자열을 만든 뒤 버린다.
+- 값은 실측으로 골랐다 — 레포 노트 22개의 캐시는 원문의 1.27–1.93배(합 1.41배), 실제 노트를 이어 붙인 483KB 는 1.41배, 짧은 한글
+  문단은 1.89배라 원문 상한 512KB 의 보통 노트는 1MB 안이다. 최악 행 = 원문 512KB + 캐시 1MB + 나머지 열로 창 2MB 에 500KB 남짓
+  남는다(`:core:database` 계측 `NF-8 한도 안 최악 크기 행도 …`).
 
 ## 마크다운 변환 — `GfmMarkdownConverter`
 
@@ -99,7 +117,7 @@ network · database · feature 는 모른다. `org.intellij.markdown` import 는
 | `unknown_type` | `UnknownType` | JSON 블록의 type 을 모른다 |
 | `broken_block` | `BrokenBlock` | 아는 type 인데 필드 누락 · 타입 오류, type 없음 |
 | `broken_note` | `BrokenNote` | JSON 이 아니다 · 해석이 던졌다 |
-| `limit_exceeded` | `LimitExceeded` | 마크다운이 해석 전 한도를 넘었다 |
+| `limit_exceeded` | `LimitExceeded` | 한도(원문 크기 · 줄 앞 중첩 · 블록 깊이 · 표 칸 · 캐시 크기)를 넘었다 |
 
 ## 새 블록 · 필드를 더할 때
 
@@ -126,7 +144,8 @@ network · database · feature 는 모른다. `org.intellij.markdown` import 는
 
 ## 시험
 
-JVM 모듈이라 태스크가 `:core:format:test` 다(`testDebugUnitTest` 없음). 전부 JUnit4.
+JVM 모듈이라 태스크가 `:core:format:test` 다(`testDebugUnitTest` 없음). 전부 JUnit4. `read` 가 suspend 라 시험은 원문을 미리 쥔
+같은 이름의 확장(`Reads.kt`)으로 부른다.
 
 | 시험 | 무엇 |
 |---|---|
@@ -137,6 +156,7 @@ JVM 모듈이라 태스크가 `:core:format:test` 다(`testDebugUnitTest` 없음
 | `ParityTest` | NF-11 — 고정 사본 22쌍의 블록 · 첫 문장 · 퀴즈 평문, JSON 사본 해시 = 기준 목록, 레포 `notes/` 상자 0 |
 | `CacheCompatTest` | NF-12 형식 1 밖 type · 필드 · 캐시 바이트 · 옛 캐시 행 |
 | `BlockCacheTest` | NF-4 · 5 · 6 새 모양의 캐시 왕복 · 바이트, 32단 하위 블록, NF-8 한도 넘음 종류 · 거르기가 도메인 한도 값을 씀, NF-12 변환기 길의 지금 블록 바이트 |
+| `ResultLimitsTest` | NF-8 결과 한도 — 넓은 표 증폭 · 표 칸 누적 · 캐시 상한 경계(JSON · 마크다운) · 한도 안 병적 입력의 캐시 크기 · 노트 전체 상자의 원문 자리 |
 
 동기화를 지나는 시험은 `:core:data` 의 `NoteFormatSyncTest`(가짜 변환기) · `MarkdownSyncTest`(실제 엔진)다.
 

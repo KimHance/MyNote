@@ -128,6 +128,31 @@ class NoteFormatSyncTest {
         }
 
     @Test
+    fun `NF-8 목록은 원문을 읽지 않고 노트 전체 상자만 원문을 따로 읽는다`() =
+        runTest {
+            val adapter =
+                FakeAdapter(
+                    listOf(mdEntry("deep"), mdEntry("bad"), mdEntry("a"), entry("b", "h1")),
+                    docs = mapOf("deep" to DEEP_LIST, "bad" to FAIL, "a" to "a"),
+                )
+            val local = FakeLocal()
+            val repo = repo(adapter, local)
+            repo.sync().getOrThrow()
+
+            val blocks = repo.blocks()
+
+            assertEquals(limitNote(DEEP_LIST), blocks.getValue("s0/deep"))
+            assertEquals(brokenNote(FAIL), blocks.getValue("s0/bad"))
+            assertEquals(setOf("s0/deep", "s0/bad"), local.rawReads.toSet())
+            assertEquals(
+                """[{"type":"unsupported","reason":"limit_exceeded","raw":""}]""",
+                local.store.value
+                    .getValue("s0/deep")
+                    .blocksJson,
+            )
+        }
+
+    @Test
     fun `NF-8 해석 실패는 그 노트만 상자다`() =
         runTest {
             val adapter =

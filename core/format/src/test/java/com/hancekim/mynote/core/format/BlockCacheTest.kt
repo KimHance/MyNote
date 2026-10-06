@@ -202,7 +202,7 @@ class BlockCacheTest {
         assertEquals(box, format.parse("x.md", raw))
         assertEquals(box, format.read(format.derive("x.md", raw).blocksJson, "x.md", raw))
         assertEquals(
-            """[{"type":"unsupported","reason":"limit_exceeded","raw":"r"}]""",
+            """[{"type":"unsupported","reason":"limit_exceeded","raw":""}]""",
             cacheOf(NoteBlock.Unsupported(UnsupportedReason.LimitExceeded, type = null, text = null, raw = "r")),
         )
     }

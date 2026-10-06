@@ -47,9 +47,9 @@ private val SKIPPED =
     )
 
 /**
- * GFM 마크다운 원문을 블록으로 바꾼다. 블록 깊이가 [limits] 의 상한을 넘으면 노트 전체가 한도 넘음 상자 하나다.
+ * GFM 마크다운 원문을 블록으로 바꾼다. 블록 깊이나 표 칸 수가 [limits] 의 상한을 넘으면 노트 전체가 한도 넘음 상자 하나다.
  *
- * @param limits 블록 깊이 상한을 든 한도
+ * @param limits 블록 깊이 · 표 칸 수 상한을 든 한도
  */
 internal class GfmMarkdownConverter(
     private val limits: NoteLimits = NoteLimits.Default,
@@ -58,7 +58,7 @@ internal class GfmMarkdownConverter(
 
     override fun convert(raw: String): List<NoteBlock> {
         val body = markdownSource(raw).body
-        val reader = BlockReader(body, limits.maxDepth)
+        val reader = BlockReader(body, limits)
         val blocks = reader.blocks(parser.buildMarkdownTreeFromString(body).children, depth = 1)
         return if (reader.exceeded) {
             listOf(NoteBlock.Unsupported(UnsupportedReason.LimitExceeded, type = null, text = null, raw = raw))
@@ -70,19 +70,19 @@ internal class GfmMarkdownConverter(
 
 private class BlockReader(
     private val source: String,
-    private val maxDepth: Int,
+    private val limits: NoteLimits,
 ) {
     var exceeded = false
         private set
+
+    private var tableCells = 0L
 
     fun blocks(
         nodes: List<ASTNode>,
         depth: Int,
     ): List<NoteBlock> {
-        if (depth > maxDepth) {
-            exceeded = true
-            return emptyList()
-        }
+        if (depth > limits.maxDepth) exceeded = true
+        if (exceeded) return emptyList()
         return nodes.filter { it.type !in SKIPPED }.mapNotNull { block(it, depth) }
     }
 
@@ -180,10 +180,13 @@ private class BlockReader(
                 ?.let(::cells)
                 .orEmpty()
         val columns = header.size
-        val rows =
-            node.children
-                .filter { it.type == GFMElementTypes.ROW }
-                .map { row -> cells(row).take(columns).padded(columns) { TableCell(emptyList()) } }
+        val rowNodes = node.children.filter { it.type == GFMElementTypes.ROW }
+        tableCells += columns.toLong() * (rowNodes.size + 1)
+        if (tableCells > limits.maxTableCells) {
+            exceeded = true
+            return NoteBlock.Table(emptyList(), emptyList(), emptyList())
+        }
+        val rows = rowNodes.map { row -> cells(row).take(columns).padded(columns) { TableCell(emptyList()) } }
         val delimiter = node.children.firstOrNull { it.type == GFMTokenTypes.TABLE_SEPARATOR && '-' in text(it) }
         val align = delimiter?.let { alignments(text(it)) }.orEmpty()
         return NoteBlock.Table(header, rows, align.take(columns).padded(columns) { TableAlign.None })
