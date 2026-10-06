@@ -12,6 +12,7 @@ HOOK = REPO_ROOT / ".githooks" / "pre-commit"
 SCHEMA = REPO_ROOT / "notes" / "SCHEMA.md"
 WRITE_NOTE = REPO_ROOT / ".claude" / "skills" / "write-note" / "SKILL.md"
 FRONT_MATTER_BUNDLE = Path(__file__).resolve().parent / "fixtures" / "front-matter"
+PARITY = REPO_ROOT / "core" / "format" / "src" / "testFixtures" / "resources" / "parity"
 
 PRIOR_INDEX = b'{"prior": []}\n'
 

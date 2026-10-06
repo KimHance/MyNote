@@ -81,6 +81,9 @@ LLM tokens, and it lands in the *same* commit). Therefore:
    `Box\<T>`, `\~10`, `\$5`, `a \| b`. Never escape inside inline code or code blocks (the
    backslash would show). The one exception: a `|` inside inline code in a table cell is still
    escaped — `` `a\|b` `` stays in one cell and shows as `a|b`.
+5. **Never continue a paragraph with a line that starts with a list marker** (`-` `*` `+` `1.`
+   `1)`). The app breaks the paragraph there whatever the number or even for an empty item
+   (unlike CommonMark). Start a list after a blank line.
 
 ## Authoring style — compose for readability
 
