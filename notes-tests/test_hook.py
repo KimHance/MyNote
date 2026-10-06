@@ -78,6 +78,18 @@ class HookTest(support.TempCase):
                 self.assertIn("notes/index.json", self.committed_files(root))
                 self.assertEqual(self.ids(self.committed_index(root)), expected)
 
+    def test_NF_14_한글_그룹과_파일_이름도_목록에_들어간다(self):
+        """NF-14 한글 그룹과 파일 이름도 목록에 들어간다"""
+        root = self.make_repo("repo", {"notes/kotlin/base.md": front_matter(title="기준")})
+        self.git(root, "config", "core.quotePath", "true")
+
+        self.write(root, "notes/가나다/흐름.md", front_matter(title="한글 노트", date="2026.07.01"))
+        self.git(root, "add", "notes/가나다/흐름.md")
+        self.git(root, "commit", "-q", "-m", "add")
+
+        self.assertIn("notes/index.json", self.committed_files(root))
+        self.assertEqual(self.ids(self.committed_index(root)), {"kotlin": ["base"], "가나다": ["흐름"]})
+
     def test_NF_14_앞머리가_틀리면_커밋이_멈춘다(self):
         """NF-14 앞머리가 틀리면 커밋이 멈춘다"""
         cases = {

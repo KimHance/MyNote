@@ -79,7 +79,8 @@ LLM tokens, and it lands in the *same* commit). Therefore:
    (`**코드(code)** 를`).
 4. **Escape literal `<` `~` `*` `_` `$` `==`, and `|` inside tables, with a backslash** —
    `Box\<T>`, `\~10`, `\$5`, `a \| b`. Never escape inside inline code or code blocks (the
-   backslash would show).
+   backslash would show). The one exception: a `|` inside inline code in a table cell is still
+   escaped — `` `a\|b` `` stays in one cell and shows as `a|b`.
 
 ## Authoring style — compose for readability
 
