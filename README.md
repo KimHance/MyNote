@@ -1,15 +1,15 @@
 # MyNote
 
-> GitHub 저장소의 JSON 노트를 받아 "블로그 글처럼" 보는 **읽기 전용** 안드로이드 학습 노트 앱.
+> GitHub 저장소의 마크다운 노트를 받아 "블로그 글처럼" 보는 **읽기 전용** 안드로이드 학습 노트 앱.
 > 노트로 온디바이스 LLM 퀴즈를 풀고, 공부 기록을 통계로 본다.
 
 다크 단일 테마 · 멀티 폼팩터(반응형 · 폴더블) · 앱 내 쓰기 없음.
 
 콘텐츠는 **서버드리븐**이다. 앱 안에서 GitHub 저장소 링크를 붙여 연결하고(공개는 바로 · 비공개는 읽기 전용 토큰),
-`notes/index.json`(그룹 → 노트 + 해시)과 노트별 JSON 을 **GitHub Contents API** 로 받아 **Room 에 캐싱**한다.
+`notes/index.json`(그룹 → 노트 + 해시)과 노트 파일을 **GitHub Contents API** 로 받아 **Room 에 캐싱**한다.
 해시를 비교해 변경분만 동기화한다(없으면 받고 · 해시가 다르면 갱신 · index 에 없으면 삭제).
-노트 형식은 [`notes/SCHEMA.md`](notes/SCHEMA.md) 의 닫힌 블록 집합이다
-(`heading · paragraph · code · quote · bulletList · orderedList · divider · spacer`).
+노트는 앞머리(제목 · 날짜) + GFM 마크다운 본문이고, 앱이 블록(제목 · 문단 · 코드 · 인용 · 목록 · 표 · 구분선)으로 그린다.
+형식은 [`notes/SCHEMA.md`](notes/SCHEMA.md) 에 있다. 옛 JSON 노트도 읽는다.
 
 ## 기능 (`feature:notes`)
 
@@ -65,7 +65,7 @@ Hilt 로 묶는다(DIP). **SSOT 는 Room.** 에이전트용 안내는 [`AGENTS.m
 
 ```bash
 ./gradlew ktlintCheck :app:assembleDebug test lintDebug   # 한 번에 검증 (test — testDebugUnitTest 아님)
-python3 -I -m unittest discover public-repos/tests && python3 -I -m unittest discover public-repos/notes-kit/tests
+python3 -I -m unittest discover notes-tests && python3 -I -m unittest discover public-repos/tests && python3 -I -m unittest discover public-repos/notes-kit/tests
 ./gradlew :app:installDebug                               # 기기 설치 (uninstall 하면 기기의 모델 파일이 지워진다)
 git config core.hooksPath .githooks                       # 머신당 1회 — 노트를 커밋하면 index.json 을 다시 만든다
 ```

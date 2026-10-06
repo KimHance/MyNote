@@ -29,7 +29,7 @@ GitHub 의 JSON 노트를 받아 읽는 **읽기 전용** 안드로이드 학습
 
 ```bash
 ./gradlew ktlintCheck :app:assembleDebug test lintDebug
-python3 -I -m unittest discover public-repos/tests && python3 -I -m unittest discover public-repos/notes-kit/tests
+python3 -I -m unittest discover notes-tests && python3 -I -m unittest discover public-repos/tests && python3 -I -m unittest discover public-repos/notes-kit/tests
 ```
 
 **단일 테스트:**
@@ -89,15 +89,18 @@ app  ─────────────────────────
 
 한 모듈만 봐서는 안 보이는 것들이다. 각각 해당 모듈 `AGENTS.md` 에 자세히 있다.
 
-**콘텐츠가 앱보다 먼저 나가면 새 블록은 옛 앱에서 상자로 보인다.**
-본문 블록은 `@SerialName` 으로 고정된 닫힌 집합이다. 원격 `notes/` 에 앱이 모르는 `type` 이나 필드가 빠진 블록이
-올라가도 **동기화는 멈추지 않는다** — 그 블록만 `NoteBlock.Unsupported` 가 되어 리더에 점선 상자 + `원문 보기` 로 보이고,
-노트의 나머지와 다른 노트는 그대로 반영된다. 모르는 인라인 `style` 은 일반 글자로 읽는다. 파일이 아예 JSON 이 아니면
-그 노트는 목록에 남고 본문이 상자 하나가 된다. 동기화 전체가 실패하는 것은 **전송** 실패(index·본문을 받지 못함,
-index 자체가 깨짐)뿐이다. 그래도 새 블록을 *제대로* 보이려면 앱 업데이트가 먼저 나가야 한다. 캐시가 원문(`raw`)을
-들고 있어 앱을 올리면 네트워크 없이 다시 변환된다. 근거 테스트: `core/data` `MyNoteJsonFormatTest`(모르는 type·필드
-누락·모르는 style·JSON 아님), `NotesReconcileTest`(`형식 오류 노트는 격리하고 나머지는 반영한다`·`본문 전송이 하나라도
-실패하면 아무것도 반영하지 않는다`). (`core/data/AGENTS.md`)
+**콘텐츠가 앱보다 먼저 나가면 옛 앱에서 상자로 보인다.**
+앱은 목록 항목 경로의 확장자로 형식을 고른다 — `.md` 는 마크다운, 그 밖은 JSON. 마크다운을 모르는 옛 앱은 `.md`
+노트를 JSON 으로 읽어 **노트마다 본문 전체가 상자 하나**가 된다. JSON 은 `@SerialName` 으로 고정된 형식 `1` 의 닫힌
+집합이라, 앱이 모르는 `type` 이나 필드가 빠진 블록은 그 블록만 `NoteBlock.Unsupported`(점선 상자 + `원문 보기`)가 되고
+모르는 인라인 `style` 은 일반 글자로 읽는다. 마크다운은 그리지 못하는 문법을 글자로 보이고, 상자는 해석 실패 · 한도
+넘음(512KB · 32단)일 때만이다. 어느 경우도 **동기화는 멈추지 않는다** — 노트는 목록에 남고 다른 노트는 그대로
+반영된다. 동기화 전체가 실패하는 것은 **전송** 실패(index·본문을 받지 못함, index 자체가 깨짐)뿐이다. 그래도 새 형식 ·
+새 블록을 *제대로* 보이려면 앱 업데이트가 먼저 나가야 한다. 캐시가 원문(`raw`)과 경로를 들고 있어 앱을 올리면 네트워크
+없이 다시 변환된다. 근거 테스트: `MyNoteJsonFormatTest`(모르는 type·필드 누락·모르는 style·JSON 아님),
+`NotesReconcileTest`(`형식 오류 노트는 격리하고 나머지는 반영한다`·`본문 전송이 하나라도 실패하면 아무것도 반영하지
+않는다`), `NF-2 경로 확장자로 형식을 고른다`, `NF-9 옛 판이 상자로 둔 마크다운 행을 원문에서 다시 만든다`.
+(`core/data/AGENTS.md`)
 
 **`MyNoteApplication` 의 `@Inject lateinit var tokenSync` 를 지우면 조용히 인증이 없어진다.**
 그 필드 한 줄이 `TokenSync` 를 살아 있게 하는 유일한 참조이고, `GithubTokenHolder` 를 채우는
@@ -148,11 +151,16 @@ ktlint·Compose 의존·Hilt 는 컨벤션이 자동으로 넣는다. (`build-lo
 
 앱이 GitHub 에서 읽어가는 **서버드리븐 콘텐츠**다. 코드가 아니다.
 
+- 노트는 `notes/<그룹>/<id>.md` — 앞머리(`title` · `date`) + GFM 마크다운이다. 옛 `.json` 노트도 읽힌다.
+  정본은 `notes/SCHEMA.md`(앞머리 문법 · 문법 대응 표 · 쓰기 규칙).
 - 노트 추가·수정·삭제는 `write-note` 스킬로 한다. 손으로 파일을 만들지 않는다.
 - **`notes/index.json`·해시·`gen_index.py` 를 직접 건드리지 않는다.** pre-commit 훅이 커밋 순간
-  `gen_index.py` 로 재생성해 같은 커밋에 넣는다(작문은 LLM, 결정적 변환은 훅).
-- 블록은 `notes/SCHEMA.md` 의 닫힌 집합만. 새 타입은 앱 업데이트가 먼저다 — 옛 앱에서는 그 블록이 `원문 보기`
-  상자로 보인다(위 "콘텐츠가 앱보다 먼저 나가면").
+  `gen_index.py` 로 재생성해 같은 커밋에 넣는다(작문은 LLM, 결정적 변환은 훅). 생성기는 앞머리만 검사하고
+  틀리면 커밋이 멈춘다.
+- 앱이 그리지 못하는 문법은 글자로 보인다. 마크다운 노트를 처음 올릴 때는 앱 업데이트가 먼저다
+  (위 "콘텐츠가 앱보다 먼저 나가면").
+- 생성기 · 훅 · 쓰기 스킬의 시험은 `notes-tests/` 에 있다. `notes/` 안에 두면 시험 자료가 노트로 읽힌다.
+  앞머리 경계 묶음(`notes-tests/fixtures/front-matter/`)은 앱 시험도 같은 파일로 읽는다.
 - **`git push` 까지 해야 반영된다.** 앱은 원격을 읽지 로컬 클론을 읽지 않는다.
 
 ---

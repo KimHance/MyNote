@@ -5,9 +5,13 @@
 #
 # 설치(머신당 1회):  git config core.hooksPath .githooks
 
-# --- 1) notes/<group>/<id>.json 이 스테이징되면 index.json 을 재생성해 같은 커밋에 포함한다(원자적).
+# --- 1) notes/<group>/<id>.md · .json 이 스테이징되면 index.json 을 재생성해 같은 커밋에 포함한다(원자적).
 # gen_index.py 가 스키마 검증도 수행 → 깨진 노트면 커밋이 중단된다(로컬·즉시).
-if git diff --cached --name-only --diff-filter=ACMRD | grep -Eq '^notes/[^/]+/[^/]+\.json$'; then
+# --no-renames: 이름 바꿈의 옛 경로도 보여야 notes/ 밖으로 옮긴 노트가 목록에서 빠진다.
+# 확장자는 대소문자를 가리지 않고 잡는다 — 생성기가 소문자가 아닌 확장자를 실패로 말한다.
+# core.quotePath=false: 한글 경로가 따옴표 · 8진수로 감싸지면 정규식에 안 걸린다.
+if git -c core.quotePath=false diff --cached --name-only --no-renames --diff-filter=ACMD \
+    | grep -Eq '^notes/[^/]+/[^/]+\.([Mm][Dd]|[Jj][Ss][Oo][Nn])$'; then
     if ! python3 notes/gen_index.py; then
         echo "✗ 노트 스키마 검증 실패 — 커밋 중단. 위 오류를 고친 뒤 다시 커밋하세요." >&2
         exit 1
