@@ -7,7 +7,7 @@ import org.junit.Test
 
 class ExpectedModelTest {
     @Test
-    fun `MD-2 앱에 박힌 기준은 소문자 hex 64자 sha256 과 모델 크기다`() {
+    fun `MD-2 앱 상수는 소문자 hex 64자 sha256 과 2588147712 바이트다`() {
         val expected = ModelSource.expected
 
         assertTrue(expected.sha256, LOWER_HEX_64.matches(expected.sha256))
