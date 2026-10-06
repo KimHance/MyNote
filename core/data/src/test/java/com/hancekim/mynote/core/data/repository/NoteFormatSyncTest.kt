@@ -17,6 +17,7 @@ import org.junit.Test
 import java.util.Collections
 
 private const val FAIL = "실패하는 본문"
+private const val EXHAUST = "메모리가 모자란 본문"
 
 private class FakeMarkdown : MarkdownConverter {
     val seen: MutableList<String> = Collections.synchronizedList(mutableListOf())
@@ -24,6 +25,7 @@ private class FakeMarkdown : MarkdownConverter {
     override fun convert(raw: String): List<NoteBlock> {
         seen += raw
         check(raw != FAIL) { "변환 실패" }
+        if (raw == EXHAUST) throw OutOfMemoryError()
         return listOf(NoteBlock.Paragraph(listOf(NoteSpan("md:$raw"))))
     }
 }
@@ -150,6 +152,24 @@ class NoteFormatSyncTest {
                     .getValue("s0/deep")
                     .blocksJson,
             )
+        }
+
+    @Test
+    fun `NF-2 메모리가 모자란 노트만 한도 넘음 상자이고 동기화는 다른 노트를 반영한다`() =
+        runTest {
+            val adapter =
+                FakeAdapter(
+                    listOf(mdEntry("big"), mdEntry("a"), entry("b", "h1")),
+                    docs = mapOf("big" to EXHAUST, "a" to "a"),
+                )
+            val repo = repo(adapter, FakeLocal())
+
+            assertEquals(3, repo.sync().getOrThrow().added)
+
+            val blocks = repo.blocks()
+            assertEquals(limitNote(EXHAUST), blocks.getValue("s0/big"))
+            assertEquals(md("a"), blocks.getValue("s0/a"))
+            assertEquals(listOf(NoteBlock.Paragraph(listOf(NoteSpan("b")))), blocks.getValue("s0/b"))
         }
 
     @Test

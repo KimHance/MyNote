@@ -246,7 +246,7 @@ internal class SpanWriter(
         if (node.type == MarkdownElementTypes.INLINE_LINK) {
             node.children.none { child ->
                 child.type == MarkdownElementTypes.LINK_DESTINATION &&
-                    text(child).let { !it.startsWith('<') && it.any(Char::isWhitespace) }
+                    text(child).let { !it.startsWith('<') && it.any(Char::breaksDestination) }
             }
         } else {
             node.children.firstOrNull { it.type == MarkdownElementTypes.LINK_LABEL }?.let { defined(text(it)) } == true
@@ -262,6 +262,8 @@ internal class SpanWriter(
         return label.children.trimBrackets()
     }
 }
+
+private fun Char.breaksDestination(): Boolean = this == ' ' || this < ' ' || this == '\u007F'
 
 private fun Marks.span(
     text: String,

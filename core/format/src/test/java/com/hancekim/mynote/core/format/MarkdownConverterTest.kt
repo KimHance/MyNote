@@ -427,6 +427,8 @@ class MarkdownConverterTest {
                 "[**굵게**][없음]" to listOf(p(t("["), b("굵게"), t("][없음]"))),
                 "![alt][ref]" to listOf(p(t("![alt][ref]"))),
                 "[a](b c)" to listOf(p(t("[a](b c)"))),
+                "[a](b\u00A0c)" to listOf(p(t("a"))),
+                "[a](b\u3000c)" to listOf(p(t("a"))),
                 "![a](b c)" to listOf(p(t("![a](b c)"))),
                 "[a](<b c>)" to listOf(p(t("a"))),
                 "[a](b \"t\")" to listOf(p(t("a"))),

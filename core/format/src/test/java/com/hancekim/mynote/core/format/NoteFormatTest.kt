@@ -88,6 +88,20 @@ class NoteFormatTest {
     }
 
     @Test
+    fun `NF-2 메모리가 모자라면 그 노트만 한도 넘음 상자다`() {
+        val raw = "# 제목\n본문"
+        val exhausted = NoteFormat { throw OutOfMemoryError() }
+
+        assertEquals(limitNote(raw), exhausted.parse("x.md", raw))
+        assertEquals(
+            DerivedNote("""[{"type":"unsupported","reason":"limit_exceeded","raw":""}]""", null),
+            exhausted.derive("x.md", raw),
+        )
+        assertEquals(limitNote(raw), exhausted.read("{깨짐", "x.md", raw))
+        assertEquals(JSON_BLOCKS, exhausted.parse("x.json", JSON_NOTE))
+    }
+
+    @Test
     fun `NF-2 캐시를 못 읽으면 원문을 경로로 다시 읽고 원문도 없으면 캐시 글자를 든다`() {
         assertEquals(listOf(NoteBlock.Paragraph(listOf(NoteSpan("md")))), format.read("{깨짐", "x.md", "# a"))
         assertEquals(JSON_BLOCKS, format.read("{깨짐", "x.json", JSON_NOTE))
