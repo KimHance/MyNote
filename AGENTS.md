@@ -30,6 +30,8 @@ GitHub 의 마크다운 노트(옛 JSON 도)를 받아 읽는 **읽기 전용** 
 ```bash
 ./gradlew ktlintCheck :app:assembleDebug test lintDebug
 python3 -I -m unittest discover notes-tests && python3 -I -m unittest discover public-repos/tests && python3 -I -m unittest discover public-repos/notes-kit/tests
+# 계측 시험 — 기기 하나를 붙여 따로 돌린다(`test` 에 안 든다). 라이브러리 시험이라 앱을 지우지 않는다
+ANDROID_SERIAL=<기기 serial> ./gradlew :core:design-system:connectedDebugAndroidTest :core:database:connectedDebugAndroidTest
 ```
 
 **단일 테스트:**
