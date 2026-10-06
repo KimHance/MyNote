@@ -192,7 +192,7 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
   domain · feature 매퍼 · 이 sealed 집합 · `NoteContent` 의 `when` 이 **한 세트로** 움직인다. JSON 형식 1 은 늘리지 않는다.
   `Unsupported(kind, salvaged, raw)` 만 와이어에 없는 **앱 내부 블록**이다 — 그리지 못한 블록·노트를 버리지 않고
   `UnsupportedBlock` 점선 상자로 그린다. `kind` 는 domain `UnsupportedReason` 을 옮긴 UI sealed 종류(이 모듈은 domain 을 모른다) —
-  한도 넘음 `LimitExceeded(maxDepth, maxKilobytes)` 는 문구 숫자를 들고 온다. 숫자를 이 모듈 소스에 다시 적지 않는다.
+  한도 넘음 `LimitExceeded(maxDepth, maxKilobytes, maxTableCells)` 는 문구 숫자를 들고 온다. 숫자를 이 모듈 소스에 다시 적지 않는다.
   `UnsupportedBlock` 은 종류를 `when` 으로 가르니 종류가 늘면 컴파일이 잡는다.
   빈 `salvaged`·`raw` 는 feature 매퍼가 `null` 로 바꿔 넘긴다(`raw == null` 이면 원문 보기 버튼이 없다). 펼침·2단은
   `UnsupportedBlock` 안이 아니라 **`NoteContentState`**(블록 index 집합 둘, `Saver` 로 저장)에 있고 `NoteContent(state = …)` 로

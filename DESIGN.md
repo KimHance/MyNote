@@ -939,7 +939,7 @@ foundation 기본값 `DefaultDebugIndication`(눌림 검정 30% 사각 덮개, �
 | `Table(header, rows, align)` | 칸 격자 — 바깥 1dp `border` 반경 10, 칸 사이 1dp `border`, 머리 행 `surface2`. 칸 `body` 줄 높이 ×1.5 `bodyText`, 머리 600 `text`, 안쪽 12 × 8, 열 정렬(없음 = 시작). 같은 행 칸은 첫 줄 기준선을 맞춘다 — 가장 낮은 기준선에 맞춰 내려 놓는다(한글 대체 글꼴 · 라틴 · 코드의 줄 지표가 달라서). 칸 안 코드는 앞뒤 여백까지 한 낱말(줄이 안 바뀌는 공백). 열 폭: 목표 T = 가장 긴 줄(≤ 16em) · 최소 M = min(T, max(가장 긴 낱말, 6em)) → ΣT 가 들어가면 T · ΣM 이 들어가면 M + 남는 폭을 (T − M) 비율로(표 = 본문 폭) · 아니면 M 으로 가로 스크롤. 표 폭은 내용 폭이고 시작 쪽에 붙는다. 가려진 쪽 24dp `bg` 페이드(`horizontalScrollFade`), 스크롤바 없음. 낭독: `collectionInfo`(행 · 열) · 칸 `collectionItemInfo` · 머리 칸 `heading()`. 파일 `NoteTable.kt`, 열 폭 순수 함수 `TableColumnWidths.kt` |
 | `Divider` | 1dp `border`, 위아래 8dp |
 | `Spacer` | 8dp |
-| `Unsupported(kind, salvaged, raw)` | 앱이 그리지 못한 블록(모르는 종류 `UnknownType` · 깨진 블록 `BrokenBlock` · 노트 전체 `BrokenNote` · 한도 넘음 `LimitExceeded(maxDepth, maxKilobytes)`). 면 없는 1dp 점선 `border`(대시 4 · 간격 3) 상자, 반경 10, 안쪽 시작 14 · 끝 14 · 위 12 · 아래 4(버튼 없으면 12). 안내 `bodySmall` `text2`(노트 전체 · 한도 넘음이면 제목 `cardTitle` `text` + 본문 — 한도 넘음 문구 `ds_unsupported_limit_*` 의 두 숫자는 화면 모델 인자라 화면 쪽에 다시 적지 않는다) → 8 → 건진 글자 `body` `text2` → 4 → 조용한 버튼 `원문 보기`/`원문 숨기기`(44dp, `button`/500 `text2`, `ChevronRight` 90°/−90°). 펼치면 `surface2` 패널(반경 8, 12 × 10) `mono` `text2`, 줄바꿈 + 감긴 줄은 (앞 공백 + 2)칸 들여쓰기, 앞 40줄 → `N줄 더 보기` → 최대 200줄 · 10,000자, 길게 눌러 복사. `accent`·`warn`·`wrong` 없음. 파일 `UnsupportedBlock.kt`, 원문 자르기 `RawSlice.kt` |
+| `Unsupported(kind, salvaged, raw)` | 앱이 그리지 못한 블록(모르는 종류 `UnknownType` · 깨진 블록 `BrokenBlock` · 노트 전체 `BrokenNote` · 한도 넘음 `LimitExceeded(maxDepth, maxKilobytes, maxTableCells)`). 면 없는 1dp 점선 `border`(대시 4 · 간격 3) 상자, 반경 10, 안쪽 시작 14 · 끝 14 · 위 12 · 아래 4(버튼 없으면 12). 안내 `bodySmall` `text2`(노트 전체 · 한도 넘음이면 제목 `cardTitle` `text` + 본문 — 한도 넘음 문구 `ds_unsupported_limit_*` 의 세 숫자(겹침 단수 · 파일 KB · 표 칸 수)는 화면 모델 인자라 화면 쪽에 다시 적지 않는다) → 8 → 건진 글자 `body` `text2` → 4 → 조용한 버튼 `원문 보기`/`원문 숨기기`(44dp, `button`/500 `text2`, `ChevronRight` 90°/−90°). 펼치면 `surface2` 패널(반경 8, 12 × 10) `mono` `text2`, 줄바꿈 + 감긴 줄은 (앞 공백 + 2)칸 들여쓰기, 앞 40줄 → `N줄 더 보기` → 최대 200줄 · 10,000자, 길게 눌러 복사. `accent`·`warn`·`wrong` 없음. 파일 `UnsupportedBlock.kt`, 원문 자르기 `RawSlice.kt` |
 
 블록 사이는 12dp. 구간 스타일 `NoteSpanStyle` 은 `Normal` · `Bold`(700, `text`) · `Code`(고정폭, `surface2` 바탕, `accent` 글자, 앞뒤 공백 한 칸). 여기에 `italic`(`FontStyle.Italic` — 인용 안에서는 세움) · `strike`(`LineThrough`, 줄 색 = 그 구간 글자 색)가 겹친다. 코드에는 취소선만 붙고, 인용 안에서도 기울지 않는다(`FontStyle.Normal`). 취소선 구간이 있는 글은 낭독에서 `ds_block_strike_start` … `ds_block_strike_end` 로 감싼다. 파일 `NoteSpans.kt`. 목록 하위 자리의 `Unsupported` 는 원문 보기 없이 안내만 보인다(펼침 상태는 맨 위 블록 자리에만 있다).
 
@@ -1073,6 +1073,8 @@ Canvas 로 그리는 통계 차트 5종. 전부 `progress: () -> Float`(`remembe
 | `ds_unsupported_truncated` | 앞 %1$d줄만 표시했습니다. |
 | `ds_unsupported_note_title` | 이 노트를 읽지 못했습니다 |
 | `ds_unsupported_note_body` | 노트 파일의 형식을 알아볼 수 없습니다. 파일이 바뀌거나 앱을 업데이트하면 다시 읽습니다. |
+| `ds_unsupported_limit_title` | 이 노트는 읽기 한도를 넘었습니다 |
+| `ds_unsupported_limit_body` | 목록이나 인용이 %1$d단보다 깊게 겹쳤거나, 파일이 %2$dKB를 넘었거나, 표 칸이 합쳐서 %3$,d개를 넘었거나, 읽은 결과가 너무 커서 읽지 않았습니다. 파일을 나누거나 겹침과 표를 줄이면 다시 읽습니다. |
 
 ### 9.3 말투
 

@@ -288,15 +288,22 @@ class NoteBlockMapperTest {
         val changed =
             limit
                 .toContentBlocks(
-                    NoteLimits(maxDepth = 7, maxKilobytes = 3),
+                    NoteLimits(maxDepth = 7, maxKilobytes = 3, maxTableCells = 5),
                 ).single() as NoteContentBlock.Unsupported
 
         assertEquals(
-            UnsupportedKind.LimitExceeded(NoteLimits.Default.maxDepth, NoteLimits.Default.maxKilobytes),
+            UnsupportedKind.LimitExceeded(
+                NoteLimits.Default.maxDepth,
+                NoteLimits.Default.maxKilobytes,
+                NoteLimits.Default.maxTableCells,
+            ),
             byDefault.kind,
         )
-        assertEquals(UnsupportedKind.LimitExceeded(maxDepth = 32, maxKilobytes = 512), byDefault.kind)
-        assertEquals(UnsupportedKind.LimitExceeded(maxDepth = 7, maxKilobytes = 3), changed.kind)
+        assertEquals(
+            UnsupportedKind.LimitExceeded(maxDepth = 32, maxKilobytes = 512, maxTableCells = 4_096),
+            byDefault.kind,
+        )
+        assertEquals(UnsupportedKind.LimitExceeded(maxDepth = 7, maxKilobytes = 3, maxTableCells = 5), changed.kind)
         assertEquals("- x", byDefault.raw)
         assertNull(byDefault.salvaged)
     }

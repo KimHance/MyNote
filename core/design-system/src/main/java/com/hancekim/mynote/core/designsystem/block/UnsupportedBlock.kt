@@ -179,7 +179,13 @@ private fun UnsupportedNotice(block: NoteContentBlock.Unsupported) {
             is UnsupportedKind.LimitExceeded -> {
                 WholeNoteNotice(
                     title = stringResource(R.string.ds_unsupported_limit_title),
-                    body = stringResource(R.string.ds_unsupported_limit_body, kind.maxDepth, kind.maxKilobytes),
+                    body =
+                        stringResource(
+                            R.string.ds_unsupported_limit_body,
+                            kind.maxDepth,
+                            kind.maxKilobytes,
+                            kind.maxTableCells,
+                        ),
                 )
             }
 
@@ -461,7 +467,7 @@ private class UnsupportedBlockPreviewProvider : PreviewParameterProvider<Unsuppo
             ),
             UnsupportedPreviewState(
                 NoteContentBlock.Unsupported(
-                    UnsupportedKind.LimitExceeded(maxDepth = 8, maxKilobytes = 64),
+                    UnsupportedKind.LimitExceeded(maxDepth = 8, maxKilobytes = 64, maxTableCells = 128),
                     null,
                     previewLongRaw,
                 ),
