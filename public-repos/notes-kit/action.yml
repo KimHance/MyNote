@@ -1,0 +1,20 @@
+name: 노트 검사와 index 생성
+description: 노트 저장소의 노트를 검사하고, 통과하면 notes/index.json 을 만들어 바뀐 때만 같은 브랜치에 커밋합니다.
+inputs:
+  notes-dir:
+    description: 저장소 루트 기준 노트 폴더
+    required: false
+    default: notes
+  commit:
+    description: false 면 index.json 만 쓰고 커밋하지 않습니다
+    required: false
+    default: "true"
+runs:
+  using: composite
+  steps:
+    - name: 검사 · index 생성 · 커밋
+      shell: bash
+      env:
+        NOTES_DIR: ${{ inputs.notes-dir }}
+        COMMIT: ${{ inputs.commit }}
+      run: python3 "$GITHUB_ACTION_PATH/tools/note_tool.py" publish

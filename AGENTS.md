@@ -30,6 +30,7 @@ GitHub 의 JSON 노트를 받아 읽는 **읽기 전용** 안드로이드 학습
 
 ```bash
 ./gradlew ktlintCheck :app:assembleDebug test lintDebug
+python3 -I -m unittest discover public-repos/tests && python3 -I -m unittest discover public-repos/notes-kit/tests
 ```
 
 **단일 테스트:**
