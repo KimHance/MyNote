@@ -1,14 +1,9 @@
 package com.hancekim.mynote.core.ai.download.transfer
 
-import com.hancekim.mynote.core.ai.download.decision.DownloadPlan
 import com.hancekim.mynote.core.ai.download.decision.ENCODING_IDENTITY
 import com.hancekim.mynote.core.ai.download.decision.HEADER_ACCEPT_ENCODING
 import com.hancekim.mynote.core.ai.download.decision.HEADER_CONTENT_RANGE
-import com.hancekim.mynote.core.ai.download.decision.HEADER_LINKED_ETAG
-import com.hancekim.mynote.core.ai.download.decision.HEADER_LINKED_SIZE
 import com.hancekim.mynote.core.ai.download.decision.HEADER_RANGE
-import com.hancekim.mynote.core.ai.download.decision.HEADER_REPO_COMMIT
-import com.hancekim.mynote.core.ai.download.decision.HEADER_RETRY_AFTER
 import com.hancekim.mynote.core.ai.download.decision.Verdict
 import kotlinx.coroutines.test.runTest
 import mockwebserver3.MockResponse
@@ -123,20 +118,6 @@ class ModelDownloaderTest {
         }
 
     @Test
-    fun `429 는 서버가 말한 대기 시간을 그대로 전한다`() =
-        runTest {
-            server.enqueue(
-                MockResponse
-                    .Builder()
-                    .code(429)
-                    .setHeader(HEADER_RETRY_AFTER, "295")
-                    .build(),
-            )
-
-            assertEquals(Verdict.RetryLater(295L), downloader.fetchInto(url(), part, from = 0L) {})
-        }
-
-    @Test
     fun `404 는 포기한다`() =
         runTest {
             server.enqueue(MockResponse.Builder().code(404).build())
@@ -173,44 +154,10 @@ class ModelDownloaderTest {
 
             val verdict = downloader.fetchInto(url(), part, from = 0L) {}
 
-            assertEquals(Verdict.RetryLater(null), verdict)
+            assertEquals(Verdict.RetryLater, verdict)
             assertTrue(part.readText().isNotEmpty())
             assertTrue(part.readText().length < FULL_BODY.length)
             assertTrue(FULL_BODY.startsWith(part.readText()))
-        }
-
-    @Test
-    fun `plan 은 302 를 따라가지 않고 헤더에서 신분증을 읽는다`() =
-        runTest {
-            server.enqueue(
-                MockResponse
-                    .Builder()
-                    .code(302)
-                    .setHeader("Location", "https://cdn.example.test/blob")
-                    .setHeader(HEADER_LINKED_SIZE, "2588147712")
-                    .setHeader(HEADER_LINKED_ETAG, "\"$SHA\"")
-                    .setHeader(HEADER_REPO_COMMIT, COMMIT)
-                    .build(),
-            )
-
-            val plan = downloader.plan(url())
-
-            assertEquals(DownloadPlan(COMMIT, SHA, 2_588_147_712L), plan)
-            assertEquals("HEAD", waitForRequest().method)
-        }
-
-    @Test
-    fun `헤더가 없으면 신분증이 없다`() =
-        runTest {
-            server.enqueue(
-                MockResponse
-                    .Builder()
-                    .code(302)
-                    .setHeader("Location", "https://x.test/b")
-                    .build(),
-            )
-
-            assertNull(downloader.plan(url()))
         }
 
     private fun waitForRequest() =
@@ -230,6 +177,5 @@ class ModelDownloaderTest {
         const val TOTAL = 9L
         const val FULL_BODY = "0123456789ABCDEF"
         const val COMMIT = "b3ca0d2f076785a8f4b2219ddbd2bdb99954eae1"
-        const val SHA = "181938105e0eefd105961417e8da75903eacda102c4fce9ce90f50b97139a63c"
     }
 }

@@ -13,6 +13,11 @@ class DownloadNotificationsTest {
 
     @Test
     fun `그 밖의 실패는 기본 문구를 쓴다`() {
-        assertEquals(R.string.ai_model_download_failed_body, failureBodyRes(ModelInstaller.REASON_NO_PLAN))
+        assertEquals(R.string.ai_model_download_failed_body, failureBodyRes(ModelInstaller.REASON_TOO_MANY_ROUNDS))
+    }
+
+    @Test
+    fun `MD-6 옛 no-plan 실패 알림은 기본 문구다`() {
+        assertEquals(R.string.ai_model_download_failed_body, failureBodyRes("no-plan"))
     }
 }

@@ -21,9 +21,10 @@ class ModelWaitNotice @Inject constructor(
         if (started) return
         started = true
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
+        scope.launch { downloads.status().collect(downloads::settleNotices) }
     }
 
     override fun onStop(owner: LifecycleOwner) {
-        scope.launch { downloads.notifyWaitingForWifi() }
+        scope.launch { downloads.notifyResting() }
     }
 }

@@ -19,7 +19,7 @@ class DownloadFactsTest {
 
     @Test
     fun `작업이 없고 받던 조각만 있으면 멈춘 것이다`() {
-        val facts = DownloadFacts(partBytes = HALF, plannedTotalBytes = TOTAL)
+        val facts = DownloadFacts(partBytes = HALF)
 
         assertEquals(ModelStatus.Paused(HALF, TOTAL), statusOf(facts))
     }
@@ -44,49 +44,14 @@ class DownloadFactsTest {
     }
 
     @Test
-    fun `대기 중인데 한 번 돌았으면 다시 시도를 기다린다`() {
+    fun `MD-8 재시도 상태는 남은 시간 없이 받은 만큼만 안다`() {
         val facts =
             DownloadFacts(
-                work =
-                    WorkFacts(
-                        state = WorkInfo.State.ENQUEUED,
-                        runAttemptCount = 1,
-                        nextScheduleTimeMillis = 30_000L,
-                    ),
-                partBytes = HALF,
-                plannedTotalBytes = TOTAL,
-                nowMillis = 26_500L,
+                work = WorkFacts(WorkInfo.State.ENQUEUED, runAttemptCount = 1),
+                partBytes = GIGABYTE,
             )
 
-        assertEquals(ModelStatus.Retrying(HALF, TOTAL, 4), statusOf(facts))
-    }
-
-    @Test
-    fun `다시 시도 예정 시각이 없으면 남은 초를 비운다`() {
-        val facts =
-            DownloadFacts(
-                work = WorkFacts(WorkInfo.State.ENQUEUED, runAttemptCount = 2),
-                plannedTotalBytes = TOTAL,
-            )
-
-        assertEquals(ModelStatus.Retrying(0L, TOTAL, null), statusOf(facts))
-    }
-
-    @Test
-    fun `예정 시각이 이미 지났으면 0초로 본다`() {
-        val facts =
-            DownloadFacts(
-                work =
-                    WorkFacts(
-                        state = WorkInfo.State.ENQUEUED,
-                        runAttemptCount = 3,
-                        nextScheduleTimeMillis = 1_000L,
-                    ),
-                plannedTotalBytes = TOTAL,
-                nowMillis = 9_000L,
-            )
-
-        assertEquals(ModelStatus.Retrying(0L, TOTAL, 0), statusOf(facts))
+        assertEquals(ModelStatus.Retrying(GIGABYTE, TOTAL), statusOf(facts))
     }
 
     @Test
@@ -156,7 +121,6 @@ class DownloadFactsTest {
             DownloadFacts(
                 work = WorkFacts(WorkInfo.State.SUCCEEDED),
                 partBytes = 1_000L,
-                plannedTotalBytes = TOTAL,
             )
 
         assertEquals(ModelStatus.Paused(1_000L, TOTAL), statusOf(facts))
@@ -196,7 +160,6 @@ class DownloadFactsTest {
             DownloadFacts(
                 work = WorkFacts(WorkInfo.State.CANCELLED),
                 partBytes = HALF,
-                plannedTotalBytes = TOTAL,
             )
 
         assertEquals(ModelStatus.Paused(HALF, TOTAL), statusOf(facts))
@@ -222,25 +185,17 @@ class DownloadFactsTest {
     }
 
     @Test
-    fun `진행률에 전체 크기가 없으면 저장된 계획을 쓴다`() {
-        val facts =
-            DownloadFacts(
-                work = WorkFacts(WorkInfo.State.RUNNING, received = HALF),
-                plannedTotalBytes = TOTAL,
-            )
+    fun `MD-4 전체 크기는 plan 을 보지 않는다`() {
+        val running = DownloadFacts(work = WorkFacts(WorkInfo.State.RUNNING, received = HALF))
+        val resting = DownloadFacts(partBytes = HALF)
 
-        assertEquals(ModelStatus.Downloading(HALF, TOTAL), statusOf(facts))
-    }
-
-    @Test
-    fun `계획도 없으면 알려진 모델 크기를 쓴다`() {
-        val facts = DownloadFacts(work = WorkFacts(WorkInfo.State.RUNNING, received = HALF))
-
-        assertEquals(ModelStatus.Downloading(HALF, ModelSource.TOTAL_BYTES), statusOf(facts))
+        assertEquals(ModelStatus.Downloading(HALF, ModelSource.TOTAL_BYTES), statusOf(running))
+        assertEquals(ModelStatus.Paused(HALF, ModelSource.TOTAL_BYTES), statusOf(resting))
     }
 
     private companion object {
         const val TOTAL = 2_588_147_712L
         const val HALF = 1_090_000_000L
+        const val GIGABYTE = 1_000_000_000L
     }
 }

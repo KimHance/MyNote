@@ -54,21 +54,9 @@ class ResponseVerdictTest {
     }
 
     @Test
-    fun `429 는 서버가 말한 대기 시간을 그대로 전한다`() {
-        val facts = ResponseFacts(429, retryAfterSeconds = 295L)
-
-        assertEquals(Verdict.RetryLater(295L), judge(askedFrom = 0L, facts = facts))
-    }
-
-    @Test
-    fun `503 은 대기 시간 없이도 재시도한다`() {
-        assertEquals(Verdict.RetryLater(null), judge(askedFrom = 0L, facts = ResponseFacts(503)))
-    }
-
-    @Test
     fun `서버 오류는 재시도한다`() {
-        listOf(500, 502, 504).forEach { status ->
-            assertEquals(Verdict.RetryLater(null), judge(askedFrom = 0L, facts = ResponseFacts(status)))
+        listOf(500, 502, 503, 504).forEach { status ->
+            assertEquals(Verdict.RetryLater, judge(askedFrom = 0L, facts = ResponseFacts(status)))
         }
     }
 

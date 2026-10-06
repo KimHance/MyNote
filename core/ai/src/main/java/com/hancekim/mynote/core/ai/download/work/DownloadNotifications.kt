@@ -8,21 +8,13 @@ import android.content.Context
 import androidx.core.app.NotificationCompat
 import com.hancekim.mynote.core.ai.R
 import com.hancekim.mynote.core.ai.download.decision.PERCENT_FULL
-import com.hancekim.mynote.core.ai.download.decision.gigabytesOf
-import com.hancekim.mynote.core.ai.download.transfer.ModelInstaller
-
-internal fun failureBodyRes(reason: String): Int =
-    when (reason) {
-        ModelInstaller.REASON_NO_SPACE -> R.string.ai_model_download_no_space
-        else -> R.string.ai_model_download_failed_body
-    }
 
 internal class DownloadNotifications(
     private val context: Context,
     private val cancel: PendingIntent? = null,
     private val retry: PendingIntent? = null,
     private val openSettings: PendingIntent? = null,
-) {
+) : NoticeBoard {
     private val manager = context.getSystemService(NotificationManager::class.java)
 
     fun createChannel() {
@@ -35,88 +27,42 @@ internal class DownloadNotifications(
         )
     }
 
-    fun preparing(): Notification = ongoing(context.getString(R.string.ai_model_download_preparing), null)
-
-    fun showWaitingForWifi() =
-        manager?.notify(
-            PROGRESS_ID,
-            ongoing(context.getString(R.string.ai_model_download_waiting_wifi), null),
-        )
-
-    fun showDownloading(percent: Int, received: Long, total: Long) =
-        manager?.notify(
-            PROGRESS_ID,
-            ongoing(
-                context.getString(
-                    R.string.ai_model_download_progress_bytes,
-                    percent,
-                    gigabytesOf(received),
-                    gigabytesOf(total),
-                ),
-                percent,
-            ),
-        )
-
-    fun showRetrying() =
-        manager?.notify(
-            RETRY_ID,
-            ongoing(context.getString(R.string.ai_model_download_retrying), null),
-        )
-
-    fun clearRetrying() = manager?.cancel(RETRY_ID)
-
-    fun clearTransient() {
-        manager?.cancel(PROGRESS_ID)
-        manager?.cancel(RETRY_ID)
+    override fun show(notice: Notice) {
+        manager?.notify(notice.slot.id, build(notice))
     }
 
-    fun showVerifying() =
-        manager?.notify(
-            PROGRESS_ID,
-            ongoing(context.getString(R.string.ai_model_download_verifying), null, cancel = null),
-        )
+    override fun hide(slot: NoticeSlot) {
+        manager?.cancel(slot.id)
+    }
 
-    fun showDone() =
-        manager?.notify(
-            RESULT_ID,
-            builder()
-                .setContentTitle(context.getString(R.string.ai_model_download_done))
-                .setContentText(context.getString(R.string.ai_model_download_done_body))
-                .setSmallIcon(android.R.drawable.stat_sys_download_done)
-                .setAutoCancel(true)
-                .build(),
-        )
-
-    fun showFailed(reason: String) =
-        manager?.notify(
-            RESULT_ID,
-            builder()
-                .setContentTitle(context.getString(R.string.ai_model_download_failed))
-                .setContentText(context.getString(failureBodyRes(reason)))
-                .setStyle(NotificationCompat.BigTextStyle())
-                .setSmallIcon(android.R.drawable.stat_notify_error)
-                .setAutoCancel(true)
-                .apply {
-                    retry?.let {
-                        addAction(
-                            android.R.drawable.ic_popup_sync,
-                            context.getString(R.string.ai_model_download_action_retry),
-                            it,
-                        )
-                    }
-                }.build(),
-        )
-
-    private fun ongoing(body: String, percent: Int?, cancel: PendingIntent? = this.cancel): Notification =
-        builder()
-            .setContentTitle(context.getString(R.string.ai_model_download_title))
-            .setContentText(body)
-            .setSmallIcon(android.R.drawable.stat_sys_download)
-            .setOngoing(true)
-            .setOnlyAlertOnce(true)
-            .setSilent(true)
-            .setProgress(PERCENT_FULL, percent ?: 0, percent == null)
+    fun build(notice: Notice): Notification =
+        NotificationCompat
+            .Builder(context, CHANNEL_ID)
+            .setContentIntent(openSettings ?: openApp())
+            .setContentTitle(context.getString(notice.title))
+            .setContentText(context.getString(notice.body, *notice.bodyArgs.toTypedArray()))
+            .setSmallIcon(notice.icon)
+            .setOngoing(notice.ongoing)
+            .setOnlyAlertOnce(notice.ongoing)
+            .setSilent(notice.ongoing)
+            .setAutoCancel(!notice.ongoing)
             .apply {
+                bar(notice.bar)
+                if (notice.expanded) setStyle(NotificationCompat.BigTextStyle())
+                action(notice.action)
+            }.build()
+
+    private fun NotificationCompat.Builder.bar(bar: NoticeBar) {
+        when (bar) {
+            NoticeBar.None -> Unit
+            NoticeBar.Moving -> setProgress(PERCENT_FULL, 0, true)
+            is NoticeBar.Value -> setProgress(PERCENT_FULL, bar.percent, false)
+        }
+    }
+
+    private fun NotificationCompat.Builder.action(action: NoticeAction?) {
+        when (action) {
+            NoticeAction.CANCEL -> {
                 cancel?.let {
                     addAction(
                         android.R.drawable.ic_menu_close_clear_cancel,
@@ -124,12 +70,23 @@ internal class DownloadNotifications(
                         it,
                     )
                 }
-            }.build()
+            }
 
-    private fun builder(): NotificationCompat.Builder =
-        NotificationCompat
-            .Builder(context, CHANNEL_ID)
-            .setContentIntent(openSettings ?: openApp())
+            NoticeAction.RETRY -> {
+                retry?.let {
+                    addAction(
+                        android.R.drawable.ic_popup_sync,
+                        context.getString(R.string.ai_model_download_action_retry),
+                        it,
+                    )
+                }
+            }
+
+            null -> {
+                Unit
+            }
+        }
+    }
 
     private fun openApp(): PendingIntent? {
         val launch = context.packageManager.getLaunchIntentForPackage(context.packageName) ?: return null
@@ -141,10 +98,7 @@ internal class DownloadNotifications(
         )
     }
 
-    internal companion object {
-        const val PROGRESS_ID = 4201
-        const val RESULT_ID = 4202
-        const val RETRY_ID = 4203
-        private const val CHANNEL_ID = "quiz_model_download"
+    private companion object {
+        const val CHANNEL_ID = "quiz_model_download"
     }
 }

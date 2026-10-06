@@ -148,6 +148,33 @@ NPU 는 예전 실측에서 `Backend.NPU` 가 예외 없이 CPU 로 폴백했다
   "퀴즈 버튼이 안 보인다"는 대부분 버그가 아니라 파일이 없는 것이다.
 - `isAvailable()` 은 **존재만** 본다. 깨진 파일이나 다른 모델이면 첫 `use` 에서 `QuizFailure.Engine` 으로 터진다.
 
+## 내려받기 알림 — `download/work/`
+
+떠 있는 내려받기 알림은 상태로 정해지고 한 번에 하나다(기능 문서 `docs/spec/model-download.md` MD-9 ~ MD-11,
+글 · 막대 · 아이콘은 `docs/design/model-download.md` `## 알림`). 판단은 전부 `DownloadNotices.kt` 의 순수 함수이고
+`DownloadNotificationsTest`·`DownloadNoticesTest` 가 JVM 에서 본다(이 모듈에 Robolectric 이 없다).
+
+| 함수 | 무엇 |
+|---|---|
+| `noticeOf(ModelStatus)` | 알림 표 한 행 통째 — 자리 · 제목/본문 키 + 인자 · 막대(없음 · 움직임 · 값) · 액션 · 작은 아이콘 · ongoing · 펼침 |
+| `NoticeBoard.on(NoticeEvent)` | 사건 → 알림판. 워커(`Launched` · `Reported` · `Stopped`), `ModelDownloads`(`Started` · `Cancelled` · `Deleted` · `Backgrounded`), 앱 조정자(`Observed`)가 같은 함수를 부른다 |
+| `NoticeBoard.post` | 하나를 올리면 다른 자리를 지운다 — "한 번에 하나" 가 여기 있다 |
+| `noticeAfterStop(reason, …)` | `getStopReason()` 이 `STOP_REASON_CANCELLED_BY_APP` 일 때만 사용자 취소(알림 없음). 그 밖(Wi-Fi 끊김 · 시스템)은 재시도 알림 |
+| `emptySlotsOf(status)` | 앱이 상태만 볼 때 지울 자리 — 없음 · 멈춤만 전부. 작업이 있는 상태는 비운다(관찰이 늦게 와 막 올린 결과 · 재시도를 지우지 않게) |
+
+- **자리 셋이 따로다** — 진행 4201(포그라운드 · Wi-Fi 대기도 여기) · 결과 4202 · 재시도 4203. 작업이 끝나면 WorkManager 가
+  포그라운드 알림(4201)을 지운다(`SystemForegroundDispatcher.onExecuted`). 결과 · 재시도를 4201 에 올리면 같이 사라진다.
+  앱이 4201 을 `cancel` 해도 포그라운드 알림이면 시스템이 무시한다 — 그래서 `post` 가 다른 자리를 지울 때 무해하다.
+- `DownloadNotifications` 는 `Notice` 를 `Notification` 으로 옮기기만 한다. 판단을 여기에 넣으면 JVM 이 못 본다.
+- 재시도 막대는 `noticeOf(Retrying(received, total))` 하나로 그린다 — 워커는 `files.partBytes()`, 앱(뒤로 갈 때)은
+  `statusOf` 가 준 값이라 같은 비율에서 멈춘다. `InstallResult.Retry` 에 바이트 칸을 다시 넣지 않는다.
+- 워커의 `catch (CancellationException)` 에서 부르는 알림판 호출은 suspend 가 아니다 — 취소된 코루틴에서 suspend 를
+  부르면 바로 던진다.
+- 재시도 작은 아이콘 `res/drawable/ai_stat_download_retrying.xml` 은 **움직이지 않는** 그림이다(기능 문서 결정 12 — 멈춘 막대와 같은
+  말). 받는 중 · 대기의 플랫폼 `stat_sys_download` 는 움직인다. 출처: Android Studio Vector Asset 의 Material Icons
+  `downloading`(Filled, 24 뷰박스) — Apache License 2.0. `tint` 를 지우고 `fillColor` 를 흰색으로 박았다. Material Symbols
+  SVG(뷰박스 `0 -960 960 960`)로 바꿀 때는 경로를 그대로 붙이면 그림이 뷰포트 밖으로 나가 빈 아이콘이 된다.
+
 ## 취소·타임아웃의 실제 동작 (함정)
 
 `Conversation.sendMessage(...)` 는 suspend 가 아니라 **블로킹 JNI 호출**이다(0.17.0 시그니처 확인).

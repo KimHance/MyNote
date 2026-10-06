@@ -11,7 +11,7 @@ sealed interface ModelStatus {
 
     data class Downloading(val received: Long, val total: Long) : ModelStatus
 
-    data class Retrying(val received: Long, val total: Long, val inSeconds: Int?) : ModelStatus
+    data class Retrying(val received: Long, val total: Long) : ModelStatus
 
     data object Verifying : ModelStatus
 

@@ -6,28 +6,39 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.hancekim.mynote.core.designsystem.component.MyNoteIcons
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
+import com.hancekim.mynote.core.domain.model.ModelFailure
+import com.hancekim.mynote.core.domain.model.ModelStatus
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.ModelAction
 import com.hancekim.mynote.feature.notes.element.ModelCardUi
@@ -35,6 +46,8 @@ import com.hancekim.mynote.feature.notes.element.ModelProgressUi
 import com.hancekim.mynote.feature.notes.element.ModelTone
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.gigabytes
+import com.hancekim.mynote.feature.notes.element.modelCardUi
+import com.hancekim.mynote.feature.notes.screen.connect.KeepWordsText
 
 @Composable
 internal fun ModelSection(
@@ -63,9 +76,9 @@ internal fun ModelSection(
 
             if (card.progress != ModelProgressUi.None) {
                 ModelProgress(progress = card.progress)
-                if (!notificationsEnabled) {
-                    NotificationHint(onEnable = onEnableNotifications)
-                }
+            }
+            if (card.notificationHint && !notificationsEnabled) {
+                NotificationHint(onEnable = onEnableNotifications)
             }
 
             ModelActions(actions = card.actions, onIntent = onIntent)
@@ -191,7 +204,7 @@ private fun NotificationHint(onEnable: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Text(
+        KeepWordsText(
             text = stringResource(R.string.notes_model_notif_off),
             style = MyNoteTheme.textStyles.caption,
             color = colors.warnText,
@@ -215,9 +228,13 @@ private fun ModelActions(
     actions: List<ModelAction>,
     onIntent: (NotesIntent) -> Unit,
 ) {
-    Row(
-        modifier = Modifier.padding(start = MODEL_INDENT, end = 16.dp, top = 14.dp, bottom = 16.dp),
+    FlowRow(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(start = MODEL_INDENT, end = 16.dp, top = 14.dp, bottom = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         actions.forEach { action ->
             when (action) {
@@ -284,3 +301,74 @@ private val BAR_HEIGHT = 6.dp
 private val BAR_RADIUS = 3.dp
 private const val HINT_FILL_ALPHA = 0.08f
 private const val HINT_BORDER_ALPHA = 0.20f
+
+@Composable
+internal fun ModelPreviewFrame(
+    largeFont: Boolean,
+    content: @Composable () -> Unit,
+) {
+    MyNoteTheme {
+        val density = LocalDensity.current.density
+        val fontScale = if (largeFont) PREVIEW_LARGE_FONT_SCALE else 1f
+        CompositionLocalProvider(LocalDensity provides Density(density, fontScale)) {
+            Box(
+                Modifier
+                    .background(MyNoteTheme.colors.bg)
+                    .safeDrawingPadding()
+                    .width(PREVIEW_WINDOW_WIDTH)
+                    .padding(horizontal = MyNoteTheme.adaptive.page, vertical = 16.dp),
+            ) {
+                content()
+            }
+        }
+    }
+}
+
+private val PREVIEW_WINDOW_WIDTH = 360.dp
+private const val PREVIEW_LARGE_FONT_SCALE = 1.3f
+
+private class ModelCardStatusProvider : PreviewParameterProvider<ModelStatus> {
+    override val values =
+        sequenceOf(
+            ModelStatus.Retrying(1_090_000_000L, 2_588_147_712L),
+            ModelStatus.Paused(1_090_000_000L, 2_588_147_712L),
+            ModelStatus.WaitingForWifi,
+            ModelStatus.Preparing,
+            ModelStatus.Downloading(1_090_000_000L, 2_588_147_712L),
+            ModelStatus.Verifying,
+            ModelStatus.Missing,
+            ModelStatus.Ready,
+            ModelStatus.Failed(ModelFailure.NO_SPACE),
+            ModelStatus.Failed("no-plan"),
+        )
+}
+
+@Preview(name = "모델 카드 · 알림 꺼짐", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 360)
+@Composable
+private fun ModelSectionPreview(
+    @PreviewParameter(ModelCardStatusProvider::class) status: ModelStatus,
+) {
+    ModelPreviewFrame(largeFont = false) {
+        ModelSection(
+            card = modelCardUi(status),
+            notificationsEnabled = false,
+            onIntent = {},
+            onEnableNotifications = {},
+        )
+    }
+}
+
+@Preview(name = "모델 카드 · 알림 꺼짐 · 큰 글자", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 360)
+@Composable
+private fun ModelSectionLargeFontPreview(
+    @PreviewParameter(ModelCardStatusProvider::class) status: ModelStatus,
+) {
+    ModelPreviewFrame(largeFont = true) {
+        ModelSection(
+            card = modelCardUi(status),
+            notificationsEnabled = false,
+            onIntent = {},
+            onEnableNotifications = {},
+        )
+    }
+}
