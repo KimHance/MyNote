@@ -147,7 +147,7 @@ debug 내장 토큰은 시드 연결(`ConsumeSeedUseCase`)이 저장 칸에 쓰�
   인용 안 기울임도 모델에는 기울임 그대로 두고 세워 그리기는 렌더가 한다. 새 블록 · 필드는 마크다운에서만 나온다(JSON 형식 1 동결).
 - **`NoteLimits` 가 노트 한도 값의 한 자리다** — 생성자 기본값이 곧 `Default`: 32단 · 512KB(`maxBytes` 524,288) · 표 칸 4,096 ·
   캐시 1MB(`maxCacheBytes` 1,048,576). 숫자 리터럴은 여기에만 둔다. `:core:format` 의 거르기 · 결과 한도, `:core:data` 의 원문 읽기
-  상한, `:feature:notes` 의 화면 매퍼가 같은 값을 읽는다 — 상자 문구의 두 숫자가 여기서 온다(NF-8 ⑨). 바꾸면 이미 거른 노트는
+  상한, `:feature:notes` 의 화면 매퍼가 같은 값을 읽는다 — 상자 문구의 세 숫자(단 · KB · 표 칸)가 여기서 온다(NF-8 ⑨). 바꾸면 이미 거른 노트는
   다음 재변환(`PARSER_VERSION`)까지 옛 판정이다. 원문 + 캐시 상한의 합은 커서 창 2MB 에 여유 있게 들어가야 한다(`core/format/AGENTS.md` 결과 한도).
 - **`Note.id` 는 `String` 이고 값이 `NoteKey` 문자열이다** — `"<sourceId>/<docId>"`, 기존 노트는 `s0/graph`. 북마크·학습 기록·
   `SyncOutcome.deleted`·내비 키가 전부 이 문자열로 맞물린다. 소비자는 id 를 불투명하게 다룬다(쪼개거나 파싱하지 않는다).

@@ -27,7 +27,8 @@ network · database · feature 는 모른다. `org.intellij.markdown` import 는
   (`NotesRepositoryImpl.rederiveStale`, 행의 `path`) · 연결 첫 동기화(`ConnectionRepositoryImpl` 이 따로 만드는 reconciler) ·
   캐시 손상 대체(`NoteMapper` → `read`). **형식을 고르는 코드를 다른 곳에 새로 두지 않는다.** 하나만 빠뜨려도 `.md` 가 JSON 으로
   해석된 상자로 현재 판 번호에 굳고, 내용이 바뀔 때까지 다시 변환되지 않는다.
-- **세 함수는 어떤 입력에도 던지지 않는다.** `Exception` · `StackOverflowError` 는 노트 전체 상자(`broken_note`)가 된다.
+- **세 함수는 어떤 입력에도 던지지 않는다.** `Exception` · `StackOverflowError` 는 노트 전체 상자(`broken_note`)가 되고,
+  `OutOfMemoryError` 는 메모리를 넘은 것이라 한도 넘음 상자(`limit_exceeded`)가 된다.
   재변환은 소스 격리 밖에서 모든 소스보다 먼저 돌아서, 한 행이 던지면 그 행이 옛 판으로 남아 동기화가 매번 실패한다.
 - **노트 전체 상자(`broken_note` · `limit_exceeded`)는 캐시에 원문을 두지 않는다**(`"raw":""`). 원문은 `raw` 열에 이미 있고,
   캐시에 다시 넣으면 한 행이 원문의 두 배가 된다. `parse` 가 돌려주는 블록에는 원문이 들어 있다.
@@ -49,6 +50,9 @@ network · database · feature 는 모른다. `org.intellij.markdown` import 는
      노트 전체 한도 넘음). 펜스를 알게 하면 스캐너와 엔진의 펜스 판정이 갈리는 입력으로 깊은 중첩이 엔진까지 가서 그대로 둔다(안전 쪽).
    - 예외를 잡는 것으로 한도를 대신하지 않는다. 엔진 메모리는 중첩에 따라 빠르게 늘어 20KB 노트 하나로 바닥나고, 직렬화는
      하위 목록 200단에서 스택이 넘친다(note-format 결정 11).
+   - OOM 은 마지막 방어로만 잡는다. 한도 안 병적 512KB 입력 하나가 엔진 트리 · 도메인 트리를 다 만들면 힙 96–128MB 를 쓴다(기기
+     heapgrowthlimit 192m) — 터지면 그 노트 하나가 한도 넘음 상자가 되고, 재변환 · 동기화가 앱을 켤 때마다 같은 자리에서 죽지 않는다.
+     한도 검사는 그대로 먼저다.
 2. 한도 안이면 `MarkdownConverter.convert(raw)` → 도메인 블록 → 캐시 DTO. `@Inject constructor()` 가 끼우는 것은 `GfmMarkdownConverter` 다.
 
 ### 결과 한도 — 캐시 한 행이 커서 창에 들어가게
@@ -102,8 +106,9 @@ network · database · feature 는 모른다. `org.intellij.markdown` import 는
   `[^..]` 라벨은 정의가 있어도 참조로 보지 않고, 각주 정의 줄은 원문 글자 문단으로 둔다(note-format 결정 7 '그리지 못하는 문법은 글자로').
 - 표 정렬 노드는 없다 — 구분 행 글자를 읽는다. 머리 칸 수를 넘는 칸은 `CELL` 이 아니라 구분자 토큰으로 붙는다. 표 칸 코드 구간의 `\|` 는 엔진이 남긴다.
 - `<a@b.com>` 은 자동 링크 노드가 아니라 `<` · `EMAIL_AUTOLINK` · `>` 토큰 셋으로 온다.
-- 엔진은 정의가 없어도 `[..]` 를 참조 링크 노드로 만들고(`a[i]` · `Map[K, V]`), 목적지에 공백이 든 `[a](b c)` 도 링크로 읽는다.
-  변환기가 엔진의 `LinkMap` 으로 정의를 모아, 링크로 성립하지 않는 노드는 괄호까지 원문 글자로 둔다(CommonMark 와 같다).
+- 엔진은 정의가 없어도 `[..]` 를 참조 링크 노드로 만들고(`a[i]` · `Map[K, V]`), 목적지에 공백(U+0020)이 든 `[a](b c)` 도 링크로 읽는다.
+  변환기가 엔진의 `LinkMap` 으로 정의를 모아, 링크로 성립하지 않는 노드는 괄호까지 원문 글자로 둔다(CommonMark 와 같다). 목적지를 끊는
+  것은 U+0020 · ASCII 제어 문자뿐이다 — NBSP · 전각 공백이 든 목적지는 링크다.
 
 ## JSON — 와이어와 캐시는 모양을 따로 둔다
 

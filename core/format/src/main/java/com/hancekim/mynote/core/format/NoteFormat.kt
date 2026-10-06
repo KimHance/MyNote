@@ -55,7 +55,7 @@ class NoteFormat(
         path: String?,
         raw: String,
     ): List<NoteBlock> =
-        guarded({ noteBox(UnsupportedReasonDto.BROKEN_NOTE, raw).map { it.toDomain() } }) {
+        guarded({ reason -> noteBox(reason, raw).map { it.toDomain() } }) {
             cached(path, raw).blocks.map { it.toDomain() }
         }
 
@@ -69,7 +69,7 @@ class NoteFormat(
         path: String?,
         raw: String,
     ): DerivedNote =
-        guarded({ DerivedNote(BlockCache.encode(noteBox(UnsupportedReasonDto.BROKEN_NOTE, "")), null) }) {
+        guarded({ reason -> DerivedNote(BlockCache.encode(noteBox(reason, "")), null) }) {
             val cached = cached(path, raw)
             DerivedNote(cached.json, cached.blocks.map { it.toDomain() }.firstSentence())
         }
@@ -103,7 +103,7 @@ class NoteFormat(
         path: String?,
         raw: String,
     ): List<NoteBlockDto> =
-        guarded({ noteBox(UnsupportedReasonDto.BROKEN_NOTE, raw) }) {
+        guarded({ reason -> noteBox(reason, raw) }) {
             if (path.isMarkdown()) markdownBlocks(raw) else json.parse(raw)
         }
 
@@ -146,13 +146,15 @@ private fun noteBox(
 private fun NoteBlockDto.withoutRaw(): NoteBlockDto = (this as? NoteBlockDto.Unsupported)?.copy(raw = "") ?: this
 
 private inline fun <T> guarded(
-    fallback: () -> T,
+    fallback: (reason: UnsupportedReasonDto) -> T,
     block: () -> T,
 ): T =
     try {
         block()
     } catch (_: Exception) {
-        fallback()
+        fallback(UnsupportedReasonDto.BROKEN_NOTE)
     } catch (_: StackOverflowError) {
-        fallback()
+        fallback(UnsupportedReasonDto.BROKEN_NOTE)
+    } catch (_: OutOfMemoryError) {
+        fallback(UnsupportedReasonDto.LIMIT_EXCEEDED)
     }
