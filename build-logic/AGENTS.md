@@ -110,7 +110,7 @@ alias(`billboard-*`)·id(`hance.*`)·group·패키지가 네 갈래로 갈려 �
 
 ## 헬퍼가 실제로 켜는 것
 
-`build-logic/convention/src/main/java/com/hancenote/convention/` 에 다섯 파일뿐이다(`NotesTemplateInput.kt` 는 아래 "템플릿 폴더 시험 입력" 절).
+`build-logic/convention/src/main/java/com/hancenote/convention/` 에 다섯 파일뿐이다(`RepoTestInputs.kt` 는 아래 "레포 폴더 시험 입력" 절).
 
 **`KotlinAndroid.kt` → `configureKotlinAndroid()`** (application/library 공통)
 `compileSdk`·`minSdk`(카탈로그에서) · Java 17 source/target · **core library desugaring**
@@ -159,13 +159,19 @@ Gradle 을 돌리는 JDK 로 컴파일하고 타깃만 17 로 맞춘다.
 `*-composables.txt`/`*-composables.csv`/`*-classes.txt` 가 생긴다. **항상 켜 두지 않는다** —
 모든 빌드가 안정성 보고서를 쓰느라 느려진다(`877a67e`).
 
-## 템플릿 폴더 시험 입력 — 속성으로 켠 모듈만
+## 레포 폴더 시험 입력 — 속성으로 켠 모듈만
 
-`hancenote.android.library`·`hancenote.jvm.library` 가 `configureNotesTemplateInput()` 을 부른다. 모듈 `build.gradle.kts` 가
-`extra["notesTemplateInput"] = true` 를 **plugins 블록 아래 아무 데나** 한 줄 두면(`afterEvaluate` 에서 읽는다) 그 모듈의 모든 `Test`
-태스크가 `public-repos/notes-template` 를 상대 경로 입력으로 안다 — 템플릿 한 글자만 바뀌어도 시험이 UP-TO-DATE 로 건너뛰지 않고 다시 돈다.
-**요청한 모듈만 켠다**(결정 15 · D18): 모든 모듈에 걸면 템플릿 한 글자에 전 모듈 시험이 돈다. 폴더가 없어도 실패하지 않는다(빈 입력).
-켜는 한 줄은 `:core:data` 몫이다.
+`hancenote.android.library`·`hancenote.jvm.library` 가 `configureRepoTestInputs()` 를 부른다. 모듈 `build.gradle.kts` 가
+`extra["<속성>"] = true` 를 **plugins 블록 아래 아무 데나** 한 줄 두면(`afterEvaluate` 에서 읽는다) 그 모듈의 모든 `Test` 태스크가
+아래 루트 폴더를 상대 경로 입력으로 안다 — 폴더의 한 글자만 바뀌어도 시험이 UP-TO-DATE 로 건너뛰지 않고 다시 돈다.
+
+| 속성 | 폴더 | 켠 모듈 |
+|---|---|---|
+| `notesTemplateInput` | `public-repos/notes-template` | `:core:data` |
+| `notesInput` | `notes` · `notes-tests/fixtures/front-matter` | `:core:format` |
+
+**요청한 모듈만 켠다**(결정 15 · D18): 모든 모듈에 걸면 폴더 한 글자에 전 모듈 시험이 돈다. 폴더가 없어도 실패하지 않는다(빈 입력).
+폴더를 더하려면 `RepoTestInputs.kt` 의 표에 한 줄을 더한다.
 
 ## 캐시 (루트 `gradle.properties`)
 

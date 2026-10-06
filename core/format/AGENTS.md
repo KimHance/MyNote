@@ -5,10 +5,11 @@
 ## 이 모듈이 하는 일
 
 **노트 원문 한 개를 블록으로 바꾼다.** 형식 고르기 · 마크다운 해석 전 한도 · JSON 형식 1 읽기 · 블록 캐시 인코딩이 여기 있다.
-순수 JVM 모듈이다(`hancenote.jvm.library` + `kotlin.serialization` 별칭) — `import android.*` 는 컴파일 에러다.
-의존은 `:core:domain` 하나이고, 이 모듈을 아는 것은 `:core:data` 뿐이다. network · database · feature 는 모른다.
+순수 JVM 모듈이다(`hancenote.jvm.library` + `kotlin.serialization` 별칭 + `java-test-fixtures`) — `import android.*` 는 컴파일 에러다.
+의존은 `:core:domain` 과 마크다운 엔진(`org.jetbrains:markdown`, 판은 `libs.versions.toml`)이고, 이 모듈을 아는 것은 `:core:data` 뿐이다.
+network · database · feature 는 모른다. `org.intellij.markdown` import 는 이 모듈 밖에 두지 않는다.
 
-공개 API 는 넷이고 나머지(DTO · `BlockJson` · 매퍼 · 한도)는 전부 `internal` 이다.
+공개 API 는 넷이고 나머지(DTO · `BlockJson` · 매퍼 · 한도 · 마크다운 변환기)는 전부 `internal` 이다.
 
 | 이름 | 하는 일 |
 |---|---|
@@ -42,11 +43,29 @@
      변환기가 블록 깊이 32 를 따로 지킨다.
    - 예외를 잡는 것으로 한도를 대신하지 않는다. 엔진 메모리는 중첩에 따라 빠르게 늘어 20KB 노트 하나로 바닥나고, 직렬화는
      하위 목록 200단에서 스택이 넘친다(note-format 결정 11).
-2. 한도 안이면 `MarkdownConverter.convert(raw)` → 도메인 블록 → 캐시 DTO.
-   - `@Inject constructor()` 가 끼우는 것은 지금 `PlaceholderMarkdown` 이다. 지금 판이 `.md` 원문을 JSON 으로 읽어 만들던 것과 같은
-     원문 전체 상자를 내므로 `PARSER_VERSION` 을 올리지 않아도 캐시가 어긋나지 않는다.
-   - 실제 엔진(`md-parser` 단위)은 `PlaceholderMarkdown` 자리를 바꾸고 판 번호를 그때 한 번 올린다. 앞머리 떼기 · 줄 끝 바꾸기도
-     변환기 몫이다 — 한도는 원문 그대로를 본다.
+2. 한도 안이면 `MarkdownConverter.convert(raw)` → 도메인 블록 → 캐시 DTO. `@Inject constructor()` 가 끼우는 것은 `GfmMarkdownConverter` 다.
+
+## 마크다운 변환 — `GfmMarkdownConverter`
+
+| 단계 | 파일 | 무엇 |
+|---|---|---|
+| 본문 고르기 | `MarkdownSource.kt` | 맨 앞 BOM 떼기 · 줄 끝(CRLF · CR) → LF · 앞머리(첫 줄 정확히 `---` ~ 다음 정확히 `---`) 떼기. 경계가 없거나 닫히지 않으면 글 전체가 본문 |
+| 엔진 | `NoteMarkdownFlavour.kt` | GFM 에서 수식 · 형광 파서를 뺀 flavour(`$` · `==` 가 글자로 남는다). 취소선은 같은 규칙의 자체 구분자 파서 |
+| 블록 | `GfmMarkdownConverter.kt` | 트리를 블록으로. 깊이를 세며 내려가고 32(`NoteLimits.maxDepth`)를 넘으면 노트 전체가 `LimitExceeded` 상자 하나(원문을 든다) |
+| 글자 | `MarkdownSpans.kt` | 인라인 노드를 구간으로. 스택으로 걷는다(깊은 강조에도 스택이 안 넘침). 이스케이프 · 엔티티를 직접 푼다 |
+
+문법이 무엇으로 가는지는 `notes/SCHEMA.md` 3절과 note-format NF-3 ~ NF-7 이 정본이다. 엔진 판을 올리거나 변환을 고칠 때 알아 둘 엔진 사정:
+
+- 엔진은 앞머리를 모르고 CR 을 줄 끝으로 보지 않는다 — 그래서 엔진 밖에서 정리한다. 한도는 정리하기 전 원문 그대로를 본다.
+- `MarkdownParser` 는 `assertionsEnabled = false` 로 만든다. 켜 두면 내부 단정이 실패할 때 던진다.
+- 엔진의 `StrikeThroughDelimiterParser` 는 문단의 첫 구분자가 홑물결 여는 쪽이면 짝을 보지 않는다(`~a~` 가 글자로 남음). 자체 파서가 이 자리를 맡는다.
+- 엔진은 목록 표시가 언제나 문단을 끊게 두고(`2)` · 빈 항목도), 10자리 이상 번호는 목록 표시로 보지 않는다. 해석 전 한도의 스캐너는
+  그런 번호를 목록 표시로 세므로, 그 줄로 이은 들여쓰기 중첩은 한도를 지나 블록 깊이 64 까지 갈 수 있다 — 변환기의 깊이 지킴이 그 자리다
+  (`NF-8 변환 결과의 블록 깊이는 32 를 넘지 않는다`).
+- 엔티티는 엔진의 HTML 출력용 변환기를 쓰지 않는다(평문 `"` 를 `&quot;` 로 되돌린다). 코드 구간 글자는 원문 범위를 그대로 쓴다.
+- 문단 · 표 칸 · 목록 안 코드에는 컨테이너 들여쓰기(`WHITE_SPACE`) · 인용 표시(`BLOCK_QUOTE`) 토큰이 섞인다. 줄바꿈(`EOL`) 뒤 들여쓰기는 버린다.
+- 표 정렬 노드는 없다 — 구분 행 글자를 읽는다. 머리 칸 수를 넘는 칸은 `CELL` 이 아니라 구분자 토큰으로 붙는다. 표 칸 코드 구간의 `\|` 는 엔진이 남긴다.
+- `<a@b.com>` 은 자동 링크 노드가 아니라 `<` · `EMAIL_AUTOLINK` · `>` 토큰 셋으로 온다.
 
 ## JSON — 와이어와 캐시는 모양을 따로 둔다
 
@@ -86,7 +105,7 @@
 
 1. `CacheDto.kt` — `NoteBlockDto` 에 `@SerialName` 서브타입 · 기본값 있는 필드. `WireDto.kt` 는 건드리지 않는다(형식 1 동결)
 2. `core/domain/.../NoteBlock.kt` — 도메인 대응
-3. `BlockMapper.kt` — 캐시 → 도메인 · 도메인 → 캐시(컴파일 에러로 잡힌다)
+3. `BlockMapper.kt` — 캐시 → 도메인 · 도메인 → 캐시(컴파일 에러로 잡힌다). 마크다운에서 나오게 하려면 `GfmMarkdownConverter.kt` 도
 4. `:core:design-system` 의 `NoteContentBlock` + 렌더러, `:feature:notes` 의 `NoteBlockMapper`(컴파일 에러로 잡힌다)
 5. **`PARSER_VERSION` 을 올린다.** 해석 결과가 바뀌는 모든 변경이 해당한다. 안 올리면 캐시된 노트가 다음 내용 변경 전까지 옛 결과로 남는다
 6. `CacheCompatTest` 가 그대로 통과해야 한다 — 기본값 필드는 지금 바이트를 바꾸지 않는다
@@ -109,11 +128,24 @@ JVM 모듈이라 태스크가 `:core:format:test` 다(`testDebugUnitTest` 없음
 
 | 시험 | 무엇 |
 |---|---|
-| `MyNoteJsonFormatTest` · `NoteDtoSerializationTest` · `ReparseEquivalenceTest` | `:core:data` 에서 옮긴 형식 시험 — 이름 · 단정 그대로 |
+| `MyNoteJsonFormatTest` · `NoteDtoSerializationTest` · `ReparseEquivalenceTest` | `:core:data` 에서 옮긴 형식 시험 — 이름 · 단정 그대로. 레포 노트 시험의 입력은 JSON 고정 사본 22개 |
 | `NoteFormatTest` | NF-2 형식 고르기 · 던지지 않음 · 캐시 손상 대체, NF-8 엔진 호출 0 · 해석 실패 상자 |
-| `MarkdownLimitsTest` | NF-8 32단 / 33단 · 512KB · CR · BOM · 컨테이너가 아닌 줄 · 줄 상한 |
+| `MarkdownLimitsTest` | NF-8 해석 전 한도 — 32단 / 33단 · 512KB · CR · BOM · 컨테이너가 아닌 줄 · 줄 상한 |
+| `MarkdownConverterTest` | 실제 엔진으로 NF-1 앞머리 · 줄 끝 · 경계 묶음, NF-3 ~ NF-7 대응 표, NF-8 32단 / 33단 · 512KB · 블록 깊이 지킴 · 큰 입력 |
+| `ParityTest` | NF-11 — 고정 사본 22쌍의 블록 · 첫 문장 · 퀴즈 평문, JSON 사본 해시 = 기준 목록, 레포 `notes/` 상자 0 |
 | `CacheCompatTest` | NF-12 형식 1 밖 type · 필드 · 캐시 바이트 · 옛 캐시 행 |
 | `BlockCacheTest` | NF-4 · 5 · 6 새 모양의 캐시 왕복 · 바이트, 32단 하위 블록, NF-8 한도 넘음 종류 · 거르기가 도메인 한도 값을 씀, NF-12 변환기 길의 지금 블록 바이트 |
 
-동기화를 지나는 시험(연결 첫 동기화 · 캐시 손상 행 · 한도 넘은 노트 격리 · 재변환 실패 행)은 `:core:data` 의 `NoteFormatSyncTest` 다.
-`ReparseEquivalenceTest` 의 레포 노트 시험은 루트 `notes/` 를 읽기만 하고 태스크 입력으로 선언하지 않았다 — 노트만 바뀌었으면 `--rerun`.
+동기화를 지나는 시험은 `:core:data` 의 `NoteFormatSyncTest`(가짜 변환기) · `MarkdownSyncTest`(실제 엔진)다.
+
+### 시험 자료
+
+| 자리 | 무엇 | 누가 읽나 |
+|---|---|---|
+| `src/testFixtures/resources/parity/` | `index.json`(기준 커밋 `d15883f` 의 `notes/index.json` 바이트) · `json/<그룹>/<id>.json`(같은 커밋의 노트 바이트) · `md/<그룹>/<id>.md`(그 JSON 을 옮긴 마크다운) | `ParityNotes`(`src/testFixtures`) — 이 모듈 시험과 `:core:data` 시험(`testFixtures(projects.core.format)`), 파이썬 시험은 경로로 |
+| 루트 `notes-tests/fixtures/front-matter/` | 앞머리 경계 묶음 — 생성기 시험과 같은 파일 | `MarkdownConverterTest` |
+| 루트 `notes/` | 레포의 지금 노트 | `ParityTest` |
+
+- 사본은 고정 값이다. 살아 있는 `notes/` 와 비교하지 않는다 — 다음 노트 쓰기부터 시험이 거짓이 된다(note-format 결정 19).
+- 마크다운 사본을 고치면 파리티가 깨진다. 사본은 노트 이전이 그대로 복사해 쓰는 원본이기도 하다.
+- 루트 폴더 둘은 `extra["notesInput"] = true` 로 `Test` 태스크 입력이다(`build-logic/AGENTS.md` "레포 폴더 시험 입력"). 노트 한 글자만 바뀌어도 다시 돈다.

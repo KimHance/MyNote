@@ -34,11 +34,7 @@ internal object NoteMarkdownFlavour : GFMFlavourDescriptor() {
         }
 }
 
-/**
- * 물결 한 개 · 두 개 짝을 취소선으로 묶는다.
- *
- * 엔진의 `StrikeThroughDelimiterParser` 는 문단의 첫 구분자가 홑물결 여는 쪽이면 짝을 보지 않는다.
- */
+/** 물결 한 개 · 두 개 짝을 취소선으로 묶는다. 엔진의 파서는 문단 첫 구분자인 홑물결의 짝을 놓친다. */
 private class TildeDelimiterParser : DelimiterParser() {
     override fun scan(
         tokens: TokensCache,

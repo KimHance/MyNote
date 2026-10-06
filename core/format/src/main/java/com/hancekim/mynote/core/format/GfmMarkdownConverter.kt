@@ -97,7 +97,7 @@ private class BlockReader(
             }
 
             type == MarkdownElementTypes.PARAGRAPH -> {
-                NoteBlock.Paragraph(spans(node))
+                spans(node).takeIf { it.isNotEmpty() }?.let(NoteBlock::Paragraph)
             }
 
             type == MarkdownElementTypes.CODE_FENCE -> {
@@ -109,9 +109,7 @@ private class BlockReader(
             }
 
             type == MarkdownElementTypes.HTML_BLOCK -> {
-                NoteBlock.Code(
-                    lines(node, MarkdownTokenTypes.HTML_BLOCK_CONTENT),
-                )
+                NoteBlock.Code(htmlCode(node))
             }
 
             type in QUOTES -> {
@@ -131,9 +129,11 @@ private class BlockReader(
             }
 
             else -> {
-                text(
-                    node,
-                ).takeIf { it.isNotBlank() }?.let { NoteBlock.Paragraph(SpanWriter(source).literal(it).spans()) }
+                SpanWriter(source)
+                    .literal(text(node))
+                    .spans()
+                    .takeIf { it.isNotEmpty() }
+                    ?.let(NoteBlock::Paragraph)
             }
         }
     }
@@ -239,8 +239,7 @@ private class BlockReader(
                 }
 
                 type == MarkdownElementTypes.HTML_BLOCK -> {
-                    lines +=
-                        plainLines(lines(child, MarkdownTokenTypes.HTML_BLOCK_CONTENT))
+                    lines += plainLines(htmlCode(child))
                 }
 
                 type == GFMElementTypes.TABLE -> {
@@ -277,10 +276,10 @@ private class BlockReader(
             .dropLastWhile { it.isBlank() }
             .joinToString("\n")
 
-    private fun lines(
-        node: ASTNode,
-        content: IElementType,
-    ): String = codeLines(node, content) { it }.joinToString("\n")
+    private fun htmlCode(node: ASTNode): String =
+        codeLines(node, MarkdownTokenTypes.HTML_BLOCK_CONTENT) {
+            it
+        }.joinToString("\n")
 
     private fun codeLines(
         node: ASTNode,

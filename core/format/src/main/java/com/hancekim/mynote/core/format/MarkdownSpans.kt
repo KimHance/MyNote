@@ -80,40 +80,41 @@ internal class SpanWriter(
         nodes.asReversed().forEach { stack.addLast(Frame(it, marks)) }
         while (stack.isNotEmpty()) {
             val frame = stack.removeLast()
-            val inner = visit(frame.node, frame.marks) ?: continue
-            inner.second
-                .dropEmailBrackets()
-                .asReversed()
-                .forEach { stack.addLast(Frame(it, inner.first)) }
+            val inner = nested(frame.node, frame.marks)
+            if (inner == null) {
+                write(frame.node, frame.marks)
+            } else {
+                inner.second
+                    .dropEmailBrackets()
+                    .asReversed()
+                    .forEach { stack.addLast(Frame(it, inner.first)) }
+            }
         }
     }
 
-    private fun visit(
+    private fun nested(
         node: ASTNode,
         marks: Marks,
-    ): Pair<Marks, List<ASTNode>>? {
-        val type = node.type
-        when {
-            type == MarkdownElementTypes.STRONG -> return marks.copy(bold = true) to node.children.trim(2)
+    ): Pair<Marks, List<ASTNode>>? =
+        when (node.type) {
+            MarkdownElementTypes.STRONG -> marks.copy(bold = true) to node.children.inner(2)
+            MarkdownElementTypes.EMPH -> marks.copy(italic = true) to node.children.inner(1)
+            GFMElementTypes.STRIKETHROUGH -> marks.copy(strike = true) to node.children.inner(tildeRun(node))
+            in LINKS -> marks to node.linkText()
+            MarkdownElementTypes.IMAGE -> marks to node.children.filter { it.type in LINKS }
+            MarkdownElementTypes.CODE_SPAN, MarkdownElementTypes.AUTOLINK -> null
+            else -> if (node.children.isEmpty()) null else marks to node.children
+        }
 
-            type == MarkdownElementTypes.EMPH -> return marks.copy(italic = true) to node.children.trim(1)
-
-            type == GFMElementTypes.STRIKETHROUGH -> return marks.copy(strike = true) to
-                node.children.trim(tildeRun(node))
-
-            type in LINKS -> return marks to node.linkText()
-
-            type == MarkdownElementTypes.IMAGE -> return marks to node.children.filter { it.type in LINKS }
-
-            type == MarkdownElementTypes.CODE_SPAN -> appendLiteral(codeSpan(node), marks, code = true)
-
-            type == MarkdownElementTypes.AUTOLINK -> autolink(node, marks)
-
-            node.children.isNotEmpty() -> return marks to node.children
-
+    private fun write(
+        node: ASTNode,
+        marks: Marks,
+    ) {
+        when (node.type) {
+            MarkdownElementTypes.CODE_SPAN -> appendLiteral(codeSpan(node), marks, code = true)
+            MarkdownElementTypes.AUTOLINK -> autolink(node, marks)
             else -> leaf(node, marks)
         }
-        return null
     }
 
     private fun leaf(
@@ -240,14 +241,7 @@ private fun Marks.span(
         NoteSpan(text, if (bold) SpanStyle.Bold else SpanStyle.Text, italic = italic, strike = strike)
     }
 
-private fun List<ASTNode>.trim(count: Int): List<ASTNode> =
-    if (size <=
-        count * 2
-    ) {
-        emptyList()
-    } else {
-        subList(count, size - count)
-    }
+private fun List<ASTNode>.inner(count: Int): List<ASTNode> = drop(count).dropLast(count)
 
 private fun tildeRun(node: ASTNode): Int = node.children.takeWhile { it.type == GFMTokenTypes.TILDE }.size
 
@@ -295,21 +289,25 @@ internal fun List<NoteSpan>.mergeAdjacent(): MutableList<NoteSpan> {
 
 private fun List<NoteSpan>.trimmed(): List<NoteSpan> {
     val merged = mergeAdjacent()
-    while (merged.isNotEmpty() && merged.first().style != SpanStyle.Code &&
-        merged.first().text.isBlank()
-    ) {
-        merged.removeAt(0)
+    while (merged.firstOrNull()?.isBlankText() == true) merged.removeAt(0)
+    while (merged.lastOrNull()?.isBlankText() == true) merged.removeAt(merged.lastIndex)
+    if (merged.isNotEmpty()) {
+        merged[0] = merged.first().trimText { it.trimStart() }
+        merged[merged.lastIndex] = merged.last().trimText { it.trimEnd() }
     }
-    while (merged.isNotEmpty() && merged.last().style != SpanStyle.Code &&
-        merged.last().text.isBlank()
-    ) {
-        merged.removeAt(merged.lastIndex)
-    }
-    if (merged.isEmpty()) return merged
-    merged.first().let { if (it.style != SpanStyle.Code) merged[0] = it.copy(text = it.text.trimStart()) }
-    merged.last().let { if (it.style != SpanStyle.Code) merged[merged.lastIndex] = it.copy(text = it.text.trimEnd()) }
     return merged
 }
+
+private fun NoteSpan.isBlankText(): Boolean = style != SpanStyle.Code && text.isBlank()
+
+private fun NoteSpan.trimText(trim: (String) -> String): NoteSpan =
+    if (style ==
+        SpanStyle.Code
+    ) {
+        this
+    } else {
+        copy(text = trim(text))
+    }
 
 private fun decode(text: String): String {
     if ('\\' !in text && '&' !in text) return text
