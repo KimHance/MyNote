@@ -5,9 +5,7 @@ import com.hancekim.mynote.core.domain.model.firstSentence
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.jsonObject
 import org.junit.Assert.assertEquals
-import org.junit.Assume.assumeTrue
 import org.junit.Test
-import java.io.File
 
 private val ALL_BLOCKS =
     """
@@ -64,18 +62,9 @@ class ReparseEquivalenceTest {
 
     @Test
     fun `레포의 실제 노트는 옛 캐시 경로와 새 경로가 같다`() {
-        val notes =
-            generateSequence(File(System.getProperty("user.dir")).absoluteFile) { it.parentFile }
-                .map { File(it, "notes") }
-                .firstOrNull { File(it, "index.json").isFile }
-        assumeTrue(notes != null)
-        val files =
-            notes!!
-                .walkTopDown()
-                .filter { it.isFile && it.extension == "json" && it.name != "index.json" }
-                .toList()
-        assumeTrue(files.isNotEmpty())
+        val notes = ParityNotes.all
 
-        files.forEach { assertSame(it.name, it.readText()) }
+        assertEquals(22, notes.size)
+        notes.forEach { assertSame(it.jsonPath, it.json) }
     }
 }

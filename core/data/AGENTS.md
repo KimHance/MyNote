@@ -133,5 +133,8 @@ M0 에 쓰는 코드가 없어 여기에 없다 — 쓰는 단계에서 더한�
   fake 어댑터는 `failOn`(실패 주입)과 `gate`(`MutableStateFlow` 배리어로 동시성 강제)를 갖는다. reconcile 을 손대면 **여기부터** 고친다.
 - `NoteFormatSyncTest` — 가짜 마크다운 변환기로 네 자리가 경로로 고르는지(연결 첫 동기화 · 캐시 손상 `.md` 행), 한도 넘은 노트와 해석이
   실패한 노트가 그 노트만 상자가 되는지, 재변환이 JSON 행을 그대로 두고 실패 행을 상자로 저장하는지(NF-2 · NF-8 · NF-9).
+- `MarkdownSyncTest` — 실제 엔진(`NoteFormat()`)으로 한도 안의 큰 입력이 동기화를 멈추지 않는지(NF-8), 옛 판이 상자로 굳힌 `.md` 행이
+  네트워크 없이 다시 만들어지는지(NF-9), 이 레포 노트 22개를 `.md` 로 옮긴 목록으로 동기화하면 추가 0 · 삭제 0 · 갱신 22 이고 북마크가
+  그대로인지(NF-16). 노트 사본은 `:core:format` 의 공유 시험 자료(`testFixtures(projects.core.format)` → `ParityNotes`)를 읽는다.
 - `TemplateNotesTest` — 템플릿 JSON 예시가 `NoteFormat` 에서 강등 0 · 동기화로 전부 받아진다(NT-6).
 - `ConnectionRepositoryTest` · `ConnectionConfigCodecTest` · `SyncFailureKindTest` · `BookmarkRepositoryImplTest`.

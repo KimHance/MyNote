@@ -1,0 +1,40 @@
+{
+  "id": "linked-list",
+  "title": "연결 리스트 (LinkedList)",
+  "date": "2026.06.29",
+  "blocks": [
+    { "type": "paragraph", "spans": [
+      { "text": "각 원소(노드)가 " },
+      { "text": "다음 노드의 참조", "style": "bold" },
+      { "text": " 를 들고 사슬처럼 연결된 구조. 메모리 불연속. " },
+      { "text": "노드 참조만 있으면 삽입/삭제가 O(1)", "style": "bold" },
+      { "text": " 인 대신, 인덱스 접근이 느리다." }
+    ] },
+
+    { "type": "heading", "level": 2, "spans": [ { "text": "노드 구조 — 단일 vs 이중" } ] },
+    { "type": "code", "code": "단일 연결 (singly): next 만\n[a|•]─►[b|•]─►[c|•]─► null\n\n이중 연결 (doubly): prev + next (양방향 이동·뒤에서 삭제 쉬움)\nnull ◄─[•|a|•]◄─►[•|b|•]◄─►[•|c|•]─► null\n\n  노드 = (값, 이웃 노드 참조). 배열과 달리 메모리상 흩어져 있다." },
+    { "type": "paragraph", "spans": [
+      { "text": "삽입/삭제는 " },
+      { "text": "앞뒤 노드의 참조만 다시 연결", "style": "bold" },
+      { "text": " 하면 끝 — 시프트가 없다. 단, " },
+      { "text": "그 위치를 찾는 데 O(n)", "style": "bold" },
+      { "text": " 이 든다(인덱스로 바로 못 감)." }
+    ] },
+    { "type": "code", "code": "b 와 c 사이에 x 삽입: 참조 2개만 갱신 → O(1)\n[a]─►[b]─►[x]─►[c]\n         └──►──┘  (b.next = x, x.next = c)" },
+
+    { "type": "heading", "level": 3, "spans": [ { "text": "복잡도" } ] },
+    { "type": "code", "code": "연산                   평균/최악\n────────────────────────────────\n인덱스 접근 get(i)      O(n)    앞에서부터 따라가야\n탐색 (값으로)          O(n)\n앞에 삽입/삭제          O(1)\n노드 참조 있을 때 삭제   O(1)    (이중연결이면 특히)\n끝에 삽입               O(1)    꼬리 포인터 있으면" },
+
+    { "type": "heading", "level": 2, "spans": [ { "text": "Kotlin 사용" } ] },
+    { "type": "code", "code": "// 표준 LinkedList (이중 연결 + Deque 구현)\nval ll = java.util.LinkedList<Int>()\nll.addFirst(1); ll.addLast(2)\nll.removeFirst()                 // O(1)\nval x = ll[0]                    // O(n) — 인덱스 접근은 피해라\n\n// 직접 구현 핵심 (단일 연결)\nclass Node<T>(val value: T, var next: Node<T>? = null)\n\nfun <T> addFront(head: Node<T>?, v: T): Node<T> =\n    Node(v, next = head)         // 새 노드를 머리에 — O(1)" },
+    { "type": "bulletList", "items": [
+      { "spans": [ { "text": "실무에서 순수 LinkedList 는 드물다 — 랜덤 접근이 없어 " }, { "text": "ArrayList", "style": "code" }, { "text": " 가 대개 더 빠르고 캐시 친화적(형제 노트 " }, { "text": "배열 & ArrayList", "style": "code" }, { "text": ")." } ] },
+      { "spans": [ { "text": "단, 양끝 삽입/삭제가 핵심이면 " }, { "text": "ArrayDeque", "style": "code" }, { "text": " 가 더 실용적(형제 노트 " }, { "text": "Stack", "style": "code" }, { "text": " · " }, { "text": "Queue & Deque", "style": "code" }, { "text": ")." } ] },
+      { "spans": [ { "text": "LRU 캐시", "style": "bold" }, { "text": " 는 이중 연결 리스트를 해시맵과 엮는다(형제 노트 " }, { "text": "LRU 캐시", "style": "code" }, { "text": ")." } ] }
+    ] },
+
+    { "type": "quote", "spans": [
+      { "text": "요약: 참조 사슬이라 삽입/삭제는 O(1)이지만 위치 탐색·인덱스 접근은 O(n). 캐시 지역성이 나빠 실무 기본값은 ArrayList, 연결 리스트는 LRU 같은 특정 패턴에서 빛난다.", "style": "bold" }
+    ] }
+  ]
+}

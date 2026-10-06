@@ -1,0 +1,166 @@
+{
+  "android": [
+    {
+      "id": "molecule-viewmodel",
+      "title": "Molecule 로 ViewModel 상태 만들기",
+      "date": "2026.06.29",
+      "path": "notes/android/molecule-viewmodel.json",
+      "hash": "3ca8d01ec7f69fb4d2fa63b3bc5c832139b11a575274f50c46f1047fbafc3163"
+    },
+    {
+      "id": "nav3",
+      "title": "Navigation 3 첫인상",
+      "date": "2026.06.18",
+      "path": "notes/android/nav3.json",
+      "hash": "8970b722237cec2c6ca5207135ec78af0966bd92163074eec203f3ddd5c9e9ca"
+    },
+    {
+      "id": "compose-state",
+      "title": "Compose 상태 관리 정리",
+      "date": "2026.06.12",
+      "path": "notes/android/compose-state.json",
+      "hash": "fe4023c89b0f020728dbb495de30db22b783998d520ce7798546c12b0bd5e787"
+    }
+  ],
+  "compose": [
+    {
+      "id": "slot-table",
+      "title": "Compose SlotTable & 갭버퍼 (Composition 저장 구조)",
+      "date": "2026.06.29",
+      "path": "notes/compose/slot-table.json",
+      "hash": "17ee804f9f502370478889fbcd010a1809bda24aba9f32e36473e0e61e1e702c"
+    },
+    {
+      "id": "snapshot-state",
+      "title": "Compose 스냅샷 상태 시스템 (Snapshot State / MVCC)",
+      "date": "2026.06.29",
+      "path": "notes/compose/snapshot-state.json",
+      "hash": "c3ee6b936585ba394619a7c608427144faa1d9fba64b2a516c547aae96f5bba0"
+    }
+  ],
+  "cs": [
+    {
+      "id": "http-cache",
+      "title": "HTTP 캐싱 기초",
+      "date": "2026.04.22",
+      "path": "notes/cs/http-cache.json",
+      "hash": "5344b30cfc017aa698fa86a0234a7b0c0e71616adc636759e2285d63e9956c35"
+    }
+  ],
+  "datastructure": [
+    {
+      "id": "array-list",
+      "title": "배열 & ArrayList",
+      "date": "2026.06.29",
+      "path": "notes/datastructure/array-list.json",
+      "hash": "3436aab45659e12ed23215802f92118390aeeb26bb64bf293b970687a96ec9d4"
+    },
+    {
+      "id": "balanced-tree",
+      "title": "균형 이진트리 (Red-Black / AVL)",
+      "date": "2026.06.29",
+      "path": "notes/datastructure/balanced-tree.json",
+      "hash": "8eaa499214ddfc10ab463f12c166862df1dccb789d1b8b556bbe30d399b2e1b6"
+    },
+    {
+      "id": "bst",
+      "title": "이진탐색트리 (BST)",
+      "date": "2026.06.29",
+      "path": "notes/datastructure/bst.json",
+      "hash": "4ce7926807808032953b1931fbe421458c6ce82600ad3b9d2d0f6e86636a149d"
+    },
+    {
+      "id": "graph",
+      "title": "그래프 (Graph)",
+      "date": "2026.06.29",
+      "path": "notes/datastructure/graph.json",
+      "hash": "fe7b84cb48cd1cb5eab94326c4d705002f2ce6ceb91eb2bcd5d725efe1ad1ad9"
+    },
+    {
+      "id": "hash-map",
+      "title": "해시맵 / 해시테이블 (HashMap)",
+      "date": "2026.06.29",
+      "path": "notes/datastructure/hash-map.json",
+      "hash": "b2fa89eeca4b9e5766d8ef8a55483d7a7724a1ed6d84df3ead5a12af1f5fd67d"
+    },
+    {
+      "id": "heap",
+      "title": "힙 & 우선순위 큐 (Heap & PriorityQueue)",
+      "date": "2026.06.29",
+      "path": "notes/datastructure/heap.json",
+      "hash": "82828d5fcc963d825a508b8af80e83cebda4073e2296d713d71054e64bbf3217"
+    },
+    {
+      "id": "linked-list",
+      "title": "연결 리스트 (LinkedList)",
+      "date": "2026.06.29",
+      "path": "notes/datastructure/linked-list.json",
+      "hash": "f775dbd0ce318561fe63c96c5830fe798da11ad604fc79011a23ba3ebf159542"
+    },
+    {
+      "id": "lru-cache",
+      "title": "LRU 캐시 (Least Recently Used)",
+      "date": "2026.06.29",
+      "path": "notes/datastructure/lru-cache.json",
+      "hash": "125099443b73167e14792735958f7ccf14e512fe34574756bf55e1305a3e2afc"
+    },
+    {
+      "id": "queue-deque",
+      "title": "큐 & 덱 (Queue & Deque)",
+      "date": "2026.06.29",
+      "path": "notes/datastructure/queue-deque.json",
+      "hash": "926dc6deb30f4085c5a9d6cc7153c2c8f92c5b10c62106774213a5749944b82d"
+    },
+    {
+      "id": "set",
+      "title": "집합 (Set)",
+      "date": "2026.06.29",
+      "path": "notes/datastructure/set.json",
+      "hash": "18e3cd39e74802890389c2862ca84efdea495e7a0607c9440aa00353cc2379f9"
+    },
+    {
+      "id": "stack",
+      "title": "스택 (Stack)",
+      "date": "2026.06.29",
+      "path": "notes/datastructure/stack.json",
+      "hash": "ba24180033e77c15980956c7e708ce8ef84168dc5e80fc8e707b74b11108464f"
+    },
+    {
+      "id": "trie",
+      "title": "트라이 (Trie, 접두사 트리)",
+      "date": "2026.06.29",
+      "path": "notes/datastructure/trie.json",
+      "hash": "4466a1a7284a6ff5b3e8170ff9373e2187108c7e593561401f91c5cacd4debbd"
+    },
+    {
+      "id": "union-find",
+      "title": "유니온 파인드 / 분리집합 (Union-Find)",
+      "date": "2026.06.29",
+      "path": "notes/datastructure/union-find.json",
+      "hash": "be91a6635b41919fa64e06c30ba2c52c78ee7633bd82bd05aceb27edb8076e51"
+    }
+  ],
+  "kotlin": [
+    {
+      "id": "generics",
+      "title": "Kotlin 제네릭 (기초~심화)",
+      "date": "2026.06.29",
+      "path": "notes/kotlin/generics.json",
+      "hash": "b71c2453ddf0c7470b976558c6830d23b44162ee02a3fc2538caf7fc83e75bce"
+    },
+    {
+      "id": "coroutines",
+      "title": "코루틴 디스패처 메모",
+      "date": "2026.05.30",
+      "path": "notes/kotlin/coroutines.json",
+      "hash": "ecd49d50a6ad07142edab333dfacdeae8d8fbfecfcd85302b3cc4a546e8c4bb0"
+    },
+    {
+      "id": "sealed",
+      "title": "sealed interface 활용",
+      "date": "2026.05.14",
+      "path": "notes/kotlin/sealed.json",
+      "hash": "c886584452773768593a29fc6bdde5ee8da574ebf8e24f13314d7da6a0e5411a"
+    }
+  ]
+}

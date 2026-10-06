@@ -1,11 +1,10 @@
 package com.hancekim.mynote.core.format
 
 import com.hancekim.mynote.core.domain.model.NoteBlock
-import com.hancekim.mynote.core.domain.model.UnsupportedReason
 import javax.inject.Inject
 
 /** 해석 결과가 바뀌는 판마다 올리는 번호. 이보다 낮은 판으로 만든 캐시는 원문에서 다시 만든다. */
-const val PARSER_VERSION: Int = 1
+const val PARSER_VERSION: Int = 2
 
 /**
  * 원문 하나를 해석해 캐시에 두는 값.
@@ -33,7 +32,7 @@ class NoteFormat(
     private val markdown: MarkdownConverter,
 ) {
     @Inject
-    constructor() : this(PlaceholderMarkdown)
+    constructor() : this(GfmMarkdownConverter())
 
     private val json = MyNoteJsonFormat(BlockJson)
 
@@ -90,11 +89,6 @@ class NoteFormat(
             markdown.convert(raw).map { it.toCache() }
         }
 }
-
-internal val PlaceholderMarkdown =
-    MarkdownConverter { raw ->
-        listOf(NoteBlock.Unsupported(UnsupportedReason.BrokenNote, type = null, text = null, raw = raw))
-    }
 
 private fun String?.isMarkdown(): Boolean = this?.endsWith(".md", ignoreCase = true) == true
 

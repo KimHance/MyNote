@@ -1,0 +1,18 @@
+{
+  "id": "nav3",
+  "title": "Navigation 3 첫인상",
+  "date": "2026.06.18",
+  "blocks": [
+    { "type": "heading", "level": 2, "spans": [ { "text": "백스택을 앱이 소유한다" } ] },
+    { "type": "paragraph", "spans": [
+      { "text": "Navigation 3 는 백스택을 " },
+      { "text": "앱이 직접 소유", "style": "bold" },
+      { "text": " 하는 모델이다." }
+    ] },
+    { "type": "heading", "level": 3, "spans": [ { "text": "어댑티브와의 결합" } ] },
+    { "type": "bulletList", "items": [
+      { "spans": [ { "text": "listPane()", "style": "code" }, { "text": " 은 목록" } ] },
+      { "spans": [ { "text": "detailPane()", "style": "code" }, { "text": " 은 상세" } ] }
+    ] }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "id": "queue-deque",
+  "title": "큐 & 덱 (Queue & Deque)",
+  "date": "2026.06.29",
+  "blocks": [
+    { "type": "paragraph", "spans": [
+      { "text": "큐(Queue)", "style": "bold" },
+      { "text": " 는 먼저 넣은 게 먼저 나오는 " },
+      { "text": "FIFO", "style": "code" },
+      { "text": " (First In First Out). " },
+      { "text": "덱(Deque)", "style": "bold" },
+      { "text": " 은 " },
+      { "text": "양끝 모두 출입", "style": "bold" },
+      { "text": " 가능한 일반화. BFS·작업 대기열의 기본." }
+    ] },
+
+    { "type": "heading", "level": 2, "spans": [ { "text": "동작 — 양끝, 그리고 원형 버퍼" } ] },
+    { "type": "code", "code": "Queue (FIFO):  enqueue 는 뒤, dequeue 는 앞\n   front ►[a][b][c]◄ rear\n   dequeue→a        enqueue(d)→ 뒤에 추가\n\nDeque: 양끝 모두 add/remove\n   ◄ addFirst        addLast ►\n   ◄ removeFirst     removeLast ►" },
+    { "type": "paragraph", "spans": [
+      { "text": "배열로 큐를 만들면 앞에서 빼면서 매번 시프트하면 O(n). 그래서 " },
+      { "text": "원형 버퍼(circular buffer)", "style": "bold" },
+      { "text": " 로 front/rear 인덱스만 굴려 " },
+      { "text": "O(1)", "style": "code" },
+      { "text": " 을 만든다." }
+    ] },
+    { "type": "code", "code": "원형 버퍼: 인덱스가 끝에 닿으면 0 으로 되돌아온다 (% capacity)\n  [ _ ][ b ][ c ][ d ][ _ ]\n         ▲front          ▲rear\n  dequeue → front++,  enqueue → rear++  (둘 다 modulo 로 순환)" },
+
+    { "type": "heading", "level": 3, "spans": [ { "text": "복잡도" } ] },
+    { "type": "code", "code": "연산                평균/최악\n──────────────────────────\nenqueue / addLast   O(1)*\ndequeue / removeFirst O(1)\nfront / peek        O(1)\n탐색                O(n)\n               *동적 리사이즈 시 분할상환" },
+
+    { "type": "heading", "level": 2, "spans": [ { "text": "Kotlin 사용" } ] },
+    { "type": "code", "code": "// ArrayDeque 가 큐로도 덱으로도 표준\nval q = ArrayDeque<Int>()\nq.addLast(1); q.addLast(2)    // enqueue\nval first = q.removeFirst()   // dequeue → 1 (FIFO)\n\n// 활용: 그래프 BFS\nfun bfs(start: Int, adj: Map<Int, List<Int>>): List<Int> {\n    val visited = mutableSetOf(start)\n    val order = mutableListOf<Int>()\n    val q = ArrayDeque<Int>()\n    q.addLast(start)\n    while (q.isNotEmpty()) {\n        val cur = q.removeFirst()\n        order += cur\n        for (next in adj[cur].orEmpty()) if (visited.add(next)) q.addLast(next)\n    }\n    return order\n}" },
+    { "type": "bulletList", "items": [
+      { "spans": [ { "text": "BFS", "style": "bold" }, { "text": " · 작업/이벤트 대기열 · 슬라이딩 윈도우 최댓값(덱). 그래프 노트는 형제 " }, { "text": "그래프", "style": "code" }, { "text": "." } ] },
+      { "spans": [ { "text": "양끝만 쓰면 덱이 LinkedList 보다 캐시 친화적이고 빠르다(형제 노트 " }, { "text": "Stack", "style": "code" }, { "text": " 도 ArrayDeque 기반)." } ] },
+      { "spans": [ { "text": "우선순위가 있는 대기열은 큐가 아니라 " }, { "text": "PriorityQueue", "style": "code" }, { "text": " (형제 노트 " }, { "text": "힙 & PriorityQueue", "style": "code" }, { "text": ")." } ] }
+    ] },
+
+    { "type": "quote", "spans": [
+      { "text": "요약: 큐=FIFO, 덱=양끝 출입. 원형 버퍼로 양끝 연산을 O(1) 로 유지. Kotlin 의 ArrayDeque 하나로 스택·큐·덱을 다 덮고, BFS 의 기본 자료구조다.", "style": "bold" }
+    ] }
+  ]
+}
