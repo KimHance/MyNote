@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "mynote-notes",
+  "version": "1.0.0",
+  "description": "노트 저장소에 노트를 저장 · 수정 · 삭제하고(write-note) 규격에 맞는지 검사한다(check-notes)",
+  "author": {
+    "name": "<OWNER>"
+  },
+  "keywords": ["notes", "markdown", "study"]
+}

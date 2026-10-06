@@ -5,11 +5,14 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.net.toUri
 
-private const val TOKEN_PAGE_URL = "https://github.com/settings/personal-access-tokens/new"
+internal const val TOKEN_PAGE_URL = "https://github.com/settings/personal-access-tokens/new"
 
-internal fun openTokenPage(context: Context): Boolean {
+internal fun openExternal(
+    context: Context,
+    url: String,
+): Boolean {
     val intent =
-        Intent(Intent.ACTION_VIEW, TOKEN_PAGE_URL.toUri())
+        Intent(Intent.ACTION_VIEW, url.toUri())
             .addCategory(Intent.CATEGORY_BROWSABLE)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     return try {

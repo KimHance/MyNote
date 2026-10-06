@@ -1,0 +1,19 @@
+name: 노트 목록 갱신
+on:
+  push:
+    branches:
+      - '**'
+    paths:
+      - 'notes/**'
+      - '!notes/index.json'
+permissions:
+  contents: write
+concurrency:
+  group: update-index-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: <KIT_REPO>@v1

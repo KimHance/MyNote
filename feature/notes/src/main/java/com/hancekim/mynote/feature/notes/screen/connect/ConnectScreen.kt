@@ -7,12 +7,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -31,8 +35,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,6 +60,7 @@ import com.hancekim.mynote.core.designfoundation.window.MyNoteWindowClass
 import com.hancekim.mynote.core.designsystem.component.MyNoteSnackbarHost
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.domain.connect.ConnectLinkRejection
+import com.hancekim.mynote.core.domain.connect.TemplateRepo
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.ConfirmKind
 import com.hancekim.mynote.feature.notes.element.ConfirmUi
@@ -61,16 +68,21 @@ import com.hancekim.mynote.feature.notes.element.ConnectBackAction
 import com.hancekim.mynote.feature.notes.element.ConnectNotice
 import com.hancekim.mynote.feature.notes.element.ConnectPlace
 import com.hancekim.mynote.feature.notes.element.ConnectStep
+import com.hancekim.mynote.feature.notes.element.EntryEmphasis
 import com.hancekim.mynote.feature.notes.element.LinkCheck
 import com.hancekim.mynote.feature.notes.element.NotesIntent
+import com.hancekim.mynote.feature.notes.element.NoticeWays
 import com.hancekim.mynote.feature.notes.element.TokenDraft
 import com.hancekim.mynote.feature.notes.element.TokenFailureKind
 import com.hancekim.mynote.feature.notes.element.TokenReason
 import com.hancekim.mynote.feature.notes.element.canConnect
 import com.hancekim.mynote.feature.notes.element.connectBackAction
 import com.hancekim.mynote.feature.notes.element.connectNoticeRes
+import com.hancekim.mynote.feature.notes.element.entryEmphasis
 import com.hancekim.mynote.feature.notes.element.linkReasonRes
+import com.hancekim.mynote.feature.notes.element.noticeWays
 import com.hancekim.mynote.feature.notes.element.tokenFailureRes
+import com.hancekim.mynote.feature.notes.element.twoColumnsOf
 import com.hancekim.mynote.feature.notes.screen.CONTENT_MAX_WIDTH
 import com.hancekim.mynote.feature.notes.screen.PrimaryButton
 import com.hancekim.mynote.feature.notes.screen.QuietButton
@@ -93,6 +105,9 @@ internal fun ConnectRoute(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val browserMissing = stringResource(R.string.notes_token_browser_missing)
+    val openOrNotify: (String) -> Unit = { url ->
+        if (!openExternal(context, url)) scope.launch { snackbarHostState.showSnackbar(browserMissing) }
+    }
     val keyboard = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
@@ -139,10 +154,11 @@ internal fun ConnectRoute(
                         else -> onNotesIntent(NotesIntent.Back)
                     }
                 },
-                onCreateToken = {
-                    if (!openTokenPage(context)) scope.launch { snackbarHostState.showSnackbar(browserMissing) }
-                },
+                onCreateToken = { openOrNotify(TOKEN_PAGE_URL) },
                 modifier = modifier,
+                emphasis = entryEmphasis(place, hasConnection),
+                onOpenCreate = { state.template?.let { openOrNotify(it.generateUrl) } },
+                onOpenGuide = { state.template?.let { openOrNotify(it.introUrl) } },
             )
         }
     if (place == ConnectPlace.Root) {
@@ -179,6 +195,9 @@ internal fun ConnectScreen(
     onBack: () -> Unit,
     onCreateToken: () -> Unit,
     modifier: Modifier = Modifier,
+    emphasis: EntryEmphasis = entryEmphasis(place, hasConnection = false),
+    onOpenCreate: () -> Unit = {},
+    onOpenGuide: () -> Unit = {},
 ) {
     val colors = MyNoteTheme.colors
     val adaptive = MyNoteTheme.adaptive
@@ -196,17 +215,68 @@ internal fun ConnectScreen(
     }
     val short = adaptive.heightClass == MyNoteHeightClass.Compact
     val gap = if (short) SHORT_GAP else GAP
-    val topPad =
-        when {
-            place == ConnectPlace.Stacked -> STACKED_TOP
-            short -> SHORT_ROOT_TOP
-            adaptive.useModalDrawer -> COMPACT_ROOT_TOP
-            else -> WIDE_ROOT_TOP
-        }
 
     val buttonInView = remember { BringIntoViewRequester() }
     val imeBottom = WindowInsets.ime.getBottom(LocalDensity.current)
     LaunchedEffect(imeBottom, panel != null) { if (imeBottom > 0) buttonInView.bringIntoView() }
+
+    val linkSectionContent =
+        @Composable {
+            Column(verticalArrangement = Arrangement.spacedBy(gap)) {
+                ConnectIntroText()
+                LinkBlock(
+                    state = state,
+                    locked = locked,
+                    onLinkChange = { onIntent(ConnectIntent.LinkChanged(it)) },
+                    onGo = submit,
+                    onCancel = { onIntent(ConnectIntent.CancelProbe) },
+                    showProbing = panel == null,
+                )
+                state.notice?.let { notice ->
+                    val withWays = noticeWays(notice, state.template != null) == NoticeWays.CreateAndGuide
+                    NoticeBox(
+                        text = stringResource(connectNoticeRes(notice)),
+                        secondLine = if (withWays) stringResource(R.string.notes_connect_err_no_list_fresh) else null,
+                        ways =
+                            if (withWays) {
+                                (
+                                    {
+                                        NoticeWayButtons(
+                                            onCreate = onOpenCreate,
+                                            onGuide = onOpenGuide,
+                                        )
+                                    }
+                                )
+                            } else {
+                                null
+                            },
+                    )
+                }
+                if (panel != null) {
+                    TokenCard(
+                        panel = panel,
+                        draft = draft,
+                        probing = state.step == ConnectStep.Probing,
+                        locked = locked,
+                        onCreateToken = onCreateToken,
+                        onDone = submit,
+                        onCancel = { onIntent(ConnectIntent.CancelProbe) },
+                    )
+                }
+                if (state.step == ConnectStep.Syncing || state.step == ConnectStep.Done) {
+                    SyncProgressCard()
+                } else {
+                    PrimaryButton(
+                        text = stringResource(R.string.notes_connect_action),
+                        enabled = canSubmit,
+                        onClick = submit,
+                        modifier = Modifier.fillMaxWidth().bringIntoViewRequester(buttonInView),
+                    )
+                }
+            }
+        }
+    val latestLinkSection = rememberUpdatedState(linkSectionContent)
+    val linkSection = remember { movableContentOf { latestLinkSection.value() } }
 
     Surface(modifier = modifier.fillMaxSize(), color = colors.bg) {
         Column(
@@ -233,52 +303,55 @@ internal fun ConnectScreen(
                     backEnabled = state.step == ConnectStep.Editing || state.step == ConnectStep.Probing,
                 )
             }
-            Column(
-                modifier =
-                    Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Column(
-                    modifier =
-                        Modifier
-                            .widthIn(max = CONTENT_MAX_WIDTH)
-                            .fillMaxWidth()
-                            .padding(start = SIDE, end = SIDE, top = topPad, bottom = BOTTOM_PAD),
-                    verticalArrangement = Arrangement.spacedBy(gap),
-                ) {
-                    ConnectIntro(place = place, title = title)
-                    LinkBlock(
-                        state = state,
-                        locked = locked,
-                        onLinkChange = { onIntent(ConnectIntent.LinkChanged(it)) },
-                        onGo = submit,
-                        onCancel = { onIntent(ConnectIntent.CancelProbe) },
-                        showProbing = panel == null,
-                    )
-                    state.notice?.let { NoticeBox(text = stringResource(connectNoticeRes(it))) }
-                    if (panel != null) {
-                        TokenCard(
-                            panel = panel,
-                            draft = draft,
-                            probing = state.step == ConnectStep.Probing,
-                            locked = locked,
-                            onCreateToken = onCreateToken,
-                            onDone = submit,
-                            onCancel = { onIntent(ConnectIntent.CancelProbe) },
-                        )
+            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+                val entryShown = state.entryShown
+                val twoColumns = twoColumnsOf(emphasis, short, maxWidth.value, entryShown)
+                val topPad =
+                    when {
+                        place == ConnectPlace.Stacked -> STACKED_TOP
+                        short -> SHORT_ROOT_TOP
+                        adaptive.useModalDrawer -> COMPACT_ROOT_TOP
+                        else -> WIDE_ROOT_TOP
                     }
-                    if (state.step == ConnectStep.Syncing || state.step == ConnectStep.Done) {
-                        SyncProgressCard()
-                    } else {
-                        PrimaryButton(
-                            text = stringResource(R.string.notes_connect_action),
-                            enabled = canSubmit,
-                            onClick = submit,
-                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(buttonInView),
-                        )
+                Column(
+                    modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Column(
+                        modifier =
+                            Modifier
+                                .widthIn(max = if (twoColumns) TWO_COLUMN_MAX_WIDTH else CONTENT_MAX_WIDTH)
+                                .fillMaxWidth()
+                                .padding(
+                                    start = SIDE,
+                                    end = SIDE,
+                                    top = topPad,
+                                    bottom = if (twoColumns) TWO_COLUMN_BOTTOM else BOTTOM_PAD,
+                                ),
+                    ) {
+                        if (place == ConnectPlace.Root && !twoColumns) {
+                            ConnectHeading()
+                            Spacer(Modifier.height(HEADING_GAP))
+                        }
+                        if (twoColumns) {
+                            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+                                Column(Modifier.weight(1f)) {
+                                    ConnectHeading()
+                                    Spacer(Modifier.height(HEADING_GAP))
+                                    linkSection()
+                                }
+                                EntryColumnDivider()
+                                EntrySection(onCreate = onOpenCreate, modifier = Modifier.weight(1f))
+                            }
+                        } else {
+                            Column(verticalArrangement = Arrangement.spacedBy(gap)) {
+                                linkSection()
+                                if (entryShown) {
+                                    EntryDivider()
+                                    EntrySection(onCreate = onOpenCreate)
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -287,26 +360,22 @@ internal fun ConnectScreen(
 }
 
 @Composable
-private fun ConnectIntro(
-    place: ConnectPlace,
-    title: String,
-) {
-    val colors = MyNoteTheme.colors
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        if (place == ConnectPlace.Root) {
-            KeepWordsText(
-                text = stringResource(R.string.notes_connect_title),
-                style = MyNoteTheme.textStyles.title,
-                color = colors.text,
-                modifier = Modifier.semantics { heading() },
-            )
-        }
-        KeepWordsText(
-            text = stringResource(R.string.notes_connect_intro),
-            style = MyNoteTheme.textStyles.body,
-            color = colors.bodyText,
-        )
-    }
+private fun ConnectHeading() {
+    KeepWordsText(
+        text = stringResource(R.string.notes_connect_title),
+        style = MyNoteTheme.textStyles.title,
+        color = MyNoteTheme.colors.text,
+        modifier = Modifier.semantics { heading() },
+    )
+}
+
+@Composable
+private fun ConnectIntroText() {
+    KeepWordsText(
+        text = stringResource(R.string.notes_connect_intro),
+        style = MyNoteTheme.textStyles.body,
+        color = MyNoteTheme.colors.bodyText,
+    )
 }
 
 @Composable
@@ -502,11 +571,15 @@ private val SHORT_ROOT_TOP: Dp = 20.dp
 private val COMPACT_ROOT_TOP: Dp = 28.dp
 private val WIDE_ROOT_TOP: Dp = 72.dp
 private val GAP: Dp = 24.dp
+private val HEADING_GAP: Dp = 12.dp
+private val TWO_COLUMN_MAX_WIDTH: Dp = 800.dp
+private val TWO_COLUMN_BOTTOM: Dp = 8.dp
 private val SHORT_GAP: Dp = 16.dp
 private val CARD_RADIUS: Dp = 14.dp
 
 private val previewFound = LinkCheck.Found("octo-learner/android-notes", null, "notes")
 private const val PREVIEW_LINK = "https://github.com/octo-learner/android-notes"
+private val previewTemplate = TemplateRepo("octo-learner", "notes-template")
 
 @Composable
 private fun PreviewHost(
@@ -877,6 +950,134 @@ private fun ConnectConfirmAdoptPreview() {
             confirm = ConfirmUi(ConfirmKind.Adopt, notes = 5, bookmarks = 0, dropsToken = false),
             onDismiss = {},
             onConfirm = {},
+        )
+    }
+}
+
+@Preview(name = "입구 · 빈 · 루트", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 360, heightDp = 800)
+@Composable
+private fun ConnectEntryEmptyPreview() {
+    PreviewHost {
+        ConnectScreen(ConnectUiState(template = previewTemplate), ConnectPlace.Root, "", TokenDraft(), {}, {}, {})
+    }
+}
+
+@Preview(name = "입구 · 알아본 결과", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 360, heightDp = 800)
+@Composable
+private fun ConnectEntryFoundPreview() {
+    PreviewHost {
+        ConnectScreen(
+            ConnectUiState(link = PREVIEW_LINK, linkCheck = previewFound, template = previewTemplate),
+            ConnectPlace.Root,
+            "",
+            TokenDraft(),
+            {},
+            {},
+            {},
+        )
+    }
+}
+
+@Preview(name = "입구 · 빈 · 852", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 852, heightDp = 800)
+@Composable
+private fun ConnectEntryWidePreview() {
+    PreviewHost(windowClass = MyNoteWindowClass.Medium) {
+        ConnectScreen(ConnectUiState(template = previewTemplate), ConnectPlace.Root, "", TokenDraft(), {}, {}, {})
+    }
+}
+
+@Preview(name = "입구 · 빈 · 가로 두 단", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 800, heightDp = 360)
+@Composable
+private fun ConnectEntryLandscapePreview() {
+    PreviewHost(windowClass = MyNoteWindowClass.Medium, heightClass = MyNoteHeightClass.Compact) {
+        ConnectScreen(ConnectUiState(template = previewTemplate), ConnectPlace.Root, "", TokenDraft(), {}, {}, {})
+    }
+}
+
+@Preview(name = "입구 · 빈 · 글자 ×1.3", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 360, heightDp = 800)
+@Composable
+private fun ConnectEntryLargeFontPreview() {
+    PreviewHost(fontScale = MyNoteFontScale.Large) {
+        ConnectScreen(ConnectUiState(template = previewTemplate), ConnectPlace.Root, "", TokenDraft(), {}, {}, {})
+    }
+}
+
+@Preview(name = "입구 · 쌓은 · 연결", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 360, heightDp = 800)
+@Composable
+private fun ConnectEntryStackedPreview() {
+    PreviewHost {
+        ConnectScreen(
+            ConnectUiState(link = PREVIEW_LINK, linkCheck = previewFound, template = previewTemplate),
+            ConnectPlace.Stacked,
+            "저장소 바꾸기",
+            TokenDraft(),
+            {},
+            {},
+            {},
+        )
+    }
+}
+
+@Preview(name = "입구 · 쌓은 · 852", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 852, heightDp = 800)
+@Composable
+private fun ConnectEntryStackedWidePreview() {
+    PreviewHost(windowClass = MyNoteWindowClass.Medium) {
+        ConnectScreen(
+            ConnectUiState(link = PREVIEW_LINK, linkCheck = previewFound, template = previewTemplate),
+            ConnectPlace.Stacked,
+            "저장소 바꾸기",
+            TokenDraft(),
+            {},
+            {},
+            {},
+        )
+    }
+}
+
+@Preview(
+    name = "RC-9 · 목록 없음 · 두 길",
+    showBackground = true,
+    backgroundColor = 0xFF0E1217,
+    widthDp = 360,
+    heightDp = 800,
+)
+@Composable
+private fun ConnectNoListWaysPreview() {
+    PreviewHost {
+        ConnectScreen(
+            ConnectUiState(
+                link = PREVIEW_LINK,
+                linkCheck = previewFound,
+                notice = ConnectNotice.NoList,
+                template = previewTemplate,
+            ),
+            ConnectPlace.Root,
+            "",
+            TokenDraft(),
+            {},
+            {},
+            {},
+        )
+    }
+}
+
+@Preview(name = "RC-9 · 목록 없음 · 가로", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 800, heightDp = 360)
+@Composable
+private fun ConnectNoListWaysLandscapePreview() {
+    PreviewHost(windowClass = MyNoteWindowClass.Medium, heightClass = MyNoteHeightClass.Compact) {
+        ConnectScreen(
+            ConnectUiState(
+                link = PREVIEW_LINK,
+                linkCheck = previewFound,
+                notice = ConnectNotice.NoList,
+                template = previewTemplate,
+            ),
+            ConnectPlace.Root,
+            "",
+            TokenDraft(),
+            {},
+            {},
+            {},
         )
     }
 }

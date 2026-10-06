@@ -286,6 +286,7 @@
     <string name="notes_connect_token_label">액세스 토큰</string>
     <string name="notes_connect_err_transient">GitHub 응답이 늦거나 불안정합니다. 잠시 뒤 다시 시도하세요.</string>
     <string name="notes_connect_err_no_list">이 저장소에는 노트 목록이 없습니다. 이 앱은 노트 목록이 있는 저장소만 읽을 수 있습니다.</string>
+    <string name="notes_connect_err_no_list_fresh">방금 템플릿으로 만들었다면 잠시 뒤 다시 연결하세요.</string>
     <string name="notes_connect_err_bad_list">노트 목록을 읽을 수 없습니다. 파일 형식이 맞지 않습니다.</string>
     <string name="notes_connect_err_offline">인터넷에 연결되어 있지 않습니다. 연결을 확인한 뒤 다시 시도하세요.</string>
 
@@ -298,6 +299,17 @@
     <string name="notes_token_create">토큰 만들기</string>
     <string name="notes_token_create_a11y">토큰 만들기, 외부 브라우저에서 열립니다</string>
     <string name="notes_token_browser_missing">브라우저를 열지 못했습니다. 브라우저 앱이 있는지 확인하세요.</string>
+    <string name="notes_entry_title">저장소가 아직 없나요?</string>
+    <string name="notes_entry_desc">템플릿으로 내 노트 저장소를 만들 수 있습니다.</string>
+    <string name="notes_entry_step_1">GitHub 에서 템플릿으로 저장소를 만듭니다.</string>
+    <string name="notes_entry_step_2">만든 저장소의 주소를 복사합니다.</string>
+    <string name="notes_entry_step_3">이 앱의 주소 칸에 붙여 넣고 연결합니다.</string>
+    <string name="notes_entry_private">비공개로 만들면 연결할 때 토큰이 필요합니다.</string>
+    <string name="notes_entry_create">저장소 만들기</string>
+    <string name="notes_entry_create_a11y">저장소 만들기, 외부 브라우저에서 열립니다</string>
+    <string name="notes_entry_guide">형식 안내 보기</string>
+    <string name="notes_entry_guide_a11y">형식 안내 보기, 외부 브라우저에서 열립니다</string>
+    <string name="notes_entry_or">또는</string>
     <string name="notes_token_classic_warn">이 토큰은 넓은 권한을 가집니다. 이 저장소 하나만 읽는 세분화된 토큰을 권합니다.</string>
     <string name="notes_token_verifying">토큰 확인 중</string>
     <string name="notes_token_verifying_action">확인 중</string>

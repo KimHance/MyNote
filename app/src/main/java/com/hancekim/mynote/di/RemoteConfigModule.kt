@@ -1,6 +1,8 @@
 package com.hancekim.mynote.di
 
 import com.hancekim.mynote.BuildConfig
+import com.hancekim.mynote.core.domain.connect.TemplateRepo
+import com.hancekim.mynote.core.domain.connect.parseTemplateRepo
 import com.hancekim.mynote.core.domain.model.ConnectionSeed
 import dagger.Module
 import dagger.Provides
@@ -24,4 +26,8 @@ object RemoteConfigModule {
                 token = BuildConfig.GITHUB_TOKEN.ifBlank { null },
             )
         }
+
+    @Provides
+    @Singleton
+    fun provideTemplateRepo(): TemplateRepo? = parseTemplateRepo(BuildConfig.TEMPLATE_REPO)
 }

@@ -5,6 +5,7 @@ import androidx.compose.runtime.Stable
 import com.hancekim.mynote.core.common.mvi.MviEvent
 import com.hancekim.mynote.core.common.mvi.MviState
 import com.hancekim.mynote.core.domain.connect.ConnectLinkRejection
+import com.hancekim.mynote.core.domain.connect.TemplateRepo
 import com.hancekim.mynote.feature.notes.element.ConfirmUi
 import com.hancekim.mynote.feature.notes.element.ConnectNotice
 import com.hancekim.mynote.feature.notes.element.ConnectStep
@@ -12,6 +13,7 @@ import com.hancekim.mynote.feature.notes.element.LinkCheck
 import com.hancekim.mynote.feature.notes.element.SecretText
 import com.hancekim.mynote.feature.notes.element.TokenFailureKind
 import com.hancekim.mynote.feature.notes.element.TokenReason
+import com.hancekim.mynote.feature.notes.element.entryVisible
 
 @Immutable
 data class TokenPanelUi(
@@ -28,7 +30,11 @@ data class ConnectUiState(
     val notice: ConnectNotice? = null,
     val confirm: ConfirmUi? = null,
     val resetCount: Int = 0,
+    val template: TemplateRepo? = null,
 ) : MviState
+
+val ConnectUiState.entryShown: Boolean
+    get() = entryVisible(step, tokenPanel != null, notice, template != null)
 
 sealed interface ConnectIntent : MviEvent {
     data class LinkChanged(
