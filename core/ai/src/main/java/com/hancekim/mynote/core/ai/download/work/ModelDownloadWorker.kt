@@ -25,6 +25,7 @@ import com.hancekim.mynote.core.ai.download.transfer.InstallResult
 import com.hancekim.mynote.core.ai.download.transfer.ModelDownloader
 import com.hancekim.mynote.core.ai.download.transfer.ModelInstaller
 import com.hancekim.mynote.core.common.throttle.Throttler
+import com.hancekim.mynote.core.domain.model.ModelStatus
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
@@ -57,12 +58,13 @@ internal class ModelDownloadWorker
 
         override suspend fun doWork(): Result {
             notifications.createChannel()
-            notifications.clearRetrying()
+            notifications.on(NoticeEvent.Reported(ModelStatus.Preparing))
             setForeground(foregroundInfo())
 
             val files = modelFilesOf(context)
+            val expected = ModelSource.expected
             val installer =
-                ModelInstaller(ModelDownloader(client), files, ModelSource.expected) { allocatableBytes(files.target) }
+                ModelInstaller(ModelDownloader(client), files, expected) { allocatableBytes(files.target) }
 
             val outcome =
                 try {
@@ -73,24 +75,24 @@ internal class ModelDownloadWorker
                         throttler.process { report(received, total) }
                     }
                 } catch (cancellation: CancellationException) {
-                    notifications.clearTransient()
+                    notifications.on(NoticeEvent.Stopped(stopReason, files.partBytes(), expected.totalBytes))
                     throw cancellation
                 }
 
             return when (outcome) {
                 InstallResult.Installed -> {
-                    notifications.showDone()
+                    notifications.on(NoticeEvent.Reported(ModelStatus.Ready))
                     Result.success()
                 }
 
-                is InstallResult.Retry -> {
-                    notifications.showRetrying()
+                InstallResult.Retry -> {
+                    notifications.on(NoticeEvent.Reported(ModelStatus.Retrying(files.partBytes(), expected.totalBytes)))
                     Result.retry()
                 }
 
                 is InstallResult.Failed -> {
                     Log.w(TAG, "모델 내려받기 실패: ${outcome.reason}")
-                    notifications.showFailed(outcome.reason)
+                    notifications.on(NoticeEvent.Reported(ModelStatus.Failed(outcome.reason)))
                     Result.failure(workDataOf(DownloadWork.KEY_REASON to outcome.reason))
                 }
             }
@@ -103,19 +105,19 @@ internal class ModelDownloadWorker
                 .takeIf { it != notifiedPercent }
                 ?.let {
                     notifiedPercent = it
-                    notifications.showDownloading(it, received, total)
+                    notifications.on(NoticeEvent.Reported(ModelStatus.Downloading(received, total)))
                 }
         }
 
         private fun reportVerifying() {
             setProgressAsync(workDataOf(DownloadWork.KEY_PHASE to DownloadWork.PHASE_VERIFY))
-            notifications.showVerifying()
+            notifications.on(NoticeEvent.Reported(ModelStatus.Verifying))
         }
 
         private fun foregroundInfo(): ForegroundInfo =
             ForegroundInfo(
-                DownloadNotifications.PROGRESS_ID,
-                notifications.preparing(),
+                NoticeSlot.PROGRESS.id,
+                notifications.build(checkNotNull(noticeOf(ModelStatus.Preparing))),
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC,
             )
 

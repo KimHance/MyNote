@@ -5,9 +5,9 @@
 ## 이 모듈의 역할
 
 화면도 상태도 없다. 루트에 `MyNoteApplication`·`MainActivity`·`TokenSync`, `di/` 에 모듈 넷,
-`download/` 에 모델 내려받기 배선 셋이 있고 하는 일은 넷이다 — **Hilt 그래프 완성**,
+`download/` 에 모델 내려받기 배선 둘이 있고 하는 일은 넷이다 — **Hilt 그래프 완성**,
 **`BuildConfig`(debug 시드)/토큰 배선**, **Activity 껍데기**(edge-to-edge + `NotesRoute` 호출),
-**시스템과 닿는 지점**(알림 액션 리시버·딥링크·프로세스 라이프사이클). 기능 코드는 여기에 넣지 않는다.
+**시스템과 닿는 지점**(알림 `PendingIntent`·딥링크·프로세스 라이프사이클). 기능 코드는 여기에 넣지 않는다.
 여기 파일이 늘어나는 건 "앱 전체에 하나뿐인 것" 이거나 "`PendingIntent`/매니페스트 컴포넌트가 필요한 것"이
 생겼을 때뿐이다.
 
@@ -29,10 +29,10 @@
 | `ModelDownloadIntents` (ai) — `@BindsOptionalOf` 로 비워 둔 구멍 | `AppModelDownloadIntents` | **`:app`** (`di/DownloadIntentsModule`) |
 
 **마지막 줄이 방향이 반대인 유일한 항목이다.** `:core:ai` 가 `@BindsOptionalOf` 로 `Optional<ModelDownloadIntents>`
-를 선언해 두고, 그걸 채우는 `@Binds` 가 `:app` 에 있다. `PendingIntent` 는 매니페스트에 등록된 컴포넌트를
-가리켜야 하고 그 컴포넌트는 `:app` 에만 있으니 구현이 여기로 온다. **바인딩을 지우면 `Optional` 이 비어
-알림의 "다시 시도" 액션만 조용히 사라진다** — 컴파일도 되고 내려받기도 된다. `TokenSync` 와 같은 종류의
-조용한 실패다.
+를 선언해 두고, 그걸 채우는 `@Binds` 가 `:app` 에 있다. 알림의 `PendingIntent` 는 `:app` 의 `MainActivity` 를
+가리켜야 하니 구현이 여기로 온다. **바인딩을 지우면 `Optional` 이 비어 실패 알림의 "다시 시도" 액션이 조용히
+사라지고, 알림을 눌러도 설정이 아니라 런처 화면이 열린다** — 컴파일도 되고 내려받기도 된다. `TokenSync` 와 같은
+종류의 조용한 실패다.
 
 어느 모듈도 제공하지 않아 **`:app` 이 직접 `@Provides` 하는 셋**:
 
@@ -64,7 +64,8 @@ DataStore(DataStoreTokenStore) → TokenRepository → ObserveTokenUseCase
 `null` 이라 private 레포 요청이 전부 인증 없이 나간다. 조용히 깨지는 종류다.
 
 `ModelWaitNotice` 도 같은 모양이다 — `@Inject lateinit var modelWaitNotice` + `onCreate` 의 `start()`
-한 줄이 유일한 참조이고, 지우면 Wi-Fi 대기 알림만 조용히 사라진다.
+한 줄이 유일한 참조이고, 지우면 앱을 나갈 때 대기 · 재시도 알림이 안 뜨고 알림의 `취소` 뒤에 그 알림이 남는다 —
+둘 다 조용히.
 
 `StudyLogMaintenance` 도 같다 — `@Inject lateinit var studyLogMaintenance` + `onCreate` 의 `start()` 가 앱 시작마다
 365일 지난 학습 기록과 26주 지난 요약·패턴을 지우는 유일한 자리다. 지우면 컴파일·실행은 되고 기록만 무한히 쌓인다.
@@ -132,9 +133,7 @@ DataStore(DataStoreTokenStore) → TokenRepository → ObserveTokenUseCase
   25MB 를 넘어 **그 앱의 백업 전체가 조용히 멈춘다** — 북마크·학습 기록도 같이 안 올라간다(기기 이전 한도는 2GB 라
   모델이 넘는다). `include` 를 하나라도 쓰면 나머지가 전부 빠지므로 `exclude` 만 쓴다. DataStore 이름이나 모델 파일
   이름을 바꾸면 이 파일도 같이 고친다.
-- `<receiver android:name=".download.ModelRetryReceiver" android:exported="false" />` — 인텐트 필터가 없다.
-  `PendingIntent` 가 컴포넌트를 명시하는 explicit intent 라 필터가 필요 없고, 필터를 붙이면 그 순간부터
-  `exported` 판정이 달라진다.
+- 매니페스트에 `<receiver>` 가 없다. 알림이 여는 앱 컴포넌트는 `MainActivity` 하나다(아래 `download/` 절).
 
 ### 설정 딥링크 — 중복 push 를 막는 세 겹
 
@@ -158,25 +157,32 @@ DataStore(DataStoreTokenStore) → TokenRepository → ObserveTokenUseCase
 런처 `PendingIntent`(request code 0)와 `filterEquals` 로 구분되게 하려는 것이다. 액션이 같으면
 `FLAG_UPDATE_CURRENT` 가 서로의 extra 를 덮어쓴다.
 
-## `download/` — 시스템이 앱을 깨우는 세 자리
+## `download/` — 시스템이 앱을 깨우는 두 자리
 
-`:core:ai` 는 내려받기를 전부 알지만 `PendingIntent`·매니페스트 컴포넌트·프로세스 라이프사이클을 모른다.
-그 셋이 여기 있다.
+`:core:ai` 는 내려받기와 알림 판단을 전부 알지만 알림이 열 액티비티와 프로세스 라이프사이클을 모른다.
+그 둘이 여기 있다. 알림 판단(상태 → 알림 하나 · 사건 → 알림판)은 `:core:ai` `download/work/DownloadNotices.kt` 다.
 
-- **`ModelRetryReceiver`** — 실패 알림의 "다시 시도" 액션이 오는 곳. `ModelDownloads.start()` 만 부른다.
-  `@AndroidEntryPoint` 를 **쓰지 않고** `EntryPointAccessors.fromApplication` 을 쓴다. Hilt 의
-  `BroadcastReceiver` 주입은 `super.onReceive()` 호출을 요구하는데, 부모 클래스를 바꾸는 건 컴파일 뒤의
-  바이트코드 변환이라 Kotlin 컴파일러에는 `onReceive` 가 아직 abstract 로 보인다 —
-  `Abstract member cannot be accessed directly` 로 터진다. `@AndroidEntryPoint` 로 되돌리려다 여기서 막힌다.
+- **`AppModelDownloadIntents`** — 알림이 여는 `PendingIntent` 둘을 만든다. 본문 탭 = `MainActivity.settingsIntent`
+  (설정 열기), 실패 알림의 `다시 시도` 액션 = `MainActivity.retryIntent`(설정 열기 + `EXTRA_RETRY_DOWNLOAD`).
+  **다시 시도는 리시버가 아니라 액티비티로 간다**(11ab42b 부터 — 매니페스트에 receiver 가 없다).
+  `MainActivity.consumeSettingsRequest` 가 설정을 push 한 뒤 `ModelDownloads.start()` 를 부른다.
   `ModelDownloadWorker.enqueue` 가 `ExistingWorkPolicy.KEEP` 라서 끝난 작업에는 새 요청이 들어가고
   돌고 있는 작업은 건드리지 않는다 — `start()` 하나가 "시작" 과 "다시 시도" 를 겸하는 근거다.
-- **`AppModelDownloadIntents`** — 위 리시버로 가는 `PendingIntent` 를 만든다. `FLAG_IMMUTABLE` 필수 —
-  API 31+ 는 `FLAG_IMMUTABLE`/`FLAG_MUTABLE` 중 하나가 없으면 `IllegalArgumentException` 이고 이 앱의
-  `minSdk` 는 그보다 위다. request code 는 `:core:ai` 의 `0` 과 겹치지 않게 `4211`/`4212`.
-- **`ModelWaitNotice`** — `ProcessLifecycleOwner` 의 `ON_STOP` 에서 `notifyWaitingForWifi()` 를 부른다.
-  **Wi-Fi 대기(`ENQUEUED`)에는 워커가 돌지 않아 포그라운드 알림이 없다** — 앱을 나가면 아무 표시도 없이
-  기다리는 상태가 된다. 그 구멍만 메우는 코드이고, 대기 상태가 아니면 `notifyWaitingForWifi()` 가 스스로
-  아무것도 하지 않는다. `TokenSync` 처럼 `MyNoteApplication.onCreate` 의 `start()` 한 줄이 유일한 참조다.
+  **액션 탭에는 autoCancel 이 안 먹는다**(본문 탭만) — 실패 알림은 `start()` 가 결과 자리를 지워서 사라진다.
+  `FLAG_IMMUTABLE` 필수 — API 31+ 는 `FLAG_IMMUTABLE`/`FLAG_MUTABLE` 중 하나가 없으면 `IllegalArgumentException`
+  이고 이 앱의 `minSdk` 는 그보다 위다. request code 는 `:core:ai` 의 `0` 과 겹치지 않게 `4211`/`4212`.
+- **`ModelWaitNotice`** — 이름은 대기 알림이지만 쉬는 동안(Wi-Fi 대기 · 재시도)의 알림을 맞추는 자리다. 둘을 한다.
+  - `ProcessLifecycleOwner` 의 `ON_STOP` 에서 `ModelDownloads.notifyResting()` — Wi-Fi 대기면 대기 알림, 재시도면
+    재시도 알림을 올리고 그 밖은 건드리지 않는다. **쉬는 동안(`ENQUEUED`)에는 워커가 돌지 않아 포그라운드 알림이
+    없다** — 앱을 나가면 아무 표시 없이 기다리는 구멍을 메운다. 앱이 앞으로 와도 지우지 않는다(알약과 겹쳐도 됨).
+  - `start()` 에서 `status()` 를 모아 `ModelDownloads.settleNotices(status)` 로 넘긴다 — 없음 · 멈춤이면 내려받기
+    알림을 모두 지운다. **쉬는 중 알림의 `취소` 액션은 WorkManager 의 `createCancelPendingIntent`
+    (`SystemForegroundService`)로 바로 가서 앱 코드가 한 줄도 안 돈다** — 이 관찰이 없으면 취소 뒤 대기 · 재시도
+    알림이 남는다. 액션이 프로세스를 깨우면 `Application.onCreate` 에서 다시 붙는다. 작업이 있는 상태에서는 지우지
+    않는다 — 상태 관찰은 늦게 올 수 있어 빨리 끝난 작업이 막 올린 결과 · 재시도 알림을 지울 수 있다. 그동안의
+    알림판은 워커와 `start()`·`cancel()`·`deleteModel()` 이 차례대로 맞춘다.
+  - `TokenSync` 처럼 `MyNoteApplication.onCreate` 의 `start()` 한 줄이 유일한 참조다. 끝난 작업 기록을 WorkManager 가
+    정리하면(기본 하루) 실패가 멈춤 · 없음으로 보여 남은 실패 알림도 그때 지워진다.
 
 ## 네이티브 라이브러리 / 모델 파일
 

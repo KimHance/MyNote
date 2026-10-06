@@ -11,6 +11,8 @@ import com.hancekim.mynote.core.ai.download.transfer.ModelFiles
 import com.hancekim.mynote.core.ai.download.work.DownloadNotifications
 import com.hancekim.mynote.core.ai.download.work.ModelDownloadIntents
 import com.hancekim.mynote.core.ai.download.work.ModelDownloadWorker
+import com.hancekim.mynote.core.ai.download.work.NoticeEvent
+import com.hancekim.mynote.core.ai.download.work.on
 import com.hancekim.mynote.core.ai.insight.InsightWork
 import com.hancekim.mynote.core.domain.model.ModelStatus
 import com.hancekim.mynote.core.domain.repository.QuizModelSource
@@ -42,10 +44,17 @@ class ModelDownloads
         private val engine: ModelEngine,
     ) : QuizModelSource {
         private val revisions = MutableStateFlow(0)
+        private val board = DownloadNotifications(context)
 
-        override fun start() = ModelDownloadWorker.enqueue(context)
+        override fun start() {
+            board.on(NoticeEvent.Started)
+            ModelDownloadWorker.enqueue(context)
+        }
 
-        override fun cancel() = ModelDownloadWorker.cancel(context)
+        override fun cancel() {
+            ModelDownloadWorker.cancel(context)
+            board.on(NoticeEvent.Cancelled)
+        }
 
         override fun status(): Flow<ModelStatus> =
             combine(workInfos(), revisions) { infos, _ -> infos }
@@ -62,17 +71,18 @@ class ModelDownloads
             WorkManager.getInstance(context).cancelUniqueWork(InsightWork.NAME)
             engine.release()
             modelFilesOf(context).target.delete()
+            board.on(NoticeEvent.Deleted)
             revisions.update { it + 1 }
         }
 
-        suspend fun notifyWaitingForWifi() {
+        fun settleNotices(status: ModelStatus) = board.on(NoticeEvent.Observed(status))
+
+        suspend fun notifyResting() {
             val info = leading(workInfos().first()) ?: return
-            withContext(Dispatchers.IO) { statusOf(factsOf(info)) }
-                .takeIf { it == ModelStatus.WaitingForWifi }
-                ?: return
+            val status = withContext(Dispatchers.IO) { statusOf(factsOf(info)) }
             notifications(info.id).run {
                 createChannel()
-                showWaitingForWifi()
+                on(NoticeEvent.Backgrounded(status))
             }
         }
 
