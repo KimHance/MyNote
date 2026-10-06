@@ -3,12 +3,14 @@ import re
 import unittest
 from pathlib import Path
 
-from helpers import KIT_DIR, TOOL
+from helpers import KIT_DIR, SPEC, TOOL
 
 MARKETPLACE = KIT_DIR / ".claude-plugin" / "marketplace.json"
 PLUGIN_DIR = KIT_DIR / "plugins" / "mynote-notes"
 PLUGIN_TOOL = PLUGIN_DIR / "scripts" / "note_tool.py"
+PLUGIN_SPEC = PLUGIN_DIR / "SPEC.md"
 TOOL_CALL = '${CLAUDE_PLUGIN_ROOT}/scripts/note_tool.py'
+SPEC_PATH = '${CLAUDE_PLUGIN_ROOT}/SPEC.md'
 
 
 def read_json(path):
@@ -56,6 +58,11 @@ class PluginTest(unittest.TestCase):
         self.assertFalse(PLUGIN_TOOL.is_symlink())
         self.assertEqual(PLUGIN_TOOL.read_bytes(), TOOL.read_bytes())
 
+    def test_NT_8_플러그인의_규격은_루트_규격과_바이트가_같다(self):
+        """NT-8 플러그인의 규격은 루트 규격과 바이트가 같다"""
+        self.assertFalse(PLUGIN_SPEC.is_symlink())
+        self.assertEqual(PLUGIN_SPEC.read_bytes(), SPEC.read_bytes())
+
     def test_NT_8_스킬_머리_정보(self):
         """NT-8 스킬 머리 정보"""
         for name in ("write-note", "check-notes"):
@@ -96,7 +103,8 @@ class PluginTest(unittest.TestCase):
     def test_NT_9_스킬이_규격을_가리키고_복사하지_않는다(self):
         """NT-9 스킬이 규격을 가리키고 복사하지 않는다"""
         text = skill_text("write-note")
-        self.assertIn("SPEC.md", text)
+        self.assertIn(SPEC_PATH, text)
+        self.assertEqual(text.count("SPEC.md"), text.count(SPEC_PATH))
         for kind in ("orderedList", "divider", "spacer"):
             with self.subTest(kind):
                 self.assertNotIn(kind, text)
@@ -109,7 +117,8 @@ class PluginTest(unittest.TestCase):
         self.assertIn("파일 경로: 이유", text)
         self.assertIn("파이썬이 없으면", text)
         self.assertRegex(text, r"파일을 고치지 않습니다")
-        self.assertIn("SPEC.md", text)
+        self.assertIn(SPEC_PATH, text)
+        self.assertEqual(text.count("SPEC.md"), text.count(SPEC_PATH))
         self.assertNotIn("--no-verify", text)
 
 
