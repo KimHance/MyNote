@@ -153,6 +153,10 @@ SDK 로 분기하지 않는다.
 아예 올라오지 않는다. `riseIn` 이 `graphicsLayer` 가 아니라 `placeWithLayer` 인 이유는
 alpha 와 translationY 를 함께 걸어야 해서다.
 
+멈추지 않고 도는 그리기 노드는 **자기 레이어**가 있어야 한다. 레이어 없는 노드의 그리기 무효화는 가장 가까운 부모
+레이어를 통째로 다시 기록한다 — 리더 맨 끝 퀴즈 카드라면 세로 스크롤 내용, 곧 노트 본문 전체다(3,000항목 노트에서 손대지
+않아도 프레임마다 기록 380ms). 그래서 `aiShine` 은 팩토리가 `graphicsLayer {}` 를 앞에 붙인다. 지우지 말 것.
+
 **3. modifier 인자로 애니메이션 값을 넘기지 않는다.** `Modifier.rotate(v)`/`offset(x)`/`alpha(v)` 는
 composition phase 에서 읽힌다. `CategoryRow` 의 caret 이 `graphicsLayer { rotationZ = caretRotation }`
 인 것이 그 예다.

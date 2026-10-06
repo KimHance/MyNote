@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.node.DrawModifierNode
 import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.platform.InspectorInfo
@@ -36,13 +37,19 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.math.hypot
 
+/**
+ * 둥근 테두리를 따라 도는 빛을 그린다. 매 프레임 다시 그리는 범위가 이 요소에 머물게 자기 레이어에 그린다.
+ *
+ * @param baseColor 빛 아래 깔리는 테두리 색
+ * @param running false 면 빛 없이 테두리만 그린다
+ */
 fun Modifier.aiShine(
     color: Color,
     baseColor: Color,
     radius: Dp,
     width: Dp = 1.5.dp,
     running: Boolean = true,
-): Modifier = this then AiShineElement(color, baseColor, radius, width, running)
+): Modifier = this.graphicsLayer {} then AiShineElement(color, baseColor, radius, width, running)
 
 private data class AiShineElement(
     val color: Color,

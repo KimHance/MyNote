@@ -714,6 +714,7 @@ MyNote 는 GitHub 의 JSON 노트를 받아 **읽기만 하는** 학습 노트 �
 1. **값을 `() -> Float` 로 넘긴다.** `FlipState.rotationX`/`scale`, `selectionPill(selection: () -> Float, pressed: () -> Boolean)`,
    차트의 `progress: () -> Float` 가 람다다. 받는 쪽이 `graphicsLayer { }`/`drawBehind { }` **안에서** 부른다.
 2. **`Modifier.Node` 안에 `Animatable` 을 둔다.** `PressIndication`·`riseIn`·`aiShine` 은 진행도가 컴포지션에 올라오지 않는다.
+   쉬지 않고 도는 `aiShine` 은 자기 레이어(`graphicsLayer {}`)에 그려 다시 기록하는 범위가 카드에 머문다 — 레이어가 없으면 감싼 스크롤 내용 전체를 프레임마다 다시 기록한다.
 3. **modifier 인자로 애니메이션 값을 넘기지 않는다.** `Modifier.alpha(v)`/`rotate(v)`/`offset(x)` 대신
    `graphicsLayer { alpha = v }`(예: `CategoryRow` 캐럿의 `rotationZ`).
 
