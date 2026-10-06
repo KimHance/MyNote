@@ -240,7 +240,7 @@ rename to 'ds_zz_probe' ? [ResourceName]
 ## ktlint 와 `.editorconfig`
 
 `hancenote.ktlint` 가 하는 일은 두 줄뿐이다 — ktlint 버전을 카탈로그(`ktlint = "1.8.0"`)로
-고정하고 `ktlintRuleset` 에 `io.nlopez.compose.rules:ktlint`(0.6.6)를 넣는다. Gradle 플러그인은
+고정하고 `ktlintRuleset` 에 `io.nlopez.compose.rules:ktlint`(0.6.7)를 넣는다. Gradle 플러그인은
 `org.jlleitschuh.gradle.ktlint` 14.2.0.
 
 규칙 설정은 전부 **리포 루트 `.editorconfig`** 다. 끈 것과 이유:
@@ -353,12 +353,11 @@ e: .../ZzAndroidProbe.kt:3:8 Unresolved reference 'android'.
 
 ## 지금 상태 (참고값)
 
-- AGP 9.4.1 · Gradle 9.6.0(wrapper) · Kotlin 2.4.20 · KSP 2.3.6 · Hilt 2.60.1 · Room3 3.0.3
-- `compileSdk` 37 · `targetSdk` 36 · `minSdk` 32 · Java/JVM 타깃 17(build-logic 자신도 17)
+- AGP 9.4.1 · Gradle 9.8.0(wrapper) · Kotlin 2.4.20 · KSP 2.3.12 · Hilt 2.60.1 · Room3 3.0.3
+- `compileSdk` 37 · `targetSdk` 37 · `minSdk` 32 · Java/JVM 타깃 17(build-logic 자신도 17)
 - 모듈 12개 = `:app` + core 10(`common`, `ai`, `data`, `database`, `design-foundation`,
   `design-system`, `domain`, `format`, `navigation`, `network`) + feature 1(`notes`)
-- 테스트가 있는 모듈: `core/{ai, common, data, design-foundation, design-system, format, navigation}`,
-  `feature/notes`. `core/{database, domain, network}` 와 `app` 은 없다.
+- 테스트가 있는 모듈: `app` 을 뺀 전부(core 10 · `feature/notes`).
 - 없는 것(과거에 있었으나 제거됨): Circuit convention · android test(benchmark) convention ·
   product flavor(prod/demo). 되살릴 땐 카탈로그 alias 부터 다시 추가해야 한다.
 
