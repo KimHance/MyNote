@@ -173,9 +173,10 @@ Gradle 을 돌리는 JDK 로 컴파일하고 타깃만 17 로 맞춘다.
 |---|---|---|
 | `notesTemplateInput` | `public-repos/notes-template` | `:core:data` |
 | `notesInput` | `notes` · `notes-tests/fixtures/front-matter` | `:core:format` |
+| `catalogInput` | `gradle/libs.versions.toml`(파일 하나) | `:core:format` |
 
 **요청한 모듈만 켠다**(결정 15 · D18): 모든 모듈에 걸면 폴더 한 글자에 전 모듈 시험이 돈다. 폴더가 없어도 실패하지 않는다(빈 입력).
-폴더를 더하려면 `RepoTestInputs.kt` 의 표에 한 줄을 더한다.
+폴더를 더하려면 `RepoTestInputs.kt` 의 표에 한 줄을 더한다. 폴더 안 파일 하나만이면 `include` 로 거른다.
 
 ## 캐시 (루트 `gradle.properties`)
 
@@ -359,7 +360,10 @@ e: .../ZzAndroidProbe.kt:3:8 Unresolved reference 'android'.
 `validatePlugins` 는 `enableStricterValidation = true`, `failOnWarning = true` 다. 경고 하나도 못 넘어간다.
 
 **버전 올리기** — `libs.versions.toml` 만 고치고 `./gradlew :app:compileDebugKotlin` +
-`./gradlew testDebugUnitTest` + `./gradlew lintDebug`. 컨벤션 파일은 보통 손댈 필요가 없다.
+`./gradlew test` + `./gradlew lintDebug`. 컨벤션 파일은 보통 손댈 필요가 없다. `testDebugUnitTest` 는 JVM 모듈
+(`:core:domain` · `:core:format`)을 조용히 건너뛴다.
+**마크다운 엔진(`jetbrainsMarkdown`) 판을 올리면 `:core:format` 의 `PARSER_VERSION` 도 올린다** — `EngineVersionTest` 가 막는다
+(`core/format/AGENTS.md` 엔진 절).
 
 ## 지금 상태 (참고값)
 

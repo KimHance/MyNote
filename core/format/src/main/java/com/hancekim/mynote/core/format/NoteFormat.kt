@@ -9,6 +9,9 @@ import javax.inject.Inject
 /** 해석 결과가 바뀌는 판마다 올리는 번호. 이보다 낮은 판으로 만든 캐시는 원문에서 다시 만든다. */
 const val PARSER_VERSION: Int = 2
 
+/** [PARSER_VERSION] 이 기준으로 삼은 마크다운 엔진 판. 엔진 판이 바뀌면 둘을 같이 올린다. */
+internal const val PARSER_ENGINE: String = "0.7.16"
+
 /**
  * 원문 하나를 해석해 캐시에 두는 값.
  *

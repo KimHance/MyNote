@@ -75,7 +75,13 @@ network · database · feature 는 모른다. `org.intellij.markdown` import 는
 | 블록 | `GfmMarkdownConverter.kt` | 트리를 블록으로. 깊이를 세며 내려가고 32(`NoteLimits.maxDepth`)를 넘으면 노트 전체가 `LimitExceeded` 상자 하나(원문을 든다) |
 | 글자 | `MarkdownSpans.kt` | 인라인 노드를 구간으로. 스택으로 걷는다(깊은 강조에도 스택이 안 넘침). 이스케이프 · 엔티티를 직접 푼다 |
 
-문법이 무엇으로 가는지는 `notes/SCHEMA.md` 3절과 note-format NF-3 ~ NF-7 이 정본이다. 엔진 판을 올리거나 변환을 고칠 때 알아 둘 엔진 사정:
+문법이 무엇으로 가는지는 `notes/SCHEMA.md` 3절과 note-format NF-3 ~ NF-7 이 정본이다.
+
+**엔진 판을 올리면 `PARSER_VERSION` 도 올린다.** 파리티가 통과해도 이미 캐시된 노트는 내용이 바뀔 때까지 옛 엔진 결과로,
+새로 받은 노트만 새 결과로 갈린다. `PARSER_VERSION` 옆 `PARSER_ENGINE` 이 그 판이 기준으로 삼은 엔진 판이고, `EngineVersionTest` 가
+카탈로그(`gradle/libs.versions.toml`, 시험 입력 `catalogInput`)의 엔진 판과 다르면 실패한다 — 카탈로그만 고치면 빨강이다.
+
+엔진 판을 올리거나 변환을 고칠 때 알아 둘 엔진 사정:
 
 - 엔진은 앞머리를 모르고 CR 을 줄 끝으로 보지 않는다 — 그래서 엔진 밖에서 정리한다. 한도는 정리하기 전 원문 그대로를 본다.
 - `MarkdownParser` 는 `assertionsEnabled = false` 로 만든다. 켜 두면 내부 단정이 실패할 때 던진다.
@@ -164,6 +170,7 @@ JVM 모듈이라 태스크가 `:core:format:test` 다(`testDebugUnitTest` 없음
 | `MarkdownConverterTest` | 실제 엔진으로 NF-1 앞머리 · 줄 끝 · 경계 묶음, NF-3 ~ NF-7 대응 표, NF-8 32단 / 33단 · 512KB · 블록 깊이 지킴 · 큰 입력 |
 | `ParityTest` | NF-11 — 고정 사본 22쌍의 블록 · 첫 문장 · 퀴즈 평문, JSON 사본 해시 = 기준 목록, 레포 `notes/` 상자 0 |
 | `CacheCompatTest` | NF-12 형식 1 밖 type · 필드 · 캐시 바이트 · 옛 캐시 행 |
+| `EngineVersionTest` | NF-9 카탈로그의 엔진 판 = `PARSER_ENGINE`(엔진만 올리고 판 번호를 잊지 않게) |
 | `BlockCacheTest` | NF-4 · 5 · 6 새 모양의 캐시 왕복 · 바이트, 32단 하위 블록, NF-8 한도 넘음 종류 · 거르기가 도메인 한도 값을 씀, NF-12 변환기 길의 지금 블록 바이트 |
 | `ResultLimitsTest` | NF-8 결과 한도 — 넓은 표 증폭 · 표 칸 누적 · 캐시 상한 경계(JSON · 마크다운) · 한도 안 병적 입력의 캐시 크기 · 노트 전체 상자의 원문 자리 |
 
@@ -179,4 +186,5 @@ JVM 모듈이라 태스크가 `:core:format:test` 다(`testDebugUnitTest` 없음
 
 - 사본은 고정 값이다. 살아 있는 `notes/` 와 비교하지 않는다 — 다음 노트 쓰기부터 시험이 거짓이 된다(note-format 결정 19).
 - 마크다운 사본을 고치면 파리티가 깨진다. 사본은 노트 이전이 그대로 복사해 쓰는 원본이기도 하다.
-- 루트 폴더 둘은 `extra["notesInput"] = true` 로 `Test` 태스크 입력이다(`build-logic/AGENTS.md` "레포 폴더 시험 입력"). 노트 한 글자만 바뀌어도 다시 돈다.
+- 루트 폴더 둘은 `extra["notesInput"] = true`, 카탈로그는 `extra["catalogInput"] = true` 로 `Test` 태스크 입력이다
+  (`build-logic/AGENTS.md` "레포 폴더 시험 입력"). 한 글자만 바뀌어도 다시 돈다.
