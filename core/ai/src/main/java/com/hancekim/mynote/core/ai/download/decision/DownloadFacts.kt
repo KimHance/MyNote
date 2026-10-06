@@ -22,7 +22,6 @@ internal data class DownloadFacts(
     val work: WorkFacts? = null,
     val installedBytes: Long? = null,
     val partBytes: Long = 0L,
-    val plannedTotalBytes: Long? = null,
     val nowMillis: Long = 0L,
 )
 
@@ -75,7 +74,6 @@ private fun running(facts: DownloadFacts, work: WorkFacts): ModelStatus =
 
 private fun totalOf(facts: DownloadFacts, work: WorkFacts?): Long =
     work?.total?.takeIf { it > 0L }
-        ?: facts.plannedTotalBytes?.takeIf { it > 0L }
         ?: ModelSource.TOTAL_BYTES
 
 private fun secondsUntil(nextScheduleTimeMillis: Long?, nowMillis: Long): Int? =

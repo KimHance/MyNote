@@ -61,7 +61,8 @@ internal class ModelDownloadWorker
             setForeground(foregroundInfo())
 
             val files = modelFilesOf(context)
-            val installer = ModelInstaller(ModelDownloader(client), files) { allocatableBytes(files.target) }
+            val installer =
+                ModelInstaller(ModelDownloader(client), files, ModelSource.expected) { allocatableBytes(files.target) }
 
             val outcome =
                 try {

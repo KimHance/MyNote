@@ -1,18 +1,12 @@
 package com.hancekim.mynote.core.ai.download.transfer
 
-import com.hancekim.mynote.core.ai.download.decision.DownloadPlan
 import com.hancekim.mynote.core.ai.download.decision.ENCODING_IDENTITY
 import com.hancekim.mynote.core.ai.download.decision.HEADER_ACCEPT_ENCODING
 import com.hancekim.mynote.core.ai.download.decision.HEADER_CONTENT_RANGE
-import com.hancekim.mynote.core.ai.download.decision.HEADER_LINKED_ETAG
-import com.hancekim.mynote.core.ai.download.decision.HEADER_LINKED_SIZE
 import com.hancekim.mynote.core.ai.download.decision.HEADER_RANGE
-import com.hancekim.mynote.core.ai.download.decision.HEADER_REPO_COMMIT
-import com.hancekim.mynote.core.ai.download.decision.HEADER_RETRY_AFTER
 import com.hancekim.mynote.core.ai.download.decision.ResponseFacts
 import com.hancekim.mynote.core.ai.download.decision.Verdict
 import com.hancekim.mynote.core.ai.download.decision.judge
-import com.hancekim.mynote.core.ai.download.decision.planFrom
 import com.hancekim.mynote.core.ai.download.decision.rangeHeader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
@@ -29,34 +23,7 @@ import java.io.File
 import java.io.IOException
 import java.io.RandomAccessFile
 
-internal class ModelDownloader(client: OkHttpClient) {
-    private val streaming = client
-    private val metadata =
-        client
-            .newBuilder()
-            .followRedirects(false)
-            .followSslRedirects(false)
-            .build()
-
-    suspend fun plan(url: String): DownloadPlan? =
-        withContext(Dispatchers.IO) {
-            metadata
-                .newCall(
-                    Request
-                        .Builder()
-                        .url(url)
-                        .head()
-                        .build(),
-                ).execute()
-                .use { response ->
-                    planFrom(
-                        size = response.header(HEADER_LINKED_SIZE),
-                        etag = response.header(HEADER_LINKED_ETAG),
-                        commit = response.header(HEADER_REPO_COMMIT),
-                    )
-                }
-        }
-
+internal class ModelDownloader(private val client: OkHttpClient) {
     suspend fun fetchInto(
         url: String,
         part: File,
@@ -64,7 +31,7 @@ internal class ModelDownloader(client: OkHttpClient) {
         onProgress: (Long) -> Unit,
     ): Verdict =
         withContext(Dispatchers.IO) {
-            val call = streaming.newCall(requestFor(url, from))
+            val call = client.newCall(requestFor(url, from))
             val cancelHook = currentCoroutineContext().job.invokeOnCompletion { call.cancel() }
             try {
                 call.execute().use { response ->
@@ -76,7 +43,7 @@ internal class ModelDownloader(client: OkHttpClient) {
                 }
             } catch (cause: IOException) {
                 currentCoroutineContext().ensureActive()
-                Verdict.RetryLater(null)
+                Verdict.RetryLater
             } finally {
                 cancelHook.dispose()
             }
@@ -94,7 +61,6 @@ internal class ModelDownloader(client: OkHttpClient) {
         ResponseFacts(
             status = response.code,
             contentRange = response.header(HEADER_CONTENT_RANGE),
-            retryAfterSeconds = response.header(HEADER_RETRY_AFTER)?.trim()?.toLongOrNull(),
         )
 
     private suspend fun stream(

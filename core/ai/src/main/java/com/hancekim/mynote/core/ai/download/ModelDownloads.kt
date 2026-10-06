@@ -54,10 +54,7 @@ class ModelDownloads
                 .distinctUntilChanged()
 
         override fun discardPartial() {
-            modelFilesOf(context).run {
-                discardPart()
-                discardPlan()
-            }
+            modelFilesOf(context).discardPartial()
             revisions.update { it + 1 }
         }
 
@@ -101,7 +98,6 @@ class ModelDownloads
                 work = info?.let { workFactsOf(it) },
                 installedBytes = files.target.takeIf { it.isFile }?.length(),
                 partBytes = files.partBytes(),
-                plannedTotalBytes = files.savedPlan()?.totalBytes,
                 nowMillis = System.currentTimeMillis(),
             )
         }
