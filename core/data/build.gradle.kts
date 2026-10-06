@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+extra["notesTemplateInput"] = true
+
 android {
     namespace = "com.hancekim.mynote.core.data"
 }

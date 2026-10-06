@@ -1,0 +1,18 @@
+{
+  "start": [
+    {
+      "id": "getting-started",
+      "title": "시작하기",
+      "date": "2026.10.06",
+      "path": "notes/start/getting-started.json",
+      "hash": "ce56fb53677f4df80fcf504c8c79af57bec34a3fb6909be9ced43e3834210d71"
+    },
+    {
+      "id": "note-format",
+      "title": "노트 형식 둘러보기",
+      "date": "2026.10.06",
+      "path": "notes/start/note-format.json",
+      "hash": "d68f4dc95591c5107075de0a1c1f6c485b2e183fb91cd8cf06997ecc18b07919"
+    }
+  ]
+}
