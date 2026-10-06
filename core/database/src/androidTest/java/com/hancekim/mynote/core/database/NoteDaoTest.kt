@@ -1,13 +1,17 @@
 package com.hancekim.mynote.core.database
 
 import androidx.room3.Room
+import androidx.room3.useReaderConnection
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.hancekim.mynote.core.data.connection.ConnectionConfigCodec
 import com.hancekim.mynote.core.database.dao.NoteDao
 import com.hancekim.mynote.core.database.entity.ReadSessionEntity
 import com.hancekim.mynote.core.database.entity.SourceEntity
+import com.hancekim.mynote.core.database.entity.SourceNoteDerivedRow
 import com.hancekim.mynote.core.database.entity.SourceNoteEntity
+import com.hancekim.mynote.core.database.entity.SourceNoteStaleRow
+import com.hancekim.mynote.core.domain.model.NoteLimits
 import com.hancekim.mynote.core.domain.model.RepoConnection
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -15,6 +19,8 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -63,6 +69,18 @@ class NoteDaoTest {
     fun close() {
         database.close()
     }
+
+    private suspend fun columns(
+        key: String,
+        names: String,
+    ): List<String?> =
+        database.useReaderConnection { connection ->
+            connection.usePrepared("SELECT $names FROM source_notes WHERE note_key = ?") { statement ->
+                statement.bindText(1, key)
+                statement.step()
+                (0 until statement.getColumnCount()).map { if (statement.isNull(it)) null else statement.getText(it) }
+            }
+        }
 
     private suspend fun keys(): List<String> =
         dao
@@ -128,6 +146,90 @@ class NoteDaoTest {
             assertEquals(setOf("a", "c"), state.keys)
             assertEquals(true, state.getValue("a").hasRaw)
             assertEquals(false, state.getValue("c").hasRaw)
+        }
+
+    @Test
+    fun `NF-9 재변환은 낡은 판의 원문 있는 행만 읽고 파생 열만 바꾼다`() =
+        runTest {
+            val limit = NoteLimits.Default.maxCacheBytes
+            val kept = "path, group_name, title, date, epoch_day, first_seen_at, revision, fetched_at, raw"
+            dao.upsertAll(
+                listOf(
+                    row("s0", "stale", firstSeenAt = 7L).copy(
+                        path = "notes/a/stale.md",
+                        revision = "r1",
+                        fetchedAt = 9L,
+                        raw = "# 원문",
+                        blocksJson = "[옛]",
+                        excerpt = "옛",
+                    ),
+                    row("s0", "current").copy(parserVersion = 2),
+                    row("s0", "noRaw").copy(raw = null),
+                ),
+            )
+            val before = columns("s0/stale", kept)
+
+            assertEquals(listOf(SourceNoteStaleRow("s0/stale", "notes/a/stale.md", "# 원문")), dao.loadStale(2, limit))
+
+            dao.replaceDerived(listOf(SourceNoteDerivedRow("s0/stale", "[새]", "새", 2)))
+
+            assertEquals(before, columns("s0/stale", kept))
+            assertEquals(listOf("[새]", "새", "2"), columns("s0/stale", "blocks_json, excerpt, parser_version"))
+            assertEquals(listOf("[]", null, "1"), columns("s0/noRaw", "blocks_json, excerpt, parser_version"))
+            assertEquals(emptyList<SourceNoteStaleRow>(), dao.loadStale(2, limit))
+        }
+
+    @Test
+    fun `NF-8 한도 안 최악 크기 행도 목록 원문 재변환 행 전체 읽기를 지난다`() =
+        runTest {
+            val limits = NoteLimits.Default
+            val raw = "가".repeat(limits.maxBytes / 3) + "a".repeat(limits.maxBytes % 3)
+            val blocksJson = "b".repeat(limits.maxCacheBytes)
+            dao.upsertAll(
+                listOf(
+                    row("s0", "worst", title = "제목".repeat(150)).copy(
+                        path = "notes/" + "그룹".repeat(50) + "/worst.md",
+                        date = "2026.10.07",
+                        revision = "f".repeat(64),
+                        raw = raw,
+                        blocksJson = blocksJson,
+                        excerpt = "요".repeat(140),
+                    ),
+                ),
+            )
+
+            assertEquals(
+                blocksJson,
+                dao
+                    .observeNotes(ConnectionConfigCodec.PENDING_MARKER)
+                    .first()
+                    .single()
+                    .blocksJson,
+            )
+            assertEquals(raw, dao.loadRaw("s0/worst", limits.maxCacheBytes))
+            assertEquals(raw, dao.loadStale(2, limits.maxCacheBytes).single().raw)
+            val rowBytes =
+                database.useReaderConnection { connection ->
+                    connection.usePrepared("SELECT * FROM source_notes WHERE note_key = 's0/worst'") { statement ->
+                        statement.step()
+                        (0 until statement.getColumnCount()).sumOf { column ->
+                            if (statement.isNull(column)) 0 else statement.getText(column).toByteArray().size
+                        }
+                    }
+                }
+            assertTrue("$rowBytes", rowBytes >= limits.maxBytes + limits.maxCacheBytes)
+        }
+
+    @Test
+    fun `NF-8 커서 창보다 큰 원문은 읽지 않고 목록과 재변환은 그대로 돈다`() =
+        runTest {
+            val limit = NoteLimits.Default.maxCacheBytes
+            dao.upsertAll(listOf(row("s0", "huge").copy(raw = "a".repeat(3 * 1_024 * 1_024)), row("s0", "ok")))
+
+            assertEquals(setOf("s0/huge", "s0/ok"), keys().toSet())
+            assertNull(dao.loadRaw("s0/huge", limit))
+            assertEquals("{}", dao.loadRaw("s0/ok", limit))
+            assertEquals(listOf("s0/ok"), dao.loadStale(2, limit).map { it.key })
         }
 
     private fun source(

@@ -13,6 +13,14 @@ private fun paragraph(vararg spans: NoteSpan) = NoteBlock.Paragraph(spans.toList
 
 class NoteExcerptTest {
     @Test
+    fun `블록 목록만으로도 노트와 같은 첫 문장을 고른다`() {
+        val blocks = listOf(NoteBlock.Heading(1, listOf(text("제목"))), paragraph(text("첫 문장. 둘째.")))
+
+        assertEquals("첫 문장.", blocks.firstSentence())
+        assertEquals(note(*blocks.toTypedArray()).firstSentence(), blocks.firstSentence())
+    }
+
+    @Test
     fun `제목을 건너뛰고 첫 문단의 첫 문장을 고른다`() {
         val result =
             note(
@@ -50,6 +58,56 @@ class NoteExcerptTest {
             ).firstSentence()
 
         assertEquals("첫 항목입니다!", result)
+    }
+
+    @Test
+    fun `NF-10 표는 첫 문장 후보가 아니다`() {
+        val result =
+            note(
+                NoteBlock.Table(
+                    header = listOf(TableCell(listOf(text("머리 칸입니다.")))),
+                    rows = listOf(listOf(TableCell(listOf(text("본문 칸입니다."))))),
+                    align = listOf(TableAlign.None),
+                ),
+                paragraph(text("표 뒤 문단입니다. 둘째.")),
+            ).firstSentence()
+
+        assertEquals("표 뒤 문단입니다.", result)
+        assertNull(
+            note(
+                NoteBlock.Table(listOf(TableCell(listOf(text("칸.")))), emptyList(), listOf(TableAlign.None)),
+            ).firstSentence(),
+        )
+    }
+
+    @Test
+    fun `NF-10 글자가 빈 항목이면 그 하위 목록 항목을 먼저 본다`() {
+        val result =
+            note(
+                NoteBlock.BulletList(
+                    listOf(
+                        NoteListItem(
+                            spans = emptyList(),
+                            children = listOf(NoteBlock.OrderedList(listOf(NoteListItem(listOf(text("하위 항목입니다.")))))),
+                        ),
+                        NoteListItem(listOf(text("다음 항목입니다."))),
+                    ),
+                ),
+            ).firstSentence()
+
+        assertEquals("하위 항목입니다.", result)
+    }
+
+    @Test
+    fun `NF-10 체크 항목의 첫 문장은 글자만이다`() {
+        val result =
+            note(
+                NoteBlock.BulletList(
+                    listOf(NoteListItem(listOf(NoteSpan("끝낸 일", strike = true), text(" 입니다.")), checked = true)),
+                ),
+            ).firstSentence()
+
+        assertEquals("끝낸 일 입니다.", result)
     }
 
     @Test

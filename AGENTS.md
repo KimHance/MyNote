@@ -2,7 +2,7 @@
 
 이 파일은 이 레포에서 작업하는 에이전트를 위한 안내다.
 
-GitHub 의 JSON 노트를 받아 읽는 **읽기 전용** 안드로이드 학습 노트 앱. 앱에서 쓰기는 없다.
+GitHub 의 마크다운 노트(옛 JSON 도)를 받아 읽는 **읽기 전용** 안드로이드 학습 노트 앱. 앱에서 쓰기는 없다.
 온디바이스 LLM(LiteRT-LM)으로 노트에서 4지선다 퀴즈를 만드는 기능이 붙어 있다.
 퀴즈 모델(2.6GB)은 APK 에 없고 **앱에서 런타임에 내려받는다**(WorkManager + 포그라운드 알림).
 
@@ -29,7 +29,9 @@ GitHub 의 JSON 노트를 받아 읽는 **읽기 전용** 안드로이드 학습
 
 ```bash
 ./gradlew ktlintCheck :app:assembleDebug test lintDebug
-python3 -I -m unittest discover public-repos/tests && python3 -I -m unittest discover public-repos/notes-kit/tests
+python3 -I -m unittest discover notes-tests && python3 -I -m unittest discover public-repos/tests && python3 -I -m unittest discover public-repos/notes-kit/tests
+# 계측 시험 — 기기 하나를 붙여 모듈마다 차례로 돌린다(`test` 에 안 든다 · 한 호출에 묶으면 병렬로 겹쳐 서로 죽는다). 라이브러리 시험이라 앱을 지우지 않는다
+ANDROID_SERIAL=<기기 serial> ./gradlew :core:design-system:connectedDebugAndroidTest && ANDROID_SERIAL=<기기 serial> ./gradlew :core:database:connectedDebugAndroidTest
 ```
 
 **단일 테스트:**
@@ -40,8 +42,8 @@ python3 -I -m unittest discover public-repos/tests && python3 -I -m unittest dis
 
 ### `testDebugUnitTest` 가 아니라 `test` 인 이유
 
-`:core:domain` 은 안드로이드 라이브러리가 아니라 **순수 JVM 모듈**이라 `testDebugUnitTest`
-태스크가 없다. 루트에서 `./gradlew testDebugUnitTest` 를 돌리면 그 모듈을 **조용히 건너뛴다.**
+`:core:domain` · `:core:format` 은 안드로이드 라이브러리가 아니라 **순수 JVM 모듈**이라 `testDebugUnitTest`
+태스크가 없다. 루트에서 `./gradlew testDebugUnitTest` 를 돌리면 두 모듈을 **조용히 건너뛴다.**
 `test` 는 두 종류를 다 잡는다.
 
 ---
@@ -57,7 +59,8 @@ app  ─────────────────────────
  ├─ core/ai        ──→ core/domain  LiteRT-LM 으로 QuizGenerator · 통계 워커(InsightScheduler) 구현
  ├─ core/network   ──→ core/data    GitHub Contents API
  ├─ core/database  ──→ core/data    Room3 캐시·학습 기록·요약 캐시 + DataStore
- ├─ core/data      ──→ core/domain  DataSource 인터페이스 소유 + reconcile
+ ├─ core/data      ──→ core/format, core/domain  DataSource 인터페이스 소유 + reconcile
+ ├─ core/format    ──→ core/domain  순수 JVM. 원문 → 블록(형식 고르기 · 한도 · JetBrains markdown 변환 · JSON 형식 1 · 블록 캐시)
  ├─ core/domain    ─────────────────  순수 JVM. 인터페이스를 소유한다(DIP)
  ├─ core/navigation ─→ core/common   nav3 계약. 테마·도메인을 모른다
  ├─ core/design-system ─→ design-foundation, core/common
@@ -72,6 +75,8 @@ app  ─────────────────────────
 지켜야 할 것:
 - **feature 는 `:core:data`/`:core:network`/`:core:database` 를 직접 의존하지 않는다.** `:core:domain`
   의 UseCase 만 경유한다.
+- **`:core:format` 을 의존하는 것은 `:core:data` 하나다**(`implementation`). `:core:format` 은 `:core:domain` 만 안다.
+  feature · network · database 는 형식 해석 자리를 모르고, 블록 DTO 는 그 모듈 밖으로 새지 않는다(`internal`).
 - Room `@Entity`·Retrofit·DataStore 타입은 각 모듈 밖으로 새지 않는다.
 - `:core:design-foundation` 은 `:core:design-system` 을 의존하지 않는다. feature ↔ feature 직접 의존 금지.
 - **버전·좌표는 `gradle/libs.versions.toml` 에만.** 모듈 `build.gradle.kts` 에 하드코딩 금지
@@ -79,9 +84,9 @@ app  ─────────────────────────
 
 ### 안쪽 모듈의 순수성은 빌드가 강제한다
 
-`:core:domain` 은 `hancenote.jvm.library` 라서 `import android.*` 가 **컴파일 에러**다
+`:core:domain` · `:core:format` 은 `hancenote.jvm.library` 라서 `import android.*` 가 **컴파일 에러**다
 (`Unresolved reference 'android'`). "순수 Kotlin" 이 약속이 아니라 빌드 규칙이다.
-그래서 이 모듈에는 `R.string`·`@Serializable`·`@Immutable` 이 classpath 에 아예 없다.
+그래서 두 모듈에는 `R.string`·`@Immutable` 이 classpath 에 아예 없다. `@Serializable` 은 직렬화 플러그인을 붙인 `:core:format` 에만 있다.
 
 ---
 
@@ -89,15 +94,19 @@ app  ─────────────────────────
 
 한 모듈만 봐서는 안 보이는 것들이다. 각각 해당 모듈 `AGENTS.md` 에 자세히 있다.
 
-**콘텐츠가 앱보다 먼저 나가면 새 블록은 옛 앱에서 상자로 보인다.**
-본문 블록은 `@SerialName` 으로 고정된 닫힌 집합이다. 원격 `notes/` 에 앱이 모르는 `type` 이나 필드가 빠진 블록이
-올라가도 **동기화는 멈추지 않는다** — 그 블록만 `NoteBlock.Unsupported` 가 되어 리더에 점선 상자 + `원문 보기` 로 보이고,
-노트의 나머지와 다른 노트는 그대로 반영된다. 모르는 인라인 `style` 은 일반 글자로 읽는다. 파일이 아예 JSON 이 아니면
-그 노트는 목록에 남고 본문이 상자 하나가 된다. 동기화 전체가 실패하는 것은 **전송** 실패(index·본문을 받지 못함,
-index 자체가 깨짐)뿐이다. 그래도 새 블록을 *제대로* 보이려면 앱 업데이트가 먼저 나가야 한다. 캐시가 원문(`raw`)을
-들고 있어 앱을 올리면 네트워크 없이 다시 변환된다. 근거 테스트: `core/data` `MyNoteJsonFormatTest`(모르는 type·필드
-누락·모르는 style·JSON 아님), `NotesReconcileTest`(`형식 오류 노트는 격리하고 나머지는 반영한다`·`본문 전송이 하나라도
-실패하면 아무것도 반영하지 않는다`). (`core/data/AGENTS.md`)
+**콘텐츠가 앱보다 먼저 나가면 옛 앱에서 상자로 보인다.**
+앱은 목록 항목 경로의 확장자로 형식을 고른다 — `.md` 는 마크다운, 그 밖은 JSON. 마크다운을 모르는 옛 앱은 `.md`
+노트를 JSON 으로 읽어 **노트마다 본문 전체가 상자 하나**가 된다. JSON 은 `@SerialName` 으로 고정된 형식 `1` 의 닫힌
+집합이라, 앱이 모르는 `type` 이나 필드가 빠진 블록은 그 블록만 `NoteBlock.Unsupported`(점선 상자 + `원문 보기`)가 되고
+모르는 인라인 `style` 은 일반 글자로 읽는다. 마크다운은 그리지 못하는 문법을 글자로 보이고, 상자는 해석 실패 · 한도
+넘음(512KB · 32단 · 표 칸 4,096 · 읽은 결과 1MB)일 때만이다.
+어느 경우도 **동기화는 멈추지 않는다** — 노트는 목록에 남고 다른 노트는 그대로
+반영된다. 동기화 전체가 실패하는 것은 **전송** 실패(index·본문을 받지 못함, index 자체가 깨짐)뿐이다. 그래도 새 형식 ·
+새 블록을 *제대로* 보이려면 앱 업데이트가 먼저 나가야 한다. 캐시가 원문(`raw`)과 경로를 들고 있어 앱을 올리면 네트워크
+없이 다시 변환된다. 근거 테스트: `MyNoteJsonFormatTest`(모르는 type·필드 누락·모르는 style·JSON 아님),
+`NotesReconcileTest`(`형식 오류 노트는 격리하고 나머지는 반영한다`·`본문 전송이 하나라도 실패하면 아무것도 반영하지
+않는다`), `NF-2 경로 확장자로 형식을 고른다`, `NF-9 옛 판이 상자로 둔 마크다운 행을 원문에서 다시 만든다`.
+(`core/data/AGENTS.md` · `core/format/AGENTS.md`)
 
 **`MyNoteApplication` 의 `@Inject lateinit var tokenSync` 를 지우면 조용히 인증이 없어진다.**
 그 필드 한 줄이 `TokenSync` 를 살아 있게 하는 유일한 참조이고, `GithubTokenHolder` 를 채우는
@@ -148,11 +157,16 @@ ktlint·Compose 의존·Hilt 는 컨벤션이 자동으로 넣는다. (`build-lo
 
 앱이 GitHub 에서 읽어가는 **서버드리븐 콘텐츠**다. 코드가 아니다.
 
+- 노트는 `notes/<그룹>/<id>.md` — 앞머리(`title` · `date`) + GFM 마크다운이다. 옛 `.json` 노트도 읽힌다.
+  정본은 `notes/SCHEMA.md`(앞머리 문법 · 문법 대응 표 · 쓰기 규칙).
 - 노트 추가·수정·삭제는 `write-note` 스킬로 한다. 손으로 파일을 만들지 않는다.
 - **`notes/index.json`·해시·`gen_index.py` 를 직접 건드리지 않는다.** pre-commit 훅이 커밋 순간
-  `gen_index.py` 로 재생성해 같은 커밋에 넣는다(작문은 LLM, 결정적 변환은 훅).
-- 블록은 `notes/SCHEMA.md` 의 닫힌 집합만. 새 타입은 앱 업데이트가 먼저다 — 옛 앱에서는 그 블록이 `원문 보기`
-  상자로 보인다(위 "콘텐츠가 앱보다 먼저 나가면").
+  `gen_index.py` 로 재생성해 같은 커밋에 넣는다(작문은 LLM, 결정적 변환은 훅). 생성기는 마크다운 노트의
+  앞머리(옛 JSON 노트는 형식 1 닫힌 집합)를 검사하고 틀리면 커밋이 멈춘다.
+- 앱이 그리지 못하는 문법은 글자로 보인다. 마크다운 노트를 처음 올릴 때는 앱 업데이트가 먼저다
+  (위 "콘텐츠가 앱보다 먼저 나가면").
+- 생성기 · 훅 · 쓰기 스킬의 시험은 `notes-tests/` 에 있다. `notes/` 안에 두면 시험 자료가 노트로 읽힌다.
+  앞머리 경계 묶음(`notes-tests/fixtures/front-matter/`)은 앱 시험도 같은 파일로 읽는다.
 - **`git push` 까지 해야 반영된다.** 앱은 원격을 읽지 로컬 클론을 읽지 않는다.
 
 ---

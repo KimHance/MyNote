@@ -13,6 +13,7 @@ android {
 dependencies {
     implementation(projects.core.domain)
     implementation(projects.core.common)
+    implementation(projects.core.format)
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.android)
@@ -20,4 +21,5 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(testFixtures(projects.core.format))
 }

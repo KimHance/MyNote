@@ -23,4 +23,11 @@
     <string name="ds_unsupported_truncated">앞 %1$d줄만 표시했습니다.</string>
     <string name="ds_unsupported_note_title">이 노트를 읽지 못했습니다</string>
     <string name="ds_unsupported_note_body">노트 파일의 형식을 알아볼 수 없습니다. 파일이 바뀌거나 앱을 업데이트하면 다시 읽습니다.</string>
+    <string name="ds_unsupported_limit_title">이 노트는 읽기 한도를 넘었습니다</string>
+    <string name="ds_unsupported_limit_body">목록이나 인용이 %1$d단보다 깊게 겹쳤거나, 파일이 %2$dKB를 넘었거나, 표 칸이 합쳐서 %3$,d개를 넘었거나, 읽은 결과가 너무 커서 읽지 않았습니다. 파일을 나누거나 겹침과 표를 줄이면 다시 읽습니다.</string>
+
+    <string name="ds_block_checked">체크됨</string>
+    <string name="ds_block_unchecked">체크 안 됨</string>
+    <string name="ds_block_strike_start">취소선</string>
+    <string name="ds_block_strike_end">취소선 끝</string>
 </resources>

@@ -59,8 +59,8 @@ dependencies {
 
 **`./gradlew testDebugUnitTest` 는 `:core:domain` 을 테스트하지 않는다.** 그 모듈은 순수 JVM
 이라 테스트 태스크 이름이 `test` 다(`:core:domain:testDebugUnitTest` 는 **존재하지 않는다** —
-실행하면 태스크를 못 찾아 실패한다). 지금은 domain 에 테스트가 없어서 티가 안 나지만
-넣는 순간 조용히 빠진다. 그래서 위 표에 `test testDebugUnitTest` 를 같이 적어 뒀다.
+실행하면 태스크를 못 찾아 실패한다). `:core:format` 도 같다 — 루트에서 `testDebugUnitTest` 를 돌리면 두 모듈 시험이
+조용히 빠진다. 그래서 위 표에 `test testDebugUnitTest` 를 같이 적어 뒀다.
 
 `--tests` 에 오타를 내면 `No tests found for given includes: [...]` 로 **실패**한다
 (뒤에 나오는 `failOnNoDiscoveredTests = false` 가 이 경우까지 삼키지는 않는다).
@@ -80,7 +80,7 @@ alias(`billboard-*`)·id(`hance.*`)·group·패키지가 네 갈래로 갈려 �
 | `hancenote.android.feature` | `:feature:*` | `library.compose` **+ `android.hilt`** · `:core:{common,design-system,domain,navigation}` · lifecycle(runtime/runtimeCompose/viewModelCompose) · `kotlinx-coroutines-android` |
 | `hancenote.android.hilt` | Hilt 쓰는 모듈 | `com.google.devtools.ksp` · `com.google.dagger.hilt.android` · `hilt-android` + `ksp(hilt-android-compiler)` |
 | `hancenote.android.room` | `:core:database` | `androidx.room3` · KSP · `schemaDirectory("$projectDir/schemas")` · room3 runtime + compiler |
-| `hancenote.jvm.library` | `:core:domain` | `org.jetbrains.kotlin.jvm` · **`hancenote.ktlint`** · Java 17 · `useJUnit()` |
+| `hancenote.jvm.library` | `:core:domain` · `:core:format` | `org.jetbrains.kotlin.jvm` · **`hancenote.ktlint`** · Java 17 · `useJUnit()` |
 | `hancenote.ktlint` | (다른 컨벤션이 자동 적용) | `org.jlleitschuh.gradle.ktlint` · ktlint 버전 고정 · `ktlintRuleset(compose-rules)` |
 
 두 가지 주의:
@@ -98,26 +98,31 @@ alias(`billboard-*`)·id(`hance.*`)·group·패키지가 네 갈래로 갈려 �
 | `:app` | `android.application` + `.compose` + `android.hilt` | `buildConfig = true`, `ndk.abiFilters = arm64-v8a`, release R8/shrink |
 | `:core:common` | `android.library` | — |
 | `:core:ai` | `android.library` + `android.hilt` + `kotlin-serialization` | — |
-| `:core:data` | `android.library` + `android.hilt` + `kotlin-serialization` | — |
+| `:core:data` | `android.library` + `android.hilt` + `kotlin-serialization` | `extra["notesTemplateInput"]` |
 | `:core:database` | `android.library` + `android.room` + `android.hilt` | — |
 | `:core:network` | `android.library` + `android.hilt` + `kotlin-serialization` | — |
 | `:core:design-foundation` | `android.library.compose` | — |
 | `:core:design-system` | `android.library.compose` | `resourcePrefix = "ds_"` |
 | `:core:navigation` | `android.library.compose` + `kotlin-serialization` | — |
 | `:core:domain` | **`jvm.library`** | — |
+| `:core:format` | **`jvm.library`** + `kotlin-serialization` | `java-test-fixtures`(아래 예외) · `extra["notesInput"]` · `extra["catalogInput"]` |
 | `:feature:notes` | **`android.feature`** (Compose·Hilt 포함) | `resourcePrefix = "notes_"` |
+
+> **컨벤션 규칙의 예외 하나** — `:core:format` 만 Gradle 핵심 플러그인 `java-test-fixtures` 를 직접 적용한다(컨벤션 · 카탈로그 alias 없음).
+> 파리티 고정 사본을 `:core:format` 과 `:core:data` 두 모듈 시험이 클래스패스로 읽는 가장 작은 길이라서다. 한 모듈만 쓰는 일에
+> 컨벤션 플러그인을 만들지 않는다. 다른 모듈에 같은 일이 생기면 그때 컨벤션으로 올린다.
 
 ## 헬퍼가 실제로 켜는 것
 
-`build-logic/convention/src/main/java/com/hancenote/convention/` 에 다섯 파일뿐이다(`NotesTemplateInput.kt` 는 아래 "템플릿 폴더 시험 입력" 절).
+`build-logic/convention/src/main/java/com/hancenote/convention/` 에 다섯 파일뿐이다(`RepoTestInputs.kt` 는 아래 "레포 폴더 시험 입력" 절).
 
 **`KotlinAndroid.kt` → `configureKotlinAndroid()`** (application/library 공통)
 `compileSdk`·`minSdk`(카탈로그에서) · Java 17 source/target · **core library desugaring**
 (`isCoreLibraryDesugaringEnabled` + `coreLibraryDesugaring(desugar_jdk_libs)`) ·
 `testOptions.unitTests.isIncludeAndroidResources = true` · `failOnNoDiscoveredTests = false`.
 
-> `failOnNoDiscoveredTests = false` 가 없으면 **테스트가 아예 없는 모듈**(`:core:database`,
-> `:core:network`)의 `testDebugUnitTest` 가 Gradle 9 에서 실패한다. `jvm.library` 에도 같은 줄이 있다.
+> `failOnNoDiscoveredTests = false` 가 없으면 **테스트가 아예 없는 모듈**의 `testDebugUnitTest` 가 Gradle 9 에서 실패한다.
+> `jvm.library` 에도 같은 줄이 있다.
 
 **`configureKotlin()`** (Android/JVM 공통) — `jvmTarget = JVM_17`,
 `allWarningsAsErrors` 를 `warningsAsErrors` Gradle 속성으로 제어. **툴체인 선언은 없다** —
@@ -158,13 +163,21 @@ Gradle 을 돌리는 JDK 로 컴파일하고 타깃만 17 로 맞춘다.
 `*-composables.txt`/`*-composables.csv`/`*-classes.txt` 가 생긴다. **항상 켜 두지 않는다** —
 모든 빌드가 안정성 보고서를 쓰느라 느려진다(`877a67e`).
 
-## 템플릿 폴더 시험 입력 — 속성으로 켠 모듈만
+## 레포 폴더 시험 입력 — 속성으로 켠 모듈만
 
-`hancenote.android.library`·`hancenote.jvm.library` 가 `configureNotesTemplateInput()` 을 부른다. 모듈 `build.gradle.kts` 가
-`extra["notesTemplateInput"] = true` 를 **plugins 블록 아래 아무 데나** 한 줄 두면(`afterEvaluate` 에서 읽는다) 그 모듈의 모든 `Test`
-태스크가 `public-repos/notes-template` 를 상대 경로 입력으로 안다 — 템플릿 한 글자만 바뀌어도 시험이 UP-TO-DATE 로 건너뛰지 않고 다시 돈다.
-**요청한 모듈만 켠다**(결정 15 · D18): 모든 모듈에 걸면 템플릿 한 글자에 전 모듈 시험이 돈다. 폴더가 없어도 실패하지 않는다(빈 입력).
-켜는 한 줄은 `:core:data` 몫이다.
+`hancenote.android.library`·`hancenote.jvm.library` 가 `configureRepoTestInputs()` 를 부른다. 모듈 `build.gradle.kts` 가
+`extra["<속성>"] = true` 를 **plugins 블록 아래 아무 데나** 한 줄 두면(`afterEvaluate` 에서 읽는다) 그 모듈의 모든 `Test` 태스크가
+아래 루트 폴더를 상대 경로 입력으로 안다 — 폴더의 한 글자만 바뀌어도 시험이 UP-TO-DATE 로 건너뛰지 않고 다시 돈다.
+
+| 속성 | 폴더 | 켠 모듈 |
+|---|---|---|
+| `notesTemplateInput` | `public-repos/notes-template` | `:core:data` |
+| `notesInput` | `notes` · `notes-tests/fixtures/front-matter` | `:core:format` |
+| `catalogInput` | `gradle/libs.versions.toml`(파일 하나) | `:core:format` |
+
+**요청한 모듈만 켠다**(결정 15 · D18): 모든 모듈에 걸면 폴더 한 글자에 전 모듈 시험이 돈다. 폴더가 없어도 실패하지 않는다(빈 입력).
+`__pycache__` 는 모든 트리에서 뺀다 — PY 시험이 `gen_index.py` 를 import 하며 `notes/` 안에 만들어서, 세면 PY 시험 뒤마다 JVM 시험이 UP-TO-DATE 를 잃는다.
+폴더를 더하려면 `RepoTestInputs.kt` 의 표에 한 줄을 더한다. 폴더 안 파일 하나만이면 `include` 로 거른다.
 
 ## 캐시 (루트 `gradle.properties`)
 
@@ -177,7 +190,7 @@ org.gradle.configuration-cache=true
   `build/` 가 날아가도 입력이 같으면 다시 안 돌린다. 커밋 `aff86c7` 실측(clean 후
   `ktlintCheck + assembleDebug + testDebugUnitTest + lintDebug`): **37.9초 → 1.8초**, 334개 태스크가
   캐시에서 복원됐다. clean 직후와 브랜치를 갈아탔다 돌아올 때가 제일 크다.
-- **설정 캐시** — 모듈 11개라 절약 자체는 작다(0.4초 → 0.1초). 켜 둔 값은 성능보다
+- **설정 캐시** — 모듈 12개라 절약 자체는 작다(0.4초 → 0.1초). 켜 둔 값은 성능보다
   **지금 통과한다는 사실을 고정하는 것**이다. 설정 단계에서 `Project` 를 붙잡는 코드를
   컨벤션에 넣으면 그 커밋에서 바로 빌드가 실패한다. 나중에 켜려면 원인이 쌓인 뒤라 찾기 어렵다.
   → **컨벤션을 고칠 때 설정 단계에서 `Project`/`Task` 를 캡처하지 않는다.**
@@ -239,7 +252,7 @@ rename to 'ds_zz_probe' ? [ResourceName]
 ## ktlint 와 `.editorconfig`
 
 `hancenote.ktlint` 가 하는 일은 두 줄뿐이다 — ktlint 버전을 카탈로그(`ktlint = "1.8.0"`)로
-고정하고 `ktlintRuleset` 에 `io.nlopez.compose.rules:ktlint`(0.6.6)를 넣는다. Gradle 플러그인은
+고정하고 `ktlintRuleset` 에 `io.nlopez.compose.rules:ktlint`(0.6.7)를 넣는다. Gradle 플러그인은
 `org.jlleitschuh.gradle.ktlint` 14.2.0.
 
 규칙 설정은 전부 **리포 루트 `.editorconfig`** 다. 끈 것과 이유:
@@ -277,7 +290,7 @@ import(`getValue`/`setValue`)는 켜도 오탐 위험이 있으니 지울 때 �
 
 `.githooks/pre-commit` 이 **스테이징된 `.kt`/`.kts` 파일만** 검사한다
 (`./gradlew ktlintCheck -PinternalKtlintGitFilter="<개행 구분 경로 목록>"`). 위반이면 커밋 중단.
-노트를 건드렸으면 `notes/gen_index.py` 도 돌려 `index.json` 을 같은 커밋에 넣는다.
+노트를 건드렸으면 훅이 `notes/gen_index.py` 로 `index.json` 을 다시 만들어 같은 커밋에 넣는다.
 설치는 머신당 1회: `git config core.hooksPath .githooks`. `--no-verify` 는 쓰지 않는다.
 
 ## AGP 9 주의사항
@@ -299,7 +312,8 @@ import(`getValue`/`setValue`)는 켜도 오탐 위험이 있으니 지울 때 �
 
 ## 순수 JVM 모듈 — `hancenote.jvm.library`
 
-`:core:domain` 전용이다. 왜 Android 라이브러리가 아닌가:
+`:core:domain` 과 `:core:format`(+ `kotlin-serialization` 별칭 · `java-test-fixtures` 예외)이 쓴다. Hilt 컨벤션은 Android 플러그인이라 붙지 않으므로
+두 모듈은 `javax.inject` 생성자 주입만 쓴다. 왜 Android 라이브러리가 아닌가:
 
 1. 매니페스트·R 클래스·리소스 머지·계측 러너가 전부 딸려오는데 **하나도 안 쓴다.**
 2. 더 중요한 건 **`import android.*` 가 컴파일 에러로 막힌다**는 것이다. "domain 은 순수
@@ -347,16 +361,18 @@ e: .../ZzAndroidProbe.kt:3:8 Unresolved reference 'android'.
 `validatePlugins` 는 `enableStricterValidation = true`, `failOnWarning = true` 다. 경고 하나도 못 넘어간다.
 
 **버전 올리기** — `libs.versions.toml` 만 고치고 `./gradlew :app:compileDebugKotlin` +
-`./gradlew testDebugUnitTest` + `./gradlew lintDebug`. 컨벤션 파일은 보통 손댈 필요가 없다.
+`./gradlew test` + `./gradlew lintDebug`. 컨벤션 파일은 보통 손댈 필요가 없다. `testDebugUnitTest` 는 JVM 모듈
+(`:core:domain` · `:core:format`)을 조용히 건너뛴다.
+**마크다운 엔진(`jetbrainsMarkdown`) 판을 올리면 `:core:format` 의 `PARSER_VERSION` 도 올린다** — `EngineVersionTest` 가 막는다
+(`core/format/AGENTS.md` 엔진 절).
 
 ## 지금 상태 (참고값)
 
-- AGP 9.4.1 · Gradle 9.6.0(wrapper) · Kotlin 2.4.20 · KSP 2.3.6 · Hilt 2.60.1 · Room3 3.0.3
-- `compileSdk` 37 · `targetSdk` 36 · `minSdk` 32 · Java/JVM 타깃 17(build-logic 자신도 17)
-- 모듈 11개 = `:app` + core 9(`common`, `ai`, `data`, `database`, `design-foundation`,
-  `design-system`, `domain`, `navigation`, `network`) + feature 1(`notes`)
-- 테스트가 있는 모듈: `core/{ai, common, data, design-foundation, design-system, navigation}`,
-  `feature/notes`. `core/{database, domain, network}` 와 `app` 은 없다.
+- AGP 9.4.1 · Gradle 9.8.0(wrapper) · Kotlin 2.4.20 · KSP 2.3.12 · Hilt 2.60.1 · Room3 3.0.3
+- `compileSdk` 37 · `targetSdk` 37 · `minSdk` 32 · Java/JVM 타깃 17(build-logic 자신도 17)
+- 모듈 12개 = `:app` + core 10(`common`, `ai`, `data`, `database`, `design-foundation`,
+  `design-system`, `domain`, `format`, `navigation`, `network`) + feature 1(`notes`)
+- 테스트가 있는 모듈: `app` 을 뺀 전부(core 10 · `feature/notes`).
 - 없는 것(과거에 있었으나 제거됨): Circuit convention · android test(benchmark) convention ·
   product flavor(prod/demo). 되살릴 땐 카탈로그 alias 부터 다시 추가해야 한다.
 

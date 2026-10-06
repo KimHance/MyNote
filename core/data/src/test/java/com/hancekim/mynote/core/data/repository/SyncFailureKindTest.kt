@@ -1,7 +1,7 @@
 package com.hancekim.mynote.core.data.repository
 
-import com.hancekim.mynote.core.data.dto.NotesJson
 import com.hancekim.mynote.core.domain.model.SyncFailure
+import com.hancekim.mynote.core.format.NoteFormat
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
@@ -26,7 +26,7 @@ class SyncFailureKindTest {
                 val local = FakeLocal(listOf(cached("stale", "h1")))
                 var clock = 0L
 
-                val result = NotesRepositoryImpl(setOf(adapter), local, NotesJson, {}) { clock++ }.sync()
+                val result = NotesRepositoryImpl(setOf(adapter), local, NoteFormat(), {}) { clock++ }.sync()
 
                 assertSame(failure, result.exceptionOrNull())
                 assertEquals(setOf("s0/stale"), local.store.value.keys)

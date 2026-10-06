@@ -1,15 +1,15 @@
 # MyNote
 
-> GitHub 저장소의 JSON 노트를 받아 "블로그 글처럼" 보는 **읽기 전용** 안드로이드 학습 노트 앱.
+> GitHub 저장소의 마크다운 노트를 받아 "블로그 글처럼" 보는 **읽기 전용** 안드로이드 학습 노트 앱.
 > 노트로 온디바이스 LLM 퀴즈를 풀고, 공부 기록을 통계로 본다.
 
 다크 단일 테마 · 멀티 폼팩터(반응형 · 폴더블) · 앱 내 쓰기 없음.
 
 콘텐츠는 **서버드리븐**이다. 앱 안에서 GitHub 저장소 링크를 붙여 연결하고(공개는 바로 · 비공개는 읽기 전용 토큰),
-`notes/index.json`(그룹 → 노트 + 해시)과 노트별 JSON 을 **GitHub Contents API** 로 받아 **Room 에 캐싱**한다.
+`notes/index.json`(그룹 → 노트 + 해시)과 노트 파일을 **GitHub Contents API** 로 받아 **Room 에 캐싱**한다.
 해시를 비교해 변경분만 동기화한다(없으면 받고 · 해시가 다르면 갱신 · index 에 없으면 삭제).
-노트 형식은 [`notes/SCHEMA.md`](notes/SCHEMA.md) 의 닫힌 블록 집합이다
-(`heading · paragraph · code · quote · bulletList · orderedList · divider · spacer`).
+노트는 앞머리(제목 · 날짜) + GFM 마크다운 본문이고, 앱이 블록(제목 · 문단 · 코드 · 인용 · 목록 · 표 · 구분선)으로 그린다.
+형식은 [`notes/SCHEMA.md`](notes/SCHEMA.md) 에 있다. 옛 JSON 노트도 읽는다.
 
 ## 기능 (`feature:notes`)
 
@@ -29,15 +29,17 @@
 |---|---|
 | 언어 / UI | Kotlin · Jetpack Compose · Material3 |
 | 프레젠테이션 | MVI (`MviViewModel` · `UiState` + `Intent`) |
-| 내비게이션 | Navigation 3 + Scenes(목록-상세) |
+| 내비게이션 | Navigation 3 1.2.0 + Scenes(목록-상세) |
 | DI | Hilt |
 | 네트워크 | Retrofit · OkHttp · GitHub Contents API |
 | 로컬 | Room 3 (노트 캐시 · 학습 기록 · SSOT) · DataStore |
 | 온디바이스 AI | LiteRT-LM (퀴즈 · 통계 요약) · WorkManager (모델 받기 · 요약 워커) |
+| 마크다운 | JetBrains markdown(GFM) |
 | 직렬화 | kotlinx.serialization |
-| 빌드 | AGP 9.4.1 · Kotlin 2.4.20 · convention plugins(`:build-logic`) · version catalog |
+| 빌드 | Gradle 9.8 · AGP 9.4.1 · Kotlin 2.4.20 · KSP 2.3.12 · convention plugins(`:build-logic`) · version catalog |
 
-compileSdk 37 · targetSdk 36 · minSdk 32. 버전의 정본은 [`gradle/libs.versions.toml`](gradle/libs.versions.toml) 이다.
+compileSdk 37 · targetSdk 37 · minSdk 32. 버전의 정본은 [`gradle/libs.versions.toml`](gradle/libs.versions.toml) 이고
+Gradle 은 `gradle/wrapper/gradle-wrapper.properties` 다.
 
 ## 모듈 구조
 
@@ -49,6 +51,7 @@ core/
   network               GitHub Contents API · 저장소 확인 요청
   database              Room 캐시 · 학습 기록 · DataStore
   data                  DataSource 인터페이스 + reconcile(동기화)
+  format                순수 JVM — 노트 원문 → 블록(형식 고르기 · 한도 · 마크다운 변환 · 옛 JSON 형식 1)
   domain                순수 JVM — 모델 + Repository 인터페이스(DIP 소유) + UseCase
   navigation            Navigation 3 계약
   design-system         MyNoteTheme · 공용 컴포넌트 · 본문 블록 렌더
@@ -58,14 +61,14 @@ public-repos/           남에게 공개할 노트 규격 · 도구 · 템플릿
 ```
 
 의존 방향은 항상 바깥 → 안쪽이다. 인터페이스는 안쪽이 소유하고 바깥이 구현하며, `:app` 만 구현체를 알고
-Hilt 로 묶는다(DIP). **SSOT 는 Room.** 에이전트용 안내는 [`AGENTS.md`](AGENTS.md)(모듈마다 따로 있다),
+Hilt 로 묶는다(DIP). **SSOT 는 Room.** 에이전트용 안내는 [`AGENTS.md`](AGENTS.md)(모듈마다 따로),
 디자인 기준은 [`DESIGN.md`](DESIGN.md), 기능 문서는 [`docs/spec/`](docs/spec/) 에 있다.
 
 ## 빌드 & 실행
 
 ```bash
 ./gradlew ktlintCheck :app:assembleDebug test lintDebug   # 한 번에 검증 (test — testDebugUnitTest 아님)
-python3 -I -m unittest discover public-repos/tests && python3 -I -m unittest discover public-repos/notes-kit/tests
+python3 -I -m unittest discover notes-tests && python3 -I -m unittest discover public-repos/tests && python3 -I -m unittest discover public-repos/notes-kit/tests
 ./gradlew :app:installDebug                               # 기기 설치 (uninstall 하면 기기의 모델 파일이 지워진다)
 git config core.hooksPath .githooks                       # 머신당 1회 — 노트를 커밋하면 index.json 을 다시 만든다
 ```

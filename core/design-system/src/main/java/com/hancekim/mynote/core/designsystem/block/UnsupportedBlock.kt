@@ -168,33 +168,63 @@ private fun UnsupportedNotice(block: NoteContentBlock.Unsupported) {
     val colors = MyNoteTheme.colors
     val styles = MyNoteTheme.textStyles
     Column(modifier = Modifier.fillMaxWidth().semantics(mergeDescendants = true) {}) {
-        if (block.kind == UnsupportedKind.BrokenNote) {
-            Text(
-                text = stringResource(R.string.ds_unsupported_note_title),
-                style = styles.cardTitle,
-                color = colors.text,
-            )
-            Spacer(Modifier.height(UnsupportedBlockDefaults.TitleToBody))
-            Text(
-                text = stringResource(R.string.ds_unsupported_note_body),
-                style = styles.bodySmall,
-                color = colors.text2,
-            )
-        } else {
-            Text(
-                text = noticeText(block.kind == UnsupportedKind.UnknownType, hasSalvaged = block.salvaged != null),
-                style = styles.bodySmall,
-                color = colors.text2,
-            )
-            if (block.salvaged != null) {
-                Spacer(Modifier.height(UnsupportedBlockDefaults.NoticeToText))
-                Text(
-                    text = block.salvaged,
-                    style = styles.body,
-                    color = colors.text2,
+        when (val kind = block.kind) {
+            UnsupportedKind.BrokenNote -> {
+                WholeNoteNotice(
+                    title = stringResource(R.string.ds_unsupported_note_title),
+                    body = stringResource(R.string.ds_unsupported_note_body),
                 )
             }
+
+            is UnsupportedKind.LimitExceeded -> {
+                WholeNoteNotice(
+                    title = stringResource(R.string.ds_unsupported_limit_title),
+                    body =
+                        stringResource(
+                            R.string.ds_unsupported_limit_body,
+                            kind.maxDepth,
+                            kind.maxKilobytes,
+                            kind.maxTableCells,
+                        ),
+                )
+            }
+
+            UnsupportedKind.UnknownType, UnsupportedKind.BrokenBlock -> {
+                Text(
+                    text = noticeText(kind == UnsupportedKind.UnknownType, hasSalvaged = block.salvaged != null),
+                    style = styles.bodySmall,
+                    color = colors.text2,
+                )
+                if (block.salvaged != null) {
+                    Spacer(Modifier.height(UnsupportedBlockDefaults.NoticeToText))
+                    Text(
+                        text = block.salvaged,
+                        style = styles.body,
+                        color = colors.text2,
+                    )
+                }
+            }
         }
+    }
+}
+
+@Composable
+private fun WholeNoteNotice(
+    title: String,
+    body: String,
+) {
+    Column {
+        Text(
+            text = title,
+            style = MyNoteTheme.textStyles.cardTitle,
+            color = MyNoteTheme.colors.text,
+        )
+        Spacer(Modifier.height(UnsupportedBlockDefaults.TitleToBody))
+        Text(
+            text = body,
+            style = MyNoteTheme.textStyles.bodySmall,
+            color = MyNoteTheme.colors.text2,
+        )
     }
 }
 
@@ -435,6 +465,13 @@ private class UnsupportedBlockPreviewProvider : PreviewParameterProvider<Unsuppo
                 NoteContentBlock.Unsupported(UnsupportedKind.BrokenNote, null, previewTableRaw),
                 expanded = true,
             ),
+            UnsupportedPreviewState(
+                NoteContentBlock.Unsupported(
+                    UnsupportedKind.LimitExceeded(maxDepth = 8, maxKilobytes = 64, maxTableCells = 128),
+                    null,
+                    previewLongRaw,
+                ),
+            ),
         )
 
     override fun getDisplayName(index: Int): String? =
@@ -445,7 +482,8 @@ private class UnsupportedBlockPreviewProvider : PreviewParameterProvider<Unsuppo
             3 -> "펼침 1단"
             4 -> "펼침 2단 · 잘림"
             5 -> "노트 전체"
-            else -> "노트 전체 · 펼침"
+            6 -> "노트 전체 · 펼침"
+            else -> "한도 넘음"
         }
 }
 

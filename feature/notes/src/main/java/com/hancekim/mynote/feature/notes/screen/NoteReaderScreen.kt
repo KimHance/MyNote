@@ -16,11 +16,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.hancekim.mynote.core.designsystem.block.NoteContent
 import com.hancekim.mynote.core.designsystem.block.NoteContentBlock
+import com.hancekim.mynote.core.designsystem.block.NoteContentListItem
 import com.hancekim.mynote.core.designsystem.block.NoteContentSpan
 import com.hancekim.mynote.core.designsystem.block.NoteContentState
 import com.hancekim.mynote.core.designsystem.block.NoteSpanStyle
@@ -30,6 +33,7 @@ import com.hancekim.mynote.core.designsystem.component.CategoryChip
 import com.hancekim.mynote.core.designsystem.component.fadingEdges
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.domain.model.ModelStatus
+import com.hancekim.mynote.core.domain.model.NoteLimits
 import com.hancekim.mynote.feature.notes.NoteUi
 import com.hancekim.mynote.feature.notes.element.CtaAction
 import com.hancekim.mynote.feature.notes.navigation.rememberNoteSharedModifiers
@@ -82,7 +86,7 @@ internal fun NoteReaderScreen(
                     text = note.title,
                     style = MyNoteTheme.textStyles.noteTitle.copy(fontSize = adaptive.noteTitleSize),
                     color = MyNoteTheme.colors.text,
-                    modifier = shared.title,
+                    modifier = shared.title.semantics { heading() },
                 )
                 NoteContent(blocks = note.blocks, state = contentState)
                 if (onQuizAction != null && note.readable) {
@@ -113,13 +117,17 @@ private val previewNote =
                 ),
                 NoteContentBlock.BulletList(
                     persistentListOf(
-                        persistentListOf(
-                            NoteContentSpan("단순 UI 상태는 ", NoteSpanStyle.Normal),
-                            NoteContentSpan("remember", NoteSpanStyle.Code),
+                        NoteContentListItem(
+                            persistentListOf(
+                                NoteContentSpan("단순 UI 상태는 ", NoteSpanStyle.Normal),
+                                NoteContentSpan("remember", NoteSpanStyle.Code),
+                            ),
                         ),
-                        persistentListOf(
-                            NoteContentSpan("복원이 필요하면 ", NoteSpanStyle.Normal),
-                            NoteContentSpan("rememberSaveable", NoteSpanStyle.Code),
+                        NoteContentListItem(
+                            persistentListOf(
+                                NoteContentSpan("복원이 필요하면 ", NoteSpanStyle.Normal),
+                                NoteContentSpan("rememberSaveable", NoteSpanStyle.Code),
+                            ),
                         ),
                     ),
                 ),
@@ -195,5 +203,31 @@ private fun NoteReaderScreenUnsupportedPreview() {
 private fun NoteReaderScreenBrokenNotePreview() {
     MyNoteTheme {
         NoteReaderScreen(note = previewBrokenNote, categoryName = "Android", onQuizAction = {})
+    }
+}
+
+private val previewLimitNote =
+    previewNote.copy(
+        blocks =
+            persistentListOf(
+                NoteContentBlock.Unsupported(
+                    kind =
+                        UnsupportedKind.LimitExceeded(
+                            NoteLimits.Default.maxDepth,
+                            NoteLimits.Default.maxKilobytes,
+                            NoteLimits.Default.maxTableCells,
+                        ),
+                    salvaged = null,
+                    raw = "- 상태\n  - 호이스팅\n    - 단방향\n",
+                ),
+            ),
+        readable = false,
+    )
+
+@Preview(name = "Reader · 한도 넘음", showBackground = true, widthDp = 400, heightDp = 720)
+@Composable
+private fun NoteReaderScreenLimitPreview() {
+    MyNoteTheme {
+        NoteReaderScreen(note = previewLimitNote, categoryName = "Android", onQuizAction = {})
     }
 }

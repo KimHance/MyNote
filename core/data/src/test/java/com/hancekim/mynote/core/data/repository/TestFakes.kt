@@ -6,12 +6,14 @@ import com.hancekim.mynote.core.data.datasource.BookmarkStore
 import com.hancekim.mynote.core.data.datasource.CachedNote
 import com.hancekim.mynote.core.data.datasource.CachedNoteState
 import com.hancekim.mynote.core.data.datasource.ConnectionStateStore
+import com.hancekim.mynote.core.data.datasource.ListedNote
 import com.hancekim.mynote.core.data.datasource.LocalNotesDataSource
 import com.hancekim.mynote.core.data.datasource.NoteSourceAdapter
+import com.hancekim.mynote.core.data.datasource.RederivedNote
 import com.hancekim.mynote.core.data.datasource.SourceEntry
 import com.hancekim.mynote.core.data.datasource.SourceRecord
+import com.hancekim.mynote.core.data.datasource.StaleNote
 import com.hancekim.mynote.core.data.datasource.TokenStore
-import com.hancekim.mynote.core.data.format.PARSER_VERSION
 import com.hancekim.mynote.core.domain.model.Category
 import com.hancekim.mynote.core.domain.model.RepoConnection
 import com.hancekim.mynote.core.domain.model.SourceId
@@ -19,6 +21,7 @@ import com.hancekim.mynote.core.domain.model.SourceKind
 import com.hancekim.mynote.core.domain.model.SyncOutcome
 import com.hancekim.mynote.core.domain.repository.AppliedTokenSource
 import com.hancekim.mynote.core.domain.repository.NotesRepository
+import com.hancekim.mynote.core.format.PARSER_VERSION
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
@@ -124,6 +127,7 @@ internal class FakeLocal(
     val sourceRows: Map<SourceId, SourceRecord> get() = rows.value
     var applyCalls = 0
     var promoteCalls = 0
+    val rawReads: MutableList<String> = Collections.synchronizedList(mutableListOf())
 
     private val visible = MutableStateFlow<List<CachedNote>>(emptyList())
 
@@ -140,7 +144,18 @@ internal class FakeLocal(
         visible.value = store.value.values.filter { it.sourceId !in hidden }
     }
 
-    override fun observeNotes(): Flow<List<CachedNote>> = visible
+    override fun observeNotes(): Flow<List<ListedNote>> =
+        visible.map { notes ->
+            notes.map { ListedNote(it.key, it.sourceId, it.path, it.group, it.title, it.date, it.blocksJson) }
+        }
+
+    override suspend fun loadRaw(
+        key: String,
+        maxBytes: Int,
+    ): String? {
+        rawReads += key
+        return store.value[key]?.raw?.takeIf { it.toByteArray().size <= maxBytes }
+    }
 
     override fun observeSources(): Flow<List<SourceRecord>> = rows.map { it.values.sortedBy { r -> r.id.value } }
 
@@ -205,12 +220,31 @@ internal class FakeLocal(
         publish()
     }
 
-    override suspend fun loadStale(parserVersion: Int): List<CachedNote> =
-        store.value.values.filter { it.parserVersion < parserVersion && it.raw != null }
+    override suspend fun loadStale(
+        parserVersion: Int,
+        maxRawBytes: Int,
+    ): List<StaleNote> =
+        store.value.values.mapNotNull { row ->
+            row.raw
+                ?.takeIf { row.parserVersion < parserVersion && it.toByteArray().size <= maxRawBytes }
+                ?.let { StaleNote(row.key, row.path, it) }
+        }
 
-    override suspend fun replaceDerived(rows: List<CachedNote>) {
+    override suspend fun replaceDerived(rows: List<RederivedNote>) {
         writeError?.let { throw it }
-        store.update { current -> current + rows.associateBy { it.key } }
+        store.update { current ->
+            current +
+                rows.mapNotNull { row ->
+                    current[row.key]?.let {
+                        row.key to
+                            it.copy(
+                                blocksJson = row.blocksJson,
+                                excerpt = row.excerpt,
+                                parserVersion = row.parserVersion,
+                            )
+                    }
+                }
+        }
         publish()
     }
 }

@@ -5,8 +5,11 @@ private const val ELLIPSIS = "…"
 private val SENTENCE_ENDS = setOf('.', '?', '!', '。')
 private val ABBREVIATIONS = setOf("e.g.", "i.e.", "etc.", "vs.")
 
-fun Note.firstSentence(maxChars: Int = DEFAULT_MAX_CHARS): String? {
-    val spans = blocks.firstParagraphSpans() ?: blocks.firstListItemSpans() ?: return null
+fun Note.firstSentence(maxChars: Int = DEFAULT_MAX_CHARS): String? = blocks.firstSentence(maxChars)
+
+/** 첫 문단(없으면 첫 목록 항목)의 첫 문장. [maxChars] 를 넘으면 말줄임으로 자른다. */
+fun List<NoteBlock>.firstSentence(maxChars: Int = DEFAULT_MAX_CHARS): String? {
+    val spans = firstParagraphSpans() ?: firstListItemSpans() ?: return null
     val flat = flatten(spans)
     val sentence = cutSentence(flat)
     return clip(sentence, maxChars).takeIf { it.isNotBlank() }
@@ -20,14 +23,16 @@ private fun List<NoteBlock>.firstParagraphSpans(): List<NoteSpan>? =
 
 private fun List<NoteBlock>.firstListItemSpans(): List<NoteSpan>? =
     asSequence()
-        .flatMap { block ->
-            when (block) {
-                is NoteBlock.BulletList -> block.items.asSequence()
-                is NoteBlock.OrderedList -> block.items.asSequence()
-                else -> emptySequence()
-            }
-        }.map { it.spans }
+        .flatMap { it.listItems() }
+        .map { it.spans }
         .firstOrNull { spans -> spans.any { it.text.isNotBlank() } }
+
+private fun NoteBlock.listItems(): Sequence<NoteListItem> =
+    when (this) {
+        is NoteBlock.BulletList -> items.asSequence()
+        is NoteBlock.OrderedList -> items.asSequence()
+        else -> emptySequence()
+    }.flatMap { item -> sequenceOf(item) + item.children.asSequence().flatMap { it.listItems() } }
 
 private class FlatText(
     val text: String,

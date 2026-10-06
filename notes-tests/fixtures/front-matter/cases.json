@@ -1,0 +1,92 @@
+[
+  {
+    "file": "lf.md",
+    "sha256": "e709c84fc0010f9c13429015191521509681d1bf0d9ba90a7847a824814a48cd",
+    "frontMatter": true,
+    "body": "# 본문\n\n문단 한 줄\n"
+  },
+  {
+    "file": "bom.md",
+    "sha256": "d48696d572ed73d7fea31b02fc9a496623125f2e174476cefabf954e984a469a",
+    "frontMatter": true,
+    "body": "# 본문\n\n문단 한 줄\n"
+  },
+  {
+    "file": "crlf.md",
+    "sha256": "7e5ee99dab8bdf350e48e8af9088a4a3171a5f0ef18cf6afc3b6bf1999837d3c",
+    "frontMatter": true,
+    "body": "# 본문\n\n문단 한 줄\n"
+  },
+  {
+    "file": "bom-crlf.md",
+    "sha256": "947236aa27d355175a5a5b81dca0595979aaf722758280919fffb757ce411ec5",
+    "frontMatter": true,
+    "body": "# 본문\n\n문단 한 줄\n"
+  },
+  {
+    "file": "cr.md",
+    "sha256": "b1a760ac1beac713a89e3f964e7fb8d572b737afe935daa89cb970081cba3179",
+    "frontMatter": true,
+    "body": "# 본문\n\n문단 한 줄\n"
+  },
+  {
+    "file": "empty.md",
+    "sha256": "1054df94636151d0836d88513c322f8d5ecf960ab3616aa88ca027802bd125b0",
+    "frontMatter": true,
+    "body": "# 본문\n\n문단 한 줄\n"
+  },
+  {
+    "file": "close-at-end.md",
+    "sha256": "fc7c2fab3e8b1e5a839236add5fcf98bd90d0ce5decfd6a721ca952a53acccc9",
+    "frontMatter": true,
+    "body": ""
+  },
+  {
+    "file": "divider-in-body.md",
+    "sha256": "4cfcd61bd33e64077e92022241e2d394dc6783701f134677f92c8e000829ff56",
+    "frontMatter": true,
+    "body": "문단\n\n---\n\n끝\n"
+  },
+  {
+    "file": "open-trailing-space.md",
+    "sha256": "0e5c094a39788bf496c42768102d3385d97a11aa61de729295005fd041eee4df",
+    "frontMatter": false,
+    "body": "--- \ntitle: 경계\ndate: 2026.10.07\n---\n# 본문\n\n문단 한 줄\n"
+  },
+  {
+    "file": "open-leading-space.md",
+    "sha256": "e5ae3bbfd955158ebfbdf9b8b6521cd8eeff19ea07bf4f6c884f13ac8e9a68c3",
+    "frontMatter": false,
+    "body": " ---\ntitle: 경계\ndate: 2026.10.07\n---\n# 본문\n\n문단 한 줄\n"
+  },
+  {
+    "file": "close-trailing-space.md",
+    "sha256": "e977985ff8e2af95adae027375849ce8f38b9858dd606d0e6e0ed908740d6805",
+    "frontMatter": false,
+    "body": "---\ntitle: 경계\ndate: 2026.10.07\n--- \n# 본문\n\n문단 한 줄\n"
+  },
+  {
+    "file": "four-dashes.md",
+    "sha256": "a3652759fb11cc826044b5cd5fd6946ce7bb04880019fdfadfc3ada76619cfb2",
+    "frontMatter": false,
+    "body": "----\ntitle: 경계\ndate: 2026.10.07\n----\n# 본문\n\n문단 한 줄\n"
+  },
+  {
+    "file": "blank-first-line.md",
+    "sha256": "39415afd4b7f8e4f5080d2403bfe510ef4a2054ea614db06d613be3ac196f570",
+    "frontMatter": false,
+    "body": "\n---\ntitle: 경계\ndate: 2026.10.07\n---\n# 본문\n\n문단 한 줄\n"
+  },
+  {
+    "file": "unclosed.md",
+    "sha256": "dac3e48f42f0ee4ae6d74d6b5799f41ec64d7cfbb124bd4812b1dbfbdbcf0315",
+    "frontMatter": false,
+    "body": "---\ntitle: 경계\ndate: 2026.10.07\n# 본문\n\n문단 한 줄\n"
+  },
+  {
+    "file": "unclosed-crlf.md",
+    "sha256": "e427ccc8f64c5b0ed6a33f534bc94a289974cfd42dd5e65cb250cf2120943503",
+    "frontMatter": false,
+    "body": "---\ntitle: 경계\ndate: 2026.10.07\n# 본문\n\n문단 한 줄\n"
+  }
+]

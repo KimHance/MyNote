@@ -19,7 +19,7 @@
   `:core:data` 가 `withContext(Dispatchers.Default)`, feature 가 `viewModelScope`.
 - **어노테이션을 "안 붙이는" 게 아니라 붙일 수 없다.** `@Serializable`(serialization 플러그인 미적용),
   `@Immutable`/`@Stable`(compose runtime 없음), `R.string`(리소스 없음) 전부 classpath 에 없다.
-  직렬화는 `:core:data` 의 DTO, stability 는 UI 상태, 표시 문구는 `strings.xml` 의 책임이라는 배치가
+  직렬화는 `:core:format` · `:core:data` 의 DTO, stability 는 UI 상태, 표시 문구는 `strings.xml` 의 책임이라는 배치가
   실수로 무너질 수 없다. 모델은 평범한 `data class` + `List` 를 그대로 쓴다.
 - **Hilt 플러그인이 없다.** `javax.inject.Inject` 만 쓰고 UseCase 는 unscoped 생성자 주입이다.
   `@Binds` 는 구현체를 가진 `:core:data`/`:core:network`/`:core:ai` 의 모듈이 한다.
@@ -70,8 +70,11 @@ debug 내장 토큰은 시드 연결(`ConsumeSeedUseCase`)이 저장 칸에 쓰�
 
 1. **노트를 찾는다** — `observeCategories().first()` 로 **캐시된 트리**에서 찾는다. 네트워크를 타지 않는다
    (SSOT 는 Room). 못 찾으면 `QuizFailure.Empty`. 즉 호출부가 `Note` 를 들고 오지 않아도 된다.
-2. **블록을 평문으로 편다** — 9종 블록의 exhaustive `when`. `Divider`/`Spacer` 는 버리고 코드블록 본문은
-   **포함한다**(코드에서도 문제를 낼 수 있게). 리스트는 `- ` 를 붙여 한 줄씩. **`Unsupported` 는 건진 글자(`text`)만**
+2. **블록을 평문으로 편다** — 10종 블록의 exhaustive `when`. `Divider`/`Spacer` 는 버리고 코드블록 본문은
+   **포함한다**(코드에서도 문제를 낼 수 있게). 리스트는 항목마다 `- `(체크 항목은 `- [x] ` · `- [ ] `, 번호 목록도 같다)를
+   붙여 한 줄씩이고 글자가 빈 항목은 줄을 쓰지 않는다. 표는 머리 행부터 행마다 한 줄, 칸 사이 ` | `. 항목의 하위 블록은
+   모든 줄을 깊이마다 두 칸 들인다. **취소선 구간은 `~~글~~` 로 남긴다** — 모델이 지운 문장을 사실로 읽지 않게(note-format
+   결정 15). 첫 문장(`firstSentence`)은 같은 구간을 모양 없는 글자로 쓴다. **`Unsupported` 는 건진 글자(`text`)만**
    넣고 원문(`raw`, JSON 조각)은 넣지 않는다 — 건진 글자는 상자 안에 보이는 글이라 퀴즈 근거를 노트에서 찾을 수 있다
    (`GenerateQuizUseCaseTest`).
 3. **`take(2_000)` — 본문을 자르는 책임이 여기 있다.** 프롬프트 길이가 곧 prefill 이고 prefill 이 곧 TTFT다
@@ -109,7 +112,7 @@ debug 내장 토큰은 시드 연결(`ConsumeSeedUseCase`)이 저장 칸에 쓰�
   `PruneStudyLogUseCase` 는 365일 기록 + **90일 `quiz_answers`**(문항 텍스트, D44 갱신) + 26주 요약·패턴을 같이 정리한다.
 - `WeeklyDigest.trend`(more/less/same, `change.minutes` 부호)·`titles`(stalled + reread) — 요약 문장에 숫자를 쓰지 않으므로
   방향은 말로, 제목 속 숫자는 가드에서 지우고 본다(`:core:ai` 검수 B1).
-- 테스트(`:core:domain:test`): `NoteKeyTest`·`GenerateQuizUseCaseTest`·`ReadSessionTrackerTest`·`StatsPeriodRangeTest`(DST·윤년·시간대 포함)·
+- 테스트(`:core:domain:test`): `NoteKeyTest`·`GenerateQuizUseCaseTest`(NF-10 평문)·`NoteExcerptTest`·`NoteLimitsTest`·`ReadSessionTrackerTest`·`StatsPeriodRangeTest`(DST·윤년·시간대 포함)·
   `StudyStatsCalculatorTest`·`StudyLogUseCaseTest`(지우기 순서·재예약·26주 정리 포함)·`InsightPlanTest`·`WeeklyDigestTest`·
   `WeeklyHistoryTest`.
 
@@ -136,21 +139,32 @@ debug 내장 토큰은 시드 연결(`ConsumeSeedUseCase`)이 저장 칸에 쓰�
 
 ## 모델
 
-- `Category`/`Note`/`NoteBlock`/`NoteListItem`/`NoteSpan`/`SpanStyle` + `QuizQuestion` + `SyncOutcome` + `NoteKey`/`SourceId`/`SourceKind`.
+- `Category`/`Note`/`NoteBlock`/`NoteListItem`/`NoteSpan`/`SpanStyle`/`TableCell`/`TableAlign`/`NoteLimits` + `QuizQuestion` +
+  `SyncOutcome` + `NoteKey`/`SourceId`/`SourceKind`.
+- **블록은 10종이다** — 형식 1 의 8종 + `Table`(머리 칸 · 본문 행 · 열 정렬) + `Unsupported`. 새 모양은 기본값 있는 필드라 지금 8종의
+  생성자 호출이 그대로다: `NoteSpan.italic` · `strike`(굵게 · 코드는 지금 `style` — 겹치면 `style = Bold, italic = true`, 코드에는
+  취소선만 붙는다), `NoteListItem.checked`(`null` = 체크 항목 아님) · `children`(항목 글 아래 블록), `OrderedList.start`.
+  인용 안 기울임도 모델에는 기울임 그대로 두고 세워 그리기는 렌더가 한다. 새 블록 · 필드는 마크다운에서만 나온다(JSON 형식 1 동결).
+- **`NoteLimits` 가 노트 한도 값의 한 자리다** — 생성자 기본값이 곧 `Default`: 32단 · 512KB(`maxBytes` 524,288) · 표 칸 4,096 ·
+  캐시 1MB(`maxCacheBytes` 1,048,576). 숫자 리터럴은 여기에만 둔다. `:core:format` 의 거르기 · 결과 한도, `:core:data` 의 원문 읽기
+  상한, `:feature:notes` 의 화면 매퍼가 같은 값을 읽는다 — 상자 문구의 세 숫자(단 · KB · 표 칸)가 여기서 온다(NF-8 ⑨). 바꾸면 이미 거른 노트는
+  다음 재변환(`PARSER_VERSION`)까지 옛 판정이다. 원문 + 캐시 상한의 합은 커서 창 2MB 에 여유 있게 들어가야 한다(`core/format/AGENTS.md` 결과 한도).
 - **`Note.id` 는 `String` 이고 값이 `NoteKey` 문자열이다** — `"<sourceId>/<docId>"`, 기존 노트는 `s0/graph`. 북마크·학습 기록·
   `SyncOutcome.deleted`·내비 키가 전부 이 문자열로 맞물린다. 소비자는 id 를 불투명하게 다룬다(쪼개거나 파싱하지 않는다).
   `NoteKey.parse` 는 **첫 `/`** 에서 자른다 — `SourceId` 에는 `/` 가 없고 `docId` 에는 있을 수 있다(M1 의 경로 기반 id).
   `s0` 는 레포 좌표를 담지 않는다 — 노트 레포를 옮겨도 키가 바뀌지 않게(`NoteKeyTest`).
 - **`NoteBlock.Unsupported(reason, type, text, raw)`** 는 앱 내부 전용 블록이다(와이어에 없는 타입). `reason` =
   `UnknownType`(앱이 모르는 type)·`BrokenBlock`(아는 type 인데 필드 누락·타입 오류, type 없음)·`BrokenNote`(노트 파일 전체를
-  못 읽음 — 이때 `blocks` 는 이 블록 하나). `text` = 건진 글자(없으면 `null`), `raw` = 원문 보기용(빈 문자열 = 원문 없음, v4 에서
-  옮긴 캐시의 옛 `unknown`). 만드는 규칙은 `core/data/AGENTS.md` "형식".
-- **`NoteBlock` 은 같은 모양이 세 번 나온다:** `NoteBlockDto`(`:core:data`, `@Serializable`) →
+  못 읽음 — 이때 `blocks` 는 이 블록 하나)·`LimitExceeded`(한도를 넘어 읽지 않음 — `BrokenNote` 처럼 노트 전체
+  상자 하나이고 첫 문장 · 퀴즈 카드가 없다). 노트 전체 상자인지는 `UnsupportedReason.wholeNote` 가 말한다 — 사유를 더하면 생성자
+  인자라 빠뜨릴 수 없다. `text` = 건진 글자(없으면 `null`), `raw` = 원문 보기용(빈 문자열 = 원문 없음, v4 에서
+  옮긴 캐시의 옛 `unknown`). 만드는 규칙은 `core/format/AGENTS.md`.
+- **`NoteBlock` 은 같은 모양이 세 번 나온다:** `NoteBlockDto`(`:core:format`, `@Serializable`, 모듈 밖에 안 보임) →
   **`NoteBlock`(여기)** → `NoteContentBlock`(`:core:design-system`, `@Immutable`). 이 중복이 경계의 값이다 —
   DTO 가 UI 까지 새지 않고, UI stability 가 도메인을 오염시키지 않는다.
-  블록 타입을 하나 추가하면 exhaustive `when` 이 있는 자리(`NoteMapper`, `NoteBlockMapper`,
-  `GenerateQuizUseCase.toPlainText`)는 컴파일 에러로 잡히지만 **`:core:data` 의 `PARSER_VERSION`, `notes/gen_index.py` 의
-  `BLOCK_TYPES` 와 `notes/SCHEMA.md` 는 컴파일러가 잡아 주지 않는다.**
+  블록 타입을 하나 추가하면 exhaustive `when` 이 있는 자리(`:core:format` 의 `BlockMapper`, `NoteBlockMapper`,
+  `GenerateQuizUseCase.toPlainText`)는 컴파일 에러로 잡히지만 **`:core:format` 의 `PARSER_VERSION` 과 문서는 컴파일러가
+  잡아 주지 않는다.** JSON 형식 1 은 동결이라 새 블록은 마크다운에서만 나온다(`core/format/AGENTS.md`).
 - **`SyncOutcome` 은 값이 아니라 판단까지 준다** — `changed`(added+updated)·`hasChanges`. 스낵바를 띄울지
   (`hasChanges`)와 문구(`added`/`updated`/`deleted`)를 같은 자리에서 못 세면 "변경 없음"인데 안내가 뜬다.
   `deleted` 는 개수가 아니라 **`NoteKey` 문자열 목록**이다 — 삭제된 노트를 보고 있으면 화면을 옮기고 그 노트의 북마크를 지워야 해서

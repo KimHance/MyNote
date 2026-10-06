@@ -206,8 +206,8 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
 진입점은 헤더가 아니라 리더 본문 **맨 끝 CTA**(`QuizCtaCard`)다. 모델이 없어도 숨기지 않고
 흐리게 두고, 누르면 왜 안 되는지 스낵바로 말해 준다(`NotesShell` 의 `onOpenQuiz`).
 
-**예외 하나 — 노트 파일 전체를 읽지 못한 노트(`NoteBlock.Unsupported(BrokenNote)` 하나뿐인 노트)는 CTA 를 아예 그리지
-않는다.** 퀴즈에 넣을 평문이 없어서다. 판정은 `NotesUiMapper` 가 파생하는 `NoteUi.readable` 하나이고(`NotesUiMapperTest`),
+**예외 하나 — 노트 전체를 읽지 못한 노트(`NoteBlock.Unsupported` 의 `BrokenNote` · `LimitExceeded` 가 있는 노트)는 CTA 를
+아예 그리지 않는다.** 퀴즈에 넣을 평문이 없어서다. 판정은 `NotesUiMapper` 가 파생하는 `NoteUi.readable` 하나이고(`NotesUiMapperTest`),
 통계의 "다시 풀기"(`OpenQuizFor`)도 같은 값으로 리더만 열고 퀴즈 설정을 띄우지 않는다(띄우면 `GenerateQuizUseCase` 가
 빈 평문으로 `QuizFailure.Empty`). 블록 몇 개만 못 그린 노트(`UnknownType`·`BrokenBlock`)는 평소대로다. 그 블록은
 `NoteBlockMapper` 가 빈 `text`·`raw` 를 `null` 로 바꿔 design-system `NoteContentBlock.Unsupported` 로 넘긴다(`NoteBlockMapperTest`).
@@ -268,6 +268,17 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
   넘긴다**(`windowClass`/`heightClass`). 화면을 추가하면 프리뷰도 같은 방식으로 붙인다.
 - 화면 단위는 `Surface(color = …)` 로 배경을 갖는다. `Surface` 는 `propagateMinConstraints = true`
   라 자식에 `fillMaxSize` 를 또 붙일 필요가 없다.
+- **본문 블록 견본은 `src/debug` 에 있다** — `src/debug/.../screen/NoteFormatSample.kt`. 리더 화면(`NoteReaderScreen`) 그대로에
+  견본 노트를 얹은 프리뷰 하나와 상태 14개(글자 모양 · 하위 블록 · 체크 · 알림 · 한도 넘음 · 표를 compact · 852 · 큰 글자로)다. 릴리스에는
+  들어가지 않는다. 기능 문서 확인 칸의 `견본` 이 이것이다. debug 앱을 깔고 PreviewActivity 로 상태 번호(0–13, `samples` 순서)를
+  골라 연다. 852 상태를 실제 리더 칸 폭으로 보려면 `wm density` 로 화면 폭을 맞추고 끝나면 되돌린다.
+
+  ```bash
+  adb -s <기기 serial> shell am start -n com.hancekim.mynote/androidx.compose.ui.tooling.PreviewActivity \
+    --es composable com.hancekim.mynote.feature.notes.screen.NoteFormatSampleKt.NoteFormatSamplePreview \
+    --es parameterProviderClassName com.hancekim.mynote.feature.notes.screen.NoteFormatSampleProvider \
+    --ei parameterProviderIndex 0
+  ```
 
 ---
 

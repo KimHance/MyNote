@@ -18,9 +18,9 @@ Room 에서 나온다(`observeCategories()` → `LocalNotesDataSource.observeNot
 
 ## Room 타입을 가두는 방식
 
-`SourceEntity`·`SourceNoteEntity`·`SourceNoteStateRow`·`NoteDao`·`NotesDatabase` 는 **전부 `internal`** 이다. 모듈 밖으로 나가는
-타입은 `:core:data` 의 `CachedNote`·`CachedNoteState`·`SourceRecord` 이고, 매핑은 `datasource/LocalNotesDataSourceImpl.kt`
-의 private 확장 함수가 전부다. `sources.kind` 의 저장 문자열은 `SourceKindColumn.kt`(`github`·`link`·`local`, enum 이름이 아니다).
+`SourceEntity`·`SourceNoteEntity`·투영 행(`SourceNoteListRow`·`SourceNoteStaleRow`·`SourceNoteStateRow`·`SourceNoteDerivedRow`)·
+`NoteDao`·`NotesDatabase` 는 **전부 `internal`** 이다. 모듈 밖으로 나가는 타입은 `:core:data` 의 `CachedNote`·`CachedNoteState`·
+`ListedNote`·`StaleNote`·`RederivedNote`·`SourceRecord` 이고, 매핑은 `datasource/LocalNotesDataSourceImpl.kt` 가 전부다. `sources.kind` 의 저장 문자열은 `SourceKindColumn.kt`(`github`·`link`·`local`, enum 이름이 아니다).
 
 그래서 가시성 조합이 조금 특이하다 — **바꾸면 컴파일이 깨진다**:
 
@@ -41,6 +41,14 @@ Room 에서 나온다(`observeCategories()` → `LocalNotesDataSource.observeNot
 - **삭제는 `WHERE source_id = :sourceId AND doc_id IN (:docIds)` 이고 900개씩 나눠 부른다**(SQLite 바인드 한도 999).
   `source_id` 조건이 "소스는 자기 소유 노트만 지운다" 의 마지막 방어선이다. 계측 `NoteDaoTest` 가 지킨다.
 - **`replaceDerived` 는 `blocks_json`·`excerpt`·`parser_version` 만 바꾼다**(재변환). 원문·리비전·처음 본 시각은 건드리지 않는다.
+  `loadStale` 은 판이 낮고 원문이 있는 행만 읽는다. 둘을 실제 Room 으로 보는 것은 계측 `NF-9 재변환은 낡은 판의 원문 있는 행만 읽고
+  파생 열만 바꾼다` 다 — `:core:data` 의 NF-9 시험은 가짜 로컬 위라 SQL 을 안 본다.
+- **노트 행을 읽는 질의는 쓰는 열만 읽는다 — `SELECT *` 로 되돌리지 않는다.** 한 행은 커서 창(2MB) 하나로 읽혀서 창보다 큰 행이
+  하나라도 있으면 그 질의가 `SQLiteBlobTooBigException` 을 던진다. 목록 Flow 가 끊기면 홈의 노트가 전부 사라지고, 재변환 질의가
+  던지면 동기화가 매번 첫 줄에서 멈춘다. `observeNotes` 는 `raw` 를 읽지 않고, 원문을 읽는 `loadRaw` · `loadStale` 은
+  `length(CAST(raw AS BLOB)) <= :max` 로 상한을 넘는 원문을 거른다(바이트로 재야 해서 `length(raw)` 가 아니다). 한도 안 노트의
+  최악 행(원문 512KB + 캐시 1MB, `:core:format` 결과 한도)은 계측 `NF-8 한도 안 최악 크기 행도 목록 원문 재변환 행 전체 읽기를 지난다` ·
+  `NF-8 커서 창보다 큰 원문은 읽지 않고 목록과 재변환은 그대로 돈다` 와 JVM `NoteRowBudgetTest` 가 지킨다.
 - **본문을 정규화하지 않는다.** `raw` 는 받은 노트 파일 원문, `blocks_json` 은 그것을 변환한 블록 배열 JSON 한 칸(파생 캐시)이다.
   블록 스키마가 바뀌어도 DB 마이그레이션이 필요 없고 `parser_version` 만 올리면 `:core:data` 가 `raw` 에서 다시 만든다.
   블록을 테이블로 펼치려는 리팩터링은 이 트레이드오프를 뒤집는 것이다.

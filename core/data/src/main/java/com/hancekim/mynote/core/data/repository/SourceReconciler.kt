@@ -6,12 +6,11 @@ import com.hancekim.mynote.core.data.datasource.LocalNotesDataSource
 import com.hancekim.mynote.core.data.datasource.NoteSourceAdapter
 import com.hancekim.mynote.core.data.datasource.SourceEntry
 import com.hancekim.mynote.core.data.datasource.SourceRecord
-import com.hancekim.mynote.core.data.format.MyNoteJsonFormat
-import com.hancekim.mynote.core.data.format.PARSER_VERSION
-import com.hancekim.mynote.core.data.format.epochDayOf
 import com.hancekim.mynote.core.domain.model.NoteKey
 import com.hancekim.mynote.core.domain.model.SourceId
 import com.hancekim.mynote.core.domain.model.SyncOutcome
+import com.hancekim.mynote.core.format.NoteFormat
+import com.hancekim.mynote.core.format.PARSER_VERSION
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flatMapMerge
@@ -21,7 +20,7 @@ import kotlinx.coroutines.flow.toList
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class SourceReconciler(
     private val local: LocalNotesDataSource,
-    private val format: MyNoteJsonFormat,
+    private val format: NoteFormat,
     private val now: () -> Long,
 ) {
     suspend fun reconcile(
@@ -67,7 +66,7 @@ internal class SourceReconciler(
         previous: CachedNoteState?,
         fetchedAt: Long,
     ): CachedNote {
-        val derived = format.derive(raw)
+        val derived = format.derive(entry.path, raw)
         return CachedNote(
             key = NoteKey(source, entry.docId).value,
             sourceId = source.value,

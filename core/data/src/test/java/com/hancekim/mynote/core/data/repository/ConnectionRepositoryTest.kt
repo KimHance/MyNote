@@ -4,7 +4,6 @@ import com.hancekim.mynote.core.data.connection.ConnectionConfigCodec
 import com.hancekim.mynote.core.data.datasource.AttemptRecord
 import com.hancekim.mynote.core.data.datasource.ConnectionIdGenerator
 import com.hancekim.mynote.core.data.datasource.SourceRecord
-import com.hancekim.mynote.core.data.dto.NotesJson
 import com.hancekim.mynote.core.domain.ObserveAppliedTokenUseCase
 import com.hancekim.mynote.core.domain.ObserveSyncRunsUseCase
 import com.hancekim.mynote.core.domain.SyncNotesUseCase
@@ -15,6 +14,7 @@ import com.hancekim.mynote.core.domain.model.RepoConnection
 import com.hancekim.mynote.core.domain.model.SourceId
 import com.hancekim.mynote.core.domain.model.SourceKind
 import com.hancekim.mynote.core.domain.model.SyncOutcome
+import com.hancekim.mynote.core.format.NoteFormat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -66,12 +66,12 @@ private class Harness(
             bookmarks,
             state,
             generator,
-            NotesJson,
+            NoteFormat(),
             recovery(),
             applied,
         ) { 1_000L }
 
-    fun notes() = recovery().let { NotesRepositoryImpl(setOf(adapter), local, NotesJson, it::ensure) { 1_000L } }
+    fun notes() = recovery().let { NotesRepositoryImpl(setOf(adapter), local, NoteFormat(), it::ensure) { 1_000L } }
 
     suspend fun connection(): ConnectionState = connections().observeConnection().first()
 }
