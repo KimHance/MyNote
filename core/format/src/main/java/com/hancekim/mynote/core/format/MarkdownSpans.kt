@@ -43,12 +43,15 @@ private class Frame(
 
 /**
  * 인라인 노드를 글자 구간으로 바꾼다. 깊은 강조에도 스택이 넘치지 않게 반복으로 걷는다.
+ * 링크로 성립하지 않는 링크 노드(정의 없는 참조 · 공백 든 목적지)는 원문 글자 그대로 둔다.
  *
  * @param source 노드 위치가 가리키는 본문
+ * @param defined 괄호를 포함한 참조 라벨에 정의가 있는지
  * @param inTable 표 칸이면 코드 구간의 `\|` 를 세로줄 하나로 읽는다
  */
 internal class SpanWriter(
     private val source: String,
+    private val defined: (label: String) -> Boolean,
     private val inTable: Boolean = false,
 ) {
     private val spans = ArrayList<NoteSpan>()
@@ -100,8 +103,8 @@ internal class SpanWriter(
             MarkdownElementTypes.STRONG -> marks.copy(bold = true) to node.children.inner(2)
             MarkdownElementTypes.EMPH -> marks.copy(italic = true) to node.children.inner(1)
             GFMElementTypes.STRIKETHROUGH -> marks.copy(strike = true) to node.children.inner(tildeRun(node))
-            in LINKS -> marks to node.linkText()
-            MarkdownElementTypes.IMAGE -> marks to node.children.filter { it.type in LINKS }
+            in LINKS -> marks to if (isLink(node)) node.linkText() else node.children
+            MarkdownElementTypes.IMAGE -> marks to image(node)
             MarkdownElementTypes.CODE_SPAN, MarkdownElementTypes.AUTOLINK -> null
             else -> if (node.children.isEmpty()) null else marks to node.children
         }
@@ -219,6 +222,21 @@ internal class SpanWriter(
         spans += pendingMarks.span(decode(pending.toString()), code = false)
         pending.setLength(0)
     }
+
+    private fun image(node: ASTNode): List<ASTNode> {
+        val link = node.children.firstOrNull { it.type in LINKS }
+        return if (link != null && isLink(link)) listOf(link) else node.children
+    }
+
+    private fun isLink(node: ASTNode): Boolean =
+        if (node.type == MarkdownElementTypes.INLINE_LINK) {
+            node.children.none { child ->
+                child.type == MarkdownElementTypes.LINK_DESTINATION &&
+                    text(child).let { !it.startsWith('<') && it.any(Char::isWhitespace) }
+            }
+        } else {
+            node.children.firstOrNull { it.type == MarkdownElementTypes.LINK_LABEL }?.let { defined(text(it)) } == true
+        }
 
     private fun text(node: ASTNode): String = source.substring(node.startOffset, node.endOffset)
 

@@ -13,6 +13,7 @@ import org.intellij.markdown.MarkdownTokenTypes
 import org.intellij.markdown.ast.ASTNode
 import org.intellij.markdown.flavours.gfm.GFMElementTypes
 import org.intellij.markdown.flavours.gfm.GFMTokenTypes
+import org.intellij.markdown.parser.LinkMap
 import org.intellij.markdown.parser.MarkdownParser
 
 private const val INDENTED_CODE_COLUMNS = 4
@@ -58,8 +59,10 @@ internal class GfmMarkdownConverter(
 
     override fun convert(raw: String): List<NoteBlock> {
         val body = markdownSource(raw).body
-        val reader = BlockReader(body, limits)
-        val blocks = reader.blocks(parser.buildMarkdownTreeFromString(body).children, depth = 1)
+        val root = parser.buildMarkdownTreeFromString(body)
+        val links = LinkMap.buildLinkMap(root, body)
+        val reader = BlockReader(body, limits) { label -> links.getLinkInfo(label) != null }
+        val blocks = reader.blocks(root.children, depth = 1)
         return if (reader.exceeded) {
             listOf(NoteBlock.Unsupported(UnsupportedReason.LimitExceeded, type = null, text = null, raw = raw))
         } else {
@@ -71,6 +74,7 @@ internal class GfmMarkdownConverter(
 private class BlockReader(
     private val source: String,
     private val limits: NoteLimits,
+    private val defined: (label: String) -> Boolean,
 ) {
     var exceeded = false
         private set
@@ -129,7 +133,7 @@ private class BlockReader(
             }
 
             else -> {
-                SpanWriter(source)
+                SpanWriter(source, defined)
                     .literal(text(node))
                     .spans()
                     .takeIf { it.isNotEmpty() }
@@ -195,7 +199,7 @@ private class BlockReader(
     private fun cells(row: ASTNode): List<TableCell> =
         row.children
             .filter { it.type == GFMTokenTypes.CELL }
-            .map { TableCell(SpanWriter(source, inTable = true).inline(it.children).spans()) }
+            .map { TableCell(SpanWriter(source, defined, inTable = true).inline(it.children).spans()) }
 
     private fun headingSpans(node: ASTNode): List<NoteSpan> =
         node.children
@@ -203,7 +207,7 @@ private class BlockReader(
             ?.let(::spans)
             .orEmpty()
 
-    private fun spans(node: ASTNode): List<NoteSpan> = SpanWriter(source).inline(node.children).spans()
+    private fun spans(node: ASTNode): List<NoteSpan> = SpanWriter(source, defined).inline(node.children).spans()
 
     private fun quoteSpans(node: ASTNode): List<NoteSpan> {
         val lines = ArrayList<List<NoteSpan>>()
@@ -226,7 +230,7 @@ private class BlockReader(
                 }
 
                 type == GFMTokenTypes.ALERT_TITLE -> {
-                    lines += SpanWriter(source).literal(text(child)).spans()
+                    lines += SpanWriter(source, defined).literal(text(child)).spans()
                 }
 
                 type in HEADINGS -> {
