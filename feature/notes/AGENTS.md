@@ -206,8 +206,8 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
 진입점은 헤더가 아니라 리더 본문 **맨 끝 CTA**(`QuizCtaCard`)다. 모델이 없어도 숨기지 않고
 흐리게 두고, 누르면 왜 안 되는지 스낵바로 말해 준다(`NotesShell` 의 `onOpenQuiz`).
 
-**예외 하나 — 노트 파일 전체를 읽지 못한 노트(`NoteBlock.Unsupported(BrokenNote)` 하나뿐인 노트)는 CTA 를 아예 그리지
-않는다.** 퀴즈에 넣을 평문이 없어서다. 판정은 `NotesUiMapper` 가 파생하는 `NoteUi.readable` 하나이고(`NotesUiMapperTest`),
+**예외 하나 — 노트 전체를 읽지 못한 노트(`NoteBlock.Unsupported` 의 `BrokenNote` · `LimitExceeded` 가 있는 노트)는 CTA 를
+아예 그리지 않는다.** 퀴즈에 넣을 평문이 없어서다. 판정은 `NotesUiMapper` 가 파생하는 `NoteUi.readable` 하나이고(`NotesUiMapperTest`),
 통계의 "다시 풀기"(`OpenQuizFor`)도 같은 값으로 리더만 열고 퀴즈 설정을 띄우지 않는다(띄우면 `GenerateQuizUseCase` 가
 빈 평문으로 `QuizFailure.Empty`). 블록 몇 개만 못 그린 노트(`UnknownType`·`BrokenBlock`)는 평소대로다. 그 블록은
 `NoteBlockMapper` 가 빈 `text`·`raw` 를 `null` 로 바꿔 design-system `NoteContentBlock.Unsupported` 로 넘긴다(`NoteBlockMapperTest`).
