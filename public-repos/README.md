@@ -8,7 +8,7 @@ GitHub 에 레포를 만들거나 올리는 일은 이 폴더가 하지 않습�
 | 폴더 | 공개 레포 | 하는 일 |
 |---|---|---|
 | `notes-kit/` | `<KIT_REPO>` | 노트 형식 규격(정본) · 재사용 Action · 검사 · 생성 도구 · 스킬 플러그인 마켓플레이스 |
-| `notes-template/` | `<TEMPLATE_REPO>` | "Use this template" 로 노트 저장소를 만드는 템플릿 (준비 중) |
+| `notes-template/` | `<TEMPLATE_REPO>` | "Use this template" 로 노트 저장소를 만드는 템플릿 — 예시 노트 · 미리 만든 `notes/index.json` · 재사용 Action 을 부르는 workflow · 시작 안내 README |
 | `tests/` | (공개하지 않음) | 폴더 밖을 보거나 비공개 이름을 들고 있어야 하는 시험 — 이 레포 전용 |
 
 `<OWNER>` · `<KIT_REPO>` · `<TEMPLATE_REPO>` · `<LICENSE>` 는 자리표시자입니다. 전부 [`PLACEHOLDERS.md`](PLACEHOLDERS.md) 표에 있습니다.
