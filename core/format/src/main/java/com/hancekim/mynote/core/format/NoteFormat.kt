@@ -1,6 +1,5 @@
 package com.hancekim.mynote.core.format
 
-import com.hancekim.mynote.core.domain.model.Note
 import com.hancekim.mynote.core.domain.model.NoteBlock
 import com.hancekim.mynote.core.domain.model.NoteLimits
 import com.hancekim.mynote.core.domain.model.firstSentence
@@ -72,7 +71,7 @@ class NoteFormat(
     ): DerivedNote =
         guarded({ DerivedNote(BlockCache.encode(noteBox(UnsupportedReasonDto.BROKEN_NOTE, "")), null) }) {
             val cached = cached(path, raw)
-            DerivedNote(cached.json, excerpt(cached.blocks))
+            DerivedNote(cached.json, cached.blocks.map { it.toDomain() }.firstSentence())
         }
 
     /**
@@ -130,9 +129,6 @@ class NoteFormat(
             Cached(blocks, cache)
         }
     }
-
-    private fun excerpt(blocks: List<NoteBlockDto>): String? =
-        Note(id = "", title = "", date = "", blocks = blocks.map { it.toDomain() }).firstSentence()
 }
 
 private class Cached(

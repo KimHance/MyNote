@@ -4,7 +4,7 @@
 
 ## 이 모듈이 하는 일
 
-**노트 원문 한 개를 블록으로 바꾼다.** 형식 고르기 · 마크다운 해석 전 한도 · JSON 형식 1 읽기 · 블록 캐시 인코딩이 여기 있다.
+**노트 원문 한 개를 블록으로 바꾼다.** 형식 고르기 · 한도(해석 전 · 결과) · 마크다운 변환 · JSON 형식 1 읽기 · 블록 캐시 코덱이 여기 있다.
 순수 JVM 모듈이다(`hancenote.jvm.library` + `kotlin.serialization` 별칭) — `import android.*` 는 컴파일 에러다.
 `java-test-fixtures` 는 컨벤션 규칙(모듈은 `hancenote.*` 와 별칭만)의 예외로 직접 적용한다 — 파리티 고정 사본을 이 모듈과 `:core:data` 시험이
 클래스패스로 읽는다(`build-logic/AGENTS.md` 모듈 표 아래).
@@ -109,6 +109,8 @@ network · database · feature 는 모른다. `org.intellij.markdown` import 는
 | 무엇 | 원격 JSON 원문 — 형식 1 | `blocks_json` 열 — 파생 캐시 |
 | 집합 | 블록 8종 · 모양 3종. **동결** | 와이어 + `unknown` · `unsupported` · `table` + 기본값 필드(`italic` · `strike` · `checked` · `children` · `start`). 새 블록 · 필드는 여기에만 |
 
+- 역할은 셋으로 갈린다 — `MyNoteJsonFormat` 은 JSON 형식 1 원문 → 캐시 DTO 만, `BlockCache` 는 캐시 JSON 쓰기 · 읽기(상한 있는 쓰기 포함),
+  첫 문장은 도메인 `List<NoteBlock>.firstSentence()` 다. `NoteFormat` 이 셋을 잇는다.
 - `MyNoteJsonFormat.parse(raw)` 는 던지지 않는다. 루트가 객체가 아니거나 `blocks` 가 배열이 아니면(JSON 문법 오류 · 끝 쉼표 포함)
   `broken_note` 하나. 아니면 블록마다:
   - 객체가 아니거나 `type` 이 문자열이 아님 → `broken_block`

@@ -116,8 +116,9 @@ M0 에 쓰는 코드가 없어 여기에 없다 — 쓰는 단계에서 더한�
 
 ## 그 외 알아둘 것
 
-- **`Json` 은 `DataModule` 이 단독으로 제공한다**(`NotesJson`: `ignoreUnknownKeys`·`coerceInputValues`). `:core:network` 의 Retrofit
-  컨버터도 이 인스턴스를 주입받는다(index 디코드). 다른 모듈에서 또 `@Provides Json` 하면 Hilt 중복 바인딩으로 빌드가 깨진다.
+- **`Json` 바인딩은 `DataModule` 하나에 있다**(`NotesJson`: `ignoreUnknownKeys`·`coerceInputValues`). 이 모듈 안에서 주입받는 곳은 없고,
+  주입받는 곳은 `:core:network` 의 Retrofit 컨버터 둘(목록 index · 저장소 확인 응답)뿐이다. 다른 모듈에서 또 `@Provides Json` 하면
+  Hilt 중복 바인딩으로 빌드가 깨진다.
   (`:core:ai` 의 `QuizJsonParser` 와 `:core:format` 의 `BlockJson` 은 DI 밖의 자체 `Json` 이라 무관하다.)
 - **`observeCategories()` 는 Room Flow 가 방출될 때마다 전 노트의 `blocks_json` 을 다시 디코드한다.** 그래서 `flowOn(Dispatchers.Default)`
   가 붙어 있다. 목록은 원문 열을 읽지 않는다(`ListedNote`) — 원문은 노트 전체 상자이거나 캐시를 못 읽은 노트만 `loadRaw` 로 한 행씩,

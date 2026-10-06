@@ -163,12 +163,12 @@ class MyNoteJsonFormatTest {
     fun `캐시 인코딩은 Unsupported 를 포함해 라운드트립된다`() {
         val blocks = format.parse(note("""{"type":"paragraph","spans":[{"text":"x"}]}""", """{"type":"timeline"}"""))
 
-        assertEquals(blocks, format.decode(format.encode(blocks)))
+        assertEquals(blocks, BlockCache.decode(BlockCache.encode(blocks)))
     }
 
     @Test
     fun `옛 캐시의 unknown 블록은 원문 없는 UnknownType 이 된다`() {
-        val block = format.decode("""[{"type":"unknown"}]""").single().toDomain()
+        val block = BlockCache.decode("""[{"type":"unknown"}]""").single().toDomain()
 
         assertEquals(NoteBlock.Unsupported(UnsupportedReason.UnknownType, type = null, text = null, raw = ""), block)
     }

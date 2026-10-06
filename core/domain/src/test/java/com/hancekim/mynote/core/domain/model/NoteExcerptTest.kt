@@ -13,6 +13,14 @@ private fun paragraph(vararg spans: NoteSpan) = NoteBlock.Paragraph(spans.toList
 
 class NoteExcerptTest {
     @Test
+    fun `블록 목록만으로도 노트와 같은 첫 문장을 고른다`() {
+        val blocks = listOf(NoteBlock.Heading(1, listOf(text("제목"))), paragraph(text("첫 문장. 둘째.")))
+
+        assertEquals("첫 문장.", blocks.firstSentence())
+        assertEquals(note(*blocks.toTypedArray()).firstSentence(), blocks.firstSentence())
+    }
+
+    @Test
     fun `제목을 건너뛰고 첫 문단의 첫 문장을 고른다`() {
         val result =
             note(
