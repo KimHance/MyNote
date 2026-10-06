@@ -190,6 +190,8 @@ class MarkdownConverterTest {
                 "> a\n>\n> ---\n>\n> b" to quote(t("a\nb")),
                 "> [!NOTE]\n> a" to quote(t("[!NOTE]\na")),
                 "> ```\n> ```\n> a" to quote(t("a")),
+                "> - [x] 했다\n> - [ ] 안 했다" to quote(t("[x] 했다\n[ ] 안 했다")),
+                "> 1. [X] **굵게**" to quote(t("[x] "), b("굵게")),
             ),
         )
     }
@@ -225,6 +227,12 @@ class MarkdownConverterTest {
                 "a\nb" to listOf(p(t("a b"))),
                 "a  \nb" to listOf(p(t("a\nb"))),
                 "a\\\nb" to listOf(p(t("a\nb"))),
+                "a \nb" to listOf(p(t("a b"))),
+                "a\t\nb" to listOf(p(t("a b"))),
+                "**a** \nb" to listOf(p(b("a"), t(" b"))),
+                " a " to listOf(p(t("a"))),
+                "\u3000들여 쓴 문단" to listOf(p(t("\u3000들여 쓴 문단"))),
+                "&nbsp;앞 뒤&nbsp;" to listOf(p(t("\u00A0앞 뒤\u00A0"))),
             ),
         )
     }
@@ -286,6 +294,24 @@ class MarkdownConverterTest {
         assertEquals(
             listOf(NoteBlock.Table(listOf(cell(t("h"))), emptyList(), listOf(TableAlign.None))),
             md("| h |\n|---|"),
+        )
+    }
+
+    @Test
+    fun `NF-5 표 칸 맨 앞 꺾쇠는 글자로 남는다`() {
+        assertEquals(
+            listOf(
+                NoteBlock.Table(
+                    header = listOf(cell(t(">")), cell(t("> 머리"))),
+                    rows = listOf(listOf(cell(t(">=")), cell(t("a > b")))),
+                    align = listOf(TableAlign.None, TableAlign.None),
+                ),
+            ),
+            md("| > | > 머리 |\n|-|-|\n| >= | a > b |"),
+        )
+        assertEquals(
+            listOf(NoteBlock.Quote(listOf(t("> | a\n>= | b")))),
+            md("> | > | a |\n> |-|-|\n> | >= | b |"),
         )
     }
 
@@ -416,6 +442,11 @@ class MarkdownConverterTest {
                 "\\*a\\*" to listOf(p(t("*a*"))),
                 "&amp; &quot; &#65; &bogus;" to listOf(p(t("& \" A &bogus;"))),
                 "&#x1F600;" to listOf(p(t("\uD83D\uDE00"))),
+                "&fjlig; &NotEqualTilde; &ngE;" to listOf(p(t("fj \u2242\u0338 \u2267\u0338"))),
+                "[^n]: 설명" to listOf(p(t("[^n]: 설명"))),
+                "[^1]: 각주 본문이다" to listOf(p(t("[^1]: 각주 본문이다"))),
+                "a[^n] b\n\n[^n]: 설명" to listOf(p(t("a[^n] b")), p(t("[^n]: 설명"))),
+                "> [^n]: 설명" to listOf(NoteBlock.Quote(listOf(t("[^n]: 설명")))),
             )
 
         assertTable(cases)

@@ -98,6 +98,16 @@ class MarkdownLimitsTest {
     }
 
     @Test
+    fun `NF-8 공백 낀 구분선은 목록 표시로 세지 않는다`() {
+        assertReads("- 40개", "- ".repeat(40).trim())
+        assertReads("* 40개", "* ".repeat(40).trim())
+        assertReads("인용 안 - 40개", "> " + "-  ".repeat(40))
+        assertReads("목록 안 * 40개", "- " + "* ".repeat(40).trim())
+        assertExceeds("글이 붙으면 목록", "- ".repeat(33) + "x")
+        assertExceeds("섞인 글자는 구분선이 아니다", "- ".repeat(33) + "* -")
+    }
+
+    @Test
     fun `NF-8 줄 앞부분이 품을 수 있는 컨테이너가 64 를 넘으면 한도 넘음이다`() {
         assertReads("들여쓰기 124칸", " ".repeat(124) + "- x")
         assertExceeds("들여쓰기 130칸", " ".repeat(130) + "- x")

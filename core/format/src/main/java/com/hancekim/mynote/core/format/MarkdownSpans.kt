@@ -12,6 +12,8 @@ import org.intellij.markdown.html.entities.Entities
 
 private const val REPLACEMENT_CHARACTER = 0xFFFD
 
+private const val EDGE_SPACES = " \t\n"
+
 private val ESCAPE_OR_ENTITY =
     Regex("""\\([!-/:-@\[-`{-~])|&(?:#[xX]([0-9a-fA-F]{1,6})|#([0-9]{1,7})|([a-zA-Z][a-zA-Z0-9]{0,31}));""")
 
@@ -136,8 +138,15 @@ internal class SpanWriter(
             }
 
             type == MarkdownTokenTypes.EOL -> {
-                if (!breakBefore) appendText(" ", marks)
+                if (!breakBefore) {
+                    dropTrailingSpaces()
+                    appendText(" ", marks)
+                }
                 afterLineEnd = true
+            }
+
+            type == MarkdownTokenTypes.BLOCK_QUOTE && inTable -> {
+                appendText(text(node), marks)
             }
 
             type == MarkdownTokenTypes.BLOCK_QUOTE -> {
@@ -215,6 +224,15 @@ internal class SpanWriter(
         flush()
         if (text.isEmpty()) return
         spans += marks.span(text, code)
+    }
+
+    private fun dropTrailingSpaces() {
+        if (pending.isNotEmpty()) {
+            pending.setLength(pending.trimEnd(' ', '\t').length)
+            return
+        }
+        val last = spans.lastOrNull() ?: return
+        if (last.style != SpanStyle.Code) spans[spans.lastIndex] = last.copy(text = last.text.trimEnd(' ', '\t'))
     }
 
     private fun flush() {
@@ -310,13 +328,13 @@ private fun List<NoteSpan>.trimmed(): List<NoteSpan> {
     while (merged.firstOrNull()?.isBlankText() == true) merged.removeAt(0)
     while (merged.lastOrNull()?.isBlankText() == true) merged.removeAt(merged.lastIndex)
     if (merged.isNotEmpty()) {
-        merged[0] = merged.first().trimText { it.trimStart() }
-        merged[merged.lastIndex] = merged.last().trimText { it.trimEnd() }
+        merged[0] = merged.first().trimText { it.trimStart(*EDGE_SPACES.toCharArray()) }
+        merged[merged.lastIndex] = merged.last().trimText { it.trimEnd(*EDGE_SPACES.toCharArray()) }
     }
     return merged
 }
 
-private fun NoteSpan.isBlankText(): Boolean = style != SpanStyle.Code && text.isBlank()
+private fun NoteSpan.isBlankText(): Boolean = style != SpanStyle.Code && text.all { it in EDGE_SPACES }
 
 private fun NoteSpan.trimText(trim: (String) -> String): NoteSpan =
     if (style ==
@@ -335,7 +353,7 @@ private fun decode(text: String): String {
             escaped.isNotEmpty() -> escaped
             hex.isNotEmpty() -> codePoint(hex.toInt(16))
             decimal.isNotEmpty() -> codePoint(decimal.toInt())
-            else -> Entities.map["&$name;"]?.let(::codePoint) ?: match.value
+            else -> TWO_CODE_POINT_ENTITIES[name] ?: Entities.map["&$name;"]?.let(::codePoint) ?: match.value
         }
     }
 }
