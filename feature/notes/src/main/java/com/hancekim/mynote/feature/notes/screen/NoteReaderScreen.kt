@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.hancekim.mynote.core.designsystem.block.NoteContent
 import com.hancekim.mynote.core.designsystem.block.NoteContentBlock
+import com.hancekim.mynote.core.designsystem.block.NoteContentListItem
 import com.hancekim.mynote.core.designsystem.block.NoteContentSpan
 import com.hancekim.mynote.core.designsystem.block.NoteContentState
 import com.hancekim.mynote.core.designsystem.block.NoteSpanStyle
@@ -113,13 +114,17 @@ private val previewNote =
                 ),
                 NoteContentBlock.BulletList(
                     persistentListOf(
-                        persistentListOf(
-                            NoteContentSpan("단순 UI 상태는 ", NoteSpanStyle.Normal),
-                            NoteContentSpan("remember", NoteSpanStyle.Code),
+                        NoteContentListItem(
+                            persistentListOf(
+                                NoteContentSpan("단순 UI 상태는 ", NoteSpanStyle.Normal),
+                                NoteContentSpan("remember", NoteSpanStyle.Code),
+                            ),
                         ),
-                        persistentListOf(
-                            NoteContentSpan("복원이 필요하면 ", NoteSpanStyle.Normal),
-                            NoteContentSpan("rememberSaveable", NoteSpanStyle.Code),
+                        NoteContentListItem(
+                            persistentListOf(
+                                NoteContentSpan("복원이 필요하면 ", NoteSpanStyle.Normal),
+                                NoteContentSpan("rememberSaveable", NoteSpanStyle.Code),
+                            ),
                         ),
                     ),
                 ),

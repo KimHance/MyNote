@@ -53,6 +53,56 @@ class NoteExcerptTest {
     }
 
     @Test
+    fun `NF-10 표는 첫 문장 후보가 아니다`() {
+        val result =
+            note(
+                NoteBlock.Table(
+                    header = listOf(TableCell(listOf(text("머리 칸입니다.")))),
+                    rows = listOf(listOf(TableCell(listOf(text("본문 칸입니다."))))),
+                    align = listOf(TableAlign.None),
+                ),
+                paragraph(text("표 뒤 문단입니다. 둘째.")),
+            ).firstSentence()
+
+        assertEquals("표 뒤 문단입니다.", result)
+        assertNull(
+            note(
+                NoteBlock.Table(listOf(TableCell(listOf(text("칸.")))), emptyList(), listOf(TableAlign.None)),
+            ).firstSentence(),
+        )
+    }
+
+    @Test
+    fun `NF-10 글자가 빈 항목이면 그 하위 목록 항목을 먼저 본다`() {
+        val result =
+            note(
+                NoteBlock.BulletList(
+                    listOf(
+                        NoteListItem(
+                            spans = emptyList(),
+                            children = listOf(NoteBlock.OrderedList(listOf(NoteListItem(listOf(text("하위 항목입니다.")))))),
+                        ),
+                        NoteListItem(listOf(text("다음 항목입니다."))),
+                    ),
+                ),
+            ).firstSentence()
+
+        assertEquals("하위 항목입니다.", result)
+    }
+
+    @Test
+    fun `NF-10 체크 항목의 첫 문장은 글자만이다`() {
+        val result =
+            note(
+                NoteBlock.BulletList(
+                    listOf(NoteListItem(listOf(NoteSpan("끝낸 일", strike = true), text(" 입니다.")), checked = true)),
+                ),
+            ).firstSentence()
+
+        assertEquals("끝낸 일 입니다.", result)
+    }
+
+    @Test
     fun `아무것도 없으면 null 이다`() {
         assertNull(note().firstSentence())
         assertNull(note(NoteBlock.Heading(2, listOf(text("제목만"))), NoteBlock.Code("x")).firstSentence())

@@ -12,6 +12,8 @@ import com.hancekim.mynote.feature.notes.QuizQuestionUi
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 
+private val WHOLE_NOTE_REASONS = setOf(UnsupportedReason.BrokenNote, UnsupportedReason.LimitExceeded)
+
 internal fun List<Category>.toUi(): ImmutableList<CategoryUi> = map { it.toUi() }.toImmutableList()
 
 internal fun Category.toUi(): CategoryUi =
@@ -27,7 +29,7 @@ internal fun Note.toUi(): NoteUi =
         date = date,
         blocks = blocks.toContentBlocks(),
         excerpt = firstSentence(),
-        readable = blocks.none { it is NoteBlock.Unsupported && it.reason == UnsupportedReason.BrokenNote },
+        readable = blocks.none { it is NoteBlock.Unsupported && it.reason in WHOLE_NOTE_REASONS },
     )
 
 internal fun QuizQuestion.toUi(): QuizQuestionUi =

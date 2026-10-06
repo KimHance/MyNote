@@ -55,6 +55,15 @@ internal sealed interface NoteBlockDto {
     @SerialName("orderedList")
     data class OrderedList(
         val items: List<NoteListItemDto>,
+        val start: Int = 1,
+    ) : NoteBlockDto
+
+    @Serializable
+    @SerialName("table")
+    data class Table(
+        val header: List<TableCellDto>,
+        val rows: List<List<TableCellDto>>,
+        val align: List<TableAlignDto>,
     ) : NoteBlockDto
 
     @Serializable
@@ -84,12 +93,36 @@ internal enum class UnsupportedReasonDto {
 @Serializable
 internal data class NoteListItemDto(
     val spans: List<NoteSpanDto>,
+    val checked: Boolean? = null,
+    val children: List<NoteBlockDto> = emptyList(),
 )
+
+@Serializable
+internal data class TableCellDto(
+    val spans: List<NoteSpanDto>,
+)
+
+@Serializable
+internal enum class TableAlignDto {
+    @SerialName("none")
+    NONE,
+
+    @SerialName("left")
+    LEFT,
+
+    @SerialName("center")
+    CENTER,
+
+    @SerialName("right")
+    RIGHT,
+}
 
 @Serializable
 internal data class NoteSpanDto(
     val text: String,
     val style: SpanStyleDto = SpanStyleDto.TEXT,
+    val italic: Boolean = false,
+    val strike: Boolean = false,
 )
 
 @Serializable
