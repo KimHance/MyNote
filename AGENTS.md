@@ -2,7 +2,7 @@
 
 이 파일은 이 레포에서 작업하는 에이전트를 위한 안내다.
 
-GitHub 의 JSON 노트를 받아 읽는 **읽기 전용** 안드로이드 학습 노트 앱. 앱에서 쓰기는 없다.
+GitHub 의 마크다운 노트(옛 JSON 도)를 받아 읽는 **읽기 전용** 안드로이드 학습 노트 앱. 앱에서 쓰기는 없다.
 온디바이스 LLM(LiteRT-LM)으로 노트에서 4지선다 퀴즈를 만드는 기능이 붙어 있다.
 퀴즈 모델(2.6GB)은 APK 에 없고 **앱에서 런타임에 내려받는다**(WorkManager + 포그라운드 알림).
 
@@ -40,8 +40,8 @@ python3 -I -m unittest discover notes-tests && python3 -I -m unittest discover p
 
 ### `testDebugUnitTest` 가 아니라 `test` 인 이유
 
-`:core:domain` 은 안드로이드 라이브러리가 아니라 **순수 JVM 모듈**이라 `testDebugUnitTest`
-태스크가 없다. 루트에서 `./gradlew testDebugUnitTest` 를 돌리면 그 모듈을 **조용히 건너뛴다.**
+`:core:domain` · `:core:format` 은 안드로이드 라이브러리가 아니라 **순수 JVM 모듈**이라 `testDebugUnitTest`
+태스크가 없다. 루트에서 `./gradlew testDebugUnitTest` 를 돌리면 두 모듈을 **조용히 건너뛴다.**
 `test` 는 두 종류를 다 잡는다.
 
 ---
@@ -103,7 +103,7 @@ app  ─────────────────────────
 없이 다시 변환된다. 근거 테스트: `MyNoteJsonFormatTest`(모르는 type·필드 누락·모르는 style·JSON 아님),
 `NotesReconcileTest`(`형식 오류 노트는 격리하고 나머지는 반영한다`·`본문 전송이 하나라도 실패하면 아무것도 반영하지
 않는다`), `NF-2 경로 확장자로 형식을 고른다`, `NF-9 옛 판이 상자로 둔 마크다운 행을 원문에서 다시 만든다`.
-(`core/data/AGENTS.md`)
+(`core/data/AGENTS.md` · `core/format/AGENTS.md`)
 
 **`MyNoteApplication` 의 `@Inject lateinit var tokenSync` 를 지우면 조용히 인증이 없어진다.**
 그 필드 한 줄이 `TokenSync` 를 살아 있게 하는 유일한 참조이고, `GithubTokenHolder` 를 채우는
@@ -158,8 +158,8 @@ ktlint·Compose 의존·Hilt 는 컨벤션이 자동으로 넣는다. (`build-lo
   정본은 `notes/SCHEMA.md`(앞머리 문법 · 문법 대응 표 · 쓰기 규칙).
 - 노트 추가·수정·삭제는 `write-note` 스킬로 한다. 손으로 파일을 만들지 않는다.
 - **`notes/index.json`·해시·`gen_index.py` 를 직접 건드리지 않는다.** pre-commit 훅이 커밋 순간
-  `gen_index.py` 로 재생성해 같은 커밋에 넣는다(작문은 LLM, 결정적 변환은 훅). 생성기는 앞머리만 검사하고
-  틀리면 커밋이 멈춘다.
+  `gen_index.py` 로 재생성해 같은 커밋에 넣는다(작문은 LLM, 결정적 변환은 훅). 생성기는 마크다운 노트의
+  앞머리(옛 JSON 노트는 형식 1 닫힌 집합)를 검사하고 틀리면 커밋이 멈춘다.
 - 앱이 그리지 못하는 문법은 글자로 보인다. 마크다운 노트를 처음 올릴 때는 앱 업데이트가 먼저다
   (위 "콘텐츠가 앱보다 먼저 나가면").
 - 생성기 · 훅 · 쓰기 스킬의 시험은 `notes-tests/` 에 있다. `notes/` 안에 두면 시험 자료가 노트로 읽힌다.

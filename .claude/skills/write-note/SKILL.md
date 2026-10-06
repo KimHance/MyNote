@@ -39,7 +39,7 @@ LLM tokens, and it lands in the *same* commit). Therefore:
    pre-commit hook** — it builds the index and validates the front matter.
 4. **Follow `notes/SCHEMA.md`**: the front matter, the write rules (below), and only syntax the
    app actually draws. Links, images, HTML, math, highlights, and alerts show up as plain text in
-   the app — don't use them.
+   the app (HTML blocks as a code block, alerts as a plain quote) — don't use them.
 5. **The operation is NOT done until `git push` succeeds — this is the whole point.** The app is
    server-driven: it reads the GitHub **remote**, never your local clone. A local commit is
    completely invisible to the app, so committing without pushing is a silent no-op from the

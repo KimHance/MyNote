@@ -29,15 +29,17 @@
 |---|---|
 | 언어 / UI | Kotlin · Jetpack Compose · Material3 |
 | 프레젠테이션 | MVI (`MviViewModel` · `UiState` + `Intent`) |
-| 내비게이션 | Navigation 3 + Scenes(목록-상세) |
+| 내비게이션 | Navigation 3 1.2.0 + Scenes(목록-상세) |
 | DI | Hilt |
 | 네트워크 | Retrofit · OkHttp · GitHub Contents API |
 | 로컬 | Room 3 (노트 캐시 · 학습 기록 · SSOT) · DataStore |
 | 온디바이스 AI | LiteRT-LM (퀴즈 · 통계 요약) · WorkManager (모델 받기 · 요약 워커) |
+| 마크다운 | JetBrains markdown(GFM) |
 | 직렬화 | kotlinx.serialization |
-| 빌드 | AGP 9.4.1 · Kotlin 2.4.20 · convention plugins(`:build-logic`) · version catalog |
+| 빌드 | Gradle 9.8 · AGP 9.4.1 · Kotlin 2.4.20 · KSP 2.3.12 · convention plugins(`:build-logic`) · version catalog |
 
-compileSdk 37 · targetSdk 37 · minSdk 32. 버전의 정본은 [`gradle/libs.versions.toml`](gradle/libs.versions.toml) 이다.
+compileSdk 37 · targetSdk 37 · minSdk 32. 버전의 정본은 [`gradle/libs.versions.toml`](gradle/libs.versions.toml) 이고
+Gradle 은 `gradle/wrapper/gradle-wrapper.properties` 다.
 
 ## 모듈 구조
 
@@ -49,6 +51,7 @@ core/
   network               GitHub Contents API · 저장소 확인 요청
   database              Room 캐시 · 학습 기록 · DataStore
   data                  DataSource 인터페이스 + reconcile(동기화)
+  format                순수 JVM — 노트 원문 → 블록(형식 고르기 · 한도 · 마크다운 변환 · 옛 JSON 형식 1)
   domain                순수 JVM — 모델 + Repository 인터페이스(DIP 소유) + UseCase
   navigation            Navigation 3 계약
   design-system         MyNoteTheme · 공용 컴포넌트 · 본문 블록 렌더
@@ -58,7 +61,7 @@ public-repos/           남에게 공개할 노트 규격 · 도구 · 템플릿
 ```
 
 의존 방향은 항상 바깥 → 안쪽이다. 인터페이스는 안쪽이 소유하고 바깥이 구현하며, `:app` 만 구현체를 알고
-Hilt 로 묶는다(DIP). **SSOT 는 Room.** 에이전트용 안내는 [`AGENTS.md`](AGENTS.md)(모듈마다 따로 있다),
+Hilt 로 묶는다(DIP). **SSOT 는 Room.** 에이전트용 안내는 [`AGENTS.md`](AGENTS.md)(모듈마다 따로),
 디자인 기준은 [`DESIGN.md`](DESIGN.md), 기능 문서는 [`docs/spec/`](docs/spec/) 에 있다.
 
 ## 빌드 & 실행

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""notes/ 하위 노트 파일들로부터 index.json(평면 카탈로그 + hash)을 생성한다.
+"""notes/ 하위 노트 파일들로부터 index.json(그룹별 목록 + hash)을 생성한다.
 
 규칙
 - 노트 파일: notes/<group>/<id>.md (앞머리 + 마크다운) 또는 notes/<group>/<id>.json (옛 형식)
@@ -7,7 +7,7 @@
 - 각 항목 hash = 노트 파일 raw 바이트의 sha256(hex). 내용이 바뀌면 hash 가 바뀐다.
   앱은 이 hash 를 "비교만" 하고 직접 생성하지 않는다(서버 드리븐 reconcile).
 - path = 레포 루트 기준 상대경로(예: "notes/android/compose-state.md").
-  앱은 BASE_URL(레포 raw 루트) + path 로 GET 한다.
+  앱은 GitHub Contents API 로 이 path 를 받는다.
 
 검사 규칙은 SCHEMA.md 를 따른다. 마크다운은 앞머리만 보고 본문은 보지 않는다(앱이 어떤 본문도 읽는다).
 JSON 은 닫힌 집합을 검증해 앱이 모르는 type/style·필수 필드 누락을 생성 단계에서 막는다(1차 방어선).
