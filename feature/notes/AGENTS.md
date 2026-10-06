@@ -316,8 +316,8 @@ UI 에 `"no-space"` 를 다시 적으면 값이 어긋나는 순간 **공간 부
 
 ### 상태 → 화면 매핑은 순수 함수다
 
-`element/ModelStatusUi.kt` 의 `modelCardUi()`(9개 상태 → 점·라벨·막대·버튼)와 `quizCtaUi()`
-(상태 → CTA 부제·칩·동작)는 `@StringRes` id 를 돌려준다. Context 없이 단위 테스트가 된다.
+`element/ModelStatusUi.kt` 의 `modelCardUi()`(9개 상태 → 점·라벨·막대·버튼·알림 꺼짐 안내 칸), `modelPillUi()`(상태 → 알약 라벨·톤·
+보조 %·링)와 `quizCtaUi()`(상태 → CTA 부제·칩·동작)는 `@StringRes` id 를 돌려준다. Context 없이 단위 테스트가 된다.
 Composable 안에서 `when (status)` 를 새로 쓰지 말고 여기에 넣어라.
 
 ---

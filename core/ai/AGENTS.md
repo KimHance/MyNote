@@ -157,7 +157,7 @@ NPU 는 예전 실측에서 `Backend.NPU` 가 예외 없이 CPU 로 폴백했다
 | 함수 | 무엇 |
 |---|---|
 | `noticeOf(ModelStatus)` | 알림 표 한 행 통째 — 자리 · 제목/본문 키 + 인자 · 막대(없음 · 움직임 · 값) · 액션 · 작은 아이콘 · ongoing · 펼침 |
-| `NoticeBoard.on(NoticeEvent)` | 사건 → 알림판. 워커(`Reported` · `Stopped`), `ModelDownloads`(`Started` · `Cancelled` · `Deleted` · `Backgrounded`), 앱 조정자(`Observed`)가 같은 함수를 부른다 |
+| `NoticeBoard.on(NoticeEvent)` | 사건 → 알림판. 워커(`Launched` · `Reported` · `Stopped`), `ModelDownloads`(`Started` · `Cancelled` · `Deleted` · `Backgrounded`), 앱 조정자(`Observed`)가 같은 함수를 부른다 |
 | `NoticeBoard.post` | 하나를 올리면 다른 자리를 지운다 — "한 번에 하나" 가 여기 있다 |
 | `noticeAfterStop(reason, …)` | `getStopReason()` 이 `STOP_REASON_CANCELLED_BY_APP` 일 때만 사용자 취소(알림 없음). 그 밖(Wi-Fi 끊김 · 시스템)은 재시도 알림 |
 | `emptySlotsOf(status)` | 앱이 상태만 볼 때 지울 자리 — 없음 · 멈춤만 전부. 작업이 있는 상태는 비운다(관찰이 늦게 와 막 올린 결과 · 재시도를 지우지 않게) |
