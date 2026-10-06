@@ -80,11 +80,14 @@ network · database · feature 는 모른다. `org.intellij.markdown` import 는
 **엔진 판을 올리면 `PARSER_VERSION` 도 올린다.** 파리티가 통과해도 이미 캐시된 노트는 내용이 바뀔 때까지 옛 엔진 결과로,
 새로 받은 노트만 새 결과로 갈린다. `PARSER_VERSION` 옆 `PARSER_ENGINE` 이 그 판이 기준으로 삼은 엔진 판이고, `EngineVersionTest` 가
 카탈로그(`gradle/libs.versions.toml`, 시험 입력 `catalogInput`)의 엔진 판과 다르면 실패한다 — 카탈로그만 고치면 빨강이다.
+엔진 jar 는 리플렉션 · ServiceLoader 가 없어 R8 keep 규칙이 없다(0.7.16). 판을 올리면 `assembleRelease` 뒤 기기에서 `.md` 노트를 연다 —
+앱은 keep 을 `missing_rules.txt` 로만 더해서 리플렉션 누락은 릴리스에서만 드러난다.
 
 엔진 판을 올리거나 변환을 고칠 때 알아 둘 엔진 사정:
 
 - 엔진은 앞머리를 모르고 CR 을 줄 끝으로 보지 않는다 — 그래서 엔진 밖에서 정리한다. 한도는 정리하기 전 원문 그대로를 본다.
-- `MarkdownParser` 는 `assertionsEnabled = false` 로 만든다. 켜 두면 내부 단정이 실패할 때 던진다.
+- `MarkdownParser` 는 `assertionsEnabled = false` · `CancellationToken.NonCancellable` 로 만든다. 단정을 켜 두면 내부 단정이 실패할 때
+  던지고, 해석에 마감은 두지 않는다(note-format 결정 12). 트리는 `CharSequence` 판으로 만든다(`String` 판은 지원이 끝났다).
 - 엔진의 `StrikeThroughDelimiterParser` 는 문단의 첫 구분자가 홑물결 여는 쪽이면 짝을 보지 않는다(`~a~` 가 글자로 남음). 자체 파서가 이 자리를 맡는다.
 - 엔진은 목록 표시가 언제나 문단을 끊게 두고(`2)` · 빈 항목도), 10자리 이상 번호는 목록 표시로 보지 않는다. 해석 전 한도의 스캐너는
   그런 번호를 목록 표시로 세므로, 그 줄로 이은 들여쓰기 중첩은 한도를 지나 블록 깊이 64 까지 갈 수 있다 — 변환기의 깊이 지킴이 그 자리다
