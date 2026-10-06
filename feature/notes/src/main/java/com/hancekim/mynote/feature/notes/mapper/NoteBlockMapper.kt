@@ -52,10 +52,21 @@ private fun NoteBlock.Unsupported.toContentUnsupported(limits: NoteLimits): Note
 
 private fun UnsupportedReason.toUi(limits: NoteLimits): UnsupportedKind =
     when (this) {
-        UnsupportedReason.UnknownType -> UnsupportedKind.UnknownType
-        UnsupportedReason.BrokenBlock -> UnsupportedKind.BrokenBlock
-        UnsupportedReason.BrokenNote -> UnsupportedKind.BrokenNote
-        UnsupportedReason.LimitExceeded -> UnsupportedKind.LimitExceeded(limits.maxDepth, limits.maxKilobytes)
+        UnsupportedReason.UnknownType -> {
+            UnsupportedKind.UnknownType
+        }
+
+        UnsupportedReason.BrokenBlock -> {
+            UnsupportedKind.BrokenBlock
+        }
+
+        UnsupportedReason.BrokenNote -> {
+            UnsupportedKind.BrokenNote
+        }
+
+        UnsupportedReason.LimitExceeded -> {
+            UnsupportedKind.LimitExceeded(limits.maxDepth, limits.maxKilobytes, limits.maxTableCells)
+        }
     }
 
 private fun List<NoteListItem>.toContentItems(limits: NoteLimits): ImmutableList<NoteContentListItem> =

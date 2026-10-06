@@ -211,7 +211,12 @@ private val previewLimitNote =
         blocks =
             persistentListOf(
                 NoteContentBlock.Unsupported(
-                    kind = UnsupportedKind.LimitExceeded(NoteLimits.Default.maxDepth, NoteLimits.Default.maxKilobytes),
+                    kind =
+                        UnsupportedKind.LimitExceeded(
+                            NoteLimits.Default.maxDepth,
+                            NoteLimits.Default.maxKilobytes,
+                            NoteLimits.Default.maxTableCells,
+                        ),
                     salvaged = null,
                     raw = "- 상태\n  - 호이스팅\n    - 단방향\n",
                 ),

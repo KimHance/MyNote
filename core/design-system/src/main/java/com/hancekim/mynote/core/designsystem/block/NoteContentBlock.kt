@@ -76,11 +76,13 @@ sealed interface UnsupportedKind {
      *
      * @property maxDepth 중첩 단수 한도
      * @property maxKilobytes 원문 크기 한도(KB)
+     * @property maxTableCells 노트 하나의 표 칸 수 한도
      */
     @Immutable
     data class LimitExceeded(
         val maxDepth: Int,
         val maxKilobytes: Int,
+        val maxTableCells: Int,
     ) : UnsupportedKind
 }
 

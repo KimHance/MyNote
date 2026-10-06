@@ -221,7 +221,12 @@ private val limitExceeded =
     note(
         "깊게 겹친 목록",
         NoteContentBlock.Unsupported(
-            kind = UnsupportedKind.LimitExceeded(NoteLimits.Default.maxDepth, NoteLimits.Default.maxKilobytes),
+            kind =
+                UnsupportedKind.LimitExceeded(
+                    NoteLimits.Default.maxDepth,
+                    NoteLimits.Default.maxKilobytes,
+                    NoteLimits.Default.maxTableCells,
+                ),
             salvaged = null,
             raw = (0 until 40).joinToString("\n") { "  ".repeat(it) + "- 단 ${it + 1}" },
         ),
