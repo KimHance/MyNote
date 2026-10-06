@@ -171,7 +171,7 @@ JVM 모듈이라 태스크가 `:core:format:test` 다(`testDebugUnitTest` 없음
 |---|---|
 | `MyNoteJsonFormatTest` · `NoteDtoSerializationTest` · `ReparseEquivalenceTest` | JSON 형식 1 · 캐시 DTO 직렬화 · 옛 캐시 경로와 같은 재해석. 레포 노트 시험의 입력은 JSON 고정 사본 22개 |
 | `NoteFormatTest` | NF-2 형식 고르기 · 던지지 않음 · 캐시 손상 대체, NF-8 엔진 호출 0 · 해석 실패 상자 |
-| `MarkdownLimitsTest` | NF-8 해석 전 한도 — 32단 / 33단 · 512KB · CR · BOM · 컨테이너가 아닌 줄 · 줄 상한 |
+| `MarkdownLimitsTest` | NF-8 해석 전 한도 — 32단 / 33단(표시 뒤 공백 다섯 · 탭, 인용과 섞은 것 포함) · 512KB · CR · BOM · 컨테이너가 아닌 줄 · 구분선 · 줄 상한 |
 | `MarkdownConverterTest` | 실제 엔진으로 NF-1 앞머리 · 줄 끝 · 경계 묶음, NF-3 ~ NF-7 대응 표, NF-8 32단 / 33단 · 512KB · 블록 깊이 지킴 · 큰 입력 |
 | `ParityTest` | NF-11 — 고정 사본 22쌍의 블록 · 첫 문장 · 퀴즈 평문, JSON 사본 해시 = 기준 목록, 레포 `notes/` 상자 0 |
 | `CacheCompatTest` | NF-12 형식 1 밖 type · 필드 · 캐시 바이트 · 옛 캐시 행 |
@@ -186,7 +186,7 @@ JVM 모듈이라 태스크가 `:core:format:test` 다(`testDebugUnitTest` 없음
 | 자리 | 무엇 | 누가 읽나 |
 |---|---|---|
 | `src/testFixtures/resources/parity/` | `index.json`(기준 커밋 `d15883f` 의 `notes/index.json` 바이트) · `json/<그룹>/<id>.json`(같은 커밋의 노트 바이트) · `md/<그룹>/<id>.md`(그 JSON 을 옮긴 마크다운) | `ParityNotes`(`src/testFixtures`) — 이 모듈 시험과 `:core:data` 시험(`testFixtures(projects.core.format)`), 파이썬 시험은 경로로 |
-| 루트 `notes-tests/fixtures/front-matter/` | 앞머리 경계 묶음 — 생성기 시험과 같은 파일 | `MarkdownConverterTest` |
+| 루트 `notes-tests/fixtures/front-matter/` | 앞머리 경계 묶음 — 생성기 시험과 같은 파일. `cases.json` 이 파일마다 바이트 `sha256` 을 들어 편집기가 줄 끝 · BOM 을 바꾸면 두 시험이 빨강 | `MarkdownConverterTest` |
 | 루트 `notes/` | 레포의 지금 노트 | `ParityTest` |
 
 - 사본은 고정 값이다. 살아 있는 `notes/` 와 비교하지 않는다 — 다음 노트 쓰기부터 시험이 거짓이 된다(note-format 결정 19).
