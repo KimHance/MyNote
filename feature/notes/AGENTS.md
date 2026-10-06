@@ -268,6 +268,17 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
   넘긴다**(`windowClass`/`heightClass`). 화면을 추가하면 프리뷰도 같은 방식으로 붙인다.
 - 화면 단위는 `Surface(color = …)` 로 배경을 갖는다. `Surface` 는 `propagateMinConstraints = true`
   라 자식에 `fillMaxSize` 를 또 붙일 필요가 없다.
+- **본문 블록 견본은 `src/debug` 에 있다** — `src/debug/.../screen/NoteFormatSample.kt`. 리더 화면(`NoteReaderScreen`) 그대로에
+  견본 노트를 얹은 프리뷰 하나와 상태 14개(글자 모양 · 하위 블록 · 체크 · 알림 · 한도 넘음 · 표를 compact · 852 · 큰 글자로)다. 릴리스에는
+  들어가지 않는다. 기능 문서 확인 칸의 `견본` 이 이것이다. debug 앱을 깔고 PreviewActivity 로 상태 번호(0–13, `samples` 순서)를
+  골라 연다. 852 상태를 실제 리더 칸 폭으로 보려면 `wm density` 로 화면 폭을 맞추고 끝나면 되돌린다.
+
+  ```bash
+  adb -s <기기 serial> shell am start -n com.hancekim.mynote/androidx.compose.ui.tooling.PreviewActivity \
+    --es composable com.hancekim.mynote.feature.notes.screen.NoteFormatSampleKt.NoteFormatSamplePreview \
+    --es parameterProviderClassName com.hancekim.mynote.feature.notes.screen.NoteFormatSampleProvider \
+    --ei parameterProviderIndex 0
+  ```
 
 ---
 

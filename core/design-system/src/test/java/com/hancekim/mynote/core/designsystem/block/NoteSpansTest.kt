@@ -1,6 +1,7 @@
 package com.hancekim.mynote.core.designsystem.block
 
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextDecoration
 import com.hancekim.mynote.core.designfoundation.token.StudyNotesDarkColors
 import kotlinx.collections.immutable.persistentListOf
 import org.junit.Assert.assertEquals
@@ -65,5 +66,21 @@ class NoteSpansTest {
             ).toAnnotatedString(StudyNotesDarkColors, uprightItalic = false, keepCodeTogether = false)
 
         assertEquals(listOf(FontStyle.Italic, FontStyle.Normal), text.spanStyles.map { it.item.fontStyle })
+    }
+
+    @Test
+    fun `NF-4 취소선 구간은 코드와 굵게와 일반 모두 줄을 긋는다`() {
+        val text =
+            persistentListOf(
+                NoteContentSpan("a", NoteSpanStyle.Code, strike = true),
+                NoteContentSpan("b", NoteSpanStyle.Bold, strike = true),
+                NoteContentSpan("c", NoteSpanStyle.Normal, strike = true),
+                NoteContentSpan("d", NoteSpanStyle.Code),
+            ).toAnnotatedString(StudyNotesDarkColors, uprightItalic = false, keepCodeTogether = false)
+
+        assertEquals(
+            listOf(TextDecoration.LineThrough, TextDecoration.LineThrough, TextDecoration.LineThrough, null),
+            text.spanStyles.map { it.item.textDecoration },
+        )
     }
 }

@@ -65,7 +65,7 @@ MyNote 디자인 시스템의 **단일 기준 문서**다. 사람과 AI 도구(C
 
 ## 1. 원칙
 
-MyNote 는 GitHub 의 JSON 노트를 받아 **읽기만 하는** 학습 노트 앱이다. 사용자는 앱에서 아무것도 쓰지 않는다(SN Overview).
+MyNote 는 GitHub 의 노트(마크다운 · 옛 JSON)를 받아 **읽기만 하는** 학습 노트 앱이다. 사용자는 앱에서 아무것도 쓰지 않는다(SN Overview).
 화면이 할 일은 하나 — 노트를 블로그 글처럼 편하게 읽게 하는 것이다. 아래 아홉 가지는 거기서 나온다.
 
 1. **본문이 주인공이고 크롬은 비켜선다.** 내비는 아래로 스크롤하면 숨고(NAV §4-5), 스크롤 끝은 바탕색으로 페이드되고(SN Interactions),
@@ -714,6 +714,7 @@ MyNote 는 GitHub 의 JSON 노트를 받아 **읽기만 하는** 학습 노트 �
 1. **값을 `() -> Float` 로 넘긴다.** `FlipState.rotationX`/`scale`, `selectionPill(selection: () -> Float, pressed: () -> Boolean)`,
    차트의 `progress: () -> Float` 가 람다다. 받는 쪽이 `graphicsLayer { }`/`drawBehind { }` **안에서** 부른다.
 2. **`Modifier.Node` 안에 `Animatable` 을 둔다.** `PressIndication`·`riseIn`·`aiShine` 은 진행도가 컴포지션에 올라오지 않는다.
+   쉬지 않고 도는 `aiShine` 은 자기 레이어(`graphicsLayer {}`)에 그려 다시 기록하는 범위가 카드에 머문다 — 레이어가 없으면 감싼 스크롤 내용 전체를 프레임마다 다시 기록한다.
 3. **modifier 인자로 애니메이션 값을 넘기지 않는다.** `Modifier.alpha(v)`/`rotate(v)`/`offset(x)` 대신
    `graphicsLayer { alpha = v }`(예: `CategoryRow` 캐럿의 `rotationZ`).
 
@@ -930,7 +931,7 @@ foundation 기본값 `DefaultDebugIndication`(눌림 검정 30% 사각 덮개, �
 
 | 블록 | 그리는 법 |
 |---|---|
-| `Heading(level, spans)` | level ≤ 2 → `mdHeading2`, 그 외 `mdHeading3`. `text` |
+| `Heading(level, spans)` | level ≤ 2 → `mdHeading2`, 그 외 `mdHeading3`. `text`. 낭독: `heading()` |
 | `Paragraph(spans)` | `body`, `bodyText` |
 | `Code(code)` | `mono`, `text`, `surface2` 바탕, 반경 10dp, 안쪽 14 × 12, 줄바꿈 없이 가로 스크롤 |
 | `Quote(spans)` | `body` 기울임, `text2`, 왼쪽 3dp `accent` 막대, 시작 여백 12. 안의 기울임 구간은 세워 구별하고, 코드 구간도 서 있다 |
@@ -942,8 +943,8 @@ foundation 기본값 `DefaultDebugIndication`(눌림 검정 30% 사각 덮개, �
 
 블록 사이는 12dp. 구간 스타일 `NoteSpanStyle` 은 `Normal` · `Bold`(700, `text`) · `Code`(고정폭, `surface2` 바탕, `accent` 글자, 앞뒤 공백 한 칸). 여기에 `italic`(`FontStyle.Italic` — 인용 안에서는 세움) · `strike`(`LineThrough`, 줄 색 = 그 구간 글자 색)가 겹친다. 코드에는 취소선만 붙고, 인용 안에서도 기울지 않는다(`FontStyle.Normal`). 취소선 구간이 있는 글은 낭독에서 `ds_block_strike_start` … `ds_block_strike_end` 로 감싼다. 파일 `NoteSpans.kt`. 목록 하위 자리의 `Unsupported` 는 원문 보기 없이 안내만 보인다(펼침 상태는 맨 위 블록 자리에만 있다).
 
-블록 종류를 늘리려면 `notes/SCHEMA.md` · data DTO · feature 매퍼 · 이 sealed 집합 · `NoteContent` 의 `when` 이 **한 세트로** 움직여야 한다.
-앱이 모르는 블록은 동기화를 멈추지 않고 그 자리에 `Unsupported` 상자로 보인다(루트 `AGENTS.md` "콘텐츠가 앱보다 먼저 나가면", 테스트 `core/data` `MyNoteJsonFormatTest`).
+블록 종류를 늘리려면 `core/format/AGENTS.md` '새 블록 · 필드를 더할 때' 를 따른다 — 마크다운 변환 · format 캐시 DTO · domain · feature 매퍼 · 이 sealed 집합 · `NoteContent` 의 `when` 이 **한 세트로** 움직인다. JSON 형식 1 은 늘리지 않는다.
+앱이 모르는 블록은 동기화를 멈추지 않고 그 자리에 `Unsupported` 상자로 보인다(루트 `AGENTS.md` "콘텐츠가 앱보다 먼저 나가면", 테스트 `core/format` `MyNoteJsonFormatTest`).
 
 ### 8.7 차트 — `ds/chart/` [통계(진행 중)]
 
@@ -1133,6 +1134,7 @@ Canvas 로 그리는 통계 차트 5종. 전부 `progress: () -> Float`(`remembe
 - 장식 아이콘은 `contentDescription = null`. 내비 바는 선택된 항목의 라벨이 보이므로 그 아이콘의 설명을 뺀다(비선택 항목·레일은 라벨을 설명으로 단다).
 - 북마크 리본은 설명이 없고, 카드 노드의 `stateDescription` 이 `ds_bookmarked` 다. 글리프는 자체 설명 `ds_bookmarked` 를 단다.
 - `SectionLabel` 은 `heading()`, `NumberedRow` 는 `mergeDescendants` + 문장 하나로 된 `contentDescription`.
+- 리더의 노트 제목과 본문 제목 블록은 `heading()` — TalkBack 제목 단위 이동이 절 제목에 선다(표 머리 칸도 `heading()`).
 - 차트는 전부 `contentDescription` 을 필수로 받는다.
 - `correct`/`wrong` 은 아이콘·글자와 함께 쓴다(2.1).
 - TalkBack(터치 탐색)이 켜지면 퀴즈 자동 진행을 끄고 버튼을 띄운다(`feat/quiz/QuizAutoAdvancePolicy.kt`).
@@ -1438,6 +1440,6 @@ if (adaptive.useFloatingRail) { /* 레일 형태 */ }
 | 21 | 핸드오프 말투 | 앱 문구 전부 합니다체(9.3) | SN · QZ 핸드오프 원문이 해요체 · 반말(PRD 8.2 #14) | 코드가 맞다. 앞으로 핸드오프 문구는 합니다체로 쓰게 핸드오프 템플릿에 적는다 | 디자이너 |
 | 22 | 모달 뒤 덮개 | `scrim` 을 쓰는 곳은 `QuizOverlay` 하나. 모델 다이얼로그는 Compose `Dialog` 의 기본 창 dim(`feat/screen/ModelDialogs.kt:87`) | `scrim` = 모달 뒤의 색(2.3) | 모델 다이얼로그 뒤도 `scrim` 으로 — #9 와 같은 이유 | 개발자 |
 | 23 | 공유 요소 곡선 | `navSharedElement`/`navSharedBounds` 가 `boundsTransform` 을 주지 않아 Compose 기본 spring(`nav/shared/SharedElements.kt`). 길이가 정해지지 않는다 | NAV §6-1 · SN "공유 요소 전환": **360ms, cubic-bezier(.2, 0, 0, 1)**, 위치·크기·글자 크기 보간, 씬 슬라이드와 **동시에** 재생(6.6 "같은 물체가 이어진다") | 디자이너 결정: `boundsTransform` 을 장면 곡선·장면 길이(`SceneMotion` 340ms) 그대로 준다. 핸드오프 원값 360ms 와의 20ms 차이는 보이지 않고, 같은 상수를 쓰면 씬 슬라이드와 같이 출발해 같이 도착해 한 동작으로 읽힌다. 맞추면 6.6 곡선 표의 장면 행으로 돌아간다 | 개발자 |
-| 24 | 아이콘 선 굵기 | 13개 전부 1.7(`MyNoteIcons.kt` `strokeIcon`/`filledIcon`) | BM1 §3 "윤곽 stroke 1.8, StrokeJoin.Round", §4.1 표 "꺼짐 \| 윤곽, stroke bodyText 1.8" | 1.7 한 벌이 7.1 "한 벌만 쓴다" 와 맞다. 사본을 고친다 | 개발자 |
+| 24 | 아이콘 선 굵기 | 선을 긋는 아이콘 13개 전부 1.7(15개 중 — `Sparkle` · `CheckBoxChecked` 는 면만, `MyNoteIcons.kt` `strokeIcon`/`filledIcon`) | BM1 §3 "윤곽 stroke 1.8, StrokeJoin.Round", §4.1 표 "꺼짐 \| 윤곽, stroke bodyText 1.8" | 1.7 한 벌이 7.1 "한 벌만 쓴다" 와 맞다. 사본을 고친다 | 개발자 |
 | 25 | 다이얼로그 제목 스타일 | 퀴즈 설정 다이얼로그 `screenTitle`(19 · 짧은 창 17, `QuizSetupDialog.kt:91`), 모델 다이얼로그 `sectionTitle`(21, `ModelDialogs.kt:100`) | QZ §2 "다이얼로그 제목 19sp / 700". ST §10.3 모델 확인 다이얼로그는 "설정 다이얼로그와 같은 유리" — 같은 계열이다. 3.5 "같은 역할이면 같은 스타일" | 다이얼로그 제목은 `screenTitle` 로 모은다. 짧은 창에서 17 로 줄어 가로 폰의 다이얼로그에 맞다 | 디자이너 |
 | 26 | 연결 화면 두 단 판정 | 첫 실행 루트의 좌우 두 단은 **콘텐츠 폭 ≥ 640 과 높이 Compact 를 같이** 본다(`ConnectScreen`, 두 단 폭 상한 800) | 몇 단인가는 폭만 본다(5.7) | 예외로 둔다 — 한 단 합이 가로 폰 가용 높이(≈ 312–336dp)를 넘어 폭만 보면 `연결` · 입구가 스크롤 아래로 간다(D19). 5.7 에 예외 한 줄 | 디자이너 |

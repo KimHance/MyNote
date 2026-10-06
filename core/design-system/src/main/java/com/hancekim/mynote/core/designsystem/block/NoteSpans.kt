@@ -52,9 +52,14 @@ internal fun NoteSpansText(
         remember(spans, colors, uprightItalic, keepCodeTogether) {
             spans.toAnnotatedString(colors, uprightItalic, keepCodeTogether)
         }
-    val strikeStart = stringResource(R.string.ds_block_strike_start)
-    val strikeEnd = stringResource(R.string.ds_block_strike_end)
-    val spoken = remember(spans, strikeStart, strikeEnd) { spans.spokenWithStrike(strikeStart, strikeEnd) }
+    val spoken =
+        if (spans.any { it.strike }) {
+            val strikeStart = stringResource(R.string.ds_block_strike_start)
+            val strikeEnd = stringResource(R.string.ds_block_strike_end)
+            remember(spans, strikeStart, strikeEnd) { spans.spokenWithStrike(strikeStart, strikeEnd) }
+        } else {
+            null
+        }
     Text(
         text = text,
         style = style,
