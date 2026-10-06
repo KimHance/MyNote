@@ -37,7 +37,7 @@
 | 직렬화 | kotlinx.serialization |
 | 빌드 | AGP 9.4.1 · Kotlin 2.4.20 · convention plugins(`:build-logic`) · version catalog |
 
-compileSdk 37 · targetSdk 36 · minSdk 32. 버전의 정본은 [`gradle/libs.versions.toml`](gradle/libs.versions.toml) 이다.
+compileSdk 37 · targetSdk 37 · minSdk 32. 버전의 정본은 [`gradle/libs.versions.toml`](gradle/libs.versions.toml) 이다.
 
 ## 모듈 구조
 
