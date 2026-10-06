@@ -1,0 +1,77 @@
+[
+  {
+    "file": "lf.md",
+    "frontMatter": true,
+    "body": "# 본문\n\n문단 한 줄\n"
+  },
+  {
+    "file": "bom.md",
+    "frontMatter": true,
+    "body": "# 본문\n\n문단 한 줄\n"
+  },
+  {
+    "file": "crlf.md",
+    "frontMatter": true,
+    "body": "# 본문\n\n문단 한 줄\n"
+  },
+  {
+    "file": "bom-crlf.md",
+    "frontMatter": true,
+    "body": "# 본문\n\n문단 한 줄\n"
+  },
+  {
+    "file": "cr.md",
+    "frontMatter": true,
+    "body": "# 본문\n\n문단 한 줄\n"
+  },
+  {
+    "file": "empty.md",
+    "frontMatter": true,
+    "body": "# 본문\n\n문단 한 줄\n"
+  },
+  {
+    "file": "close-at-end.md",
+    "frontMatter": true,
+    "body": ""
+  },
+  {
+    "file": "divider-in-body.md",
+    "frontMatter": true,
+    "body": "문단\n\n---\n\n끝\n"
+  },
+  {
+    "file": "open-trailing-space.md",
+    "frontMatter": false,
+    "body": "--- \ntitle: 경계\ndate: 2026.10.07\n---\n# 본문\n\n문단 한 줄\n"
+  },
+  {
+    "file": "open-leading-space.md",
+    "frontMatter": false,
+    "body": " ---\ntitle: 경계\ndate: 2026.10.07\n---\n# 본문\n\n문단 한 줄\n"
+  },
+  {
+    "file": "close-trailing-space.md",
+    "frontMatter": false,
+    "body": "---\ntitle: 경계\ndate: 2026.10.07\n--- \n# 본문\n\n문단 한 줄\n"
+  },
+  {
+    "file": "four-dashes.md",
+    "frontMatter": false,
+    "body": "----\ntitle: 경계\ndate: 2026.10.07\n----\n# 본문\n\n문단 한 줄\n"
+  },
+  {
+    "file": "blank-first-line.md",
+    "frontMatter": false,
+    "body": "\n---\ntitle: 경계\ndate: 2026.10.07\n---\n# 본문\n\n문단 한 줄\n"
+  },
+  {
+    "file": "unclosed.md",
+    "frontMatter": false,
+    "body": "---\ntitle: 경계\ndate: 2026.10.07\n# 본문\n\n문단 한 줄\n"
+  },
+  {
+    "file": "unclosed-crlf.md",
+    "frontMatter": false,
+    "body": "---\ntitle: 경계\ndate: 2026.10.07\n# 본문\n\n문단 한 줄\n"
+  }
+]

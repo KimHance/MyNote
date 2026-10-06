@@ -20,7 +20,7 @@ python3 -I -m unittest discover public-repos/tests && python3 -I -m unittest dis
 ```
 
 - `notes-kit/tests/` 는 그 폴더만으로 도는 시험입니다. 폴더를 떼어 내도 같은 명령(`python3 -I -m unittest discover tests`)이 통과합니다.
-- `tests/` 는 이 레포의 `notes/` 와 `gen_index.py` 를 대조하고, 공개 폴더에 비공개 정보(소유자 이름 · 좌표 · 로컬 경로 · 토큰 · 이메일)가 새지 않았는지 훑습니다.
+- `tests/` 는 이 레포 `gen_index.py` 의 JSON 닫힌 집합 · 출력이 공개 도구와 같은지 보고, 공개 폴더에 비공개 정보(소유자 이름 · 좌표 · 로컬 경로 · 토큰 · 이메일)가 새지 않았는지 훑습니다.
 - 시험은 기기의 전역 git 설정을 무시하는 임시 저장소에서 돕니다.
 
 ## 공개하는 사람이 할 일

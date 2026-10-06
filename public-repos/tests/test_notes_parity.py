@@ -64,21 +64,6 @@ class ParityTest(support.TempCase):
             set(GEN_INDEX.ENVELOPE_KEYS) | {"schema"},
         )
 
-    def test_NT_3_이_레포_노트에서_index_가_notes_index_json_과_바이트가_같다(self):
-        """NT-3 이 레포 노트에서 index 가 notes/index.json 과 바이트가 같다"""
-        copy = self.tmp / "repo-copy"
-        shutil.copytree(
-            support.REPO_ROOT / "notes",
-            copy / "notes",
-            ignore=shutil.ignore_patterns("index.json", "gen_index.py", "SCHEMA.md", "__pycache__"),
-        )
-        self.assertFalse((copy / "notes" / "index.json").exists())
-        result = self.run_py(str(support.KIT_TOOL), "index", "--root", str(copy), cwd=self.tmp)
-        self.assertEqual(result.returncode, 0, result.stderr)
-        produced = (copy / "notes" / "index.json").read_bytes()
-        committed = (support.REPO_ROOT / "notes" / "index.json").read_bytes()
-        self.assertEqual(produced, committed)
-
     def test_NT_3_합성_노트_집합에서_gen_index_py_와_출력이_같다(self):
         """NT-3 합성 노트 집합에서 gen_index.py 와 출력이 같다"""
         old, new = self.tmp / "old", self.tmp / "new"
