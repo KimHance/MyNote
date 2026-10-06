@@ -31,6 +31,7 @@ import com.hancekim.mynote.core.designsystem.component.CategoryChip
 import com.hancekim.mynote.core.designsystem.component.fadingEdges
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.domain.model.ModelStatus
+import com.hancekim.mynote.core.domain.model.NoteLimits
 import com.hancekim.mynote.feature.notes.NoteUi
 import com.hancekim.mynote.feature.notes.element.CtaAction
 import com.hancekim.mynote.feature.notes.navigation.rememberNoteSharedModifiers
@@ -200,5 +201,26 @@ private fun NoteReaderScreenUnsupportedPreview() {
 private fun NoteReaderScreenBrokenNotePreview() {
     MyNoteTheme {
         NoteReaderScreen(note = previewBrokenNote, categoryName = "Android", onQuizAction = {})
+    }
+}
+
+private val previewLimitNote =
+    previewNote.copy(
+        blocks =
+            persistentListOf(
+                NoteContentBlock.Unsupported(
+                    kind = UnsupportedKind.LimitExceeded(NoteLimits.Default.maxDepth, NoteLimits.Default.maxKilobytes),
+                    salvaged = null,
+                    raw = "- 상태\n  - 호이스팅\n    - 단방향\n",
+                ),
+            ),
+        readable = false,
+    )
+
+@Preview(name = "Reader · 한도 넘음", showBackground = true, widthDp = 400, heightDp = 720)
+@Composable
+private fun NoteReaderScreenLimitPreview() {
+    MyNoteTheme {
+        NoteReaderScreen(note = previewLimitNote, categoryName = "Android", onQuizAction = {})
     }
 }
