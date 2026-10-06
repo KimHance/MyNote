@@ -98,7 +98,6 @@ class ModelDownloads
                 work = info?.let { workFactsOf(it) },
                 installedBytes = files.target.takeIf { it.isFile }?.length(),
                 partBytes = files.partBytes(),
-                nowMillis = System.currentTimeMillis(),
             )
         }
 
@@ -110,7 +109,6 @@ class ModelDownloads
                 total = info.progress.getLong(DownloadWork.KEY_TOTAL, ABSENT).takeIf { it >= 0L },
                 phase = info.progress.getString(DownloadWork.KEY_PHASE),
                 reason = info.outputData.getString(DownloadWork.KEY_REASON),
-                nextScheduleTimeMillis = info.nextScheduleTimeMillis.takeIf { it != Long.MAX_VALUE },
             )
 
         private companion object {

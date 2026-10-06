@@ -123,8 +123,8 @@
     <string name="notes_model_waiting_desc">연결되면 자동으로 시작합니다</string>
     <string name="notes_model_preparing">준비하는 중</string>
     <string name="notes_model_downloading">받는 중</string>
-    <string name="notes_model_retrying">연결 끊김</string>
-    <string name="notes_model_retrying_desc">%1$s초 뒤 다시 시도</string>
+    <string name="notes_model_retrying">받기 끊김</string>
+    <string name="notes_model_retrying_desc">이어서 받습니다</string>
     <string name="notes_model_verifying">파일 확인 중</string>
     <string name="notes_model_paused">멈춤</string>
     <string name="notes_model_paused_desc">%1$sGB 받음</string>
@@ -141,7 +141,7 @@
     <string name="notes_model_cancel">취소</string>
     <string name="notes_model_discard_partial">받던 파일 지우기</string>
     <string name="notes_model_delete">삭제</string>
-    <string name="notes_model_notif_off">알림이 꺼져 있어 앱을 나가면 진행 상황이 보이지 않습니다</string>
+    <string name="notes_model_notif_off">알림이 꺼져 있어 앱을 나가면 진행 상황이 보이지 않습니다.</string>
     <string name="notes_model_notif_enable">켜기</string>
     <string name="notes_model_help">Wi-Fi에서만 받습니다. 앱을 닫아도 이어서 받고, 진행 상황은 알림으로 보여 줍니다.</string>
     <string name="notes_model_help_ready">모델은 이 기기 안에서만 돌아갑니다. 노트 내용은 밖으로 나가지 않습니다.</string>
@@ -159,8 +159,7 @@
     <string name="notes_model_badge_failed">모델 오류</string>
     <string name="notes_pill_downloading">퀴즈 모델 받는 중</string>
     <string name="notes_pill_waiting">Wi-Fi 기다리는 중</string>
-    <string name="notes_pill_retrying">연결이 끊겨 다시 시도</string>
-    <string name="notes_pill_seconds">%1$d초</string>
+    <string name="notes_pill_retrying">받기가 끊겨 기다리는 중</string>
     <string name="notes_pill_ready">퀴즈 모델 준비됨</string>
     <string name="notes_pill_failed">퀴즈 모델을 받지 못했습니다</string>
     <string name="notes_quiz_cta_need_model">퀴즈 모델이 필요합니다 · 2.6GB</string>

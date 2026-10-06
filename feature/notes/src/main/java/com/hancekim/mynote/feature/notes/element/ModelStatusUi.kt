@@ -33,6 +33,7 @@ data class ModelCardUi(
     val progress: ModelProgressUi,
     val actions: List<ModelAction>,
     @param:StringRes val help: Int,
+    val notificationHint: Boolean,
 )
 
 fun modelCardUi(status: ModelStatus): ModelCardUi =
@@ -46,6 +47,7 @@ fun modelCardUi(status: ModelStatus): ModelCardUi =
                 progress = ModelProgressUi.None,
                 actions = listOf(ModelAction.Download),
                 help = R.string.notes_model_help,
+                notificationHint = false,
             )
         }
 
@@ -58,6 +60,7 @@ fun modelCardUi(status: ModelStatus): ModelCardUi =
                 progress = ModelProgressUi.Determinate(0L, 1L, ModelTone.Warn),
                 actions = listOf(ModelAction.Cancel),
                 help = R.string.notes_model_help,
+                notificationHint = true,
             )
         }
 
@@ -70,6 +73,7 @@ fun modelCardUi(status: ModelStatus): ModelCardUi =
                 progress = ModelProgressUi.Indeterminate(ModelTone.Accent),
                 actions = listOf(ModelAction.Cancel),
                 help = R.string.notes_model_help,
+                notificationHint = true,
             )
         }
 
@@ -82,6 +86,7 @@ fun modelCardUi(status: ModelStatus): ModelCardUi =
                 progress = ModelProgressUi.Determinate(status.received, status.total, ModelTone.Accent),
                 actions = listOf(ModelAction.Cancel),
                 help = R.string.notes_model_help,
+                notificationHint = true,
             )
         }
 
@@ -89,11 +94,12 @@ fun modelCardUi(status: ModelStatus): ModelCardUi =
             ModelCardUi(
                 tone = ModelTone.Warn,
                 label = R.string.notes_model_retrying,
-                detail = status.inSeconds?.let { R.string.notes_model_retrying_desc },
-                detailArg = status.inSeconds?.toString(),
+                detail = R.string.notes_model_retrying_desc,
+                detailArg = null,
                 progress = ModelProgressUi.Determinate(status.received, status.total, ModelTone.Warn),
                 actions = listOf(ModelAction.Cancel),
                 help = R.string.notes_model_help,
+                notificationHint = true,
             )
         }
 
@@ -106,6 +112,7 @@ fun modelCardUi(status: ModelStatus): ModelCardUi =
                 progress = ModelProgressUi.Indeterminate(ModelTone.Accent),
                 actions = listOf(ModelAction.Cancel),
                 help = R.string.notes_model_help,
+                notificationHint = true,
             )
         }
 
@@ -118,6 +125,7 @@ fun modelCardUi(status: ModelStatus): ModelCardUi =
                 progress = ModelProgressUi.Determinate(status.received, status.total, ModelTone.Neutral),
                 actions = listOf(ModelAction.Resume, ModelAction.DiscardPartial),
                 help = R.string.notes_model_help,
+                notificationHint = false,
             )
         }
 
@@ -130,6 +138,7 @@ fun modelCardUi(status: ModelStatus): ModelCardUi =
                 progress = ModelProgressUi.None,
                 actions = listOf(ModelAction.Delete),
                 help = R.string.notes_model_help_ready,
+                notificationHint = false,
             )
         }
 
@@ -147,6 +156,81 @@ fun modelCardUi(status: ModelStatus): ModelCardUi =
                 progress = ModelProgressUi.None,
                 actions = listOf(ModelAction.Retry),
                 help = if (status.isNoSpace) R.string.notes_model_help_space else R.string.notes_model_help,
+                notificationHint = false,
+            )
+        }
+    }
+
+enum class PillIcon { Check, Warn }
+
+data class ModelPillUi(
+    @param:StringRes val label: Int,
+    val tone: ModelTone,
+    val percent: Int?,
+    val progress: Float?,
+    val icon: PillIcon?,
+)
+
+fun modelPillUi(status: ModelStatus): ModelPillUi =
+    when (status) {
+        ModelStatus.WaitingForWifi -> {
+            ModelPillUi(
+                label = R.string.notes_pill_waiting,
+                tone = ModelTone.Warn,
+                percent = null,
+                progress = null,
+                icon = null,
+            )
+        }
+
+        is ModelStatus.Retrying -> {
+            ModelPillUi(
+                label = R.string.notes_pill_retrying,
+                tone = ModelTone.Warn,
+                percent = null,
+                progress = status.fractionOrNull(),
+                icon = null,
+            )
+        }
+
+        is ModelStatus.Downloading -> {
+            val fraction = status.fractionOrNull() ?: 0f
+            ModelPillUi(
+                label = R.string.notes_pill_downloading,
+                tone = ModelTone.Accent,
+                percent = (fraction * 100).toInt(),
+                progress = fraction,
+                icon = null,
+            )
+        }
+
+        ModelStatus.Ready -> {
+            ModelPillUi(
+                label = R.string.notes_pill_ready,
+                tone = ModelTone.Correct,
+                percent = null,
+                progress = null,
+                icon = PillIcon.Check,
+            )
+        }
+
+        is ModelStatus.Failed -> {
+            ModelPillUi(
+                label = R.string.notes_pill_failed,
+                tone = ModelTone.Wrong,
+                percent = null,
+                progress = null,
+                icon = PillIcon.Warn,
+            )
+        }
+
+        else -> {
+            ModelPillUi(
+                label = R.string.notes_pill_downloading,
+                tone = ModelTone.Accent,
+                percent = null,
+                progress = status.fractionOrNull(),
+                icon = null,
             )
         }
     }
