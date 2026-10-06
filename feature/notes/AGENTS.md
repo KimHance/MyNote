@@ -354,4 +354,6 @@ Column(fillMaxSize) {
 - **연결 화면 자리는 둘**: 첫 실행 루트(`ConnectPlace.Root`) · 쌓은 화면(`ConnectPlace.Stacked`, `NotesNavKey.Connect` entry + 자체 `NotesTopBar`). 셸은 `Connect` 가 top 이면 topBar · 플로팅 내비 · 알약 · 맨 위로 · 드로어 제스처를 숨긴다.
   뒤로가기는 엔트리 안 `BackHandler`(NavDisplay 뒤에 컴포즈되어 이긴다) — 판정은 순수 함수 `connectBackAction`.
 - **판정 로직은 순수 함수**(`element/`)다: `startDestination` · `screenCleanupOf` · `connectBackAction` · `repoCardUi`(RC-13) · `reduceTokenEdit`(RC-18 전이표 + D37 · D39) · `homeBodyOf`(RC-21) · `issueOfProbe`/`issueOfSync` · `linkCheckOf` · `confirmUiOf`. 시험 이름에 항목 ID.
+- **입구 구역(RC-25) · 목록 없음 상자의 길(RC-9)** 은 `TemplateRepo?`(앱이 제공, `ConnectViewModel` 생성자 → `ConnectUiState.template`)가 있을 때만 그려진다. 보임·위계·두 단·길 판정은 순수 함수 `element/ConnectEntry.kt`(`entryVisible` · `entryEmphasis` · `twoColumnsOf` · `noticeWays`)이고, 확인 대화상자는 입력이 아니다.
+  링크 구역(안내·칸·알림·토큰·`연결`)은 `movableContentOf` 한 벌이라 가로 두 단 ↔ 한 단에서 칸이 새로 만들어지지 않는다 — **이 구역을 `Row`/`Column` 에 두 번 쓰지 말 것**(포커스·키보드가 날아간다). 입구 버튼은 VM 을 거치지 않고 `openExternal` 로 외부 브라우저만 연다.
 - 동기화 트리거는 `ObserveSyncRunsUseCase` 다. 연결 직후 동기화는 `announce` 가 꺼져 스낵바가 없고(SY-6), 새로고침에만 반영 알림이 뜬다.

@@ -10,6 +10,7 @@ import com.hancekim.mynote.core.domain.connect.ConnectLinkRepo
 import com.hancekim.mynote.core.domain.connect.ConnectProbe
 import com.hancekim.mynote.core.domain.connect.ConnectProbeFailure
 import com.hancekim.mynote.core.domain.connect.ConnectProbeResult
+import com.hancekim.mynote.core.domain.connect.TemplateRepo
 import com.hancekim.mynote.core.domain.model.ConnectionState
 import com.hancekim.mynote.core.domain.model.ErasureCount
 import com.hancekim.mynote.core.domain.model.NetworkStatus
@@ -21,9 +22,13 @@ import com.hancekim.mynote.core.domain.repository.AppliedTokenSource
 import com.hancekim.mynote.core.domain.repository.ConnectionRepository
 import com.hancekim.mynote.core.domain.repository.NetworkStatusSource
 import com.hancekim.mynote.core.domain.repository.TokenRepository
+import com.hancekim.mynote.feature.notes.element.ConfirmKind
+import com.hancekim.mynote.feature.notes.element.ConfirmUi
 import com.hancekim.mynote.feature.notes.element.ConnectNotice
 import com.hancekim.mynote.feature.notes.element.ConnectStep
+import com.hancekim.mynote.feature.notes.element.NoticeWays
 import com.hancekim.mynote.feature.notes.element.SecretText
+import com.hancekim.mynote.feature.notes.element.noticeWays
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -134,11 +139,66 @@ class ConnectViewModelTest {
     private fun viewModel(
         probe: FakeProbe,
         connections: FakeConnections,
+        template: TemplateRepo? = null,
     ): ConnectViewModel {
         val verify = VerifyConnectLinkUseCase(probe, FakeTokens, connections, FakeTokens)
         val connect =
             ConnectRepositoryUseCase(connections, SyncPendingConnectionUseCase(connections, FakeTokens, FakeTokens))
-        return ConnectViewModel(SavedStateHandle(), verify, connect, ObserveConnectionUseCase(connections))
+        return ConnectViewModel(SavedStateHandle(), verify, connect, ObserveConnectionUseCase(connections), template)
+    }
+
+    @Test
+    fun `RC-25 템플릿 주소가 없으면 입구가 없다`() =
+        runTest {
+            val probe = FakeProbe { ConnectProbeResult.Failed(ConnectProbeFailure.NoManifest) }
+            val vm = viewModel(probe, FakeConnections(), template = null)
+            val collector = launch(UnconfinedTestDispatcher(testScheduler)) { vm.state.collect {} }
+
+            assertNull(vm.state.value.template)
+            assertFalse(vm.state.value.entryShown)
+
+            vm.onIntent(ConnectIntent.LinkChanged(link))
+            vm.onIntent(ConnectIntent.Submit(null))
+
+            val notice = vm.state.value.notice
+            assertEquals(ConnectNotice.NoList, notice)
+            assertEquals(NoticeWays.None, noticeWays(notice!!, vm.state.value.template != null))
+            collector.cancel()
+        }
+
+    @Test
+    fun `RC-25 입구가 여는 주소는 생성 주소다`() =
+        runTest {
+            val template = TemplateRepo("octo-learner", "notes-template")
+            val vm = viewModel(FakeProbe { ConnectProbeResult.Verified(repo, emptySet()) }, FakeConnections(), template)
+            val collector = launch(UnconfinedTestDispatcher(testScheduler)) { vm.state.collect {} }
+
+            val shown = vm.state.value
+            assertTrue(shown.entryShown)
+            assertEquals("https://github.com/octo-learner/notes-template/generate", shown.template?.generateUrl)
+            assertEquals("https://github.com/octo-learner/notes-template", shown.template?.introUrl)
+            collector.cancel()
+        }
+
+    @Test
+    fun `RC-25 확인 대화상자는 입구 판정을 바꾸지 않는다`() {
+        val template = TemplateRepo("octo-learner", "notes-template")
+        val plain = ConnectUiState(link = link, template = template)
+        val withDialog =
+            plain.copy(confirm = ConfirmUi(ConfirmKind.Adopt, notes = 5, bookmarks = 0, dropsToken = false))
+
+        assertTrue(plain.entryShown)
+        assertEquals(plain.entryShown, withDialog.entryShown)
+    }
+
+    @Test
+    fun `RC-9 목록 없음 상자의 길은 한 화면 상태에서도 템플릿 주소가 있을 때만이다`() {
+        val template = TemplateRepo("octo-learner", "notes-template")
+        val noList = ConnectUiState(link = link, notice = ConnectNotice.NoList, template = template)
+
+        assertFalse(noList.entryShown)
+        assertEquals(NoticeWays.CreateAndGuide, noticeWays(ConnectNotice.NoList, noList.template != null))
+        assertEquals(NoticeWays.None, noticeWays(ConnectNotice.NoList, noList.copy(template = null).template != null))
     }
 
     @Test
