@@ -6,8 +6,8 @@ private const val MAX_CANDIDATES = 3
 
 private val sshPattern = Regex("""^git@([^:/\s]+):(.+)$""")
 private val schemePattern = Regex("""^([A-Za-z][A-Za-z0-9+.-]*):""")
-private val ownerPattern = Regex("""[A-Za-z0-9-]+""")
-private val repoPattern = Regex("""[A-Za-z0-9._-]+""")
+internal val ownerPattern = Regex("""[A-Za-z0-9-]+""")
+internal val repoPattern = Regex("""[A-Za-z0-9._-]+""")
 
 private enum class HostKind { Github, Raw, Gist, Pages, Other }
 
