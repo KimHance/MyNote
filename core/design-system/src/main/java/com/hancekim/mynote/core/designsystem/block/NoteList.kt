@@ -61,7 +61,7 @@ internal fun NoteList(
 /** 깊이(1부터)마다 도는 글머리. */
 internal fun bulletGlyph(depth: Int): String = BULLETS[(depth - 1).mod(BULLETS.size)]
 
-/** 이 깊이의 목록이 보이는 들여쓰기 한도를 넘어 부모 기호 칸만큼 당겨지는지. */
+/** 목록 깊이(1부터)가 보이는 들여쓰기 한도를 넘는지. */
 internal fun stopsIndent(depth: Int): Boolean = depth > NoteListDefaults.VISIBLE_DEPTH
 
 private val BULLETS = listOf("•", "◦", "▪")

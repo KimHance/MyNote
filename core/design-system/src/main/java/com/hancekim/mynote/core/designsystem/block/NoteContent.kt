@@ -56,10 +56,10 @@ fun NoteContent(
 }
 
 /**
- * 블록 하나를 그린다. 목록 항목의 하위 블록도 이것으로 그린다.
+ * 블록 하나를 그린다.
  *
  * @param listDepth 이 블록을 감싼 목록 수
- * @param hang 감싼 목록의 기호 칸 폭(px) — 들여쓰기 한도를 넘은 하위 목록을 그만큼 당긴다
+ * @param hang 감싼 목록의 기호 칸 폭(px)
  */
 @Composable
 internal fun NoteBlockContent(

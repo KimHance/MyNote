@@ -64,7 +64,7 @@ internal fun NoteSpansText(
     )
 }
 
-private fun ImmutableList<NoteContentSpan>.toAnnotatedString(
+internal fun ImmutableList<NoteContentSpan>.toAnnotatedString(
     colors: MyNoteColors,
     uprightItalic: Boolean,
     keepCodeTogether: Boolean,
@@ -78,6 +78,7 @@ private fun ImmutableList<NoteContentSpan>.toAnnotatedString(
                     withStyle(
                         SpanStyle(
                             fontFamily = FontFamily.Monospace,
+                            fontStyle = FontStyle.Normal,
                             background = colors.surface2,
                             color = colors.accent,
                             baselineShift = BaselineShift(CODE_BASELINE_SHIFT),

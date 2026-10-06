@@ -1,5 +1,8 @@
 package com.hancekim.mynote.core.designsystem.block
 
+import androidx.compose.ui.text.font.FontStyle
+import com.hancekim.mynote.core.designfoundation.token.StudyNotesDarkColors
+import kotlinx.collections.immutable.persistentListOf
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -40,5 +43,27 @@ class NoteSpansTest {
             )
 
         assertNull(result)
+    }
+
+    @Test
+    fun `NF-4 인용 안에서는 기울임 구간과 코드 구간이 서 있다`() {
+        val text =
+            persistentListOf(
+                NoteContentSpan("a", NoteSpanStyle.Normal, italic = true),
+                NoteContentSpan("b", NoteSpanStyle.Code, italic = true),
+            ).toAnnotatedString(StudyNotesDarkColors, uprightItalic = true, keepCodeTogether = false)
+
+        assertEquals(listOf(FontStyle.Normal, FontStyle.Normal), text.spanStyles.map { it.item.fontStyle })
+    }
+
+    @Test
+    fun `NF-4 본문의 기울임 구간은 기울고 코드 구간은 기울지 않는다`() {
+        val text =
+            persistentListOf(
+                NoteContentSpan("a", NoteSpanStyle.Normal, italic = true),
+                NoteContentSpan("b", NoteSpanStyle.Code, italic = true),
+            ).toAnnotatedString(StudyNotesDarkColors, uprightItalic = false, keepCodeTogether = false)
+
+        assertEquals(listOf(FontStyle.Italic, FontStyle.Normal), text.spanStyles.map { it.item.fontStyle })
     }
 }

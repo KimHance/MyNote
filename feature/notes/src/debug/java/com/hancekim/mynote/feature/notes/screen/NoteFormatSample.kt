@@ -213,8 +213,8 @@ private val checks =
 private val alerts =
     note(
         "코루틴 빌더 정리",
-        NoteContentBlock.Quote(spans(plain("[!NOTE] 구조화된 동시성은 부모 범위가 자식이 끝날 때까지 기다리게 한다."))),
-        NoteContentBlock.Quote(spans(plain("[!WARNING] "), code("GlobalScope"), plain(" 는 생명주기를 따르지 않는다."))),
+        NoteContentBlock.Quote(spans(plain("[!NOTE]\n구조화된 동시성은 부모 범위가 자식이 끝날 때까지 기다리게 한다."))),
+        NoteContentBlock.Quote(spans(plain("[!WARNING]\n"), code("GlobalScope"), plain(" 는 생명주기를 따르지 않는다."))),
     )
 
 private val limitExceeded =
@@ -326,6 +326,8 @@ private val samples =
         NoteFormatSample("표 좁은-큰 글자", narrowTables, fontScale = MyNoteFontScale.Large),
         NoteFormatSample("표 넓은-compact", wideTable),
         NoteFormatSample("표-852", foldTables, windowClass = MyNoteWindowClass.Expanded),
+        NoteFormatSample("체크 시작 번호-852", checks, windowClass = MyNoteWindowClass.Expanded),
+        NoteFormatSample("체크 시작 번호-큰 글자", checks, fontScale = MyNoteFontScale.Large),
     )
 
 private class NoteFormatSampleProvider : PreviewParameterProvider<NoteFormatSample> {

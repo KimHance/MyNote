@@ -139,27 +139,34 @@ internal fun NoteTable(
             columnX[column] = x
             x += widths[column] + padH * 2 + line
         }
+        val baselines = IntArray(placeables.size) { placeables[it][FirstBaseline] }
+        val drops = IntArray(placeables.size)
+        val rowBaseline = IntArray(rowCount)
         val rowY = IntArray(rowCount)
         var y = line
         for (row in 0 until rowCount) {
             rowY[row] = y
-            val tallest = (0 until columns).maxOf { placeables[row * columns + it].height }
+            val cells = row * columns until (row + 1) * columns
+            rowBaseline[row] = cells.maxOf { baselines[it] }
+            for (cell in cells) {
+                if (baselines[cell] != AlignmentLine.Unspecified) drops[cell] = rowBaseline[row] - baselines[cell]
+            }
+            val tallest = cells.maxOf { drops[it] + placeables[it].height }
             y += tallest + padV * 2 + line
         }
-        val next =
+        grid.value =
             TableGrid(
                 width = x,
                 height = y,
                 columnLines = columnX.drop(1).map { it - line },
                 rowLines = rowY.drop(1).map { it - line },
             )
-        if (grid.value != next) grid.value = next
-        val baseline = placeables[0][FirstBaseline]
+        val headBaseline = rowY[0] + padV + rowBaseline[0]
         val alignment: Map<AlignmentLine, Int> =
-            if (baseline == AlignmentLine.Unspecified) emptyMap() else mapOf(FirstBaseline to rowY[0] + padV + baseline)
+            if (rowBaseline[0] == AlignmentLine.Unspecified) emptyMap() else mapOf(FirstBaseline to headBaseline)
         layout(maxOf(x, constraints.minWidth).coerceAtMost(constraints.maxWidth), y, alignment) {
             placeables.forEachIndexed { index, cell ->
-                cell.place(columnX[index % columns] + padH, rowY[index / columns] + padV)
+                cell.place(columnX[index % columns] + padH, rowY[index / columns] + padV + drops[index])
             }
         }
     }
