@@ -14,6 +14,13 @@ val localProps =
 
 fun prop(key: String): String = localProps.getProperty(key, "")
 
+val templateRepo =
+    providers
+        .gradleProperty("template.repo")
+        .getOrElse("")
+        .takeIf { Regex("[A-Za-z0-9._/-]*").matches(it) }
+        .orEmpty()
+
 android {
     namespace = "com.hancekim.mynote"
 
@@ -29,6 +36,7 @@ android {
         buildConfigField("String", "GITHUB_REPO", "\"\"")
         buildConfigField("String", "GITHUB_BRANCH", "\"\"")
         buildConfigField("String", "GITHUB_TOKEN", "\"\"")
+        buildConfigField("String", "TEMPLATE_REPO", "\"$templateRepo\"")
 
         // litertlm 엔진(.so)이 CPU 종류마다 따로 들어 있어 기본값이면 안 쓰는 게
         // 25MB 실린다. 실기기·에뮬레이터 이미지가 전부 arm64 라 그것만 남긴다.

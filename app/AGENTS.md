@@ -43,7 +43,7 @@
   `:core:navigation` 은 Hilt 를 모르는 leaf 라 조립이 여기로 온다. `@Singleton` + 앱 스코프라
   백스택이 Activity/ViewModel 보다 오래 산다(회전에도 유지). 대신 프로세스가 죽으면 사라진다 —
   저장/복원은 없다.
-- **`ConnectionSeed?`** (`RemoteConfigModule`) — `BuildConfig` 의 시드 필드를 읽어 넘긴다(비면 `null`).
+- **`ConnectionSeed?`·`TemplateRepo?`** (`RemoteConfigModule`) — `BuildConfig` 의 시드·템플릿 주소 필드를 읽어 넘긴다(비면 `null`).
   `:core:network`·`:core:data` 가 `BuildConfig` 를 모르게 하는 것이 이 모듈의 존재 이유다.
 
 `:core:design-foundation`/`:core:design-system` 의존은 `:app` 코드가 참조하지 않고 `@Module` 도 없다 —
@@ -78,11 +78,18 @@ DataStore(DataStoreTokenStore) → TokenRepository → ObserveTokenUseCase
 않게 하려는 것이다. debug 내장 토큰은 `ConnectionSeed` 로 시드 연결을 할 때만 쓰이고(`ConsumeSeedUseCase`), 그때 저장 칸에
 쓴 뒤 적용되고 나서 첫 동기화가 돈다. 이미 저장된 토큰이 있으면 덮어쓰지 않는다(결정 14 · RC-22).
 
-### BuildConfig 필드 — debug 첫 실행 시드뿐이다
+### BuildConfig 필드 — debug 첫 실행 시드 + 템플릿 주소
 
-저장소 연결은 앱 화면(`:feature:notes` 연결 화면)에서 한다. 빌드가 넣는 값은 **debug 첫 실행 시드** 하나뿐이고
-`RemoteConfigModule` 이 이를 `ConnectionSeed?` 로 만든다(`GITHUB_OWNER`·`GITHUB_REPO` 둘 다 채워졌을 때만 시드).
-필드는 넷: `GITHUB_OWNER`·`GITHUB_REPO`·`GITHUB_BRANCH`·`GITHUB_TOKEN`.
+저장소 연결은 앱 화면(`:feature:notes` 연결 화면)에서 한다. 빌드가 넣는 값은 **둘**이다: **debug 첫 실행 시드**와
+**템플릿 저장소 주소**(RC-26). `RemoteConfigModule` 이 시드를 `ConnectionSeed?`(`GITHUB_OWNER`·`GITHUB_REPO` 둘 다 채워졌을 때만),
+템플릿 주소를 `TemplateRepo?`(`parseTemplateRepo(BuildConfig.TEMPLATE_REPO)` — 모양이 틀리거나 비면 `null`)로 만든다.
+필드는 다섯: `GITHUB_OWNER`·`GITHUB_REPO`·`GITHUB_BRANCH`·`GITHUB_TOKEN`·`TEMPLATE_REPO`.
+
+- **`TEMPLATE_REPO` 는 `local.properties` 가 아니라 커밋되는 루트 `gradle.properties` 의 `template.repo` 에서 온다**(결정 54).
+  `defaultConfig` 에서 한 번만 넣는다 — `debug{}`·`release{}` 에 쓰지 않으므로 둘이 같은 값이고 release 의 시드 비우기와 겹치지 않는다.
+  공개 전에는 빈 값(= 입구 없음). 허용 문자 `[A-Za-z0-9._/-]` 밖(따옴표·역슬래시·공백·개행)이 든 값은 빌드가 깨지지 않고 빈 값으로
+  내려간다 — 이건 `BuildConfig` 문자열을 깨지 않게 하는 안전판일 뿐이고 모양 판정은 `:core:domain` 의 `parseTemplateRepo` 한 곳이다.
+  `-Ptemplate.repo=…` 로 한 번만 덮어 쓸 수도 있다.
 
 - **`defaultConfig` 는 넷 다 빈 문자열이다 — 코드에 기본 저장소가 없다**(RC-19 d). `local.properties` 에 키가 없으면
   시드 없음이고 첫 실행은 연결 화면이다.

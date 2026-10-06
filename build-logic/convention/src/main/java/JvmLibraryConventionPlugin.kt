@@ -1,4 +1,5 @@
 import com.hancenote.convention.configureKotlin
+import com.hancenote.convention.configureNotesTemplateInput
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -33,6 +34,8 @@ class JvmLibraryConventionPlugin : Plugin<Project> {
                 useJUnit()
                 failOnNoDiscoveredTests.set(false)
             }
+
+            configureNotesTemplateInput()
         }
     }
 }
