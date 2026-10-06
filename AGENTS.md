@@ -73,8 +73,8 @@ app  ─────────────────────────
 지켜야 할 것:
 - **feature 는 `:core:data`/`:core:network`/`:core:database` 를 직접 의존하지 않는다.** `:core:domain`
   의 UseCase 만 경유한다.
-- **`:core:format` 은 `:core:data` 만 의존한다**(`implementation`). feature · network · database 는 형식 해석 자리를 모르고,
-  블록 DTO 는 그 모듈 밖으로 새지 않는다(`internal`).
+- **`:core:format` 을 의존하는 것은 `:core:data` 하나다**(`implementation`). `:core:format` 은 `:core:domain` 만 안다.
+  feature · network · database 는 형식 해석 자리를 모르고, 블록 DTO 는 그 모듈 밖으로 새지 않는다(`internal`).
 - Room `@Entity`·Retrofit·DataStore 타입은 각 모듈 밖으로 새지 않는다.
 - `:core:design-foundation` 은 `:core:design-system` 을 의존하지 않는다. feature ↔ feature 직접 의존 금지.
 - **버전·좌표는 `gradle/libs.versions.toml` 에만.** 모듈 `build.gradle.kts` 에 하드코딩 금지
