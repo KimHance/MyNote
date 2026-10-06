@@ -22,9 +22,9 @@
   헤더를 지우려면 base64 디코딩 계층을 새로 만들어야 한다는 뜻이다.
 - **`getNote` 는 `ResponseBody` 를 돌려준다. `NoteDto` 같은 DTO 로 되돌리지 말 것.** 본문을 Retrofit 컨버터가 디코드하면
   깨진 노트 하나가 컨버터 예외 = 전송 실패가 되어 그 소스의 동기화 전체가 멈춘다(M0 이전의 F1–F3). 형식 해석은 `:core:data` 가
-  노트 단위로 가둔다. 회귀 장치: `GithubManifestAdapterTest` 의 `본문은 해석하지 않고 원문 문자열로 돌려준다`.
+  `:core:format` 으로 노트 단위로 가둔다. 회귀 장치: `GithubManifestAdapterTest` 의 `본문은 해석하지 않고 원문 문자열로 돌려준다`.
   `@Streaming` 이 없어 Retrofit 이 본문을 메모리에 다 받은 뒤 돌려주므로 `string()` 은 네트워크를 다시 타지 않는다.
-- **`@Path(value = "path", encoded = true)`.** 노트 경로는 `notes/android/nav3.json` 처럼 `/` 를 포함한다.
+- **`@Path(value = "path", encoded = true)`.** 노트 경로는 `notes/<그룹>/<id>.md` 처럼 `/` 를 포함한다.
   `encoded = true` 를 빼면 `/` 가 `%2F` 로 인코딩돼 URL 이 깨진다. `path` 는 index 가 준 값을 그대로 쓴다.
 - **index 평탄화는 이 모듈의 책임이다.** `index.json` 은 `{ "<group>": [ {id,title,date,path,hash}, … ] }`
   형태의 **그룹 키 오브젝트**고, 그룹 이름은 값이 아니라 **키**에 있다. `GithubManifestAdapter.list()` 가

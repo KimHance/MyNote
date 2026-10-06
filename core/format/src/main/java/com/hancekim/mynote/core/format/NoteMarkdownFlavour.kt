@@ -34,7 +34,7 @@ internal object NoteMarkdownFlavour : GFMFlavourDescriptor() {
         }
 }
 
-/** 물결 한 개 · 두 개 짝을 취소선으로 묶는다. 엔진의 파서는 문단 첫 구분자인 홑물결의 짝을 놓친다. */
+/** 물결 한 개 · 두 개 짝을 취소선으로 묶는다. */
 private class TildeDelimiterParser : DelimiterParser() {
     override fun scan(
         tokens: TokensCache,

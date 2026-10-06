@@ -38,15 +38,15 @@ network · database · feature 는 모른다. `org.intellij.markdown` import 는
 ## 마크다운 — 한도를 먼저 보고 변환기를 부른다
 
 1. `exceedsMarkdownLimits(raw)` 가 참이면 변환기를 부르지 않고 `Unsupported(limit_exceeded, raw = 원문)` 하나로 둔다.
-   한도 값은 domain `NoteLimits.Default` 다 — 화면 매퍼가 같은 값을 상자 문구 숫자로 쓰므로 여기에 숫자를 다시 적지 않는다.
+   한도 값은 domain `NoteLimits.Default` 다 — 화면 매퍼가 같은 값을 상자 문구 숫자로 쓰므로 이 모듈 코드에 한도 숫자 리터럴을 두지 않는다.
    - 크기: UTF-8 `maxBytes`(524,288 바이트) 초과(할당 없이 센다).
    - 중첩: 줄 앞 컨테이너(`>` · 목록 표시) `maxDepth`(32단) 초과. CommonMark 의 컨테이너 잇기를 따라 줄마다 센다 — 탭은 4칸, 표시 뒤 공백
      1–4칸, 줄 끝 LF · CRLF · CR, 맨 앞 BOM. 이어지는 글 줄(lazy)은 열린 컨테이너를 닫지 않고 둔다(크게 세는 쪽). 줄 나머지가
      구분선(`- - -` · `* * *` 처럼 같은 글자 셋 이상과 공백)이면 목록 표시로 세지 않는다 — CommonMark 도 구분선이 먼저다.
    - 줄 상한: 줄 하나의 앞부분이 품을 수 있는 컨테이너 수(표시 수 + 공백 칸 ÷ 2)가 64 를 넘어도 한도 넘음이다. 줄 잇기는 문단
      상태를 모르므로 이어지는 글로 끊어 보인 중첩을 놓칠 수 있다. 이 상한이 그 경우에도 실제 깊이를 64 이하로 묶는다.
-   - 한도는 블록 깊이 32 를 보장하지 않는다. 문단을 끊지 못하는 줄로 이은 중첩은 실제 깊이 64 까지 한도를 지난다 —
-     변환기가 블록 깊이 32 를 따로 지킨다.
+   - 알려진 오탐: 스캐너는 펜스 코드를 모르고 코드 안 줄도 컨테이너로 센다(코드 안 `>` 40개 · 앞 공백 130칸 줄 · 34단 목록 예시는
+     노트 전체 한도 넘음). 펜스를 알게 하면 스캐너와 엔진의 펜스 판정이 갈리는 입력으로 깊은 중첩이 엔진까지 가서 그대로 둔다(안전 쪽).
    - 예외를 잡는 것으로 한도를 대신하지 않는다. 엔진 메모리는 중첩에 따라 빠르게 늘어 20KB 노트 하나로 바닥나고, 직렬화는
      하위 목록 200단에서 스택이 넘친다(note-format 결정 11).
 2. 한도 안이면 `MarkdownConverter.convert(raw)` → 도메인 블록 → 캐시 DTO. `@Inject constructor()` 가 끼우는 것은 `GfmMarkdownConverter` 다.
@@ -166,7 +166,7 @@ JVM 모듈이라 태스크가 `:core:format:test` 다(`testDebugUnitTest` 없음
 
 | 시험 | 무엇 |
 |---|---|
-| `MyNoteJsonFormatTest` · `NoteDtoSerializationTest` · `ReparseEquivalenceTest` | `:core:data` 에서 옮긴 형식 시험 — 이름 · 단정 그대로. 레포 노트 시험의 입력은 JSON 고정 사본 22개 |
+| `MyNoteJsonFormatTest` · `NoteDtoSerializationTest` · `ReparseEquivalenceTest` | JSON 형식 1 · 캐시 DTO 직렬화 · 옛 캐시 경로와 같은 재해석. 레포 노트 시험의 입력은 JSON 고정 사본 22개 |
 | `NoteFormatTest` | NF-2 형식 고르기 · 던지지 않음 · 캐시 손상 대체, NF-8 엔진 호출 0 · 해석 실패 상자 |
 | `MarkdownLimitsTest` | NF-8 해석 전 한도 — 32단 / 33단 · 512KB · CR · BOM · 컨테이너가 아닌 줄 · 줄 상한 |
 | `MarkdownConverterTest` | 실제 엔진으로 NF-1 앞머리 · 줄 끝 · 경계 묶음, NF-3 ~ NF-7 대응 표, NF-8 32단 / 33단 · 512KB · 블록 깊이 지킴 · 큰 입력 |
@@ -187,6 +187,6 @@ JVM 모듈이라 태스크가 `:core:format:test` 다(`testDebugUnitTest` 없음
 | 루트 `notes/` | 레포의 지금 노트 | `ParityTest` |
 
 - 사본은 고정 값이다. 살아 있는 `notes/` 와 비교하지 않는다 — 다음 노트 쓰기부터 시험이 거짓이 된다(note-format 결정 19).
-- 마크다운 사본을 고치면 파리티가 깨진다. 사본은 노트 이전이 그대로 복사해 쓰는 원본이기도 하다.
+- 마크다운 사본을 고치면 파리티가 깨진다.
 - 루트 폴더 둘은 `extra["notesInput"] = true`, 카탈로그는 `extra["catalogInput"] = true` 로 `Test` 태스크 입력이다
   (`build-logic/AGENTS.md` "레포 폴더 시험 입력"). 한 글자만 바뀌어도 다시 돈다.

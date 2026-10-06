@@ -6,7 +6,7 @@
 
 **DataSource 계약을 소유하고 reconcile 을 오케스트레이션한다.** 원격도 로컬도 여기서 구현하지 않는다.
 `NoteSourceAdapter`·`LocalNotesDataSource`·`TokenStore`·`SettingsStore`·`BookmarkStore`·`StudyLogStore`·`InsightStore` 를
-이 모듈이 정의하고, `:core:network`/`:core:database` 가 바깥에서 구현한다(DIP). 의존은 `:core:data → :core:format → :core:domain` +
+이 모듈이 정의하고, `:core:network`/`:core:database` 가 바깥에서 구현한다(DIP). 의존은 `:core:domain` · `:core:format` ·
 `:core:common` 뿐이고 구현체 모듈은 **컴파일 타임에 모른다** — Hilt 그래프는 `:app` 이 세 모듈을 다 포함해서 완성한다.
 
 노트 본문의 **형식 해석은 순수 JVM `:core:format` 이 한다**(`NoteFormat`, `core/format/AGENTS.md`). 이 모듈은 그 진입점을
@@ -104,7 +104,7 @@
 |---|---|---|
 | 원격 → data | `SourceEntry`, 원문 `String`, `IndexNoteDto` | `:core:data` 소유. Retrofit/OkHttp 타입은 넘어오지 않는다 |
 | 로컬 ↔ data | **`CachedNote`**·`CachedNoteState`·`SourceRecord`, 읽기 투영 `ListedNote`(목록)·`StaleNote`(재변환), 쓰기 `RederivedNote` | Room `@Entity`·DAO 는 `:core:database` 안에서 `internal`. 이 모듈은 Entity 를 본 적이 없다 |
-| data → 바깥 | `Category`/`Note`/`NoteBlock`(domain), `SyncOutcome` | 매핑은 **단방향**(DTO/`CachedNote` → domain). `Note.id` = `CachedNote.key` = `NoteKey` 문자열(`s0/graph`) |
+| data → 바깥 | `Category`/`Note`/`NoteBlock`(domain), `SyncOutcome` | 매핑은 **단방향**(`ListedNote` → domain, `NoteMapper`). `Note.id` = 행의 `key` = `NoteKey` 문자열(`s0/graph`) |
 
 `CachedNote` 는 `key`·`sourceId`·`docId`·`path`·`group`·`title`·`date`·`epochDay`·`firstSeenAt`·`revision`·`fetchedAt`·`parserVersion`·
 `raw`·`blocksJson`·`excerpt` 다. v5 의 3라운드 열(`kind`·`summary`·`aliases_json`·`source_url`)과 `tags_json`·`warnings_json` 은
@@ -129,8 +129,7 @@ M0 에 쓰는 코드가 없어 여기에 없다 — 쓰는 단계에서 더한�
 
 ## 테스트
 
-`src/test/` 의 시험은 전부 JUnit4 + `runTest`(`kotlin("test")` 금지). 형식 시험 셋(`MyNoteJsonFormatTest` · `ReparseEquivalenceTest` ·
-`NoteDtoSerializationTest`)은 `:core:format` 으로 옮겼다.
+`src/test/` 의 시험은 전부 JUnit4 + `runTest`(`kotlin("test")` 금지). 형식 시험은 `:core:format` 에 있다.
 
 - `NotesReconcileTest` — fake 어댑터·fake 로컬로 add/skip/update/delete, 전송 실패 무반영, 형식 격리, 모르는 style, 원문·버전 저장,
   재변환(원격 0회), 원문 채우기(세지 않음), 자기 소유 삭제, 소스 단위 가드, 처음 본 시각, epochDay, excerpt, 캐시 손상 대체, 동시 수신.

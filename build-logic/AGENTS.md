@@ -59,8 +59,8 @@ dependencies {
 
 **`./gradlew testDebugUnitTest` 는 `:core:domain` 을 테스트하지 않는다.** 그 모듈은 순수 JVM
 이라 테스트 태스크 이름이 `test` 다(`:core:domain:testDebugUnitTest` 는 **존재하지 않는다** —
-실행하면 태스크를 못 찾아 실패한다). 지금은 domain 에 테스트가 없어서 티가 안 나지만
-넣는 순간 조용히 빠진다. 그래서 위 표에 `test testDebugUnitTest` 를 같이 적어 뒀다.
+실행하면 태스크를 못 찾아 실패한다). `:core:format` 도 같다 — 루트에서 `testDebugUnitTest` 를 돌리면 두 모듈 시험이
+조용히 빠진다. 그래서 위 표에 `test testDebugUnitTest` 를 같이 적어 뒀다.
 
 `--tests` 에 오타를 내면 `No tests found for given includes: [...]` 로 **실패**한다
 (뒤에 나오는 `failOnNoDiscoveredTests = false` 가 이 경우까지 삼키지는 않는다).
@@ -98,14 +98,14 @@ alias(`billboard-*`)·id(`hance.*`)·group·패키지가 네 갈래로 갈려 �
 | `:app` | `android.application` + `.compose` + `android.hilt` | `buildConfig = true`, `ndk.abiFilters = arm64-v8a`, release R8/shrink |
 | `:core:common` | `android.library` | — |
 | `:core:ai` | `android.library` + `android.hilt` + `kotlin-serialization` | — |
-| `:core:data` | `android.library` + `android.hilt` + `kotlin-serialization` | — |
+| `:core:data` | `android.library` + `android.hilt` + `kotlin-serialization` | `extra["notesTemplateInput"]` |
 | `:core:database` | `android.library` + `android.room` + `android.hilt` | — |
 | `:core:network` | `android.library` + `android.hilt` + `kotlin-serialization` | — |
 | `:core:design-foundation` | `android.library.compose` | — |
 | `:core:design-system` | `android.library.compose` | `resourcePrefix = "ds_"` |
 | `:core:navigation` | `android.library.compose` + `kotlin-serialization` | — |
 | `:core:domain` | **`jvm.library`** | — |
-| `:core:format` | **`jvm.library`** + `kotlin-serialization` | `java-test-fixtures`(아래 예외) · `extra["notesInput"]` |
+| `:core:format` | **`jvm.library`** + `kotlin-serialization` | `java-test-fixtures`(아래 예외) · `extra["notesInput"]` · `extra["catalogInput"]` |
 | `:feature:notes` | **`android.feature`** (Compose·Hilt 포함) | `resourcePrefix = "notes_"` |
 
 > **컨벤션 규칙의 예외 하나** — `:core:format` 만 Gradle 핵심 플러그인 `java-test-fixtures` 를 직접 적용한다(컨벤션 · 카탈로그 alias 없음).
@@ -121,8 +121,8 @@ alias(`billboard-*`)·id(`hance.*`)·group·패키지가 네 갈래로 갈려 �
 (`isCoreLibraryDesugaringEnabled` + `coreLibraryDesugaring(desugar_jdk_libs)`) ·
 `testOptions.unitTests.isIncludeAndroidResources = true` · `failOnNoDiscoveredTests = false`.
 
-> `failOnNoDiscoveredTests = false` 가 없으면 **테스트가 아예 없는 모듈**(`:core:database`,
-> `:core:network`)의 `testDebugUnitTest` 가 Gradle 9 에서 실패한다. `jvm.library` 에도 같은 줄이 있다.
+> `failOnNoDiscoveredTests = false` 가 없으면 **테스트가 아예 없는 모듈**의 `testDebugUnitTest` 가 Gradle 9 에서 실패한다.
+> `jvm.library` 에도 같은 줄이 있다.
 
 **`configureKotlin()`** (Android/JVM 공통) — `jvmTarget = JVM_17`,
 `allWarningsAsErrors` 를 `warningsAsErrors` Gradle 속성으로 제어. **툴체인 선언은 없다** —
@@ -189,7 +189,7 @@ org.gradle.configuration-cache=true
   `build/` 가 날아가도 입력이 같으면 다시 안 돌린다. 커밋 `aff86c7` 실측(clean 후
   `ktlintCheck + assembleDebug + testDebugUnitTest + lintDebug`): **37.9초 → 1.8초**, 334개 태스크가
   캐시에서 복원됐다. clean 직후와 브랜치를 갈아탔다 돌아올 때가 제일 크다.
-- **설정 캐시** — 모듈 11개라 절약 자체는 작다(0.4초 → 0.1초). 켜 둔 값은 성능보다
+- **설정 캐시** — 모듈 12개라 절약 자체는 작다(0.4초 → 0.1초). 켜 둔 값은 성능보다
   **지금 통과한다는 사실을 고정하는 것**이다. 설정 단계에서 `Project` 를 붙잡는 코드를
   컨벤션에 넣으면 그 커밋에서 바로 빌드가 실패한다. 나중에 켜려면 원인이 쌓인 뒤라 찾기 어렵다.
   → **컨벤션을 고칠 때 설정 단계에서 `Project`/`Task` 를 캡처하지 않는다.**
@@ -289,7 +289,7 @@ import(`getValue`/`setValue`)는 켜도 오탐 위험이 있으니 지울 때 �
 
 `.githooks/pre-commit` 이 **스테이징된 `.kt`/`.kts` 파일만** 검사한다
 (`./gradlew ktlintCheck -PinternalKtlintGitFilter="<개행 구분 경로 목록>"`). 위반이면 커밋 중단.
-노트를 건드렸으면 `notes/gen_index.py` 도 돌려 `index.json` 을 같은 커밋에 넣는다.
+노트를 건드렸으면 훅이 `notes/gen_index.py` 로 `index.json` 을 다시 만들어 같은 커밋에 넣는다.
 설치는 머신당 1회: `git config core.hooksPath .githooks`. `--no-verify` 는 쓰지 않는다.
 
 ## AGP 9 주의사항
