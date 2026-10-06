@@ -30,8 +30,8 @@ GitHub 의 마크다운 노트(옛 JSON 도)를 받아 읽는 **읽기 전용** 
 ```bash
 ./gradlew ktlintCheck :app:assembleDebug test lintDebug
 python3 -I -m unittest discover notes-tests && python3 -I -m unittest discover public-repos/tests && python3 -I -m unittest discover public-repos/notes-kit/tests
-# 계측 시험 — 기기 하나를 붙여 따로 돌린다(`test` 에 안 든다). 라이브러리 시험이라 앱을 지우지 않는다
-ANDROID_SERIAL=<기기 serial> ./gradlew :core:design-system:connectedDebugAndroidTest :core:database:connectedDebugAndroidTest
+# 계측 시험 — 기기 하나를 붙여 모듈마다 차례로 돌린다(`test` 에 안 든다 · 한 호출에 묶으면 병렬로 겹쳐 서로 죽는다). 라이브러리 시험이라 앱을 지우지 않는다
+ANDROID_SERIAL=<기기 serial> ./gradlew :core:design-system:connectedDebugAndroidTest && ANDROID_SERIAL=<기기 serial> ./gradlew :core:database:connectedDebugAndroidTest
 ```
 
 **단일 테스트:**
@@ -60,7 +60,7 @@ app  ─────────────────────────
  ├─ core/network   ──→ core/data    GitHub Contents API
  ├─ core/database  ──→ core/data    Room3 캐시·학습 기록·요약 캐시 + DataStore
  ├─ core/data      ──→ core/format, core/domain  DataSource 인터페이스 소유 + reconcile
- ├─ core/format    ──→ core/domain  순수 JVM. 원문 → 블록(형식 고르기 · 해석 전 한도 · JetBrains markdown 변환 · JSON 형식 1 · 블록 캐시)
+ ├─ core/format    ──→ core/domain  순수 JVM. 원문 → 블록(형식 고르기 · 한도 · JetBrains markdown 변환 · JSON 형식 1 · 블록 캐시)
  ├─ core/domain    ─────────────────  순수 JVM. 인터페이스를 소유한다(DIP)
  ├─ core/navigation ─→ core/common   nav3 계약. 테마·도메인을 모른다
  ├─ core/design-system ─→ design-foundation, core/common
