@@ -176,7 +176,7 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
 - **`motion/`** — `MyNoteEasing`, `rememberReduceMotion()`. CompositionLocal 로 제공되지도 않고
   테마에 참여하지도 않아서 `theme/` 에서 빠져나온 것들이다. 모션 상수를 `theme/` 에 넣지 말 것.
   `rememberReduceMotion()` 은 `LocalInspectionMode` 를 OR 로 물고 있어 **프리뷰에서는 항상 true** 다.
-- **`component/`** — 재사용 위젯 + `Modifier` 확장(`fadingEdges`/`riseIn`/`aiShine`/`flip`) +
+- **`component/`** — 재사용 위젯 + `Modifier` 확장(`fadingEdges`/`horizontalScrollFade`/`riseIn`/`aiShine`/`flip`) +
   상태 홀더(`FloatingNavScrollState`) + 아이콘. 화면 전용 위젯은 여기가 아니라 feature 에 둔다.
   `NoteCard(bookmarked = true)` 는 `BookmarkRibbon`(12 × 17dp, `text2`)을 카드 `TopEnd` 에 `offset(-16, -1)` 로 건다 —
   카드 테두리 1dp 를 덮어야 해서 `Column` 의 `clip` **바깥** `Box` 에 그린다. 메타 줄 end 패딩 24dp 는 북마크 여부와
@@ -188,8 +188,8 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
   때만 잰다. 색은 `chartAccent2/3`·`chartFuture`(foundation) + 기존 토큰. `NumberedRow`·`SectionLabel` 은
   `component/` 에 있다(북마크의 `BookmarkRow` 와 아직 통합 전).
 - **`block/`** — 서버드리븐 콘텐츠의 UI 모델(`NoteContentBlock` 닫힌 sealed 집합)과 렌더러(`NoteContent`).
-  블록 종류를 늘리려면 `notes/SCHEMA.md` · data DTO · feature 의 매퍼 · 이 sealed 집합 · `NoteContent`
-  의 `when` 이 **한 세트로** 움직인다.
+  블록 종류를 늘리려면 `core/format/AGENTS.md` '새 블록 · 필드를 더할 때' 를 따른다 — 마크다운 변환 · format 캐시 DTO ·
+  domain · feature 매퍼 · 이 sealed 집합 · `NoteContent` 의 `when` 이 **한 세트로** 움직인다. JSON 형식 1 은 늘리지 않는다.
   `Unsupported(kind, salvaged, raw)` 만 와이어에 없는 **앱 내부 블록**이다 — 그리지 못한 블록·노트를 버리지 않고
   `UnsupportedBlock` 점선 상자로 그린다. `kind` 는 domain `UnsupportedReason` 을 옮긴 UI sealed 종류(이 모듈은 domain 을 모른다) —
   한도 넘음 `LimitExceeded(maxDepth, maxKilobytes)` 는 문구 숫자를 들고 온다. 숫자를 이 모듈 소스에 다시 적지 않는다.
@@ -208,7 +208,7 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
   금지). 열 폭은 순수 함수 `tableColumnWidths`(`TableColumnWidthsTest`), 선 · 머리 바탕은 측정이 상태에 남긴 자리를 그리기
   단계에서만 읽는다(`ScrollState.maxValue` 와 같은 길). 목록(`NoteList.kt`)은 기호 칸을 상수가 아니라 기호 글자를 재서 정하고
   항목을 첫 기준선으로 맞춘다. 4단부터 목록은 `hangLeft` 로 부모 기호 칸만큼 당겨 3단 기호 자리에 선다. 하위 블록은
-  `NoteBlockContent` 를 다시 부르고, 하위 자리의 `Unsupported` 는 펼침 상태가 없어 원문 보기 없이 그린다.
+  `NoteBlockContent` 를 다시 부른다. 하위 블록에는 상자가 오지 않는다(feature 매퍼가 건진 글자로 바꾼다). 와도 원문 보기 없이 그린다.
 
 ---
 
@@ -247,7 +247,7 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
 
 계측 테스트는 `androidTest` 의 `NoteContentSemanticsTest` 하나다 — 본문 블록이 시맨틱 트리에 싣는 것(취소선 낭독 글자 ·
 체크 상태 설명 · 표 행 · 열 수와 칸 정보 · 머리 칸 제목 · 제목 블록 제목)을 Compose 시험으로 본다. **`./gradlew test` 에는 들지 않는다.**
-기기 하나만 붙여 `ANDROID_SERIAL=emulator-5554 ./gradlew :core:design-system:connectedDebugAndroidTest` 로 돌린다.
+기기 하나만 붙여 `ANDROID_SERIAL=<기기 serial> ./gradlew :core:design-system:connectedDebugAndroidTest` 로 돌린다.
 라이브러리 시험이라 앱을 지우지 않지만, 같은 기기에서 계측 시험을 동시에 돌리면 시험 APK 재설치로 서로 죽는다 — 차례로 돌린다.
 
 단위 테스트는 `FloatingNavScrollStateTest`·`RawSliceTest`(원문 자르기 `sliceRaw`)·`NoteContentStateTest`(펼침 상태와 저장)·
@@ -269,6 +269,6 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
 ```bash
 ./gradlew :core:design-system:compileDebugKotlin
 ./gradlew :core:design-system:testDebugUnitTest
-ANDROID_SERIAL=emulator-5554 ./gradlew :core:design-system:connectedDebugAndroidTest   # 기기 필요 — 테스트 절
+ANDROID_SERIAL=<기기 serial> ./gradlew :core:design-system:connectedDebugAndroidTest   # 기기 필요 — 테스트 절
 ./gradlew ktlintFormat --continue && ./gradlew ktlintCheck && ./gradlew lintDebug
 ```

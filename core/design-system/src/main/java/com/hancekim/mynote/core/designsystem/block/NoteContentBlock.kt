@@ -72,7 +72,7 @@ sealed interface UnsupportedKind {
     data object BrokenNote : UnsupportedKind
 
     /**
-     * 해석 전 한도를 넘어 읽지 않은 노트.
+     * 한도를 넘어 읽지 않은 노트.
      *
      * @property maxDepth 중첩 단수 한도
      * @property maxKilobytes 원문 크기 한도(KB)
