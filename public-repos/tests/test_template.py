@@ -16,6 +16,7 @@ KIT_TOOL = support.load_module("kit_tool_for_template", support.KIT_TOOL)
 
 README_SECTIONS = ["시작하기", "노트 추가", "비공개로 만들었다면", "형식", "문제 해결"]
 APP_TERMS = [
+    "notes_entry_create",
     "notes_connect_link_label",
     "notes_connect_action",
     "notes_connect_token_title",
@@ -139,6 +140,7 @@ class TemplateTest(support.TempCase):
 
         self.assertRegex(sections["시작하기"], r"저장소.*주소.*복사")
         self.assertIn("붙여 넣", sections["시작하기"])
+        self.assertIn("Use this template", sections["시작하기"])
         for way in ("웹", "로컬", "플러그인"):
             self.assertIn(f"**{way}**", sections["노트 추가"])
         self.assertRegex(sections["노트 추가"], r"git pull.*한 번")
