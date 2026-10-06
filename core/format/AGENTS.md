@@ -5,7 +5,9 @@
 ## 이 모듈이 하는 일
 
 **노트 원문 한 개를 블록으로 바꾼다.** 형식 고르기 · 마크다운 해석 전 한도 · JSON 형식 1 읽기 · 블록 캐시 인코딩이 여기 있다.
-순수 JVM 모듈이다(`hancenote.jvm.library` + `kotlin.serialization` 별칭 + `java-test-fixtures`) — `import android.*` 는 컴파일 에러다.
+순수 JVM 모듈이다(`hancenote.jvm.library` + `kotlin.serialization` 별칭) — `import android.*` 는 컴파일 에러다.
+`java-test-fixtures` 는 컨벤션 규칙(모듈은 `hancenote.*` 와 별칭만)의 예외로 직접 적용한다 — 파리티 고정 사본을 이 모듈과 `:core:data` 시험이
+클래스패스로 읽는다(`build-logic/AGENTS.md` 모듈 표 아래).
 의존은 `:core:domain` 과 마크다운 엔진(`org.jetbrains:markdown`, 판은 `libs.versions.toml`)이고, 이 모듈을 아는 것은 `:core:data` 뿐이다.
 network · database · feature 는 모른다. `org.intellij.markdown` import 는 이 모듈 밖에 두지 않는다.
 

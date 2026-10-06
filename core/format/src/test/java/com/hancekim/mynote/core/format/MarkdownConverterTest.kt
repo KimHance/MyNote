@@ -124,23 +124,23 @@ class MarkdownConverterTest {
     fun `NF-1 앞머리 경계 묶음`() {
         val bundle = frontMatterBundle()
         val cases = Json.parseToJsonElement(File(bundle, "cases.json").readText()).jsonArray.map { it.jsonObject }
-
-        assertEquals(
+        val files =
             bundle
                 .listFiles()
                 .orEmpty()
-                .filter {
-                    it.extension == "md"
-                }.map { it.name }
-                .toSet(),
-            cases.map { it.file() }.toSet(),
-        )
+                .filter { it.extension == "md" }
+                .map { it.name }
+
+        assertTrue("앞머리 경계 묶음이 비었다", cases.isNotEmpty())
+        assertTrue(cases.any { it.frontMatter() })
+        assertTrue(cases.any { !it.frontMatter() })
+        assertEquals(files.toSet(), cases.map { it.file() }.toSet())
         cases.forEach { case ->
             val raw = File(bundle, case.file()).readBytes().decodeToString()
             val source = markdownSource(raw)
             val body = case.getValue("body").jsonPrimitive.content
 
-            assertEquals(case.file(), case.getValue("frontMatter").jsonPrimitive.boolean, source.frontMatter)
+            assertEquals(case.file(), case.frontMatter(), source.frontMatter)
             assertEquals(case.file(), body, source.body)
             assertEquals(case.file(), md(body), md(raw))
         }
@@ -170,6 +170,41 @@ class MarkdownConverterTest {
                 "***" to listOf(NoteBlock.Divider),
                 "___" to listOf(NoteBlock.Divider),
                 "\n\n\n" to emptyList(),
+            ),
+        )
+    }
+
+    @Test
+    fun `NF-3 인용 안 문단이 아닌 것은 그 글자를 줄로 잇는다`() {
+        fun quote(vararg spans: NoteSpan) = listOf(NoteBlock.Quote(spans.toList()))
+
+        assertTable(
+            listOf(
+                "> # h\n> 문단" to quote(t("h\n문단")),
+                "> ## **굵게** 제목" to quote(b("굵게"), t(" 제목")),
+                "> - a\n>   - b\n> 1. c" to quote(t("a\nb\nc")),
+                "> ```\n> x\n>   y\n>\n> z\n> ```" to quote(t("x\n  y\n\nz")),
+                ">     a\n>       b" to quote(t("a\n  b")),
+                "> <div>\n>   <p>x</p>\n> </div>" to quote(t("<div>\n  <p>x</p>\n</div>")),
+                "> | h1 | h2 |\n> |---|---|\n> | a | b |" to quote(t("h1 | h2\na | b")),
+                "> a\n>\n> ---\n>\n> b" to quote(t("a\nb")),
+                "> [!NOTE]\n> a" to quote(t("[!NOTE]\na")),
+                "> ```\n> ```\n> a" to quote(t("a")),
+            ),
+        )
+    }
+
+    @Test
+    fun `NF-3 닫히지 않은 펜스도 마지막 줄바꿈이 없다`() {
+        assertTable(
+            listOf(
+                "```\na\n" to listOf(NoteBlock.Code("a")),
+                "```\na" to listOf(NoteBlock.Code("a")),
+                "```\na\n\nb\n" to listOf(NoteBlock.Code("a\n\nb")),
+                "```\na\n```\n" to listOf(NoteBlock.Code("a")),
+                "- x\n\n  ```\n  y\n" to
+                    listOf(NoteBlock.BulletList(listOf(item(t("x"), children = listOf(NoteBlock.Code("y")))))),
+                "> ```\n> y\n" to listOf(NoteBlock.Quote(listOf(t("y")))),
             ),
         )
     }
@@ -435,3 +470,5 @@ class MarkdownConverterTest {
 }
 
 private fun kotlinx.serialization.json.JsonObject.file(): String = getValue("file").jsonPrimitive.content
+
+private fun kotlinx.serialization.json.JsonObject.frontMatter(): Boolean = getValue("frontMatter").jsonPrimitive.boolean

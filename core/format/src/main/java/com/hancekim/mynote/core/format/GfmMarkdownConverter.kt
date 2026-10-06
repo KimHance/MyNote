@@ -254,9 +254,7 @@ private class BlockReader(
     }
 
     private fun plainLines(text: String): List<List<NoteSpan>> =
-        text.split('\n').map {
-            SpanWriter(source).literal(it).spans()
-        }
+        if (text.isEmpty()) emptyList() else text.split('\n').map { listOf(NoteSpan(it)) }
 
     private fun tableLines(table: NoteBlock.Table): List<List<NoteSpan>> =
         (listOf(table.header) + table.rows).map { row ->
@@ -267,8 +265,9 @@ private class BlockReader(
         val start = node.children.firstOrNull { it.type == MarkdownTokenTypes.CODE_FENCE_START }
         val indent = start?.let { text(it).takeWhile { ch -> ch == ' ' }.length } ?: 0
         val closed = node.children.any { it.type == MarkdownTokenTypes.CODE_FENCE_END }
-        val lines = codeLines(node, MarkdownTokenTypes.CODE_FENCE_CONTENT) { it.dropSpaces(indent) }
-        return (if (closed) lines.dropLast(1) else lines).drop(1).joinToString("\n")
+        val endsWithLine = node.children.lastOrNull()?.type == MarkdownTokenTypes.EOL
+        val lines = codeLines(node, MarkdownTokenTypes.CODE_FENCE_CONTENT) { it.dropSpaces(indent) }.drop(1)
+        return (if (closed || endsWithLine) lines.dropLast(1) else lines).joinToString("\n")
     }
 
     private fun indentedCode(node: ASTNode): String =
