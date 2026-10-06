@@ -44,46 +44,14 @@ class DownloadFactsTest {
     }
 
     @Test
-    fun `대기 중인데 한 번 돌았으면 다시 시도를 기다린다`() {
+    fun `MD-8 재시도 상태는 남은 시간 없이 받은 만큼만 안다`() {
         val facts =
             DownloadFacts(
-                work =
-                    WorkFacts(
-                        state = WorkInfo.State.ENQUEUED,
-                        runAttemptCount = 1,
-                        nextScheduleTimeMillis = 30_000L,
-                    ),
-                partBytes = HALF,
-                nowMillis = 26_500L,
+                work = WorkFacts(WorkInfo.State.ENQUEUED, runAttemptCount = 1),
+                partBytes = GIGABYTE,
             )
 
-        assertEquals(ModelStatus.Retrying(HALF, TOTAL, 4), statusOf(facts))
-    }
-
-    @Test
-    fun `다시 시도 예정 시각이 없으면 남은 초를 비운다`() {
-        val facts =
-            DownloadFacts(
-                work = WorkFacts(WorkInfo.State.ENQUEUED, runAttemptCount = 2),
-            )
-
-        assertEquals(ModelStatus.Retrying(0L, TOTAL, null), statusOf(facts))
-    }
-
-    @Test
-    fun `예정 시각이 이미 지났으면 0초로 본다`() {
-        val facts =
-            DownloadFacts(
-                work =
-                    WorkFacts(
-                        state = WorkInfo.State.ENQUEUED,
-                        runAttemptCount = 3,
-                        nextScheduleTimeMillis = 1_000L,
-                    ),
-                nowMillis = 9_000L,
-            )
-
-        assertEquals(ModelStatus.Retrying(0L, TOTAL, 0), statusOf(facts))
+        assertEquals(ModelStatus.Retrying(GIGABYTE, TOTAL), statusOf(facts))
     }
 
     @Test
@@ -228,5 +196,6 @@ class DownloadFactsTest {
     private companion object {
         const val TOTAL = 2_588_147_712L
         const val HALF = 1_090_000_000L
+        const val GIGABYTE = 1_000_000_000L
     }
 }

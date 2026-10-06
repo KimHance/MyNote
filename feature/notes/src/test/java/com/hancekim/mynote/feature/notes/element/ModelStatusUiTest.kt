@@ -51,12 +51,79 @@ class ModelStatusUiTest {
     }
 
     @Test
-    fun `재시도 대기 초가 없으면 세부 문구를 비운다`() {
-        val withSeconds = modelCardUi(ModelStatus.Retrying(0L, 1L, inSeconds = 4))
-        val without = modelCardUi(ModelStatus.Retrying(0L, 1L, inSeconds = null))
+    fun `MD-8 재시도 카드는 초 없이 이어 받는다고 말한다`() {
+        val card = modelCardUi(ModelStatus.Retrying(RECEIVED, TOTAL))
 
-        assertEquals("4", withSeconds.detailArg)
-        assertEquals(null, without.detail)
+        assertEquals(ModelTone.Warn, card.tone)
+        assertEquals(R.string.notes_model_retrying, card.label)
+        assertEquals(R.string.notes_model_retrying_desc, card.detail)
+        assertEquals(null, card.detailArg)
+        assertEquals(ModelProgressUi.Determinate(RECEIVED, TOTAL, ModelTone.Warn), card.progress)
+        assertEquals(listOf(ModelAction.Cancel), card.actions)
+    }
+
+    @Test
+    fun `MD-8 재시도 알약에는 초가 없다`() {
+        val pill = modelPillUi(ModelStatus.Retrying(RECEIVED, TOTAL))
+
+        assertEquals(R.string.notes_pill_retrying, pill.label)
+        assertEquals(ModelTone.Warn, pill.tone)
+        assertEquals(null, pill.percent)
+        assertEquals(RECEIVED.toFloat() / TOTAL, pill.progress!!, 0.0001f)
+        assertEquals(null, pill.icon)
+    }
+
+    @Test
+    fun `MD-12 알림 꺼짐 안내는 작업 중에만 보인다`() {
+        listOf(
+            ModelStatus.WaitingForWifi,
+            ModelStatus.Preparing,
+            ModelStatus.Downloading(RECEIVED, TOTAL),
+            ModelStatus.Retrying(RECEIVED, TOTAL),
+            ModelStatus.Verifying,
+        ).forEach { assertTrue(it.toString(), modelCardUi(it).notificationHint) }
+
+        listOf(
+            ModelStatus.Paused(RECEIVED, TOTAL),
+            ModelStatus.Missing,
+            ModelStatus.Ready,
+            ModelStatus.Failed(ModelFailure.NO_SPACE),
+        ).forEach { assertFalse(it.toString(), modelCardUi(it).notificationHint) }
+    }
+
+    @Test
+    fun `MD-6 옛 no-plan 실패는 일반 실패 카드로 보인다`() {
+        val card = modelCardUi(ModelStatus.Failed("no-plan"))
+
+        assertEquals(R.string.notes_model_failed, card.label)
+        assertEquals(R.string.notes_model_failed_generic, card.detail)
+        assertEquals(R.string.notes_model_help, card.help)
+        assertEquals(listOf(ModelAction.Retry), card.actions)
+    }
+
+    @Test
+    fun `받는 중 알약만 퍼센트를 보조 글자로 쓴다`() {
+        assertEquals(42, modelPillUi(ModelStatus.Downloading(RECEIVED, TOTAL)).percent)
+
+        listOf(
+            ModelStatus.WaitingForWifi,
+            ModelStatus.Preparing,
+            ModelStatus.Retrying(RECEIVED, TOTAL),
+            ModelStatus.Verifying,
+            ModelStatus.Ready,
+            ModelStatus.Failed(ModelFailure.NO_SPACE),
+        ).forEach { assertEquals(it.toString(), null, modelPillUi(it).percent) }
+    }
+
+    @Test
+    fun `준비됨과 실패 알약은 색과 아이콘으로 가른다`() {
+        val ready = modelPillUi(ModelStatus.Ready)
+        val failed = modelPillUi(ModelStatus.Failed(ModelFailure.NO_SPACE))
+
+        assertEquals(ModelTone.Correct, ready.tone)
+        assertEquals(PillIcon.Check, ready.icon)
+        assertEquals(ModelTone.Wrong, failed.tone)
+        assertEquals(PillIcon.Warn, failed.icon)
     }
 
     @Test
@@ -65,7 +132,7 @@ class ModelStatusUiTest {
             ModelStatus.WaitingForWifi,
             ModelStatus.Preparing,
             ModelStatus.Downloading(1L, 2L),
-            ModelStatus.Retrying(1L, 2L, null),
+            ModelStatus.Retrying(1L, 2L),
             ModelStatus.Verifying,
         ).forEach { assertTrue(it.isBusy) }
 
@@ -82,6 +149,11 @@ class ModelStatusUiTest {
         assertEquals("1.09", gigabytes(1_090_000_000L))
         assertEquals("2.59", gigabytes(2_588_147_712L))
         assertEquals("0.00", gigabytes(0L))
+    }
+
+    private companion object {
+        const val RECEIVED = 1_090_000_000L
+        const val TOTAL = 2_588_147_712L
     }
 }
 

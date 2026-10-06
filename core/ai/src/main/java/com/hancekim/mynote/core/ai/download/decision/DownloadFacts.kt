@@ -15,14 +15,12 @@ internal data class WorkFacts(
     val total: Long? = null,
     val phase: String? = null,
     val reason: String? = null,
-    val nextScheduleTimeMillis: Long? = null,
 )
 
 internal data class DownloadFacts(
     val work: WorkFacts? = null,
     val installedBytes: Long? = null,
     val partBytes: Long = 0L,
-    val nowMillis: Long = 0L,
 )
 
 internal fun statusOf(facts: DownloadFacts): ModelStatus {
@@ -60,7 +58,6 @@ private fun queued(facts: DownloadFacts, work: WorkFacts): ModelStatus =
             ModelStatus.Retrying(
                 received = facts.partBytes,
                 total = totalOf(facts, work),
-                inSeconds = secondsUntil(work.nextScheduleTimeMillis, facts.nowMillis),
             )
         }
     }
@@ -75,10 +72,3 @@ private fun running(facts: DownloadFacts, work: WorkFacts): ModelStatus =
 private fun totalOf(facts: DownloadFacts, work: WorkFacts?): Long =
     work?.total?.takeIf { it > 0L }
         ?: ModelSource.TOTAL_BYTES
-
-private fun secondsUntil(nextScheduleTimeMillis: Long?, nowMillis: Long): Int? =
-    nextScheduleTimeMillis
-        ?.takeIf { it != Long.MAX_VALUE }
-        ?.let { ((it - nowMillis + MILLIS_PER_SECOND - 1) / MILLIS_PER_SECOND).coerceAtLeast(0L).toInt() }
-
-private const val MILLIS_PER_SECOND = 1_000L
