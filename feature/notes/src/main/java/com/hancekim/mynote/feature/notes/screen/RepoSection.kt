@@ -65,12 +65,13 @@ import com.hancekim.mynote.feature.notes.screen.connect.ConnectIcons
 import com.hancekim.mynote.feature.notes.screen.connect.DisconnectDialog
 import com.hancekim.mynote.feature.notes.screen.connect.KeepWordsText
 import com.hancekim.mynote.feature.notes.screen.connect.NoticeBox
+import com.hancekim.mynote.feature.notes.screen.connect.TOKEN_PAGE_URL
 import com.hancekim.mynote.feature.notes.screen.connect.TokenCreateButton
 import com.hancekim.mynote.feature.notes.screen.connect.TokenField
 import com.hancekim.mynote.feature.notes.screen.connect.TokenHowTo
 import com.hancekim.mynote.feature.notes.screen.connect.VerifyingLine
 import com.hancekim.mynote.feature.notes.screen.connect.monoAnnotated
-import com.hancekim.mynote.feature.notes.screen.connect.openTokenPage
+import com.hancekim.mynote.feature.notes.screen.connect.openExternal
 import kotlinx.coroutines.launch
 import com.hancekim.mynote.core.designsystem.R as DsR
 
@@ -423,7 +424,15 @@ private fun TokenEditor(
         TokenHowTo()
         Row {
             TokenCreateButton(
-                onClick = { if (!openTokenPage(context)) scope.launch { snackbar.showSnackbar(browserMissing) } },
+                onClick = {
+                    if (!openExternal(
+                            context,
+                            TOKEN_PAGE_URL,
+                        )
+                    ) {
+                        scope.launch { snackbar.showSnackbar(browserMissing) }
+                    }
+                },
             )
         }
         TokenField(

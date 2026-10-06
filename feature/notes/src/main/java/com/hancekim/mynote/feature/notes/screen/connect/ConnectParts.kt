@@ -6,6 +6,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.FlowRowScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -339,36 +342,69 @@ internal fun TokenCreateButton(
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun NoticeBox(
     text: String,
     modifier: Modifier = Modifier,
+    secondLine: String? = null,
+    ways: (@Composable FlowRowScope.() -> Unit)? = null,
 ) {
     val colors = MyNoteTheme.colors
     val shape = RoundedCornerShape(FIELD_RADIUS)
-    Row(
+    Column(
         modifier =
             modifier
                 .fillMaxWidth()
                 .clip(shape)
                 .background(colors.warn.copy(alpha = WARN_FILL_ALPHA))
-                .border(1.dp, colors.warn.copy(alpha = WARN_LINE_ALPHA), shape)
-                .padding(horizontal = 14.dp, vertical = 12.dp)
-                .semantics { liveRegion = LiveRegionMode.Polite },
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                .border(1.dp, colors.warn.copy(alpha = WARN_LINE_ALPHA), shape),
     ) {
-        Icon(
-            imageVector = ConnectIcons.Alert,
-            contentDescription = null,
-            tint = colors.warn,
-            modifier = Modifier.padding(top = 2.dp).size(18.dp),
-        )
-        KeepWordsText(
-            text = text,
-            style = MyNoteTheme.textStyles.bodySmall,
-            color = colors.warnText,
-            modifier = Modifier.weight(1f),
-        )
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 12.dp)
+                    .semantics { liveRegion = LiveRegionMode.Polite },
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Icon(
+                imageVector = ConnectIcons.Alert,
+                contentDescription = null,
+                tint = colors.warn,
+                modifier = Modifier.padding(top = 2.dp).size(18.dp),
+            )
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                KeepWordsText(
+                    text = text,
+                    style = MyNoteTheme.textStyles.bodySmall,
+                    color = colors.warnText,
+                )
+                if (secondLine != null) {
+                    KeepWordsText(
+                        text = secondLine,
+                        style = MyNoteTheme.textStyles.bodySmall,
+                        color = colors.warnText,
+                    )
+                }
+            }
+        }
+        if (ways != null) {
+            Box(
+                Modifier
+                    .padding(horizontal = 14.dp)
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(colors.warn.copy(alpha = WARN_LINE_ALPHA)),
+            )
+            FlowRow(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                itemVerticalAlignment = Alignment.CenterVertically,
+                content = ways,
+            )
+        }
     }
 }
 

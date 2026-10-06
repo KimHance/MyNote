@@ -495,6 +495,7 @@ internal fun QuietButton(
     modifier: Modifier = Modifier,
     contentDescription: String? = null,
     enabled: Boolean = true,
+    trailingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
 ) {
     val colors = MyNoteTheme.colors
     val shape = RoundedCornerShape(10.dp)
@@ -521,7 +522,22 @@ internal fun QuietButton(
                 ),
         contentAlignment = Alignment.Center,
     ) {
-        ButtonLabel(text = text, color = colors.text2, weight = FontWeight.W500)
+        if (trailingIcon == null) {
+            ButtonLabel(text = text, color = colors.text2, weight = FontWeight.W500)
+        } else {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                ButtonLabel(text = text, color = colors.text2, weight = FontWeight.W500)
+                Icon(
+                    imageVector = trailingIcon,
+                    contentDescription = null,
+                    tint = colors.text3,
+                    modifier = Modifier.size(15.dp),
+                )
+            }
+        }
     }
 }
 

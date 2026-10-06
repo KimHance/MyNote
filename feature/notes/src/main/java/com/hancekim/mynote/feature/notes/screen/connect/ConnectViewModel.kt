@@ -9,6 +9,7 @@ import com.hancekim.mynote.core.domain.ObserveConnectionUseCase
 import com.hancekim.mynote.core.domain.VerifyConnectLinkUseCase
 import com.hancekim.mynote.core.domain.connect.ConnectProgress
 import com.hancekim.mynote.core.domain.connect.ConnectVerification
+import com.hancekim.mynote.core.domain.connect.TemplateRepo
 import com.hancekim.mynote.core.domain.model.ConnectionState
 import com.hancekim.mynote.feature.notes.element.ConfirmUi
 import com.hancekim.mynote.feature.notes.element.ConnectIssue
@@ -42,6 +43,7 @@ class ConnectViewModel @Inject constructor(
     private val verifyConnectLink: VerifyConnectLinkUseCase,
     private val connectRepository: ConnectRepositoryUseCase,
     observeConnection: ObserveConnectionUseCase,
+    private val template: TemplateRepo?,
 ) : MviViewModel<ConnectUiState, ConnectIntent>() {
     private val link = trigger(savedState.get<String>(KEY_LINK).orEmpty())
     private val linkCheck = link.map(::linkCheckOf).triggerIn(linkCheckOf(link.value))
@@ -79,6 +81,7 @@ class ConnectViewModel @Inject constructor(
             notice = notice.value,
             confirm = confirm.value,
             resetCount = resetCount.value,
+            template = template,
         )
 
     override fun onFailure(cause: Throwable) {
