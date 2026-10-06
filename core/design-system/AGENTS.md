@@ -241,8 +241,13 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
 
 ## 테스트
 
-계측 테스트는 없다. 단위 테스트는 `FloatingNavScrollStateTest`·`RawSliceTest`(원문 자르기 `sliceRaw`)·`NoteContentStateTest`(펼침 상태와 저장)·
-`TableColumnWidthsTest`(표 열 폭)·`NoteListMarkerTest`(글머리 · 들여쓰기 멈춤)·`NoteSpansTest`(취소선 낭독)인데, 가능한 이유는
+계측 테스트는 `androidTest` 의 `NoteContentSemanticsTest` 하나다 — 본문 블록이 시맨틱 트리에 싣는 것(취소선 낭독 글자 ·
+체크 상태 설명 · 표 행 · 열 수와 칸 정보 · 머리 칸 제목)을 Compose 시험으로 본다. **`./gradlew test` 에는 들지 않는다.**
+기기 하나만 붙여 `ANDROID_SERIAL=emulator-5554 ./gradlew :core:design-system:connectedDebugAndroidTest` 로 돌린다.
+라이브러리 시험이라 앱을 지우지 않지만, 같은 기기에서 계측 시험을 동시에 돌리면 시험 APK 재설치로 서로 죽는다 — 차례로 돌린다.
+
+단위 테스트는 `FloatingNavScrollStateTest`·`RawSliceTest`(원문 자르기 `sliceRaw`)·`NoteContentStateTest`(펼침 상태와 저장)·
+`TableColumnWidthsTest`(표 열 폭)·`NoteListMarkerTest`(글머리 · 들여쓰기 멈춤)·`NoteSpansTest`(취소선 낭독 · 구간 모양)인데, 가능한 이유는
 같다 — 판정을 Compose 밖 순수 함수·클래스로 뺐다. `FloatingNavScrollStateTest` 가 가능한 이유는
 `FloatingNavScrollState` 가 **Compose 를 모르고 px 두 개만 받는 순수 클래스**이고
 `rememberFloatingNavScrollState()` 가 density 변환만 담당하도록 갈라 뒀기 때문이다.
@@ -260,5 +265,6 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
 ```bash
 ./gradlew :core:design-system:compileDebugKotlin
 ./gradlew :core:design-system:testDebugUnitTest
+ANDROID_SERIAL=emulator-5554 ./gradlew :core:design-system:connectedDebugAndroidTest   # 기기 필요 — 테스트 절
 ./gradlew ktlintFormat --continue && ./gradlew ktlintCheck && ./gradlew lintDebug
 ```
