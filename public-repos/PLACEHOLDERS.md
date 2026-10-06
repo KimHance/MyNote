@@ -6,7 +6,7 @@
 | 자리표시자 | 뜻 | 쓰이는 곳 | 정하는 사람 |
 |---|---|---|---|
 | `<OWNER>` | 공개 레포를 만드는 GitHub 계정 또는 조직 이름 | 공개 안내 문서 · `notes-kit/.claude-plugin/marketplace.json` · `notes-kit/plugins/mynote-notes/.claude-plugin/plugin.json` | 공개하는 사람 |
-| `<KIT_REPO>` | 도구 레포의 `소유자/저장소` 좌표(예: `<OWNER>/` 뒤에 레포 이름) | Action 을 부르는 줄(`uses: <KIT_REPO>@v1`) · 도구 README | 공개하는 사람 |
+| `<KIT_REPO>` | 도구 레포의 `소유자/저장소` 좌표(예: `<OWNER>/` 뒤에 레포 이름) | Action 을 부르는 줄(`uses: <KIT_REPO>@v1`) · 템플릿 workflow · 템플릿 README · 도구 README | 공개하는 사람 |
 | `<TEMPLATE_REPO>` | 템플릿 레포의 `소유자/저장소` 좌표 | 공개 안내 문서 | 공개하는 사람 |
 | `<LICENSE>` | 라이선스 이름과 본문 | 도구 README · `notes-kit/.claude-plugin/marketplace.json`(`license` 칸) | 공개하는 사람 |
 
