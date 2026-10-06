@@ -7,7 +7,7 @@ internal sealed interface Verdict {
 
     data object Complete : Verdict
 
-    data class RetryLater(val afterSeconds: Long?) : Verdict
+    data object RetryLater : Verdict
 
     data class GiveUp(val reason: String) : Verdict
 }
@@ -15,7 +15,6 @@ internal sealed interface Verdict {
 internal data class ResponseFacts(
     val status: Int,
     val contentRange: String? = null,
-    val retryAfterSeconds: Long? = null,
 )
 
 internal data class ContentRange(val start: Long?, val total: Long?)
@@ -36,7 +35,7 @@ internal fun judge(askedFrom: Long, facts: ResponseFacts): Verdict {
         206 -> if (range?.start == askedFrom) Verdict.Append(askedFrom) else Verdict.StartOver
         200 -> if (askedFrom == 0L) Verdict.Append(0L) else Verdict.StartOver
         416 -> if (range?.total == askedFrom) Verdict.Complete else Verdict.StartOver
-        408, 429, 500, 502, 503, 504 -> Verdict.RetryLater(facts.retryAfterSeconds)
+        408, 429, 500, 502, 503, 504 -> Verdict.RetryLater
         else -> Verdict.GiveUp("HTTP ${facts.status}")
     }
 }

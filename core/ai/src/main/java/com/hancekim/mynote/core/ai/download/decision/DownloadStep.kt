@@ -11,14 +11,12 @@ internal sealed interface DownloadStep {
 internal data class LocalState(
     val installedBytes: Long? = null,
     val partBytes: Long = 0L,
-    val savedPlan: DownloadPlan? = null,
 )
 
-internal fun nextStep(local: LocalState, remote: DownloadPlan): DownloadStep =
+internal fun nextStep(local: LocalState, totalBytes: Long): DownloadStep =
     when {
-        local.installedBytes == remote.totalBytes -> DownloadStep.VerifyInstalled
-        local.savedPlan != remote -> DownloadStep.Fetch(0L)
-        local.partBytes == remote.totalBytes -> DownloadStep.VerifyPart
-        local.partBytes in 1L until remote.totalBytes -> DownloadStep.Fetch(local.partBytes)
+        local.installedBytes == totalBytes -> DownloadStep.VerifyInstalled
+        local.partBytes == totalBytes -> DownloadStep.VerifyPart
+        local.partBytes in 1L until totalBytes -> DownloadStep.Fetch(local.partBytes)
         else -> DownloadStep.Fetch(0L)
     }

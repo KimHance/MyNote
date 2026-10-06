@@ -1,9 +1,8 @@
 package com.hancekim.mynote.core.ai.download.transfer
 
-import com.hancekim.mynote.core.ai.download.decision.DownloadPlan
+import com.hancekim.mynote.core.ai.download.decision.ExpectedModel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -21,29 +20,7 @@ class ModelFilesTest {
 
         assertEquals(MODEL, files.target.name)
         assertEquals("$MODEL.part", files.part.name)
-        assertEquals("$MODEL.plan", files.plan.name)
-    }
-
-    @Test
-    fun `plan 을 저장하고 그대로 다시 읽는다`() {
-        val files = files()
-
-        files.savePlan(PLAN)
-
-        assertEquals(PLAN, files.savedPlan())
-    }
-
-    @Test
-    fun `plan 이 없으면 null 이다`() {
-        assertNull(files().savedPlan())
-    }
-
-    @Test
-    fun `plan 이 깨져 있으면 던지지 않고 null 이다`() {
-        val files = files()
-        files.plan.writeText("{ 이건 JSON 이 아니다")
-
-        assertNull(files.savedPlan())
+        assertEquals("$MODEL.plan", files.legacyPlan.name)
     }
 
     @Test
@@ -60,27 +37,27 @@ class ModelFilesTest {
     }
 
     @Test
-    fun `part 를 버려도 plan 은 남는다`() {
+    fun `MD-4 받던 파일 지우기는 옛 plan 도 지운다`() {
         val files = files()
         files.part.writeBytes(ByteArray(10))
-        files.savePlan(PLAN)
+        files.legacyPlan.writeText(LEGACY_PLAN)
 
-        files.discardPart()
+        files.discardPartial()
 
         assertFalse(files.part.exists())
-        assertEquals(PLAN, files.savedPlan())
+        assertFalse(files.legacyPlan.exists())
     }
 
     @Test
     fun `promote 는 part 를 본명으로 옮기고 plan 을 지운다`() {
         val files = files()
         files.part.writeBytes(CONTENT)
-        files.savePlan(PLAN)
+        files.legacyPlan.writeText(LEGACY_PLAN)
 
         files.promote()
 
         assertFalse(files.part.exists())
-        assertFalse(files.plan.exists())
+        assertFalse(files.legacyPlan.exists())
         assertArrayEqualsBytes(CONTENT, files.target.readBytes())
     }
 
@@ -103,11 +80,11 @@ class ModelFilesTest {
     }
 
     @Test
-    fun `크기가 다르면 plan 과 맞지 않는다`() {
+    fun `크기가 다르면 기대값과 맞지 않는다`() {
         val files = files()
         files.target.writeBytes(ByteArray(CONTENT.size - 1))
 
-        assertFalse(files.matches(files.target, planFor(CONTENT)))
+        assertFalse(files.matches(files.target, expectedFor(CONTENT)))
     }
 
     @Test
@@ -115,7 +92,7 @@ class ModelFilesTest {
         val files = files()
         files.target.writeBytes(ByteArray(CONTENT.size))
 
-        assertFalse(files.matches(files.target, planFor(CONTENT)))
+        assertFalse(files.matches(files.target, expectedFor(CONTENT)))
     }
 
     @Test
@@ -123,22 +100,21 @@ class ModelFilesTest {
         val files = files()
         files.target.writeBytes(CONTENT)
 
-        assertTrue(files.matches(files.target, planFor(CONTENT)))
+        assertTrue(files.matches(files.target, expectedFor(CONTENT)))
     }
 
     @Test
-    fun `없는 파일은 plan 과 맞지 않는다`() {
+    fun `없는 파일은 기대값과 맞지 않는다`() {
         val files = files()
 
-        assertFalse(files.matches(files.target, planFor(CONTENT)))
+        assertFalse(files.matches(files.target, expectedFor(CONTENT)))
     }
 
-    private fun planFor(bytes: ByteArray): DownloadPlan {
+    private fun expectedFor(bytes: ByteArray): ExpectedModel {
         val probe = temp.newFile("probe-${bytes.size}-${bytes.hashCode()}").apply { writeBytes(bytes) }
-        return DownloadPlan(
-            commit = COMMIT,
-            sha256 = ModelFiles.sha256Of(probe),
+        return ExpectedModel(
             totalBytes = bytes.size.toLong(),
+            sha256 = ModelFiles.sha256Of(probe),
         )
     }
 
@@ -147,14 +123,8 @@ class ModelFilesTest {
 
     private companion object {
         const val MODEL = "gemma-4-E2B-it.litertlm"
-        const val COMMIT = "b3ca0d2f076785a8f4b2219ddbd2bdb99954eae1"
         const val HELLO_SHA256 = "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+        const val LEGACY_PLAN = """{"commit":"b3ca0d2f076785a8f4b2219ddbd2bdb99954eae1","totalBytes":2588147712}"""
         val CONTENT = "핸스노트 퀴즈 모델".toByteArray()
-        val PLAN =
-            DownloadPlan(
-                commit = COMMIT,
-                sha256 = "181938105e0eefd105961417e8da75903eacda102c4fce9ce90f50b97139a63c",
-                totalBytes = 2_588_147_712L,
-            )
     }
 }

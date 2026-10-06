@@ -1,6 +1,7 @@
 package com.hancekim.mynote.core.ai.download.transfer
 
 import com.hancekim.mynote.core.ai.download.decision.DownloadStep
+import com.hancekim.mynote.core.ai.download.decision.ExpectedModel
 import com.hancekim.mynote.core.ai.download.decision.LocalState
 import com.hancekim.mynote.core.ai.download.decision.Verdict
 import com.hancekim.mynote.core.ai.download.decision.enoughSpace
@@ -10,7 +11,7 @@ import com.hancekim.mynote.core.domain.model.ModelFailure
 internal sealed interface InstallResult {
     data object Installed : InstallResult
 
-    data class Retry(val afterSeconds: Long?) : InstallResult
+    data object Retry : InstallResult
 
     data class Failed(val reason: String) : InstallResult
 }
@@ -18,6 +19,7 @@ internal sealed interface InstallResult {
 internal class ModelInstaller(
     private val downloader: ModelDownloader,
     private val files: ModelFiles,
+    private val expected: ExpectedModel,
     private val allocatableBytes: () -> Long = { Long.MAX_VALUE },
 ) {
     suspend fun install(
@@ -25,35 +27,33 @@ internal class ModelInstaller(
         onVerifying: () -> Unit = {},
         onProgress: (Long, Long) -> Unit,
     ): InstallResult {
-        val remote = downloader.plan(url) ?: return InstallResult.Failed(REASON_NO_PLAN)
-        if (!enoughSpace(allocatableBytes(), remote.totalBytes, files.partBytes())) {
+        if (!enoughSpace(allocatableBytes(), expected.totalBytes, files.partBytes())) {
             return InstallResult.Failed(REASON_NO_SPACE)
         }
 
         repeat(MAX_ROUNDS) {
-            when (val step = nextStep(localState(), remote)) {
+            when (val step = nextStep(localState(), expected.totalBytes)) {
                 DownloadStep.VerifyInstalled -> {
                     onVerifying()
-                    if (files.matches(files.target, remote)) return InstallResult.Installed
+                    if (files.matches(files.target, expected)) return InstallResult.Installed
                     files.target.delete()
                 }
 
                 DownloadStep.VerifyPart -> {
                     onVerifying()
-                    if (files.matches(files.part, remote)) {
+                    if (files.matches(files.part, expected)) {
                         files.promote()
                         return InstallResult.Installed
                     }
-                    files.discardPart()
+                    files.discardPartial()
                 }
 
                 is DownloadStep.Fetch -> {
-                    if (step.from == 0L) files.discardPart()
-                    files.savePlan(remote)
+                    if (step.from == 0L) files.discardPartial()
                     val before = files.partBytes()
                     val verdict =
                         downloader.fetchInto(url, files.part, step.from) {
-                            onProgress(it, remote.totalBytes)
+                            onProgress(it, expected.totalBytes)
                         }
                     when (verdict) {
                         is Verdict.Append -> {
@@ -61,15 +61,15 @@ internal class ModelInstaller(
                         }
 
                         Verdict.StartOver -> {
-                            files.discardPart()
+                            files.discardPartial()
                         }
 
                         Verdict.Complete -> {
                             Unit
                         }
 
-                        is Verdict.RetryLater -> {
-                            return InstallResult.Retry(verdict.afterSeconds)
+                        Verdict.RetryLater -> {
+                            return InstallResult.Retry
                         }
 
                         is Verdict.GiveUp -> {
@@ -86,12 +86,10 @@ internal class ModelInstaller(
         LocalState(
             installedBytes = files.target.takeIf { it.isFile }?.length(),
             partBytes = files.partBytes(),
-            savedPlan = files.savedPlan(),
         )
 
     internal companion object {
         const val MAX_ROUNDS = 8
-        const val REASON_NO_PLAN = ModelFailure.NO_PLAN
         const val REASON_NO_SPACE = ModelFailure.NO_SPACE
         const val REASON_NO_PROGRESS = ModelFailure.NO_PROGRESS
         const val REASON_TOO_MANY_ROUNDS = ModelFailure.TOO_MANY_ROUNDS

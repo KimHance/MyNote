@@ -1,7 +1,6 @@
 package com.hancekim.mynote.core.ai.download.transfer
 
-import com.hancekim.mynote.core.ai.download.decision.DownloadPlan
-import kotlinx.serialization.json.Json
+import com.hancekim.mynote.core.ai.download.decision.ExpectedModel
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
@@ -10,24 +9,13 @@ import java.security.MessageDigest
 internal class ModelFiles(dir: File, fileName: String) {
     val target: File = File(dir, fileName)
     val part: File = File(dir, "$fileName$PART_SUFFIX")
-    val plan: File = File(dir, "$fileName$PLAN_SUFFIX")
-
-    fun savedPlan(): DownloadPlan? =
-        runCatching { json.decodeFromString<DownloadPlan>(plan.readText()) }.getOrNull()
-
-    fun savePlan(value: DownloadPlan) {
-        plan.parentFile?.mkdirs()
-        plan.writeText(json.encodeToString(value))
-    }
+    val legacyPlan: File = File(dir, "$fileName$LEGACY_PLAN_SUFFIX")
 
     fun partBytes(): Long = if (part.isFile) part.length() else 0L
 
-    fun discardPart() {
+    fun discardPartial() {
         part.delete()
-    }
-
-    fun discardPlan() {
-        plan.delete()
+        legacyPlan.delete()
     }
 
     fun promote(): File {
@@ -37,20 +25,18 @@ internal class ModelFiles(dir: File, fileName: String) {
             StandardCopyOption.REPLACE_EXISTING,
             StandardCopyOption.ATOMIC_MOVE,
         )
-        plan.delete()
+        legacyPlan.delete()
         return target
     }
 
-    fun matches(file: File, expected: DownloadPlan): Boolean =
+    fun matches(file: File, expected: ExpectedModel): Boolean =
         file.isFile && file.length() == expected.totalBytes && sha256Of(file) == expected.sha256
 
     internal companion object {
         const val PART_SUFFIX = ".part"
-        const val PLAN_SUFFIX = ".plan"
+        const val LEGACY_PLAN_SUFFIX = ".plan"
 
         private const val HASH_BUFFER_BYTES = 64 * 1024
-
-        private val json = Json { ignoreUnknownKeys = true }
 
         fun sha256Of(file: File): String {
             val digest = MessageDigest.getInstance("SHA-256")

@@ -1,12 +1,8 @@
 package com.hancekim.mynote.core.ai.download.transfer
 
-import com.hancekim.mynote.core.ai.download.decision.DownloadPlan
+import com.hancekim.mynote.core.ai.download.decision.ExpectedModel
 import com.hancekim.mynote.core.ai.download.decision.HEADER_CONTENT_RANGE
-import com.hancekim.mynote.core.ai.download.decision.HEADER_LINKED_ETAG
-import com.hancekim.mynote.core.ai.download.decision.HEADER_LINKED_SIZE
 import com.hancekim.mynote.core.ai.download.decision.HEADER_RANGE
-import com.hancekim.mynote.core.ai.download.decision.HEADER_REPO_COMMIT
-import com.hancekim.mynote.core.ai.download.decision.HEADER_RETRY_AFTER
 import kotlinx.coroutines.test.runTest
 import mockwebserver3.Dispatcher
 import mockwebserver3.MockResponse
@@ -30,15 +26,15 @@ class ModelInstallerTest {
 
     private lateinit var server: MockWebServer
     private lateinit var files: ModelFiles
+    private lateinit var expected: ExpectedModel
     private lateinit var installer: ModelInstaller
-    private lateinit var sha: String
 
     @Before
     fun start() {
         server = MockWebServer().apply { start() }
         files = ModelFiles(temp.newFolder("models"), MODEL)
-        installer = ModelInstaller(ModelDownloader(OkHttpClient()), files)
-        sha = shaOf(CONTENT)
+        expected = ExpectedModel(totalBytes = CONTENT_BYTES.size.toLong(), sha256 = shaOf(CONTENT))
+        installer = installerFor(files)
     }
 
     @After
@@ -53,8 +49,71 @@ class ModelInstallerTest {
 
             assertEquals(CONTENT, files.target.readText())
             assertFalse(files.part.exists())
-            assertFalse(files.plan.exists())
+            assertFalse(files.legacyPlan.exists())
             assertEquals(1, hub.bodyRequests)
+        }
+
+    @Test
+    fun `MD-1 받기는 HEAD 없이 본문 요청부터 한다`() =
+        runTest {
+            val hub = serve(CONTENT)
+
+            assertEquals(InstallResult.Installed, install())
+
+            assertEquals(listOf("GET"), hub.methods)
+        }
+
+    @Test
+    fun `MD-1 허브 헤더가 없어도 받는다`() =
+        runTest {
+            server.enqueue(
+                MockResponse
+                    .Builder()
+                    .code(200)
+                    .body(Buffer().write(CONTENT_BYTES))
+                    .build(),
+            )
+
+            assertEquals(InstallResult.Installed, install())
+
+            assertEquals(CONTENT, files.target.readText())
+            assertEquals(1, server.requestCount)
+        }
+
+    @Test
+    fun `MD-2 기대 크기와 해시가 맞으면 자리에 들어간다`() =
+        runTest {
+            serve(CONTENT)
+
+            assertEquals(InstallResult.Installed, install())
+
+            assertEquals(CONTENT, files.target.readText())
+            assertFalse(files.part.exists())
+        }
+
+    @Test
+    fun `MD-2 해시가 다르면 버리고 처음부터 받는다`() =
+        runTest {
+            val hub = serve(SAME_SIZE_OTHER, CONTENT)
+            val targetAtVerify = mutableListOf<Boolean>()
+
+            val result = install(onVerifying = { targetAtVerify += files.target.exists() })
+
+            assertEquals(InstallResult.Installed, result)
+            assertEquals(CONTENT, files.target.readText())
+            assertEquals(listOf(false, false), targetAtVerify)
+            assertEquals(listOf<String?>(null, null), hub.ranges)
+        }
+
+    @Test
+    fun `MD-2 끝내 안 맞으면 8라운드에서 멈춘다`() =
+        runTest {
+            val hub = serve(SAME_SIZE_OTHER)
+
+            assertEquals(InstallResult.Failed(ModelInstaller.REASON_TOO_MANY_ROUNDS), install())
+
+            assertTrue(hub.bodyRequests in 2..ModelInstaller.MAX_ROUNDS)
+            assertFalse(files.target.exists())
         }
 
     @Test
@@ -84,7 +143,6 @@ class ModelInstallerTest {
     fun `중간까지 받아 둔 것을 이어받는다`() =
         runTest {
             files.part.writeBytes(CONTENT_BYTES.copyOf(10))
-            files.savePlan(DownloadPlan(COMMIT, sha, CONTENT_BYTES.size.toLong()))
             val hub = serve(CONTENT)
 
             assertEquals(InstallResult.Installed, install())
@@ -94,35 +152,39 @@ class ModelInstallerTest {
         }
 
     @Test
-    fun `다른 커밋의 part 는 버리고 처음부터 받는다`() =
+    fun `MD-4 옛 plan 이 있어도 조각을 이어 받고 plan 을 남기지 않는다`() =
         runTest {
-            files.part.writeText("낯선 조각")
-            files.savePlan(DownloadPlan(OTHER_COMMIT, sha, CONTENT_BYTES.size.toLong()))
+            listOf(OTHER_COMMIT_PLAN, BROKEN_PLAN).forEachIndexed { index, legacy ->
+                val device = ModelFiles(temp.newFolder("legacy-$index"), MODEL)
+                device.part.writeBytes(CONTENT_BYTES.copyOf(10))
+                device.legacyPlan.writeText(legacy)
+                val hub = serve(CONTENT)
+
+                assertEquals(legacy, InstallResult.Installed, installerFor(device).install(url()) { _, _ -> })
+
+                assertEquals(legacy, "bytes=10-", hub.ranges.first())
+                assertEquals(legacy, CONTENT, device.target.readText())
+                assertFalse(legacy, device.legacyPlan.exists())
+            }
+        }
+
+    @Test
+    fun `MD-5 다른 파일의 조각은 섞이지 않고 처음부터 다시 받는다`() =
+        runTest {
+            files.part.writeText("XXXXX")
             val hub = serve(CONTENT)
 
             assertEquals(InstallResult.Installed, install())
 
             assertEquals(CONTENT, files.target.readText())
-            assertEquals(null, hub.lastRange)
-            assertEquals(1, hub.bodyRequests)
-        }
-
-    @Test
-    fun `처음부터 받아야 하는데 오류가 나면 낡은 part 를 남기지 않는다`() =
-        runTest {
-            files.part.writeText("낯선 조각")
-            files.savePlan(DownloadPlan(OTHER_COMMIT, sha, CONTENT_BYTES.size.toLong()))
-            serve(CONTENT, bodyStatus = 404)
-
-            assertTrue(install() is InstallResult.Failed)
-
-            assertEquals(0L, files.partBytes())
+            assertEquals(2, hub.bodyRequests)
+            assertEquals(listOf("bytes=5-", null), hub.ranges)
         }
 
     @Test
     fun `해시가 안 맞는 본문은 자리에 넣지 않는다`() =
         runTest {
-            serve(CONTENT, bodyOverride = "Y".repeat(CONTENT_BYTES.size))
+            serve(SAME_SIZE_OTHER)
 
             val result = install()
 
@@ -134,9 +196,9 @@ class ModelInstallerTest {
     fun `빈 용량이 모자라면 한 바이트도 받지 않는다`() =
         runTest {
             val hub = serve(CONTENT)
-            val tight = ModelInstaller(ModelDownloader(OkHttpClient()), files) { 1L }
+            val tight = installerFor(files) { 1L }
 
-            val result = tight.install(server.url("/resolve/$COMMIT/$MODEL").toString()) { _, _ -> }
+            val result = tight.install(url()) { _, _ -> }
 
             assertEquals(InstallResult.Failed(ModelInstaller.REASON_NO_SPACE), result)
             assertEquals(0, hub.bodyRequests)
@@ -146,24 +208,40 @@ class ModelInstallerTest {
     fun `이미 받아 둔 만큼은 용량 계산에서 빠진다`() =
         runTest {
             files.part.writeBytes(CONTENT_BYTES.copyOf(CONTENT_BYTES.size - 1))
-            files.savePlan(DownloadPlan(COMMIT, sha, CONTENT_BYTES.size.toLong()))
             serve(CONTENT)
-            val tight = ModelInstaller(ModelDownloader(OkHttpClient()), files) { 1L }
+            val tight = installerFor(files) { 1L }
 
-            val result = tight.install(server.url("/resolve/$COMMIT/$MODEL").toString()) { _, _ -> }
+            val result = tight.install(url()) { _, _ -> }
 
             assertEquals(InstallResult.Installed, result)
         }
 
     @Test
-    fun `신분증을 못 읽으면 받지 않고 실패한다`() =
+    fun `MD-3 공간이 모자라면 한 번도 요청하지 않는다`() =
         runTest {
-            server.dispatcher =
-                object : Dispatcher() {
-                    override fun dispatch(request: RecordedRequest) = MockResponse.Builder().code(302).build()
-                }
+            serve(CONTENT)
+            val tight = installerFor(files) { expected.totalBytes - 1 }
 
-            assertEquals(InstallResult.Failed(ModelInstaller.REASON_NO_PLAN), install())
+            val result = tight.install(url()) { _, _ -> }
+
+            assertEquals(InstallResult.Failed(ModelInstaller.REASON_NO_SPACE), result)
+            assertEquals(0, server.requestCount)
+        }
+
+    @Test
+    fun `MD-3 받아 둔 조각만큼은 덜 요구한다`() =
+        runTest {
+            files.part.writeBytes(CONTENT_BYTES.copyOf(10))
+            serve(CONTENT)
+
+            val short = installerFor(files) { expected.totalBytes - 11 }.install(url()) { _, _ -> }
+
+            assertEquals(InstallResult.Failed(ModelInstaller.REASON_NO_SPACE), short)
+            assertEquals(0, server.requestCount)
+
+            val exact = installerFor(files) { expected.totalBytes - 10 }.install(url()) { _, _ -> }
+
+            assertEquals(InstallResult.Installed, exact)
         }
 
     @Test
@@ -175,11 +253,20 @@ class ModelInstallerTest {
         }
 
     @Test
-    fun `429 는 대기 시간을 안고 재시도로 넘어간다`() =
+    fun `MD-7 429 는 Retry-After 와 무관하게 재시도한다`() =
         runTest {
-            serve(CONTENT, bodyStatus = 429, retryAfter = 295L)
+            serve(CONTENT, bodyStatus = 429, retryAfter = "120")
+            val withHeader = install()
+            serve(CONTENT, bodyStatus = 429)
+            val withoutHeader = install()
 
-            assertEquals(InstallResult.Retry(295L), install())
+            assertEquals(InstallResult.Retry, withHeader)
+            assertEquals(withHeader, withoutHeader)
+
+            serve(CONTENT, bodyStatus = 404)
+            assertEquals(InstallResult.Failed("HTTP 404"), install())
+            serve(CONTENT, bodyStatus = 403)
+            assertEquals(InstallResult.Failed("HTTP 403"), install())
         }
 
     @Test
@@ -199,7 +286,7 @@ class ModelInstallerTest {
     @Test
     fun `한 바이트도 안 오면 무한히 돌지 않는다`() =
         runTest {
-            serve(CONTENT, bodyOverride = "")
+            serve("")
 
             assertEquals(InstallResult.Failed(ModelInstaller.REASON_NO_PROGRESS), install())
         }
@@ -219,22 +306,26 @@ class ModelInstallerTest {
         onVerifying: () -> Unit = {},
         onProgress: (Long, Long) -> Unit = { _, _ -> },
     ) = installer.install(
-        url = server.url("/resolve/$COMMIT/$MODEL").toString(),
+        url = url(),
         onVerifying = onVerifying,
         onProgress = onProgress,
     )
 
+    private fun installerFor(
+        target: ModelFiles,
+        allocatableBytes: () -> Long = { Long.MAX_VALUE },
+    ) = ModelInstaller(ModelDownloader(OkHttpClient()), target, expected, allocatableBytes)
+
+    private fun url(): String = server.url("/resolve/$COMMIT/$MODEL").toString()
+
     private fun serve(
-        content: String,
-        bodyOverride: String? = null,
+        vararg bodies: String,
         bodyStatus: Int = 0,
-        retryAfter: Long? = null,
+        retryAfter: String? = null,
     ): FakeHub {
         val hub =
             FakeHub(
-                content = content.toByteArray(),
-                sha = shaOf(content),
-                bodyOverride = bodyOverride?.toByteArray(),
+                bodies = bodies.map { it.toByteArray() },
                 bodyStatus = bodyStatus,
                 retryAfter = retryAfter,
             )
@@ -246,37 +337,28 @@ class ModelInstallerTest {
         ModelFiles.sha256Of(File(temp.root, "probe-${text.hashCode()}").apply { writeText(text) })
 
     private class FakeHub(
-        private val content: ByteArray,
-        private val sha: String,
-        private val bodyOverride: ByteArray?,
+        private val bodies: List<ByteArray>,
         private val bodyStatus: Int,
-        private val retryAfter: Long?,
+        private val retryAfter: String?,
     ) : Dispatcher() {
-        var bodyRequests = 0
-        var lastRange: String? = null
+        val methods = mutableListOf<String>()
+        val ranges = mutableListOf<String?>()
+        val bodyRequests get() = ranges.size
+        val lastRange get() = ranges.lastOrNull()
 
         override fun dispatch(request: RecordedRequest): MockResponse {
-            if (request.method == "HEAD") {
-                return MockResponse
-                    .Builder()
-                    .code(302)
-                    .setHeader("Location", "https://cdn.example.test/blob")
-                    .setHeader(HEADER_LINKED_SIZE, content.size.toString())
-                    .setHeader(HEADER_LINKED_ETAG, "\"$sha\"")
-                    .setHeader(HEADER_REPO_COMMIT, COMMIT)
-                    .build()
-            }
-            bodyRequests++
-            lastRange = request.headers[HEADER_RANGE]
+            methods += request.method
+            val range = request.headers[HEADER_RANGE]
+            ranges += range
             if (bodyStatus != 0) {
                 return MockResponse
                     .Builder()
                     .code(bodyStatus)
-                    .apply { retryAfter?.let { setHeader(HEADER_RETRY_AFTER, it.toString()) } }
+                    .apply { retryAfter?.let { setHeader("Retry-After", it) } }
                     .build()
             }
-            val served = bodyOverride ?: content
-            val from = lastRange?.removePrefix("bytes=")?.removeSuffix("-")?.toIntOrNull() ?: 0
+            val served = bodies[(ranges.size - 1).coerceAtMost(bodies.lastIndex)]
+            val from = range?.removePrefix("bytes=")?.removeSuffix("-")?.toIntOrNull() ?: 0
             if (from == 0) {
                 return MockResponse
                     .Builder()
@@ -296,8 +378,12 @@ class ModelInstallerTest {
     private companion object {
         const val MODEL = "gemma-4-E2B-it.litertlm"
         const val COMMIT = "b3ca0d2f076785a8f4b2219ddbd2bdb99954eae1"
-        const val OTHER_COMMIT = "0000000000000000000000000000000000000000"
         const val CONTENT = "핸스노트 퀴즈 모델 가중치 덩어리 - 테스트용 본문입니다"
+        const val OTHER_COMMIT = "0000000000000000000000000000000000000000"
+        const val OTHER_SHA = "ffff38105e0eefd105961417e8da75903eacda102c4fce9ce90f50b97139a63c"
+        const val OTHER_COMMIT_PLAN = """{"commit":"$OTHER_COMMIT","sha256":"$OTHER_SHA","totalBytes":2588147712}"""
+        const val BROKEN_PLAN = "{ 이건 JSON 이 아니다"
         val CONTENT_BYTES = CONTENT.toByteArray()
+        val SAME_SIZE_OTHER = "Y".repeat(CONTENT_BYTES.size)
     }
 }
