@@ -98,11 +98,11 @@ class DownloadNoticesTest {
         val workerStarted =
             FakeBoard().feed(
                 NoticeEvent.Reported(ModelStatus.Failed("HTTP 404")),
-                NoticeEvent.Reported(ModelStatus.Preparing),
+                NoticeEvent.Launched,
             )
 
         assertEquals(emptyList<Notice>(), retried.shown)
-        assertEquals(listOf(PREPARING), workerStarted.shown)
+        assertEquals(emptyList<Notice>(), workerStarted.shown)
     }
 
     @Test
@@ -133,6 +133,23 @@ class DownloadNoticesTest {
     }
 
     @Test
+    fun `MD-10 포그라운드가 되기 전에 멈추거나 실패해도 준비 알림이 남지 않는다`() {
+        val fromFailure = FakeBoard().feed(NoticeEvent.Reported(ModelStatus.Failed("HTTP 404")), NoticeEvent.Launched)
+        val fromRetry =
+            FakeBoard().feed(
+                NoticeEvent.Reported(ModelStatus.Retrying(RECEIVED, TOTAL)),
+                NoticeEvent.Backgrounded(ModelStatus.Retrying(RECEIVED, TOTAL)),
+                NoticeEvent.Launched,
+            )
+        val fromWaiting =
+            FakeBoard().feed(NoticeEvent.Backgrounded(ModelStatus.WaitingForWifi), NoticeEvent.Launched)
+
+        assertEquals(emptyList<Notice>(), fromFailure.shown)
+        assertEquals(emptyList<Notice>(), fromRetry.shown)
+        assertEquals(listOf(WAITING), fromWaiting.shown)
+    }
+
+    @Test
     fun `MD-10 받는 중 취소해도 알림이 남지 않는다`() {
         val board =
             FakeBoard().feed(
@@ -149,12 +166,12 @@ class DownloadNoticesTest {
         val board =
             FakeBoard().feed(
                 NoticeEvent.Started,
-                NoticeEvent.Reported(ModelStatus.Preparing),
+                NoticeEvent.Launched,
                 NoticeEvent.Reported(ModelStatus.Downloading(RECEIVED, TOTAL)),
                 NoticeEvent.Reported(ModelStatus.Retrying(RECEIVED, TOTAL)),
                 NoticeEvent.Observed(ModelStatus.Retrying(RECEIVED, TOTAL)),
                 NoticeEvent.Backgrounded(ModelStatus.Retrying(RECEIVED, TOTAL)),
-                NoticeEvent.Reported(ModelStatus.Preparing),
+                NoticeEvent.Launched,
                 NoticeEvent.Reported(ModelStatus.Downloading(TOTAL, TOTAL)),
                 NoticeEvent.Reported(ModelStatus.Verifying),
                 NoticeEvent.Reported(ModelStatus.Ready),

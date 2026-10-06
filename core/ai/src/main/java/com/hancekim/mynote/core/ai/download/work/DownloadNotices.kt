@@ -41,6 +41,8 @@ internal data class Notice(
 internal sealed interface NoticeEvent {
     data object Started : NoticeEvent
 
+    data object Launched : NoticeEvent
+
     data object Cancelled : NoticeEvent
 
     data object Deleted : NoticeEvent
@@ -63,6 +65,7 @@ internal interface NoticeBoard {
 internal fun NoticeBoard.on(event: NoticeEvent) {
     when (event) {
         NoticeEvent.Started -> hide(NoticeSlot.RESULT)
+        NoticeEvent.Launched -> clear(NoticeSlot.entries - NoticeSlot.PROGRESS)
         NoticeEvent.Cancelled, NoticeEvent.Deleted -> clear(NoticeSlot.entries)
         is NoticeEvent.Reported -> leave(noticeOf(event.status))
         is NoticeEvent.Stopped -> leave(noticeAfterStop(event.reason, event.received, event.total))

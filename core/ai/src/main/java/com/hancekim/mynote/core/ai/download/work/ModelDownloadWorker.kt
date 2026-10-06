@@ -58,7 +58,7 @@ internal class ModelDownloadWorker
 
         override suspend fun doWork(): Result {
             notifications.createChannel()
-            notifications.on(NoticeEvent.Reported(ModelStatus.Preparing))
+            notifications.on(NoticeEvent.Launched)
             setForeground(foregroundInfo())
 
             val files = modelFilesOf(context)
