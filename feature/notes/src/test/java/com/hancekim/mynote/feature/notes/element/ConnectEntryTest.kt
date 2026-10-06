@@ -1,5 +1,6 @@
 package com.hancekim.mynote.feature.notes.element
 
+import com.hancekim.mynote.core.domain.connect.ConnectProbeFailure
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -66,12 +67,13 @@ class ConnectEntryTest {
     }
 
     @Test
-    fun `RC-9 토큰 사용 중 목록 접근 불가는 토큰 칸의 실패라 상자의 길이 아니다`() {
-        val issue =
-            issueOfProbe(
-                com.hancekim.mynote.core.domain.connect.ConnectProbeFailure.ManifestInaccessible,
-                hadToken = true,
-            )
+    fun `RC-9 토큰 사용 중 목록 접근 불가에는 길이 없다`() {
+        val issue = issueOfProbe(ConnectProbeFailure.ManifestInaccessible, hadToken = true)
+
         assertEquals(ConnectIssue.TokenField(TokenFailureKind.NoList), issue)
+        assertFalse(issue is ConnectIssue.Notice)
+        val ways = (issue as? ConnectIssue.Notice)?.let { noticeWays(it.kind, templateAvailable = true) }
+        assertEquals(null, ways)
+        assertFalse(entryVisible(ConnectStep.Editing, tokenPanelOpen = true, notice = null, templateAvailable = true))
     }
 }

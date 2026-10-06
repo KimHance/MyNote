@@ -309,7 +309,6 @@ internal fun ConnectScreen(
                 val topPad =
                     when {
                         place == ConnectPlace.Stacked -> STACKED_TOP
-                        twoColumns && maxHeight < TWO_COLUMN_BUDGET -> TWO_COLUMN_TIGHT_TOP
                         short -> SHORT_ROOT_TOP
                         adaptive.useModalDrawer -> COMPACT_ROOT_TOP
                         else -> WIDE_ROOT_TOP
@@ -330,13 +329,17 @@ internal fun ConnectScreen(
                                     bottom = if (twoColumns) TWO_COLUMN_BOTTOM else BOTTOM_PAD,
                                 ),
                     ) {
-                        if (place == ConnectPlace.Root) {
+                        if (place == ConnectPlace.Root && !twoColumns) {
                             ConnectHeading()
                             Spacer(Modifier.height(HEADING_GAP))
                         }
                         if (twoColumns) {
                             Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-                                Box(Modifier.weight(1f)) { linkSection() }
+                                Column(Modifier.weight(1f)) {
+                                    ConnectHeading()
+                                    Spacer(Modifier.height(HEADING_GAP))
+                                    linkSection()
+                                }
                                 EntryColumnDivider()
                                 EntrySection(onCreate = onOpenCreate, modifier = Modifier.weight(1f))
                             }
@@ -570,8 +573,6 @@ private val WIDE_ROOT_TOP: Dp = 72.dp
 private val GAP: Dp = 24.dp
 private val HEADING_GAP: Dp = 12.dp
 private val TWO_COLUMN_MAX_WIDTH: Dp = 800.dp
-private val TWO_COLUMN_BUDGET: Dp = 332.dp
-private val TWO_COLUMN_TIGHT_TOP: Dp = 8.dp
 private val TWO_COLUMN_BOTTOM: Dp = 8.dp
 private val SHORT_GAP: Dp = 16.dp
 private val CARD_RADIUS: Dp = 14.dp
