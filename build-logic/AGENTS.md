@@ -176,6 +176,7 @@ Gradle 을 돌리는 JDK 로 컴파일하고 타깃만 17 로 맞춘다.
 | `catalogInput` | `gradle/libs.versions.toml`(파일 하나) | `:core:format` |
 
 **요청한 모듈만 켠다**(결정 15 · D18): 모든 모듈에 걸면 폴더 한 글자에 전 모듈 시험이 돈다. 폴더가 없어도 실패하지 않는다(빈 입력).
+`__pycache__` 는 모든 트리에서 뺀다 — PY 시험이 `gen_index.py` 를 import 하며 `notes/` 안에 만들어서, 세면 PY 시험 뒤마다 JVM 시험이 UP-TO-DATE 를 잃는다.
 폴더를 더하려면 `RepoTestInputs.kt` 의 표에 한 줄을 더한다. 폴더 안 파일 하나만이면 `include` 로 거른다.
 
 ## 캐시 (루트 `gradle.properties`)

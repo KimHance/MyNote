@@ -153,9 +153,7 @@ internal class SpanWriter(
                 afterLineEnd = lineStart
             }
 
-            type == MarkdownTokenTypes.WHITE_SPACE && lineStart -> {
-                Unit
-            }
+            type == MarkdownTokenTypes.WHITE_SPACE && lineStart -> {}
 
             type in LITERAL_TOKENS -> {
                 appendLiteral(text(node), marks, code = false)
@@ -185,9 +183,7 @@ internal class SpanWriter(
                     lineStart = true
                 }
 
-                MarkdownTokenTypes.BLOCK_QUOTE -> {
-                    Unit
-                }
+                MarkdownTokenTypes.BLOCK_QUOTE -> {}
 
                 MarkdownTokenTypes.WHITE_SPACE -> {
                     if (!lineStart) content.append(text(child))

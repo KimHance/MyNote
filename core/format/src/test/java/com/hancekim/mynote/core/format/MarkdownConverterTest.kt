@@ -18,6 +18,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
+import java.security.MessageDigest
 
 private fun t(text: String) = NoteSpan(text)
 
@@ -69,6 +70,9 @@ private fun indentedList(levels: Int): String = (0 until levels).joinToString("\
 
 private fun lazyList(levels: Int): String =
     (0 until levels).joinToString("\n") { "  ".repeat(it) + "- x\n1234567890) 이어지는 글" }
+
+private fun sha256(bytes: ByteArray): String =
+    MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
 
 private fun frontMatterBundle(): File =
     generateSequence(File(System.getProperty("user.dir")).absoluteFile) { it.parentFile }
@@ -136,7 +140,9 @@ class MarkdownConverterTest {
         assertTrue(cases.any { !it.frontMatter() })
         assertEquals(files.toSet(), cases.map { it.file() }.toSet())
         cases.forEach { case ->
-            val raw = File(bundle, case.file()).readBytes().decodeToString()
+            val bytes = File(bundle, case.file()).readBytes()
+            assertEquals(case.file(), case.getValue("sha256").jsonPrimitive.content, sha256(bytes))
+            val raw = bytes.decodeToString()
             val source = markdownSource(raw)
             val body = case.getValue("body").jsonPrimitive.content
 
@@ -159,6 +165,7 @@ class MarkdownConverterTest {
                 "a" to listOf(p(t("a"))),
                 "```kotlin\nval x = 1\n  y\nz\n```" to listOf(NoteBlock.Code("val x = 1\n  y\nz")),
                 "    a\n      b" to listOf(NoteBlock.Code("a\n  b")),
+                " ```\n a\n  b\n ```" to listOf(NoteBlock.Code("a\n b")),
                 "> a\n>\n> b" to listOf(NoteBlock.Quote(listOf(t("a\nb")))),
                 "> - x" to listOf(NoteBlock.Quote(listOf(t("x")))),
                 "- a" to listOf(bullet),
@@ -442,6 +449,7 @@ class MarkdownConverterTest {
                 "\\*a\\*" to listOf(p(t("*a*"))),
                 "&amp; &quot; &#65; &bogus;" to listOf(p(t("& \" A &bogus;"))),
                 "&#x1F600;" to listOf(p(t("\uD83D\uDE00"))),
+                "a&#0;b" to listOf(p(t("a\uFFFDb"))),
                 "&fjlig; &NotEqualTilde; &ngE;" to listOf(p(t("fj \u2242\u0338 \u2267\u0338"))),
                 "[^n]: 설명" to listOf(p(t("[^n]: 설명"))),
                 "[^1]: 각주 본문이다" to listOf(p(t("[^1]: 각주 본문이다"))),

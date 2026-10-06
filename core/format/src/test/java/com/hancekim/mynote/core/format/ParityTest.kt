@@ -145,7 +145,9 @@ class ParityTest {
                     format.derive(note.jsonPath, note.json).excerpt,
                     format.derive(note.markdownPath, note.markdown).excerpt,
                 )
-                assertEquals(note.markdownPath, quizText(json), quizText(markdown))
+                val quiz = quizText(markdown)
+                assertTrue(note.markdownPath, !quiz.isNullOrEmpty())
+                assertEquals(note.markdownPath, quizText(json), quiz)
             }
         }
 

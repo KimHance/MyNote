@@ -95,12 +95,25 @@ class GenerateQuizUseCaseTest {
                             NoteBlock.Code("x\ny"),
                             NoteBlock.Paragraph(spans("p")),
                             NoteBlock.Table(listOf(cell("h")), listOf(listOf(cell("v"))), listOf(TableAlign.None)),
+                            NoteBlock.Quote(spans("q1\nq2")),
                         ),
                         item("d"),
                     ),
                 )
             assertEquals(
-                listOf("- a", "  - b", "    - c", "  x", "  y", "  p", "  h", "  v", "- d").joinToString("\n"),
+                listOf(
+                    "- a",
+                    "  - b",
+                    "    - c",
+                    "  x",
+                    "  y",
+                    "  p",
+                    "  h",
+                    "  v",
+                    "  q1",
+                    "  q2",
+                    "- d",
+                ).joinToString("\n"),
                 plainTextOf(nested),
             )
 

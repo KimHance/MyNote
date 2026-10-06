@@ -26,7 +26,13 @@ fun Project.configureRepoTestInputs() {
         val trees =
             REPO_TEST_INPUTS
                 .filter { hasProperty(it.property) }
-                .map { input -> input.name to rootProject.fileTree(input.dir) { include(input.include) } }
+                .map { input ->
+                    input.name to
+                        rootProject.fileTree(input.dir) {
+                            include(input.include)
+                            exclude("**/__pycache__/**")
+                        }
+                }
         if (trees.isEmpty()) return@afterEvaluate
         tasks.withType<Test>().configureEach {
             trees.forEach { (name, tree) ->

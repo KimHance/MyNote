@@ -13,6 +13,7 @@ import org.intellij.markdown.MarkdownTokenTypes
 import org.intellij.markdown.ast.ASTNode
 import org.intellij.markdown.flavours.gfm.GFMElementTypes
 import org.intellij.markdown.flavours.gfm.GFMTokenTypes
+import org.intellij.markdown.parser.CancellationToken
 import org.intellij.markdown.parser.LinkMap
 import org.intellij.markdown.parser.MarkdownParser
 
@@ -55,11 +56,16 @@ private val SKIPPED =
 internal class GfmMarkdownConverter(
     private val limits: NoteLimits = NoteLimits.Default,
 ) : MarkdownConverter {
-    private val parser = MarkdownParser(NoteMarkdownFlavour, assertionsEnabled = false)
+    private val parser =
+        MarkdownParser(
+            NoteMarkdownFlavour,
+            assertionsEnabled = false,
+            cancellationToken = CancellationToken.NonCancellable,
+        )
 
     override fun convert(raw: String): List<NoteBlock> {
         val body = markdownSource(raw).body
-        val root = parser.buildMarkdownTreeFromString(body)
+        val root = parser.tree(body)
         val links = LinkMap.buildLinkMap(root, body)
         val reader = BlockReader(body, limits) { !it.isFootnoteLabel() && links.getLinkInfo(it) != null }
         val blocks = reader.blocks(root.children, depth = 1)
@@ -70,6 +76,8 @@ internal class GfmMarkdownConverter(
         }
     }
 }
+
+private fun MarkdownParser.tree(text: CharSequence): ASTNode = buildMarkdownTreeFromString(text)
 
 private class BlockReader(
     private val source: String,

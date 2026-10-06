@@ -126,6 +126,7 @@ class FrontMatterTest(support.TempCase):
         for case in cases:
             with self.subTest(case["file"]):
                 raw = (bundle / case["file"]).read_bytes()
+                self.assertEqual(hashlib.sha256(raw).hexdigest(), case["sha256"])
                 text = GEN_INDEX.normalize_text(raw)
                 head, body = GEN_INDEX.split_front_matter(text)
                 self.assertEqual(head is not None, case["frontMatter"])
