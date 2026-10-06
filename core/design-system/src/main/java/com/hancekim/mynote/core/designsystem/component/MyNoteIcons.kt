@@ -1,6 +1,7 @@
 package com.hancekim.mynote.core.designsystem.component
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
@@ -142,6 +143,33 @@ object MyNoteIcons {
         }
     }
 
+    val CheckBox: ImageVector by lazy {
+        strokeIcon("check_box") {
+            roundedSquare(start = 3f, end = 21f, radius = 4f)
+        }
+    }
+
+    val CheckBoxChecked: ImageVector by lazy {
+        ImageVector
+            .Builder(
+                name = "check_box_checked",
+                defaultWidth = 21.dp,
+                defaultHeight = 21.dp,
+                viewportWidth = 24f,
+                viewportHeight = 24f,
+            ).path(fill = SolidColor(Color.White), pathFillType = PathFillType.EvenOdd) {
+                roundedSquare(start = 2.15f, end = 21.85f, radius = 4.85f)
+                moveTo(6.9f, 12.9f)
+                lineTo(10.53f, 16.53f)
+                lineTo(17.13f, 9.27f)
+                arcTo(0.85f, 0.85f, 0f, isMoreThanHalf = false, isPositiveArc = false, x1 = 15.87f, y1 = 8.13f)
+                lineTo(10.47f, 14.07f)
+                lineTo(8.1f, 11.7f)
+                arcTo(0.85f, 0.85f, 0f, isMoreThanHalf = false, isPositiveArc = false, x1 = 6.9f, y1 = 12.9f)
+                close()
+            }.build()
+    }
+
     val Close: ImageVector by lazy {
         strokeIcon("close") {
             moveTo(6f, 6f)
@@ -185,6 +213,23 @@ private fun PathBuilder.fourPointStar(
     curveTo(cx + far, cy + near, cx + near, cy + far, cx, cy + r)
     curveTo(cx - near, cy + far, cx - far, cy + near, cx - r, cy)
     curveTo(cx - far, cy - near, cx - near, cy - far, cx, cy - r)
+    close()
+}
+
+private fun PathBuilder.roundedSquare(
+    start: Float,
+    end: Float,
+    radius: Float,
+) {
+    moveTo(start + radius, start)
+    lineTo(end - radius, start)
+    arcTo(radius, radius, 0f, isMoreThanHalf = false, isPositiveArc = true, x1 = end, y1 = start + radius)
+    lineTo(end, end - radius)
+    arcTo(radius, radius, 0f, isMoreThanHalf = false, isPositiveArc = true, x1 = end - radius, y1 = end)
+    lineTo(start + radius, end)
+    arcTo(radius, radius, 0f, isMoreThanHalf = false, isPositiveArc = true, x1 = start, y1 = end - radius)
+    lineTo(start, start + radius)
+    arcTo(radius, radius, 0f, isMoreThanHalf = false, isPositiveArc = true, x1 = start + radius, y1 = start)
     close()
 }
 
