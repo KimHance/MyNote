@@ -11,7 +11,6 @@ import com.hancekim.mynote.core.data.datasource.NoteSourceAdapter
 import com.hancekim.mynote.core.data.datasource.SourceEntry
 import com.hancekim.mynote.core.data.datasource.SourceRecord
 import com.hancekim.mynote.core.data.datasource.TokenStore
-import com.hancekim.mynote.core.data.format.PARSER_VERSION
 import com.hancekim.mynote.core.domain.model.Category
 import com.hancekim.mynote.core.domain.model.RepoConnection
 import com.hancekim.mynote.core.domain.model.SourceId
@@ -19,6 +18,7 @@ import com.hancekim.mynote.core.domain.model.SourceKind
 import com.hancekim.mynote.core.domain.model.SyncOutcome
 import com.hancekim.mynote.core.domain.repository.AppliedTokenSource
 import com.hancekim.mynote.core.domain.repository.NotesRepository
+import com.hancekim.mynote.core.format.PARSER_VERSION
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow

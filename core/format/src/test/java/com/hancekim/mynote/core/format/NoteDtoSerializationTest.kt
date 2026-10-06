@@ -1,4 +1,4 @@
-package com.hancekim.mynote.core.data.dto
+package com.hancekim.mynote.core.format
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -7,7 +7,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class NoteDtoSerializationTest {
-    private val json = NotesJson
+    private val json = BlockJson
 
     @Test
     fun `블록 배열을 type discriminator 로 polymorphic 역직렬화한다`() {

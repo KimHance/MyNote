@@ -6,13 +6,13 @@ import com.hancekim.mynote.core.data.datasource.LocalNotesDataSource
 import com.hancekim.mynote.core.data.datasource.NoteSourceAdapter
 import com.hancekim.mynote.core.data.datasource.SourceEntry
 import com.hancekim.mynote.core.data.datasource.SourceRecord
-import com.hancekim.mynote.core.data.dto.NotesJson
-import com.hancekim.mynote.core.data.format.PARSER_VERSION
 import com.hancekim.mynote.core.domain.model.NoteBlock
 import com.hancekim.mynote.core.domain.model.SourceId
 import com.hancekim.mynote.core.domain.model.SourceKind
 import com.hancekim.mynote.core.domain.model.SpanStyle
 import com.hancekim.mynote.core.domain.model.UnsupportedReason
+import com.hancekim.mynote.core.format.NoteFormat
+import com.hancekim.mynote.core.format.PARSER_VERSION
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -33,7 +33,7 @@ class NotesReconcileTest {
     private fun repo(
         adapter: NoteSourceAdapter,
         local: LocalNotesDataSource,
-    ) = NotesRepositoryImpl(setOf(adapter), local, NotesJson, {}) { clock++ }
+    ) = NotesRepositoryImpl(setOf(adapter), local, NoteFormat(), {}) { clock++ }
 
     private suspend fun NotesRepositoryImpl.blocksOf(key: String): List<NoteBlock> =
         observeCategories()

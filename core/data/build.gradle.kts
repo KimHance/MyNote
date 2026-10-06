@@ -13,6 +13,7 @@ android {
 dependencies {
     implementation(projects.core.domain)
     implementation(projects.core.common)
+    implementation(projects.core.format)
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.android)

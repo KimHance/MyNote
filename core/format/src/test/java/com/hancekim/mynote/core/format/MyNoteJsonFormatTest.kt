@@ -1,11 +1,5 @@
-package com.hancekim.mynote.core.data.format
+package com.hancekim.mynote.core.format
 
-import com.hancekim.mynote.core.data.dto.NoteBlockDto
-import com.hancekim.mynote.core.data.dto.NoteSpanDto
-import com.hancekim.mynote.core.data.dto.NotesJson
-import com.hancekim.mynote.core.data.dto.SpanStyleDto
-import com.hancekim.mynote.core.data.dto.UnsupportedReasonDto
-import com.hancekim.mynote.core.data.dto.toDomain
 import com.hancekim.mynote.core.domain.model.NoteBlock
 import com.hancekim.mynote.core.domain.model.UnsupportedReason
 import org.junit.Assert.assertEquals
@@ -17,7 +11,7 @@ private fun note(vararg blocks: String): String =
     """{"id":"n","title":"t","date":"2026.01.01","blocks":[${blocks.joinToString(",")}]}"""
 
 class MyNoteJsonFormatTest {
-    private val format = MyNoteJsonFormat(NotesJson)
+    private val format = MyNoteJsonFormat(BlockJson)
 
     private fun unsupported(block: NoteBlockDto): NoteBlockDto.Unsupported = block as NoteBlockDto.Unsupported
 

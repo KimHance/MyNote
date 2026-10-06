@@ -10,7 +10,6 @@ import com.hancekim.mynote.core.data.datasource.LocalNotesDataSource
 import com.hancekim.mynote.core.data.datasource.NoteSourceAdapter
 import com.hancekim.mynote.core.data.datasource.SourceRecord
 import com.hancekim.mynote.core.data.datasource.TokenStore
-import com.hancekim.mynote.core.data.format.MyNoteJsonFormat
 import com.hancekim.mynote.core.domain.model.ConnectionState
 import com.hancekim.mynote.core.domain.model.ErasureCount
 import com.hancekim.mynote.core.domain.model.PendingConnection
@@ -20,6 +19,7 @@ import com.hancekim.mynote.core.domain.model.SourceKind
 import com.hancekim.mynote.core.domain.model.SyncOutcome
 import com.hancekim.mynote.core.domain.repository.AppliedTokenSource
 import com.hancekim.mynote.core.domain.repository.ConnectionRepository
+import com.hancekim.mynote.core.format.NoteFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
@@ -32,7 +32,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlinx.serialization.json.Json
 import java.util.UUID
 import javax.inject.Inject
 
@@ -43,7 +42,7 @@ class ConnectionRepositoryImpl internal constructor(
     private val bookmarks: BookmarkStore,
     private val state: ConnectionStateStore,
     private val ids: ConnectionIdGenerator,
-    json: Json,
+    format: NoteFormat,
     private val recovery: ConnectionRecovery,
     private val applied: AppliedTokenSource,
     now: () -> Long,
@@ -56,12 +55,12 @@ class ConnectionRepositoryImpl internal constructor(
         bookmarks: BookmarkStore,
         state: ConnectionStateStore,
         ids: ConnectionIdGenerator,
-        json: Json,
+        format: NoteFormat,
         recovery: ConnectionRecovery,
         applied: AppliedTokenSource,
-    ) : this(adapters, local, tokens, bookmarks, state, ids, json, recovery, applied, System::currentTimeMillis)
+    ) : this(adapters, local, tokens, bookmarks, state, ids, format, recovery, applied, System::currentTimeMillis)
 
-    private val reconciler = SourceReconciler(local, MyNoteJsonFormat(json), now)
+    private val reconciler = SourceReconciler(local, format, now)
     private val attempting = MutableStateFlow(false)
 
     override fun observeConnection(): Flow<ConnectionState> =

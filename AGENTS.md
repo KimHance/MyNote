@@ -57,7 +57,8 @@ app  ─────────────────────────
  ├─ core/ai        ──→ core/domain  LiteRT-LM 으로 QuizGenerator · 통계 워커(InsightScheduler) 구현
  ├─ core/network   ──→ core/data    GitHub Contents API
  ├─ core/database  ──→ core/data    Room3 캐시·학습 기록·요약 캐시 + DataStore
- ├─ core/data      ──→ core/domain  DataSource 인터페이스 소유 + reconcile
+ ├─ core/data      ──→ core/format, core/domain  DataSource 인터페이스 소유 + reconcile
+ ├─ core/format    ──→ core/domain  순수 JVM. 원문 → 블록(형식 고르기 · 해석 전 한도 · JSON 형식 1 · 블록 캐시)
  ├─ core/domain    ─────────────────  순수 JVM. 인터페이스를 소유한다(DIP)
  ├─ core/navigation ─→ core/common   nav3 계약. 테마·도메인을 모른다
  ├─ core/design-system ─→ design-foundation, core/common
@@ -72,6 +73,8 @@ app  ─────────────────────────
 지켜야 할 것:
 - **feature 는 `:core:data`/`:core:network`/`:core:database` 를 직접 의존하지 않는다.** `:core:domain`
   의 UseCase 만 경유한다.
+- **`:core:format` 은 `:core:data` 만 의존한다**(`implementation`). feature · network · database 는 형식 해석 자리를 모르고,
+  블록 DTO 는 그 모듈 밖으로 새지 않는다(`internal`).
 - Room `@Entity`·Retrofit·DataStore 타입은 각 모듈 밖으로 새지 않는다.
 - `:core:design-foundation` 은 `:core:design-system` 을 의존하지 않는다. feature ↔ feature 직접 의존 금지.
 - **버전·좌표는 `gradle/libs.versions.toml` 에만.** 모듈 `build.gradle.kts` 에 하드코딩 금지
@@ -79,9 +82,9 @@ app  ─────────────────────────
 
 ### 안쪽 모듈의 순수성은 빌드가 강제한다
 
-`:core:domain` 은 `hancenote.jvm.library` 라서 `import android.*` 가 **컴파일 에러**다
+`:core:domain` · `:core:format` 은 `hancenote.jvm.library` 라서 `import android.*` 가 **컴파일 에러**다
 (`Unresolved reference 'android'`). "순수 Kotlin" 이 약속이 아니라 빌드 규칙이다.
-그래서 이 모듈에는 `R.string`·`@Serializable`·`@Immutable` 이 classpath 에 아예 없다.
+그래서 두 모듈에는 `R.string`·`@Immutable` 이 classpath 에 아예 없다. `@Serializable` 은 직렬화 플러그인을 붙인 `:core:format` 에만 있다.
 
 ---
 

@@ -19,7 +19,7 @@
   `:core:data` 가 `withContext(Dispatchers.Default)`, feature 가 `viewModelScope`.
 - **어노테이션을 "안 붙이는" 게 아니라 붙일 수 없다.** `@Serializable`(serialization 플러그인 미적용),
   `@Immutable`/`@Stable`(compose runtime 없음), `R.string`(리소스 없음) 전부 classpath 에 없다.
-  직렬화는 `:core:data` 의 DTO, stability 는 UI 상태, 표시 문구는 `strings.xml` 의 책임이라는 배치가
+  직렬화는 `:core:format` · `:core:data` 의 DTO, stability 는 UI 상태, 표시 문구는 `strings.xml` 의 책임이라는 배치가
   실수로 무너질 수 없다. 모델은 평범한 `data class` + `List` 를 그대로 쓴다.
 - **Hilt 플러그인이 없다.** `javax.inject.Inject` 만 쓰고 UseCase 는 unscoped 생성자 주입이다.
   `@Binds` 는 구현체를 가진 `:core:data`/`:core:network`/`:core:ai` 의 모듈이 한다.
@@ -144,13 +144,13 @@ debug 내장 토큰은 시드 연결(`ConsumeSeedUseCase`)이 저장 칸에 쓰�
 - **`NoteBlock.Unsupported(reason, type, text, raw)`** 는 앱 내부 전용 블록이다(와이어에 없는 타입). `reason` =
   `UnknownType`(앱이 모르는 type)·`BrokenBlock`(아는 type 인데 필드 누락·타입 오류, type 없음)·`BrokenNote`(노트 파일 전체를
   못 읽음 — 이때 `blocks` 는 이 블록 하나). `text` = 건진 글자(없으면 `null`), `raw` = 원문 보기용(빈 문자열 = 원문 없음, v4 에서
-  옮긴 캐시의 옛 `unknown`). 만드는 규칙은 `core/data/AGENTS.md` "형식".
-- **`NoteBlock` 은 같은 모양이 세 번 나온다:** `NoteBlockDto`(`:core:data`, `@Serializable`) →
+  옮긴 캐시의 옛 `unknown`). 만드는 규칙은 `core/format/AGENTS.md`.
+- **`NoteBlock` 은 같은 모양이 세 번 나온다:** `NoteBlockDto`(`:core:format`, `@Serializable`, 모듈 밖에 안 보임) →
   **`NoteBlock`(여기)** → `NoteContentBlock`(`:core:design-system`, `@Immutable`). 이 중복이 경계의 값이다 —
   DTO 가 UI 까지 새지 않고, UI stability 가 도메인을 오염시키지 않는다.
-  블록 타입을 하나 추가하면 exhaustive `when` 이 있는 자리(`NoteMapper`, `NoteBlockMapper`,
-  `GenerateQuizUseCase.toPlainText`)는 컴파일 에러로 잡히지만 **`:core:data` 의 `PARSER_VERSION`, `notes/gen_index.py` 의
-  `BLOCK_TYPES` 와 `notes/SCHEMA.md` 는 컴파일러가 잡아 주지 않는다.**
+  블록 타입을 하나 추가하면 exhaustive `when` 이 있는 자리(`:core:format` 의 `BlockMapper`, `NoteBlockMapper`,
+  `GenerateQuizUseCase.toPlainText`)는 컴파일 에러로 잡히지만 **`:core:format` 의 `PARSER_VERSION` 과 문서는 컴파일러가
+  잡아 주지 않는다.** JSON 형식 1 은 동결이라 새 블록은 마크다운에서만 나온다(`core/format/AGENTS.md`).
 - **`SyncOutcome` 은 값이 아니라 판단까지 준다** — `changed`(added+updated)·`hasChanges`. 스낵바를 띄울지
   (`hasChanges`)와 문구(`added`/`updated`/`deleted`)를 같은 자리에서 못 세면 "변경 없음"인데 안내가 뜬다.
   `deleted` 는 개수가 아니라 **`NoteKey` 문자열 목록**이다 — 삭제된 노트를 보고 있으면 화면을 옮기고 그 노트의 북마크를 지워야 해서

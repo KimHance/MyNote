@@ -1,10 +1,12 @@
-package com.hancekim.mynote.core.data.dto
+package com.hancekim.mynote.core.format
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
 
 @Serializable
-sealed interface NoteBlockDto {
+internal sealed interface NoteBlockDto {
     @Serializable
     @SerialName("unknown")
     data object Unknown : NoteBlockDto
@@ -55,19 +57,17 @@ sealed interface NoteBlockDto {
         val items: List<NoteListItemDto>,
     ) : NoteBlockDto
 
-    /** 섹션 구분선(`---`). 필드 없음. */
     @Serializable
     @SerialName("divider")
     data object Divider : NoteBlockDto
 
-    /** 단순 줄바꿈/여백. 필드 없음. */
     @Serializable
     @SerialName("spacer")
     data object Spacer : NoteBlockDto
 }
 
 @Serializable
-enum class UnsupportedReasonDto {
+internal enum class UnsupportedReasonDto {
     @SerialName("unknown_type")
     UNKNOWN_TYPE,
 
@@ -76,21 +76,24 @@ enum class UnsupportedReasonDto {
 
     @SerialName("broken_note")
     BROKEN_NOTE,
+
+    @SerialName("limit_exceeded")
+    LIMIT_EXCEEDED,
 }
 
 @Serializable
-data class NoteListItemDto(
+internal data class NoteListItemDto(
     val spans: List<NoteSpanDto>,
 )
 
 @Serializable
-data class NoteSpanDto(
+internal data class NoteSpanDto(
     val text: String,
     val style: SpanStyleDto = SpanStyleDto.TEXT,
 )
 
 @Serializable
-enum class SpanStyleDto {
+internal enum class SpanStyleDto {
     @SerialName("text")
     TEXT,
 
@@ -101,11 +104,12 @@ enum class SpanStyleDto {
     CODE,
 }
 
-@Serializable
-data class IndexNoteDto(
-    val id: String,
-    val title: String,
-    val date: String,
-    val path: String,
-    val hash: String,
-)
+internal val BlockJson: Json =
+    Json {
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+        serializersModule =
+            SerializersModule {
+                polymorphicDefaultDeserializer(NoteBlockDto::class) { NoteBlockDto.Unknown.serializer() }
+            }
+    }

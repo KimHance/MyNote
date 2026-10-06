@@ -2,14 +2,13 @@ package com.hancekim.mynote.core.data.template
 
 import com.hancekim.mynote.core.data.datasource.SourceEntry
 import com.hancekim.mynote.core.data.dto.IndexNoteDto
-import com.hancekim.mynote.core.data.dto.NoteBlockDto
 import com.hancekim.mynote.core.data.dto.NotesJson
-import com.hancekim.mynote.core.data.dto.SpanStyleDto
-import com.hancekim.mynote.core.data.format.MyNoteJsonFormat
 import com.hancekim.mynote.core.data.repository.FakeAdapter
 import com.hancekim.mynote.core.data.repository.FakeLocal
 import com.hancekim.mynote.core.data.repository.NotesRepositoryImpl
 import com.hancekim.mynote.core.domain.model.NoteBlock
+import com.hancekim.mynote.core.domain.model.SpanStyle
+import com.hancekim.mynote.core.format.NoteFormat
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.decodeFromString
@@ -47,7 +46,7 @@ private fun JsonObject.spanStyles(): List<String> {
 }
 
 class TemplateNotesTest {
-    private val format = MyNoteJsonFormat(NotesJson)
+    private val format = NoteFormat()
 
     @Test
     fun `NT-6 템플릿 예시가 앱 파서에서 하나도 강등되지 않는다`() {
@@ -56,17 +55,14 @@ class TemplateNotesTest {
 
         notes.forEach { note ->
             val wire = NotesJson.parseToJsonElement(note.raw).jsonObject["blocks"]!!.jsonArray
-            val parsed = format.parse(note.raw)
+            val parsed = format.parse(note.item.path, note.raw)
 
             assertEquals(note.item.path, wire.size, parsed.size)
             parsed.forEach { block ->
-                assertTrue(
-                    "${note.item.path}: $block",
-                    block !is NoteBlockDto.Unsupported && block !is NoteBlockDto.Unknown,
-                )
+                assertTrue("${note.item.path}: $block", block !is NoteBlock.Unsupported)
             }
             val written = wire.flatMap { it.jsonObject.spanStyles() }.count { it != "text" }
-            val read = parsed.flatMap(::spanStylesOf).count { it != SpanStyleDto.TEXT }
+            val read = parsed.flatMap(::spanStylesOf).count { it != SpanStyle.Text }
             assertEquals(note.item.path, written, read)
         }
     }
@@ -82,7 +78,7 @@ class TemplateNotesTest {
                     },
                     docs = notes.associate { it.item.id to it.raw },
                 )
-            val repo = NotesRepositoryImpl(setOf(adapter), FakeLocal(), NotesJson, {}) { 1L }
+            val repo = NotesRepositoryImpl(setOf(adapter), FakeLocal(), format, {}) { 1L }
 
             val outcome = repo.sync().getOrThrow()
 
@@ -96,13 +92,13 @@ class TemplateNotesTest {
             }
         }
 
-    private fun spanStylesOf(block: NoteBlockDto): List<SpanStyleDto> =
+    private fun spanStylesOf(block: NoteBlock): List<SpanStyle> =
         when (block) {
-            is NoteBlockDto.Heading -> block.spans.map { it.style }
-            is NoteBlockDto.Paragraph -> block.spans.map { it.style }
-            is NoteBlockDto.Quote -> block.spans.map { it.style }
-            is NoteBlockDto.BulletList -> block.items.flatMap { item -> item.spans.map { it.style } }
-            is NoteBlockDto.OrderedList -> block.items.flatMap { item -> item.spans.map { it.style } }
+            is NoteBlock.Heading -> block.spans.map { it.style }
+            is NoteBlock.Paragraph -> block.spans.map { it.style }
+            is NoteBlock.Quote -> block.spans.map { it.style }
+            is NoteBlock.BulletList -> block.items.flatMap { item -> item.spans.map { it.style } }
+            is NoteBlock.OrderedList -> block.items.flatMap { item -> item.spans.map { it.style } }
             else -> emptyList()
         }
 }
