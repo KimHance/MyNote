@@ -5,6 +5,7 @@ plugins {
 }
 
 extra["notesInput"] = true
+extra["catalogInput"] = true
 
 dependencies {
     implementation(projects.core.domain)

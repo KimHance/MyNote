@@ -108,7 +108,7 @@ class CacheCompatTest {
         assertEquals(ALL_KINDS_CACHE_V1, format.derive(null, ALL_KINDS).blocksJson)
         assertEquals("본문 굵게 와 code\"q\" <a> & \\ é", format.derive(null, ALL_KINDS).excerpt)
         assertEquals(
-            """[{"type":"unsupported","reason":"broken_note","raw":"not json"}]""",
+            """[{"type":"unsupported","reason":"broken_note","raw":""}]""",
             format.derive("notes/x.json", "not json").blocksJson,
         )
     }

@@ -68,7 +68,7 @@ class NoteFormatTest {
 
             assertEquals(brokenNote(raw), failing.parse("x.md", raw))
             assertEquals(
-                DerivedNote("""[{"type":"unsupported","reason":"broken_note","raw":"# 제목\n본문"}]""", null),
+                DerivedNote("""[{"type":"unsupported","reason":"broken_note","raw":""}]""", null),
                 failing.derive("x.md", raw),
             )
             assertEquals(brokenNote(raw), failing.read("{깨짐", "x.md", raw))

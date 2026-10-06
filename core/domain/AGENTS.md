@@ -145,17 +145,19 @@ debug 내장 토큰은 시드 연결(`ConsumeSeedUseCase`)이 저장 칸에 쓰�
   생성자 호출이 그대로다: `NoteSpan.italic` · `strike`(굵게 · 코드는 지금 `style` — 겹치면 `style = Bold, italic = true`, 코드에는
   취소선만 붙는다), `NoteListItem.checked`(`null` = 체크 항목 아님) · `children`(항목 글 아래 블록), `OrderedList.start`.
   인용 안 기울임도 모델에는 기울임 그대로 두고 세워 그리기는 렌더가 한다. 새 블록 · 필드는 마크다운에서만 나온다(JSON 형식 1 동결).
-- **`NoteLimits` 가 해석 전 한도 값의 한 자리다** — `Default` = 32단 · 512KB(`maxBytes` 524,288). `:core:format` 의 거르기와
-  `:feature:notes` 의 화면 매퍼가 같은 값을 읽는다 — 상자 문구의 두 숫자가 여기서 온다(NF-8 ⑨). 바꾸면 이미 거른 노트는
-  다음 재변환(`PARSER_VERSION`)까지 옛 판정이다.
+- **`NoteLimits` 가 노트 한도 값의 한 자리다** — 생성자 기본값이 곧 `Default`: 32단 · 512KB(`maxBytes` 524,288) · 표 칸 4,096 ·
+  캐시 1MB(`maxCacheBytes` 1,048,576). 숫자 리터럴은 여기에만 둔다. `:core:format` 의 거르기 · 결과 한도, `:core:data` 의 원문 읽기
+  상한, `:feature:notes` 의 화면 매퍼가 같은 값을 읽는다 — 상자 문구의 두 숫자가 여기서 온다(NF-8 ⑨). 바꾸면 이미 거른 노트는
+  다음 재변환(`PARSER_VERSION`)까지 옛 판정이다. 원문 + 캐시 상한의 합은 커서 창 2MB 에 여유 있게 들어가야 한다(`core/format/AGENTS.md` 결과 한도).
 - **`Note.id` 는 `String` 이고 값이 `NoteKey` 문자열이다** — `"<sourceId>/<docId>"`, 기존 노트는 `s0/graph`. 북마크·학습 기록·
   `SyncOutcome.deleted`·내비 키가 전부 이 문자열로 맞물린다. 소비자는 id 를 불투명하게 다룬다(쪼개거나 파싱하지 않는다).
   `NoteKey.parse` 는 **첫 `/`** 에서 자른다 — `SourceId` 에는 `/` 가 없고 `docId` 에는 있을 수 있다(M1 의 경로 기반 id).
   `s0` 는 레포 좌표를 담지 않는다 — 노트 레포를 옮겨도 키가 바뀌지 않게(`NoteKeyTest`).
 - **`NoteBlock.Unsupported(reason, type, text, raw)`** 는 앱 내부 전용 블록이다(와이어에 없는 타입). `reason` =
   `UnknownType`(앱이 모르는 type)·`BrokenBlock`(아는 type 인데 필드 누락·타입 오류, type 없음)·`BrokenNote`(노트 파일 전체를
-  못 읽음 — 이때 `blocks` 는 이 블록 하나)·`LimitExceeded`(마크다운이 해석 전 한도를 넘어 읽지 않음 — `BrokenNote` 처럼 노트 전체
-  상자 하나이고 첫 문장 · 퀴즈 카드가 없다). `text` = 건진 글자(없으면 `null`), `raw` = 원문 보기용(빈 문자열 = 원문 없음, v4 에서
+  못 읽음 — 이때 `blocks` 는 이 블록 하나)·`LimitExceeded`(한도를 넘어 읽지 않음 — `BrokenNote` 처럼 노트 전체
+  상자 하나이고 첫 문장 · 퀴즈 카드가 없다). 노트 전체 상자인지는 `UnsupportedReason.wholeNote` 가 말한다 — 사유를 더하면 생성자
+  인자라 빠뜨릴 수 없다. `text` = 건진 글자(없으면 `null`), `raw` = 원문 보기용(빈 문자열 = 원문 없음, v4 에서
   옮긴 캐시의 옛 `unknown`). 만드는 규칙은 `core/format/AGENTS.md`.
 - **`NoteBlock` 은 같은 모양이 세 번 나온다:** `NoteBlockDto`(`:core:format`, `@Serializable`, 모듈 밖에 안 보임) →
   **`NoteBlock`(여기)** → `NoteContentBlock`(`:core:design-system`, `@Immutable`). 이 중복이 경계의 값이다 —

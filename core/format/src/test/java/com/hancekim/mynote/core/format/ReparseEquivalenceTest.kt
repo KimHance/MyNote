@@ -22,7 +22,7 @@ private val ALL_BLOCKS =
     """.trimIndent()
 
 class ReparseEquivalenceTest {
-    private val format = MyNoteJsonFormat(BlockJson)
+    private val format = NoteFormat()
 
     private fun oldCachePath(raw: String): Note {
         val blocks =
@@ -31,7 +31,7 @@ class ReparseEquivalenceTest {
                 BlockJson.parseToJsonElement(raw).jsonObject.getValue("blocks"),
             )
         val cached = BlockJson.encodeToString(blocks)
-        return Note("k", "t", "d", format.decode(cached).map { it.toDomain() })
+        return Note("k", "t", "d", BlockCache.decode(cached).map { it.toDomain() })
     }
 
     private fun newPath(raw: String): Note =
@@ -39,7 +39,7 @@ class ReparseEquivalenceTest {
             "k",
             "t",
             "d",
-            format.decode(format.derive(raw).blocksJson).map {
+            BlockCache.decode(format.derive(null, raw).blocksJson).map {
                 it.toDomain()
             },
         )
@@ -52,7 +52,7 @@ class ReparseEquivalenceTest {
         val new = newPath(raw)
         assertEquals(name, old, new)
         assertEquals(name, old.firstSentence(), new.firstSentence())
-        assertEquals(name, old.firstSentence(), format.derive(raw).excerpt)
+        assertEquals(name, old.firstSentence(), format.derive(null, raw).excerpt)
     }
 
     @Test

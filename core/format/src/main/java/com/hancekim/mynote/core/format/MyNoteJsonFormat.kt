@@ -1,7 +1,5 @@
 package com.hancekim.mynote.core.format
 
-import com.hancekim.mynote.core.domain.model.Note
-import com.hancekim.mynote.core.domain.model.firstSentence
 import kotlinx.serialization.descriptors.elementNames
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -23,6 +21,11 @@ private val prettyJson =
         prettyPrintIndent = "  "
     }
 
+/**
+ * JSON 형식 1 원문을 캐시 블록으로 읽는다. 어떤 입력에도 던지지 않고, 읽지 못한 자리는 상자가 된다.
+ *
+ * @param json 블록을 디코드하는 Json
+ */
 internal class MyNoteJsonFormat(
     private val json: Json,
 ) {
@@ -38,17 +41,6 @@ internal class MyNoteJsonFormat(
                 ?: return listOf(NoteBlockDto.Unsupported(UnsupportedReasonDto.BROKEN_NOTE, raw = raw))
         return blocks.map(::parseBlock)
     }
-
-    fun derive(raw: String): DerivedNote = derive(parse(raw))
-
-    fun derive(blocks: List<NoteBlockDto>): DerivedNote {
-        val excerpt = Note(id = "", title = "", date = "", blocks = blocks.map { it.toDomain() }).firstSentence()
-        return DerivedNote(blocksJson = encode(blocks), excerpt = excerpt)
-    }
-
-    fun encode(blocks: List<NoteBlockDto>): String = json.encodeToString(blocks)
-
-    fun decode(blocksJson: String): List<NoteBlockDto> = json.decodeFromString(blocksJson)
 
     private fun parseBlock(element: JsonElement): NoteBlockDto {
         val block = element as? JsonObject ?: return unsupported(UnsupportedReasonDto.BROKEN_BLOCK, null, null, element)

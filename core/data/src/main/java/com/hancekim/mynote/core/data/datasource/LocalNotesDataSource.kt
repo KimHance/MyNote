@@ -4,7 +4,17 @@ import com.hancekim.mynote.core.domain.model.SourceId
 import kotlinx.coroutines.flow.Flow
 
 interface LocalNotesDataSource {
-    fun observeNotes(): Flow<List<CachedNote>>
+    fun observeNotes(): Flow<List<ListedNote>>
+
+    /**
+     * 노트 하나의 원문을 읽는다.
+     *
+     * @param maxBytes 읽을 원문의 UTF-8 크기 상한. 넘거나 원문이 없으면 null
+     */
+    suspend fun loadRaw(
+        key: String,
+        maxBytes: Int,
+    ): String?
 
     fun observeSources(): Flow<List<SourceRecord>>
 
@@ -35,7 +45,15 @@ interface LocalNotesDataSource {
         deleteDocIds: List<String>,
     )
 
-    suspend fun loadStale(parserVersion: Int): List<CachedNote>
+    /**
+     * 판 번호가 낮고 원문이 있는 행을 읽는다.
+     *
+     * @param maxRawBytes 읽을 원문의 UTF-8 크기 상한. 넘는 행은 빠진다
+     */
+    suspend fun loadStale(
+        parserVersion: Int,
+        maxRawBytes: Int,
+    ): List<StaleNote>
 
-    suspend fun replaceDerived(rows: List<CachedNote>)
+    suspend fun replaceDerived(rows: List<RederivedNote>)
 }

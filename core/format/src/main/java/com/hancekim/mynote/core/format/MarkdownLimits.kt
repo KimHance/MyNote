@@ -5,6 +5,8 @@ import com.hancekim.mynote.core.domain.model.NoteLimits
 private const val TAB_STOP = 4
 private const val QUOTE = -1
 private const val MAX_ITEM_PADDING = 4
+private const val MIN_BREAK_MARKS = 3
+private const val BREAK_MARKS = "-*_"
 
 internal fun exceedsMarkdownLimits(
     raw: String,
@@ -185,7 +187,7 @@ private class LineCursor(
     }
 
     fun listMarkerWidth(): Int {
-        if (pos >= end) return 0
+        if (pos >= end || restIsThematicBreak()) return 0
         val width =
             when (text[pos]) {
                 '-', '+', '*' -> {
@@ -204,6 +206,19 @@ private class LineCursor(
             }
         val after = pos + width
         return if (width > 0 && (after == end || text[after].isIndent())) width else 0
+    }
+
+    private fun restIsThematicBreak(): Boolean {
+        var mark = ' '
+        var marks = 0
+        for (p in pos until end) {
+            val ch = text[p]
+            if (ch.isIndent()) continue
+            if (ch !in BREAK_MARKS || (marks > 0 && ch != mark)) return false
+            mark = ch
+            marks++
+        }
+        return marks >= MIN_BREAK_MARKS
     }
 
     fun advanceMarker(width: Int) {

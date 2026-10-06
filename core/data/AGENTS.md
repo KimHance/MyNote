@@ -6,7 +6,7 @@
 
 **DataSource 계약을 소유하고 reconcile 을 오케스트레이션한다.** 원격도 로컬도 여기서 구현하지 않는다.
 `NoteSourceAdapter`·`LocalNotesDataSource`·`TokenStore`·`SettingsStore`·`BookmarkStore`·`StudyLogStore`·`InsightStore` 를
-이 모듈이 정의하고, `:core:network`/`:core:database` 가 바깥에서 구현한다(DIP). 의존은 `:core:data → :core:format → :core:domain` +
+이 모듈이 정의하고, `:core:network`/`:core:database` 가 바깥에서 구현한다(DIP). 의존은 `:core:domain` · `:core:format` ·
 `:core:common` 뿐이고 구현체 모듈은 **컴파일 타임에 모른다** — Hilt 그래프는 `:app` 이 세 모듈을 다 포함해서 완성한다.
 
 노트 본문의 **형식 해석은 순수 JVM `:core:format` 이 한다**(`NoteFormat`, `core/format/AGENTS.md`). 이 모듈은 그 진입점을
@@ -19,6 +19,8 @@
 `runCatchingCancellable` **하나**로 감싸여 있다.
 
 1. **재변환(로컬).** `parser_version < PARSER_VERSION` 이고 `raw` 가 있는 행을 원문 · 행의 `path` 로 다시 만들어 한 번에 바꾼다.
+   읽는 것은 키 · 경로 · 원문뿐이고(`StaleNote`), 원문이 `NoteLimits.maxCacheBytes` 를 넘는 행은 읽지 않고 건너뛴다 — 커서 창보다
+   큰 행 하나가 동기화를 매번 첫 줄에서 멈추지 않게.
    네트워크보다 **먼저** 돌고 따로 커밋되므로 오프라인이어도 반영된다(F4 — 앱을 올리면 노트 파일이 안 바뀌어도 새 변환이 보인다).
    소스 격리 밖이라 `NoteFormat` 이 던지지 않는 것에 기댄다 — 해석이 실패하거나 한도를 넘은 행은 상자로 새 판 번호에 저장된다.
 2. **동기화는 소스를 만들지 않는다**(SY-3). `sources()` 중 확정된 GitHub 소스(`config_json` 해석 가능 · 미확정 아님)와 다른 kind 만 돈다.
@@ -91,7 +93,7 @@
 | 새로 받은 노트 | `SourceReconciler.derive` → `derive(path, raw)` | 목록 항목의 `path` |
 | 앱 시작 재변환 | `NotesRepositoryImpl.rederiveStale` → `derive(path, raw)` | 캐시 행의 `path`(옛 행은 `null` = JSON) |
 | 연결 첫 동기화 | `ConnectionRepositoryImpl` 이 따로 만든 `SourceReconciler` | 목록 항목의 `path` |
-| 화면이 읽는 길 · 캐시 손상 대체 | `NoteMapper.toDomainNote` → `read(blocksJson, path, raw)` | 캐시 행의 `path` |
+| 화면이 읽는 길 · 캐시 손상 대체 | `NoteMapper.toDomainNote` → `read(blocksJson, path) { loadRaw(key, maxCacheBytes) }` | 캐시 행의 `path` |
 
 `NoteFormat` 은 `@Inject constructor()` 라 `DataModule` 에 바인딩이 없다. 두 Repository 의 `internal constructor` 가 그것을 받으므로
 시험은 `NoteFormat(markdown)` 으로 가짜 변환기를 넣는다(`NoteFormatSyncTest`).
@@ -101,8 +103,8 @@
 | 방향 | 타입 | 규칙 |
 |---|---|---|
 | 원격 → data | `SourceEntry`, 원문 `String`, `IndexNoteDto` | `:core:data` 소유. Retrofit/OkHttp 타입은 넘어오지 않는다 |
-| 로컬 ↔ data | **`CachedNote`**·`CachedNoteState`·`SourceRecord` | Room `@Entity`·DAO 는 `:core:database` 안에서 `internal`. 이 모듈은 Entity 를 본 적이 없다 |
-| data → 바깥 | `Category`/`Note`/`NoteBlock`(domain), `SyncOutcome` | 매핑은 **단방향**(DTO/`CachedNote` → domain). `Note.id` = `CachedNote.key` = `NoteKey` 문자열(`s0/graph`) |
+| 로컬 ↔ data | **`CachedNote`**·`CachedNoteState`·`SourceRecord`, 읽기 투영 `ListedNote`(목록)·`StaleNote`(재변환), 쓰기 `RederivedNote` | Room `@Entity`·DAO 는 `:core:database` 안에서 `internal`. 이 모듈은 Entity 를 본 적이 없다 |
+| data → 바깥 | `Category`/`Note`/`NoteBlock`(domain), `SyncOutcome` | 매핑은 **단방향**(`ListedNote` → domain, `NoteMapper`). `Note.id` = 행의 `key` = `NoteKey` 문자열(`s0/graph`) |
 
 `CachedNote` 는 `key`·`sourceId`·`docId`·`path`·`group`·`title`·`date`·`epochDay`·`firstSeenAt`·`revision`·`fetchedAt`·`parserVersion`·
 `raw`·`blocksJson`·`excerpt` 다. v5 의 3라운드 열(`kind`·`summary`·`aliases_json`·`source_url`)과 `tags_json`·`warnings_json` 은
@@ -114,19 +116,20 @@ M0 에 쓰는 코드가 없어 여기에 없다 — 쓰는 단계에서 더한�
 
 ## 그 외 알아둘 것
 
-- **`Json` 은 `DataModule` 이 단독으로 제공한다**(`NotesJson`: `ignoreUnknownKeys`·`coerceInputValues`). `:core:network` 의 Retrofit
-  컨버터도 이 인스턴스를 주입받는다(index 디코드). 다른 모듈에서 또 `@Provides Json` 하면 Hilt 중복 바인딩으로 빌드가 깨진다.
+- **`Json` 바인딩은 `DataModule` 하나에 있다**(`NotesJson`: `ignoreUnknownKeys`·`coerceInputValues`). 이 모듈 안에서 주입받는 곳은 없고,
+  주입받는 곳은 `:core:network` 의 Retrofit 컨버터 둘(목록 index · 저장소 확인 응답)뿐이다. 다른 모듈에서 또 `@Provides Json` 하면
+  Hilt 중복 바인딩으로 빌드가 깨진다.
   (`:core:ai` 의 `QuizJsonParser` 와 `:core:format` 의 `BlockJson` 은 DI 밖의 자체 `Json` 이라 무관하다.)
 - **`observeCategories()` 는 Room Flow 가 방출될 때마다 전 노트의 `blocks_json` 을 다시 디코드한다.** 그래서 `flowOn(Dispatchers.Default)`
-  가 붙어 있다. `excerpt` 열은 동기화가 채우지만 아직 화면이 읽지 않는다 — 목록 투영 쿼리는 M1 이다.
+  가 붙어 있다. 목록은 원문 열을 읽지 않는다(`ListedNote`) — 원문은 노트 전체 상자이거나 캐시를 못 읽은 노트만 `loadRaw` 로 한 행씩,
+  `maxCacheBytes` 안일 때만 읽는다(넘으면 상자에 원문 보기가 없다). `excerpt` 열은 동기화가 채우지만 아직 화면이 읽지 않는다.
 - 카테고리/노트의 **정렬은 이 모듈에 없다.** `groupBy` 가 만나는 순서를 유지할 뿐이고 그 순서는 DAO 쿼리에서 온다.
 - **토큰은 통과만 한다.** `TokenRepositoryImpl` 은 domain `TokenRepository` → data `TokenStore` 로 위임하는 얇은 껍데기다.
 - DTO 는 순수하게 유지한다 — Compose 의존 없음, `List` 사용. stability(`@Stable`/`ImmutableList`)는 UI 레이어 책임.
 
 ## 테스트
 
-`src/test/` 의 시험은 전부 JUnit4 + `runTest`(`kotlin("test")` 금지). 형식 시험 셋(`MyNoteJsonFormatTest` · `ReparseEquivalenceTest` ·
-`NoteDtoSerializationTest`)은 `:core:format` 으로 옮겼다.
+`src/test/` 의 시험은 전부 JUnit4 + `runTest`(`kotlin("test")` 금지). 형식 시험은 `:core:format` 에 있다.
 
 - `NotesReconcileTest` — fake 어댑터·fake 로컬로 add/skip/update/delete, 전송 실패 무반영, 형식 격리, 모르는 style, 원문·버전 저장,
   재변환(원격 0회), 원문 채우기(세지 않음), 자기 소유 삭제, 소스 단위 가드, 처음 본 시각, epochDay, excerpt, 캐시 손상 대체, 동시 수신.

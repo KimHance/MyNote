@@ -41,6 +41,29 @@ internal data class SourceNoteEntity(
     @ColumnInfo(name = "warnings_json") val warningsJson: String? = null,
 )
 
+internal data class SourceNoteListRow(
+    @ColumnInfo(name = "note_key") val key: String,
+    @ColumnInfo(name = "source_id") val sourceId: String,
+    val path: String?,
+    @ColumnInfo(name = "group_name") val group: String,
+    val title: String,
+    val date: String?,
+    @ColumnInfo(name = "blocks_json") val blocksJson: String,
+)
+
+internal data class SourceNoteStaleRow(
+    @ColumnInfo(name = "note_key") val key: String,
+    val path: String?,
+    val raw: String,
+)
+
+internal data class SourceNoteDerivedRow(
+    val key: String,
+    val blocksJson: String,
+    val excerpt: String?,
+    val parserVersion: Int,
+)
+
 internal data class SourceNoteStateRow(
     @ColumnInfo(name = "doc_id") val docId: String,
     val revision: String?,

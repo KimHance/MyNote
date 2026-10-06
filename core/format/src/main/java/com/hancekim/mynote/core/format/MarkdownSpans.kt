@@ -12,6 +12,8 @@ import org.intellij.markdown.html.entities.Entities
 
 private const val REPLACEMENT_CHARACTER = 0xFFFD
 
+private const val EDGE_SPACES = " \t\n"
+
 private val ESCAPE_OR_ENTITY =
     Regex("""\\([!-/:-@\[-`{-~])|&(?:#[xX]([0-9a-fA-F]{1,6})|#([0-9]{1,7})|([a-zA-Z][a-zA-Z0-9]{0,31}));""")
 
@@ -43,12 +45,15 @@ private class Frame(
 
 /**
  * 인라인 노드를 글자 구간으로 바꾼다. 깊은 강조에도 스택이 넘치지 않게 반복으로 걷는다.
+ * 링크로 성립하지 않는 링크 노드(정의 없는 참조 · 공백 든 목적지)는 원문 글자 그대로 둔다.
  *
  * @param source 노드 위치가 가리키는 본문
+ * @param defined 괄호를 포함한 참조 라벨에 정의가 있는지
  * @param inTable 표 칸이면 코드 구간의 `\|` 를 세로줄 하나로 읽는다
  */
 internal class SpanWriter(
     private val source: String,
+    private val defined: (label: String) -> Boolean,
     private val inTable: Boolean = false,
 ) {
     private val spans = ArrayList<NoteSpan>()
@@ -100,8 +105,8 @@ internal class SpanWriter(
             MarkdownElementTypes.STRONG -> marks.copy(bold = true) to node.children.inner(2)
             MarkdownElementTypes.EMPH -> marks.copy(italic = true) to node.children.inner(1)
             GFMElementTypes.STRIKETHROUGH -> marks.copy(strike = true) to node.children.inner(tildeRun(node))
-            in LINKS -> marks to node.linkText()
-            MarkdownElementTypes.IMAGE -> marks to node.children.filter { it.type in LINKS }
+            in LINKS -> marks to if (isLink(node)) node.linkText() else node.children
+            MarkdownElementTypes.IMAGE -> marks to image(node)
             MarkdownElementTypes.CODE_SPAN, MarkdownElementTypes.AUTOLINK -> null
             else -> if (node.children.isEmpty()) null else marks to node.children
         }
@@ -133,8 +138,15 @@ internal class SpanWriter(
             }
 
             type == MarkdownTokenTypes.EOL -> {
-                if (!breakBefore) appendText(" ", marks)
+                if (!breakBefore) {
+                    dropTrailingSpaces()
+                    appendText(" ", marks)
+                }
                 afterLineEnd = true
+            }
+
+            type == MarkdownTokenTypes.BLOCK_QUOTE && inTable -> {
+                appendText(text(node), marks)
             }
 
             type == MarkdownTokenTypes.BLOCK_QUOTE -> {
@@ -214,11 +226,35 @@ internal class SpanWriter(
         spans += marks.span(text, code)
     }
 
+    private fun dropTrailingSpaces() {
+        if (pending.isNotEmpty()) {
+            pending.setLength(pending.trimEnd(' ', '\t').length)
+            return
+        }
+        val last = spans.lastOrNull() ?: return
+        if (last.style != SpanStyle.Code) spans[spans.lastIndex] = last.copy(text = last.text.trimEnd(' ', '\t'))
+    }
+
     private fun flush() {
         if (pending.isEmpty()) return
         spans += pendingMarks.span(decode(pending.toString()), code = false)
         pending.setLength(0)
     }
+
+    private fun image(node: ASTNode): List<ASTNode> {
+        val link = node.children.firstOrNull { it.type in LINKS }
+        return if (link != null && isLink(link)) listOf(link) else node.children
+    }
+
+    private fun isLink(node: ASTNode): Boolean =
+        if (node.type == MarkdownElementTypes.INLINE_LINK) {
+            node.children.none { child ->
+                child.type == MarkdownElementTypes.LINK_DESTINATION &&
+                    text(child).let { !it.startsWith('<') && it.any(Char::isWhitespace) }
+            }
+        } else {
+            node.children.firstOrNull { it.type == MarkdownElementTypes.LINK_LABEL }?.let { defined(text(it)) } == true
+        }
 
     private fun text(node: ASTNode): String = source.substring(node.startOffset, node.endOffset)
 
@@ -292,13 +328,13 @@ private fun List<NoteSpan>.trimmed(): List<NoteSpan> {
     while (merged.firstOrNull()?.isBlankText() == true) merged.removeAt(0)
     while (merged.lastOrNull()?.isBlankText() == true) merged.removeAt(merged.lastIndex)
     if (merged.isNotEmpty()) {
-        merged[0] = merged.first().trimText { it.trimStart() }
-        merged[merged.lastIndex] = merged.last().trimText { it.trimEnd() }
+        merged[0] = merged.first().trimText { it.trimStart(*EDGE_SPACES.toCharArray()) }
+        merged[merged.lastIndex] = merged.last().trimText { it.trimEnd(*EDGE_SPACES.toCharArray()) }
     }
     return merged
 }
 
-private fun NoteSpan.isBlankText(): Boolean = style != SpanStyle.Code && text.isBlank()
+private fun NoteSpan.isBlankText(): Boolean = style != SpanStyle.Code && text.all { it in EDGE_SPACES }
 
 private fun NoteSpan.trimText(trim: (String) -> String): NoteSpan =
     if (style ==
@@ -317,7 +353,7 @@ private fun decode(text: String): String {
             escaped.isNotEmpty() -> escaped
             hex.isNotEmpty() -> codePoint(hex.toInt(16))
             decimal.isNotEmpty() -> codePoint(decimal.toInt())
-            else -> Entities.map["&$name;"]?.let(::codePoint) ?: match.value
+            else -> TWO_CODE_POINT_ENTITIES[name] ?: Entities.map["&$name;"]?.let(::codePoint) ?: match.value
         }
     }
 }

@@ -67,6 +67,9 @@ private fun TableAlignDto.toDomain(): TableAlign =
         TableAlignDto.RIGHT -> TableAlign.Right
     }
 
+internal val NoteBlockDto.coversNote: Boolean
+    get() = this is NoteBlockDto.Unsupported && reason.toDomain().wholeNote
+
 private fun UnsupportedReasonDto.toDomain(): UnsupportedReason =
     when (this) {
         UnsupportedReasonDto.UNKNOWN_TYPE -> UnsupportedReason.UnknownType

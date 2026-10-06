@@ -4,9 +4,11 @@ import com.hancekim.mynote.core.common.result.runCatchingCancellable
 import com.hancekim.mynote.core.data.connection.ConnectionConfigCodec
 import com.hancekim.mynote.core.data.datasource.LocalNotesDataSource
 import com.hancekim.mynote.core.data.datasource.NoteSourceAdapter
+import com.hancekim.mynote.core.data.datasource.RederivedNote
 import com.hancekim.mynote.core.data.datasource.SourceRecord
 import com.hancekim.mynote.core.data.dto.toCategories
 import com.hancekim.mynote.core.domain.model.Category
+import com.hancekim.mynote.core.domain.model.NoteLimits
 import com.hancekim.mynote.core.domain.model.SourceKind
 import com.hancekim.mynote.core.domain.model.SyncOutcome
 import com.hancekim.mynote.core.domain.repository.NotesRepository
@@ -39,7 +41,7 @@ class NotesRepositoryImpl internal constructor(
     override fun observeCategories(): Flow<List<Category>> =
         local
             .observeNotes()
-            .map { it.toCategories(format) }
+            .map { notes -> notes.toCategories(format) { key -> local.loadRaw(key, NoteLimits.Default.maxCacheBytes) } }
             .flowOn(Dispatchers.Default)
 
     override suspend fun sync(): Result<SyncOutcome> =
@@ -56,13 +58,12 @@ class NotesRepositoryImpl internal constructor(
         }
 
     private suspend fun rederiveStale() {
-        val stale = local.loadStale(PARSER_VERSION)
+        val stale = local.loadStale(PARSER_VERSION, NoteLimits.Default.maxCacheBytes)
         if (stale.isEmpty()) return
         local.replaceDerived(
-            stale.mapNotNull { row ->
-                val raw = row.raw ?: return@mapNotNull null
-                val derived = format.derive(row.path, raw)
-                row.copy(blocksJson = derived.blocksJson, excerpt = derived.excerpt, parserVersion = PARSER_VERSION)
+            stale.map { row ->
+                val derived = format.derive(row.path, row.raw)
+                RederivedNote(row.key, derived.blocksJson, derived.excerpt, PARSER_VERSION)
             },
         )
     }

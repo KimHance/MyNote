@@ -51,7 +51,15 @@ sealed interface NoteBlock {
     ) : NoteBlock
 }
 
-enum class UnsupportedReason { UnknownType, BrokenBlock, BrokenNote, LimitExceeded }
+/** @property wholeNote 노트 전체를 대신하는 상자의 사유인지 */
+enum class UnsupportedReason(
+    val wholeNote: Boolean,
+) {
+    UnknownType(wholeNote = false),
+    BrokenBlock(wholeNote = false),
+    BrokenNote(wholeNote = true),
+    LimitExceeded(wholeNote = true),
+}
 
 /**
  * @property checked 체크 항목이면 켬 · 끔, 아니면 null

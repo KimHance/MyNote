@@ -13,6 +13,7 @@ import org.intellij.markdown.MarkdownTokenTypes
 import org.intellij.markdown.ast.ASTNode
 import org.intellij.markdown.flavours.gfm.GFMElementTypes
 import org.intellij.markdown.flavours.gfm.GFMTokenTypes
+import org.intellij.markdown.parser.LinkMap
 import org.intellij.markdown.parser.MarkdownParser
 
 private const val INDENTED_CODE_COLUMNS = 4
@@ -47,9 +48,9 @@ private val SKIPPED =
     )
 
 /**
- * GFM 마크다운 원문을 블록으로 바꾼다. 블록 깊이가 [limits] 의 상한을 넘으면 노트 전체가 한도 넘음 상자 하나다.
+ * GFM 마크다운 원문을 블록으로 바꾼다. 블록 깊이나 표 칸 수가 [limits] 의 상한을 넘으면 노트 전체가 한도 넘음 상자 하나다.
  *
- * @param limits 블록 깊이 상한을 든 한도
+ * @param limits 블록 깊이 · 표 칸 수 상한을 든 한도
  */
 internal class GfmMarkdownConverter(
     private val limits: NoteLimits = NoteLimits.Default,
@@ -58,8 +59,10 @@ internal class GfmMarkdownConverter(
 
     override fun convert(raw: String): List<NoteBlock> {
         val body = markdownSource(raw).body
-        val reader = BlockReader(body, limits.maxDepth)
-        val blocks = reader.blocks(parser.buildMarkdownTreeFromString(body).children, depth = 1)
+        val root = parser.buildMarkdownTreeFromString(body)
+        val links = LinkMap.buildLinkMap(root, body)
+        val reader = BlockReader(body, limits) { !it.isFootnoteLabel() && links.getLinkInfo(it) != null }
+        val blocks = reader.blocks(root.children, depth = 1)
         return if (reader.exceeded) {
             listOf(NoteBlock.Unsupported(UnsupportedReason.LimitExceeded, type = null, text = null, raw = raw))
         } else {
@@ -70,20 +73,29 @@ internal class GfmMarkdownConverter(
 
 private class BlockReader(
     private val source: String,
-    private val maxDepth: Int,
+    private val limits: NoteLimits,
+    private val defined: (label: String) -> Boolean,
 ) {
     var exceeded = false
         private set
+
+    private var tableCells = 0L
 
     fun blocks(
         nodes: List<ASTNode>,
         depth: Int,
     ): List<NoteBlock> {
-        if (depth > maxDepth) {
-            exceeded = true
-            return emptyList()
-        }
-        return nodes.filter { it.type !in SKIPPED }.mapNotNull { block(it, depth) }
+        if (depth > limits.maxDepth) exceeded = true
+        if (exceeded) return emptyList()
+        return nodes.filterNot(::skipped).mapNotNull { block(it, depth) }
+    }
+
+    private fun skipped(node: ASTNode): Boolean = node.type in SKIPPED && !isFootnoteDefinition(node)
+
+    private fun isFootnoteDefinition(node: ASTNode): Boolean {
+        if (node.type != MarkdownElementTypes.LINK_DEFINITION) return false
+        val label = node.children.firstOrNull { it.type == MarkdownElementTypes.LINK_LABEL } ?: return false
+        return text(label).isFootnoteLabel()
     }
 
     private fun block(
@@ -128,12 +140,12 @@ private class BlockReader(
                 NoteBlock.Divider
             }
 
+            type == MarkdownElementTypes.LINK_DEFINITION -> {
+                NoteBlock.Paragraph(literalSpans(node))
+            }
+
             else -> {
-                SpanWriter(source)
-                    .literal(text(node))
-                    .spans()
-                    .takeIf { it.isNotEmpty() }
-                    ?.let(NoteBlock::Paragraph)
+                literalSpans(node).takeIf { it.isNotEmpty() }?.let(NoteBlock::Paragraph)
             }
         }
     }
@@ -159,11 +171,8 @@ private class BlockReader(
         node: ASTNode,
         depth: Int,
     ): NoteListItem {
-        val checked =
-            node.children
-                .firstOrNull { it.type == GFMTokenTypes.CHECK_BOX }
-                ?.let { text(it).trim().equals("[x]", ignoreCase = true) }
-        val content = node.children.filter { it.type !in SKIPPED }
+        val checked = node.children.firstOrNull { it.type == GFMTokenTypes.CHECK_BOX }?.let(::isChecked)
+        val content = node.children.filterNot(::skipped)
         val first = content.firstOrNull()?.takeIf { it.type == MarkdownElementTypes.PARAGRAPH }
         val rest = if (first == null) content else content.drop(1)
         return NoteListItem(
@@ -180,10 +189,13 @@ private class BlockReader(
                 ?.let(::cells)
                 .orEmpty()
         val columns = header.size
-        val rows =
-            node.children
-                .filter { it.type == GFMElementTypes.ROW }
-                .map { row -> cells(row).take(columns).padded(columns) { TableCell(emptyList()) } }
+        val rowNodes = node.children.filter { it.type == GFMElementTypes.ROW }
+        tableCells += columns.toLong() * (rowNodes.size + 1)
+        if (tableCells > limits.maxTableCells) {
+            exceeded = true
+            return NoteBlock.Table(emptyList(), emptyList(), emptyList())
+        }
+        val rows = rowNodes.map { row -> cells(row).take(columns).padded(columns) { TableCell(emptyList()) } }
         val delimiter = node.children.firstOrNull { it.type == GFMTokenTypes.TABLE_SEPARATOR && '-' in text(it) }
         val align = delimiter?.let { alignments(text(it)) }.orEmpty()
         return NoteBlock.Table(header, rows, align.take(columns).padded(columns) { TableAlign.None })
@@ -192,7 +204,7 @@ private class BlockReader(
     private fun cells(row: ASTNode): List<TableCell> =
         row.children
             .filter { it.type == GFMTokenTypes.CELL }
-            .map { TableCell(SpanWriter(source, inTable = true).inline(it.children).spans()) }
+            .map { TableCell(SpanWriter(source, defined, inTable = true).inline(it.children).spans()) }
 
     private fun headingSpans(node: ASTNode): List<NoteSpan> =
         node.children
@@ -200,7 +212,14 @@ private class BlockReader(
             ?.let(::spans)
             .orEmpty()
 
-    private fun spans(node: ASTNode): List<NoteSpan> = SpanWriter(source).inline(node.children).spans()
+    private fun spans(node: ASTNode): List<NoteSpan> = SpanWriter(source, defined).inline(node.children).spans()
+
+    private fun literalSpans(node: ASTNode): List<NoteSpan> = SpanWriter(source, defined).literal(text(node)).spans()
+
+    private fun checkMark(item: ASTNode): String? =
+        item.children.firstOrNull { it.type == GFMTokenTypes.CHECK_BOX }?.let { if (isChecked(it)) "[x] " else "[ ] " }
+
+    private fun isChecked(box: ASTNode): Boolean = text(box).trim().equals("[x]", ignoreCase = true)
 
     private fun quoteSpans(node: ASTNode): List<NoteSpan> {
         val lines = ArrayList<List<NoteSpan>>()
@@ -222,8 +241,8 @@ private class BlockReader(
                     lines += spans(child)
                 }
 
-                type == GFMTokenTypes.ALERT_TITLE -> {
-                    lines += SpanWriter(source).literal(text(child)).spans()
+                type == GFMTokenTypes.ALERT_TITLE || isFootnoteDefinition(child) -> {
+                    lines += literalSpans(child)
                 }
 
                 type in HEADINGS -> {
@@ -246,7 +265,14 @@ private class BlockReader(
                     lines += tableLines(table(child))
                 }
 
-                type in QUOTES || type in LISTS || type == MarkdownElementTypes.LIST_ITEM -> {
+                type == MarkdownElementTypes.LIST_ITEM -> {
+                    val first = lines.size
+                    quoteLines(child, lines)
+                    val mark = checkMark(child)
+                    if (mark != null && lines.size > first) lines[first] = listOf(NoteSpan(mark)) + lines[first]
+                }
+
+                type in QUOTES || type in LISTS -> {
                     quoteLines(child, lines)
                 }
             }
@@ -313,6 +339,8 @@ private fun alignments(delimiterRow: String): List<TableAlign> =
                 else -> TableAlign.None
             }
         }
+
+private fun String.isFootnoteLabel(): Boolean = startsWith("[^")
 
 private fun <T> List<T>.padded(
     size: Int,
