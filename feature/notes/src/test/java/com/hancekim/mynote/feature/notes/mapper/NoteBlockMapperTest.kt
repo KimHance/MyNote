@@ -153,7 +153,11 @@ class NoteBlockMapperTest {
                     rows = listOf(listOf(TableCell(listOf(NoteSpan("a"))), TableCell(emptyList()))),
                     align = listOf(TableAlign.Right, TableAlign.None),
                 ),
-                NoteBlock.Table(listOf(TableCell(listOf(NoteSpan("h")))), emptyList(), listOf(TableAlign.Center)),
+                NoteBlock.Table(
+                    listOf(TableCell(listOf(NoteSpan("h"))), TableCell(listOf(NoteSpan("l")))),
+                    emptyList(),
+                    listOf(TableAlign.Center, TableAlign.Left),
+                ),
             ).toContentBlocks()
 
         assertEquals(
@@ -171,9 +175,9 @@ class NoteBlockMapperTest {
                     align = persistentListOf(NoteColumnAlign.Right, NoteColumnAlign.None),
                 ),
                 NoteContentBlock.Table(
-                    persistentListOf(NoteContentCell(normal("h"))),
+                    persistentListOf(NoteContentCell(normal("h")), NoteContentCell(normal("l"))),
                     persistentListOf(),
-                    persistentListOf(NoteColumnAlign.Center),
+                    persistentListOf(NoteColumnAlign.Center, NoteColumnAlign.Left),
                 ),
             ),
             table,
