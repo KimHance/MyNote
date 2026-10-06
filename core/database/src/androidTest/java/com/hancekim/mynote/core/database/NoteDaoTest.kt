@@ -8,7 +8,9 @@ import com.hancekim.mynote.core.data.connection.ConnectionConfigCodec
 import com.hancekim.mynote.core.database.dao.NoteDao
 import com.hancekim.mynote.core.database.entity.ReadSessionEntity
 import com.hancekim.mynote.core.database.entity.SourceEntity
+import com.hancekim.mynote.core.database.entity.SourceNoteDerivedRow
 import com.hancekim.mynote.core.database.entity.SourceNoteEntity
+import com.hancekim.mynote.core.database.entity.SourceNoteStaleRow
 import com.hancekim.mynote.core.domain.model.NoteLimits
 import com.hancekim.mynote.core.domain.model.RepoConnection
 import kotlinx.coroutines.flow.first
@@ -67,6 +69,18 @@ class NoteDaoTest {
     fun close() {
         database.close()
     }
+
+    private suspend fun columns(
+        key: String,
+        names: String,
+    ): List<String?> =
+        database.useReaderConnection { connection ->
+            connection.usePrepared("SELECT $names FROM source_notes WHERE note_key = ?") { statement ->
+                statement.bindText(1, key)
+                statement.step()
+                (0 until statement.getColumnCount()).map { if (statement.isNull(it)) null else statement.getText(it) }
+            }
+        }
 
     private suspend fun keys(): List<String> =
         dao
@@ -132,6 +146,37 @@ class NoteDaoTest {
             assertEquals(setOf("a", "c"), state.keys)
             assertEquals(true, state.getValue("a").hasRaw)
             assertEquals(false, state.getValue("c").hasRaw)
+        }
+
+    @Test
+    fun `NF-9 재변환은 낡은 판의 원문 있는 행만 읽고 파생 열만 바꾼다`() =
+        runTest {
+            val limit = NoteLimits.Default.maxCacheBytes
+            val kept = "path, group_name, title, date, epoch_day, first_seen_at, revision, fetched_at, raw"
+            dao.upsertAll(
+                listOf(
+                    row("s0", "stale", firstSeenAt = 7L).copy(
+                        path = "notes/a/stale.md",
+                        revision = "r1",
+                        fetchedAt = 9L,
+                        raw = "# 원문",
+                        blocksJson = "[옛]",
+                        excerpt = "옛",
+                    ),
+                    row("s0", "current").copy(parserVersion = 2),
+                    row("s0", "noRaw").copy(raw = null),
+                ),
+            )
+            val before = columns("s0/stale", kept)
+
+            assertEquals(listOf(SourceNoteStaleRow("s0/stale", "notes/a/stale.md", "# 원문")), dao.loadStale(2, limit))
+
+            dao.replaceDerived(listOf(SourceNoteDerivedRow("s0/stale", "[새]", "새", 2)))
+
+            assertEquals(before, columns("s0/stale", kept))
+            assertEquals(listOf("[새]", "새", "2"), columns("s0/stale", "blocks_json, excerpt, parser_version"))
+            assertEquals(listOf("[]", null, "1"), columns("s0/noRaw", "blocks_json, excerpt, parser_version"))
+            assertEquals(emptyList<SourceNoteStaleRow>(), dao.loadStale(2, limit))
         }
 
     @Test

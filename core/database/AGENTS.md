@@ -41,6 +41,8 @@ Room 에서 나온다(`observeCategories()` → `LocalNotesDataSource.observeNot
 - **삭제는 `WHERE source_id = :sourceId AND doc_id IN (:docIds)` 이고 900개씩 나눠 부른다**(SQLite 바인드 한도 999).
   `source_id` 조건이 "소스는 자기 소유 노트만 지운다" 의 마지막 방어선이다. 계측 `NoteDaoTest` 가 지킨다.
 - **`replaceDerived` 는 `blocks_json`·`excerpt`·`parser_version` 만 바꾼다**(재변환). 원문·리비전·처음 본 시각은 건드리지 않는다.
+  `loadStale` 은 판이 낮고 원문이 있는 행만 읽는다. 둘을 실제 Room 으로 보는 것은 계측 `NF-9 재변환은 낡은 판의 원문 있는 행만 읽고
+  파생 열만 바꾼다` 다 — `:core:data` 의 NF-9 시험은 가짜 로컬 위라 SQL 을 안 본다.
 - **노트 행을 읽는 질의는 쓰는 열만 읽는다 — `SELECT *` 로 되돌리지 않는다.** 한 행은 커서 창(2MB) 하나로 읽혀서 창보다 큰 행이
   하나라도 있으면 그 질의가 `SQLiteBlobTooBigException` 을 던진다. 목록 Flow 가 끊기면 홈의 노트가 전부 사라지고, 재변환 질의가
   던지면 동기화가 매번 첫 줄에서 멈춘다. `observeNotes` 는 `raw` 를 읽지 않고, 원문을 읽는 `loadRaw` · `loadStale` 은
