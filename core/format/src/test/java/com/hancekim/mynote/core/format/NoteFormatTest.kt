@@ -129,12 +129,4 @@ class NoteFormatTest {
             failing.blocks("x.md", raw),
         )
     }
-
-    @Test
-    fun `NF-2 마크다운 자리 표시는 지금 판의 JSON 해석과 같은 상자를 만든다`() {
-        val placeholder = NoteFormat()
-        val raw = "# 제목\n\n- 항목"
-
-        assertEquals(placeholder.derive("x.json", raw), placeholder.derive("x.md", raw))
-    }
 }

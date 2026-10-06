@@ -1,0 +1,15 @@
+{
+  "id": "coroutines",
+  "title": "코루틴 디스패처 메모",
+  "date": "2026.05.30",
+  "blocks": [
+    { "type": "heading", "level": 2, "spans": [ { "text": "디스패처 선택" } ] },
+    { "type": "bulletList", "items": [
+      { "spans": [ { "text": "Dispatchers.Main", "style": "code" }, { "text": " 은 UI" } ] },
+      { "spans": [ { "text": "Dispatchers.IO", "style": "code" }, { "text": " 는 디스크/네트워크" } ] },
+      { "spans": [ { "text": "Dispatchers.Default", "style": "code" }, { "text": " 는 CPU 연산" } ] }
+    ] },
+    { "type": "quote", "spans": [ { "text": "취소는 협력적이다 — suspend 지점을 둬야 한다." } ] },
+    { "type": "code", "code": "flow { emit(load()) }.flowOn(Dispatchers.IO)" }
+  ]
+}

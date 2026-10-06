@@ -1,0 +1,13 @@
+{
+  "id": "http-cache",
+  "title": "HTTP 캐싱 기초",
+  "date": "2026.04.22",
+  "blocks": [
+    { "type": "heading", "level": 2, "spans": [ { "text": "캐시 제어 헤더" } ] },
+    { "type": "bulletList", "items": [
+      { "spans": [ { "text": "Cache-Control: max-age", "style": "code" }, { "text": " 로 신선도를 정한다." } ] },
+      { "spans": [ { "text": "ETag", "style": "code" }, { "text": " 와 조건부 요청." } ] }
+    ] },
+    { "type": "quote", "spans": [ { "text": "304 Not Modified 는 본문 없이 재검증만 성공한 응답이다." } ] }
+  ]
+}
