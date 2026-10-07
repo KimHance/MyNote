@@ -1,15 +1,10 @@
 package com.hancekim.mynote.feature.notes.screen
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -17,21 +12,18 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.hancekim.mynote.core.designfoundation.window.MyNoteHeightClass
 import com.hancekim.mynote.core.designfoundation.window.MyNoteWindowClass
+import com.hancekim.mynote.core.designsystem.component.MyNoteHero
 import com.hancekim.mynote.core.designsystem.component.NoteCard
 import com.hancekim.mynote.core.designsystem.component.fadingEdges
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
@@ -51,6 +43,7 @@ import kotlinx.collections.immutable.persistentSetOf
 internal fun HomeScreen(
     recentNotes: ImmutableList<RecentNoteUi>,
     body: HomeBody,
+    repoName: String?,
     onIntent: (NotesIntent) -> Unit,
     modifier: Modifier = Modifier,
     contentBottomPadding: Dp = 0.dp,
@@ -97,7 +90,16 @@ internal fun HomeScreen(
                         }
                     }
                     item(span = { GridItemSpan(maxLineSpan) }) {
-                        Hero(modalDrawer = adaptive.useModalDrawer)
+                        MyNoteHero(
+                            title = stringResource(R.string.notes_app_title),
+                            repoName = repoName,
+                            hint =
+                                if (adaptive.useModalDrawer) {
+                                    stringResource(R.string.notes_home_hint_compact)
+                                } else {
+                                    stringResource(R.string.notes_home_hint_wide)
+                                },
+                        )
                     }
                     item(span = { GridItemSpan(maxLineSpan) }) {
                         Text(
@@ -126,54 +128,7 @@ internal fun HomeScreen(
     }
 }
 
-@Composable
-private fun Hero(
-    modalDrawer: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    val colors = MyNoteTheme.colors
-    val adaptive = MyNoteTheme.adaptive
-    val logoSize = adaptive.heroLogoSize
-
-    Column(modifier = modifier.padding(vertical = 8.dp)) {
-        if (logoSize != null) {
-            Box(
-                modifier =
-                    Modifier
-                        .size(logoSize)
-                        .clip(RoundedCornerShape(logoSize * 0.29f))
-                        .background(colors.accent),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = "N",
-                    color = Color.White,
-                    fontSize = adaptive.heroTitleSize,
-                    fontWeight = FontWeight.W700,
-                )
-            }
-            Spacer(Modifier.height(16.dp))
-        }
-        Text(
-            text = stringResource(R.string.notes_app_title),
-            style = MyNoteTheme.textStyles.noteTitle.copy(fontSize = adaptive.heroTitleSize),
-            color = colors.text,
-        )
-        if (logoSize != null) {
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text =
-                    if (modalDrawer) {
-                        stringResource(R.string.notes_home_hint_compact)
-                    } else {
-                        stringResource(R.string.notes_home_hint_wide)
-                    },
-                style = MyNoteTheme.textStyles.body,
-                color = colors.text2,
-            )
-        }
-    }
-}
+private const val PREVIEW_REPO = "study-team/android-notes"
 
 private val previewRecent =
     persistentListOf(
@@ -186,7 +141,7 @@ private val previewRecent =
 @Composable
 private fun HomeScreenCompactPreview() {
     MyNoteTheme {
-        HomeScreen(recentNotes = previewRecent, body = HomeBody.Notes, onIntent = {})
+        HomeScreen(recentNotes = previewRecent, body = HomeBody.Notes, repoName = PREVIEW_REPO, onIntent = {})
     }
 }
 
@@ -197,6 +152,7 @@ private fun HomeScreenBookmarkedPreview() {
         HomeScreen(
             recentNotes = previewRecent,
             body = HomeBody.Notes,
+            repoName = PREVIEW_REPO,
             onIntent = {},
             bookmarkedIds = persistentSetOf("a", "c"),
         )
@@ -210,7 +166,7 @@ private fun HomeScreenShortPreview() {
         windowClass = MyNoteWindowClass.Medium,
         heightClass = MyNoteHeightClass.Compact,
     ) {
-        HomeScreen(recentNotes = previewRecent, body = HomeBody.Notes, onIntent = {})
+        HomeScreen(recentNotes = previewRecent, body = HomeBody.Notes, repoName = PREVIEW_REPO, onIntent = {})
     }
 }
 
@@ -218,7 +174,7 @@ private fun HomeScreenShortPreview() {
 @Composable
 private fun HomeScreenExpandedPreview() {
     MyNoteTheme(windowClass = MyNoteWindowClass.Expanded) {
-        HomeScreen(recentNotes = previewRecent, body = HomeBody.Notes, onIntent = {})
+        HomeScreen(recentNotes = previewRecent, body = HomeBody.Notes, repoName = PREVIEW_REPO, onIntent = {})
     }
 }
 
@@ -226,7 +182,7 @@ private fun HomeScreenExpandedPreview() {
 @Composable
 private fun HomeScreenReceivingPreview() {
     MyNoteTheme {
-        HomeScreen(recentNotes = persistentListOf(), body = HomeBody.Receiving, onIntent = {})
+        HomeScreen(recentNotes = persistentListOf(), body = HomeBody.Receiving, repoName = PREVIEW_REPO, onIntent = {})
     }
 }
 
@@ -234,7 +190,7 @@ private fun HomeScreenReceivingPreview() {
 @Composable
 private fun HomeScreenNoneNotesPreview() {
     MyNoteTheme {
-        HomeScreen(recentNotes = persistentListOf(), body = HomeBody.NoNotes, onIntent = {})
+        HomeScreen(recentNotes = persistentListOf(), body = HomeBody.NoNotes, repoName = PREVIEW_REPO, onIntent = {})
     }
 }
 
@@ -251,6 +207,7 @@ private fun HomeScreenNoneNotesWidePreview() {
         HomeScreen(
             recentNotes = persistentListOf(),
             body = HomeBody.NoNotes,
+            repoName = PREVIEW_REPO,
             onIntent = {},
             contentEndPadding = 74.dp,
         )
@@ -261,7 +218,13 @@ private fun HomeScreenNoneNotesWidePreview() {
 @Composable
 private fun HomeScreenConnectBandPreview() {
     MyNoteTheme {
-        HomeScreen(recentNotes = previewRecent, body = HomeBody.Notes, onIntent = {}, showConnectBand = true)
+        HomeScreen(
+            recentNotes = previewRecent,
+            body = HomeBody.Notes,
+            repoName = null,
+            onIntent = {},
+            showConnectBand = true,
+        )
     }
 }
 
@@ -276,6 +239,6 @@ private fun HomeScreenConnectBandPreview() {
 @Composable
 private fun HomeScreenNoneNotesLargePreview() {
     MyNoteTheme {
-        HomeScreen(recentNotes = persistentListOf(), body = HomeBody.NoNotes, onIntent = {})
+        HomeScreen(recentNotes = persistentListOf(), body = HomeBody.NoNotes, repoName = PREVIEW_REPO, onIntent = {})
     }
 }
