@@ -9,7 +9,7 @@ python3 gen_app.py --shots    # 위 + scenes/*.html 을 headless Chrome 으로 �
 
 ## 그림 원본 — `svg/`
 
-좌표는 변환 없이 굳혔다. path 는 `M H V A Z`, 선은 stroke(끝 butt · 이음 miter — VectorDrawable 기본과 같다), 칠은 단색 또는 2정지점 선형 그라디언트(`userSpaceOnUse`)뿐이라 VectorDrawable · AnimatedVectorDrawable · ImageVector 로 그대로 옮긴다. `id` 는 옮길 때의 이름이다.
+좌표는 변환 없이 굳혔다(좌표 소수 셋째 · 원호 반지름 넷째 자리 — 반올림한 끝점 거리보다 지름이 짧은 원호가 없게 생성기가 맞춘다). path 는 `M H V A Z`, 선은 stroke(끝 butt · 이음 miter — VectorDrawable 기본과 같다), 칠은 단색 또는 2정지점 선형 그라디언트(`userSpaceOnUse`)뿐이라 VectorDrawable · AnimatedVectorDrawable · ImageVector 로 그대로 옮긴다. `id` 는 옮길 때의 이름이다.
 
 | 파일 | 캔버스 | 들어갈 곳 | 메모 |
 |---|---|---|---|
@@ -38,4 +38,5 @@ python3 gen_app.py --shots    # 위 + scenes/*.html 을 headless Chrome 으로 �
 | `title-reading-portrait` | 읽는 중 화면 MyNote(sectionTitle) |
 | `font-specimen-x1` · `-x2` | 제목 글꼴 스타일 넷 × 두 글꼴 — 줄 상자 높이가 같다 · 목록 밖 스타일 |
 | `font-reader-portrait` | 리더 — 상단 바와 머리의 같은 노트 제목이 한 글꼴 |
-| `font-bookmark-portrait` · `font-stats-portrait` | `title` 을 쓰는 큰 카드 노트 제목 · 통계 요약 문장(지난 것 W600 → 700) |
+| `font-bookmark-portrait` · `font-stats-portrait` | `title` 을 쓰는 큰 카드 노트 제목 · 통계 요약 문장(19sp · 지난 것 17sp W600 → 700) |
+| `font-copy-lineheight` | copy 로 줄 높이를 덮는 두 자리(통계 요약 · 연결 입구 제목) — 물려받은 LineHeightStyle 로 두 글꼴의 줄 상자가 같다 |

@@ -48,8 +48,8 @@ WM_W, WM_TOP, WM_BOT, WM_XH = 315.3, -90.0, 24.0, 72.0   # 워드마크 상자 �
 
 
 # ───────────── 기하 ─────────────
-def f(v):
-    s = f'{v:.3f}'.rstrip('0').rstrip('.')
+def f(v, digits=3):
+    s = f'{v:.{digits}f}'.rstrip('0').rstrip('.')
     return '0' if s in ('', '-0') else s
 
 
@@ -58,22 +58,44 @@ NUM = re.compile(r'-?\d*\.?\d+')
 
 
 def xf(d, s=1.0, tx=0.0, ty=0.0):
-    """절대 좌표 path 를 고르게 키우고 옮긴다(원호 반지름도 같이)."""
+    """절대 좌표 path 를 고르게 키우고 옮긴다(원호 반지름도 같이).
+
+    반올림한 끝점 사이 거리가 반올림한 지름보다 길면 렌더러가 경고하고 반지름을 키운다 —
+    반지름은 소수 넷째 자리까지 쓰고, 그래도 짧은 원호는 끝점 거리의 절반으로 올림한다.
+    """
     out = []
+    cur = start = (0.0, 0.0)
+    r = lambda v: float(f(v))
     for c, args in SEG.findall(d):
         n = [float(x) for x in NUM.findall(args)]
         if c in 'ML':
-            out.append(c + ' '.join(f'{f(n[i] * s + tx)} {f(n[i + 1] * s + ty)}' for i in range(0, len(n), 2)))
+            pts = [(r(n[i] * s + tx), r(n[i + 1] * s + ty)) for i in range(0, len(n), 2)]
+            out.append(c + ' '.join(f'{f(x)} {f(y)}' for x, y in pts))
+            cur = pts[-1]
+            if c == 'M':
+                start = pts[0]
         elif c == 'H':
-            out.append('H' + ' '.join(f(x * s + tx) for x in n))
+            xs = [r(x * s + tx) for x in n]
+            out.append('H' + ' '.join(f(x) for x in xs))
+            cur = (xs[-1], cur[1])
         elif c == 'V':
-            out.append('V' + ' '.join(f(y * s + ty) for y in n))
+            ys = [r(y * s + ty) for y in n]
+            out.append('V' + ' '.join(f(y) for y in ys))
+            cur = (cur[0], ys[-1])
         elif c == 'A':
-            out.append('A' + ' '.join(
-                f'{f(n[i] * s)} {f(n[i + 1] * s)} {f(n[i + 2])} {int(n[i + 3])} {int(n[i + 4])} {f(n[i + 5] * s + tx)} {f(n[i + 6] * s + ty)}'
-                for i in range(0, len(n), 7)))
+            parts = []
+            for i in range(0, len(n), 7):
+                rx, ry = round(n[i] * s, 4), round(n[i + 1] * s, 4)
+                end = (r(n[i + 5] * s + tx), r(n[i + 6] * s + ty))
+                half = math.hypot(end[0] - cur[0], end[1] - cur[1]) / 2
+                if rx == ry and rx < half - 1e-9:
+                    rx = ry = math.ceil(half * 1e4) / 1e4
+                parts.append(f'{f(rx, 4)} {f(ry, 4)} {f(n[i + 2])} {int(n[i + 3])} {int(n[i + 4])} {f(end[0])} {f(end[1])}')
+                cur = end
+            out.append('A' + ' '.join(parts))
         else:
             out.append('Z')
+            cur = start
     return ' '.join(out)
 
 
@@ -534,16 +556,44 @@ def bookmark_scene():
 
 def stats_scene():
     w, h = 360, 560
-    card = lambda head, wgt, color, label: (
+    card = lambda head, wgt, color, label, size: (
         f'<div style="border-radius:18px;background:{TOK["surface"]};border:1px solid {TOK["border"]};padding:18px;margin-bottom:14px">'
         f'<div class="ov" style="margin-bottom:8px">{label}</div>'
-        f'<div style="font:{wgt} 22px/1.4 {GOTHIC};color:{color};letter-spacing:-0.01em">{head}</div>'
+        f'<div style="font:{wgt} {size}px/1.4 {GOTHIC};color:{color};letter-spacing:-0.01em">{head}</div>'
         f'<div class="cap" style="margin-top:8px">노트 31개 · 퀴즈 12회 · 연속 5일</div></div>')
     body = (f'{status_bar(w)}<div class="abs" style="top:24px">{top_bar(w, "M", "통계", GOTHIC, menu=True, actions=())}</div>'
             f'<div class="abs" style="top:100px;left:16px;width:328px">'
-            + card('이번 주는 Kotlin 을 가장 많이 읽었습니다', 700, TOK['text'], '요약 · 지금')
-            + card('지난주에는 Compose 를 가장 많이 읽었습니다', 600, TOK['text2'], '요약 · 지난 것(W600 요청 → 700 으로 그려짐)')
+            + card('이번 주는 Kotlin 을 가장 많이 읽었습니다', 700, TOK['text'], '요약 · 지금(19sp · 줄 1.4em)', 19)
+            + card('지난주에는 Compose 를 가장 많이 읽었습니다', 600, TOK['text2'], '요약 · 지난 것(17sp · W600 요청 → 700 으로 그려짐)', 17)
             + f'</div><div class="note" style="left:16px;top:84px">요약 문장 = title. 지난 것은 굵기 대신 색(text2)으로만 갈린다</div>')
+    return w, h, body
+
+
+COPY_SITES = [  # copy 로 줄 높이를 덮는 자리 — 이름 · 글자 · 크기 sp · 줄 높이 배수 · 줄 수
+    ('통계 요약 문장 · title.copy(lineHeight = 1.4.em) · SummaryCard', '이번 주는 Kotlin 을 가장 많이 읽었습니다', 19, 1.4, 2),
+    ('연결 입구 제목 · screenTitle.copy(lineHeight = 19 × 1.35) · ConnectEntry', '저장소가 아직 없나요?', 19, 1.35, 1)]
+DEVICE_HANGUL_EM = 1.448   # 기기 한글 글꼴 예(Noto Sans CJK KR) ascent + descent
+GOTHIC_EM = 1.0            # Gothic A1 ascent + descent(817 + 207 / 1024)
+
+
+def copy_lineheight_scene():
+    w, h = 980, 560
+    rows = []
+    for label, text, sp, lh, lines in COPY_SITES:
+        box = sp * lh * lines
+        today = box - (lh - DEVICE_HANGUL_EM) * sp
+        gothic_both = box - (lh - GOTHIC_EM) * sp
+        width = 300 if lines == 2 else 400
+        cells = ''.join(f'<div style="flex:1"><div style="width:{width}px;font:700 {sp}px/{f(sp * lh)}px {fam};letter-spacing:-0.01em;'
+                        f'outline:1px dashed rgba(255,95,210,.6)">{text}</div><div class="cap" style="margin-top:6px">{lab}</div></div>'
+                        for fam, lab in ((GOTHIC, f'Gothic A1 · 줄 상자 {box:.1f}'), (DEVICE, f'기기 글꼴 · 줄 상자 {box:.1f}')))
+        rows.append(f'<div style="margin-bottom:34px"><div class="ov" style="margin-bottom:10px">{label}</div>'
+                    f'<div class="row" style="gap:36px;align-items:flex-start">{cells}</div>'
+                    f'<div style="margin-top:10px;font:400 13px/1.6 {DEVICE};color:{TOK["text2"]}">기본 스타일의 가운데 · 자르기 없음을 그대로 물려받으면 두 글꼴 모두 {box:.1f}. '
+                    f'지금 판(기기 글꼴 · 위아래 자르기)은 {today:.1f} — {today - box:.1f} 짧아진다. '
+                    f'자르기를 되살려 덮으면 Gothic A1 이 {gothic_both:.1f} 로 글꼴 따라 {today - gothic_both:.1f} 갈린다.</div></div>')
+    body = (f'<div style="padding:28px 32px"><div style="font:700 22px {GOTHIC};margin-bottom:4px">copy 로 줄 높이를 덮는 두 자리</div>'
+            f'<div class="cap" style="margin-bottom:22px">점선 = 줄 상자(줄 수 × 줄 높이). 기본 스타일의 LineHeightStyle(Center · Trim.None)이 copy 로 넘어간 모양이다.</div>{"".join(rows)}</div>')
     return w, h, body
 
 
@@ -564,6 +614,7 @@ def scenes():
     out.append(('font-reader-portrait', reader_scene()))
     out.append(('font-bookmark-portrait', bookmark_scene()))
     out.append(('font-stats-portrait', stats_scene()))
+    out.append(('font-copy-lineheight', copy_lineheight_scene()))
     return out
 
 

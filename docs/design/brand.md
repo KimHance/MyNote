@@ -5,9 +5,9 @@
 | 기능 | brand |
 | 기능 문서 | docs/spec/brand.md — BR-1 ~ BR-8 |
 | 등급 | 화면 |
-| 마지막 변경 | 2026-10-08 · 처음 — 방향 A 를 런처 · 스플래시 · 히어로 · 제목 글꼴 · 로고 전용 색으로 굳힘 |
+| 마지막 변경 | 2026-10-08 · 고침 1 — 구현 가능 검토: copy 로 줄 높이를 덮는 두 자리 · 창 바탕 리소스 이름 · 떠남 곡선 이름 · 런처 원호 반지름 |
 
-기준: 브랜드 보드 방향 A(`labs/brand-design/` · 장부 D1) · `DESIGN.md` 토큰. 새 UI 토큰 없음 — 로고 전용 색 다섯만 더한다. 그림 원본 · 장 설명은 `labs/brand-design/app/README.md`.
+기준: 브랜드 보드 방향 A(`labs/brand-design/` · 장부 D1) · `DESIGN.md` 토큰. 새 UI 토큰 없음 — 로고 전용 색 다섯과 창 바탕 리소스 하나(값은 `bg`)만 더하고, 북마크 화면 안에만 있던 떠남 곡선에 공용 이름을 붙인다. 그림 원본 · 장 설명은 `labs/brand-design/app/README.md`.
 
 ## 시안
 
@@ -30,6 +30,7 @@
 | 크기 · 히어로 | `heroLogoSize` 46 · 54 · 없음(높이 Compact) · `heroTitleSize` 20 · 24 · 28 — 값 그대로(BR-6 ⑤) · 히어로는 노트가 있을 때만 그려진다 | AdaptiveTokens · RC-21 |
 | 데이터 | 저장소 줄 = 저장된 정식 owner/repo · 최대 39 + 1 + 100 = 140자 · 접근성 글자는 원문 전체 | RC-12 · BR-6 |
 | 글꼴 | Gothic A1 은 정적 9 굵기 · 굵기마다 약 2.2MB 를 따로 받는다 · 세로 지표 ascent 817 · descent 207 · lineGap 256(UPM 1024) | google/fonts · 글꼴 파일 |
+| 그릴 것 · 원호 | 반올림한 끝점 사이 거리가 지름보다 길면 렌더러가 경고하고 반지름을 키운다 — 최종 SVG 의 반지름은 소수 넷째 자리까지 쓰고 생성기가 그런 원호를 0 으로 맞춘다(런처 전경 첫 원호 12.4365) | 구현 가능 검토 |
 | 흐름 | 콜드 시작 첫 앱 화면은 읽는 중 화면(sectionTitle 제목) · 스플래시 뒤 창 바탕 = 앱 bg(장부 D25) · 내려가는 모양은 앱이 그린다(D25) | android-ui 검토 · BR-4 |
 
 ## 폭
@@ -49,7 +50,7 @@
 | 스플래시 | 불 켜짐 세 장 · 내려감 두 장 | `shots/splash-*.png` |
 | 홈 히어로 | 높이 셋 × 연결 셋 · 200% · 접근성 | `shots/hero-*.png` |
 | 제목 MyNote | 홈 상단 바 · 읽는 중 화면 | `shots/title-*.png` |
-| 제목 글꼴 | 견본 100 · 200% · 리더 · 큰 카드 · 통계 요약 | `shots/font-*.png` |
+| 제목 글꼴 | 견본 100 · 200% · 리더 · 큰 카드 · 통계 요약 · copy 로 줄 높이를 덮는 두 자리 | `shots/font-*.png` |
 
 ## 상태
 
@@ -63,6 +64,7 @@
 | 스플래시 · 꺼짐 · 중간 · 켜짐 · 내려감 둘 | | ✓ | | |
 | 상단 바 · 읽는 중 화면 MyNote | | ✓ | | |
 | 제목 글꼴 견본 | | | | ✓(100 · 200) |
+| copy 로 줄 높이를 덮는 두 자리 | | | | ✓(100 · `font-copy-lineheight`) |
 
 빈 칸: 바꾸는 중은 옛 이름이라 연결 있음과 같은 그림이다. 연결 없음 200% 는 히어로가 연결 있음 200% 에서 저장소 줄만 빠진 모양이라 따로 그리지 않았다. 스플래시는 폭과 무관하게 가운데 고정 크기다.
 
@@ -89,7 +91,14 @@
 | 아이콘 바탕 위 · 아래 | 로고 전용 `iconTop` · `iconBottom` | `#13203A` → `#070B15` | 런처 배경 그라디언트 | 창틀 6.7 |
 | 주광 위 · 아래 | 로고 전용 `lampTop` · `lampBottom` | `#F4F8FF` → `#B9D5FF` | 빛 그라디언트 — 런처 전경 · 스플래시 · 히어로 마크 | 밤 위 12.8 · bg 위 12.5 |
 
-로고 전용 색은 토큰이 아니다 — `MyNoteColors` 에 안 넣고, UI 면 · 글자 · 상태에 쓰지 않는다. 자리: Kotlin 은 `:core:design-foundation` 의 로고 전용 객체(이름 예 `MyNoteBrandColors`, 히어로 마크가 `lampTop` · `lampBottom` 을 읽는다) · 리소스는 `:app` `values/colors.xml` 의 `brand_night` · `brand_icon_top` · `brand_icon_bottom` · `brand_lamp_top` · `brand_lamp_bottom`. 주광 시작색은 `#F4F8FF` 하나다(보드 워드마크의 `#FFFFFF` 판은 앱에 안 쓴다). 디자인 도구의 토큰 · 변수에도 안 넣는다. 테마 행은 다크 하나(앱이 다크 단일).
+로고 전용 색은 토큰이 아니다 — `MyNoteColors` 에 안 넣고, UI 면 · 글자 · 상태에 쓰지 않는다. 자리:
+
+| 자리 | 이름 | 값 | 읽는 쪽 |
+|---|---|---|---|
+| `:core:design-foundation` 로고 전용 객체 `MyNoteBrandColors` | `LampTop` · `LampBottom` 둘만 | `#F4F8FF` · `#B9D5FF` | 히어로 마크 ImageVector — Kotlin 이 읽는 것만 둔다(안 쓰는 색 없음) |
+| `:app` `values/colors.xml` | `brand_night` · `brand_icon_top` · `brand_icon_bottom` · `brand_lamp_top` · `brand_lamp_bottom` | 위 다섯 | 스플래시 테마 · 런처 · 스플래시 AVD |
+| `:app` `values/colors.xml` | `window_background` | `#0E1217`(= 토큰 `bg`, 로고 전용 아님) | 테마 `windowBackground`(색 참조라 리소스가 있어야 한다) — 스플래시가 내려간 뒤 · 앱이 그리기 전 창 바탕 |
+ 주광 시작색은 `#F4F8FF` 하나다(보드 워드마크의 `#FFFFFF` 판은 앱에 안 쓴다). 디자인 도구의 토큰 · 변수에도 안 넣는다. 테마 행은 다크 하나(앱이 다크 단일).
 
 ## 움직임 — 스플래시
 
@@ -100,7 +109,8 @@
 | 기본 상태 | 끝 그림(빛 켜짐). 처음 값은 `valueFrom` 으로 준다 |
 | 불 켜짐 | `lamp` fillAlpha 0 → 1 · `lamp_group` scaleY 0.8 → 1(기준점 = 빛 바닥 가운데 165.97 · 203.8). 둘 다 시작 지연 100 · 길이 450 · `pathInterpolator` (0.2, 0.8, 0.2, 1) = MyNoteEasing |
 | 움직임 길이 | 550ms(지연 100 + 450) — `windowSplashScreenAnimationDuration` 도 550(장부 D25) |
-| 내려감 | 앱이 그린다 — 스플래시 뷰 알파 1 → 0 · 180ms · 떠남 곡선 (0.4, 0, 1, 1) · 이동 · 크기 없음. 내려간 뒤 창 바탕은 bg |
+| 내려감 | 앱이 그린다 — 스플래시 뷰 알파 1 → 0 · 180ms · 떠남 곡선 `MyNoteExitEasing` (0.4, 0, 1, 1) · 이동 · 크기 없음. 내려간 뒤 창 바탕은 `window_background`(= bg) |
+| 떠남 곡선 이름 | `MyNoteExitEasing` — `ds/motion/Motion.kt` 의 `MyNoteEasing` 옆에 둔다. 지금 북마크 화면 안의 같은 값(`FadeOutEasing`)이 첫 쓰임이고 스플래시 내려감이 둘째다. `:app` 은 이 Easing 을 `TimeInterpolator` 로 감싸 내려감 애니메이터에 준다 |
 | 감속 모션 | 처음부터 끝 그림 · 내려감 길이 × 배율 = 0 이면 바로 |
 
 길이는 DESIGN.md 6.6 대역 안이다 — 불 켜짐 450 은 420–460(한 번 보여 줄 것) · 내려감 180 은 180–260(작은 퇴장). 900ms 대역을 빌리지 않는다. 시작 지연 100 은 꺼진 창을 먼저 보이려는 것이다. 밤 → bg 는 대비 1.0 이라 페이드 동안 바탕 색이 바뀌어 보이지 않는다.
@@ -130,7 +140,16 @@ BR-8 시험이 이 표의 첫 칸(백틱 이름)을 목록으로 읽는다. 굵�
 | `sectionTitle` | 21 | ×1.3(새로 정함) | 상단 바 제목(모든 화면 · 리더는 노트 제목) · 읽는 중 화면 · 퀴즈 실패 · 모델 · 연결 대화상자 제목 |
 | `screenTitle` | 19 · 짧은 창 17 | ×1.3(새로 정함) | 퀴즈 화면 · 퀴즈 설정 대화상자 · 연결 입구 제목 |
 
-- 줄 높이를 정하는 까닭: Gothic A1 의 ascent + descent 는 1.0em 이고 기기 글꼴 한글은 약 1.45em 이라, 비워 두면 글꼴에 따라 높이가 달라진다. 고정하면 두 글꼴의 줄 상자가 같다(`font-specimen-x1` · `-x2`). 정렬은 가운데 · 자르기 없음(`LineHeightStyle` Center · Trim None)을 권한다.
+BR-8 시험은 이 절의 첫 표만 읽는다.
+
+- 줄 높이를 정하는 까닭: Gothic A1 의 ascent + descent 는 1.0em 이고 기기 글꼴 한글은 약 1.45em 이라, 비워 두면 글꼴에 따라 높이가 달라진다. 넷 모두 `LineHeightStyle(Center, Trim.None)` 을 함께 둔다 — 위아래를 자르면 자르는 양이 글꼴 지표를 따라가 높이가 다시 갈린다. 그러면 줄 상자 = 줄 수 × 줄 높이로 두 글꼴이 같다(`font-specimen-x1` · `-x2`).
+- copy 로 줄 높이를 덮는 자리도 이 `LineHeightStyle` 을 그대로 물려받는다(덮지 않는다). 지금 판(기기 글꼴 · 위아래 자르기)보다 1–2dp 짧아질 뿐이고, 자르기를 되살려 덮으면 Gothic A1 이 7–9dp 짧아져 글꼴 따라 갈린다(`font-copy-lineheight`). 구현 사진으로 볼 자리:
+
+| 자리 | 덮는 값 | 정한 것 | 줄 상자(두 글꼴) | 지금 판 |
+|---|---|---|---|---|
+| 통계 요약 문장(SummaryCard) | `title.copy(lineHeight = 1.4.em)` · 19sp(지난 것 17 · 짧은 판 16) | 그대로 물려받음 | 2줄 53.2 | 54.1 |
+| 연결 입구 제목(ConnectEntry) | `screenTitle.copy(lineHeight = 19 × 1.35)` | 그대로 물려받음 | 1줄 25.7 | 27.5 |
+
 - `noteTitle` 과 `sectionTitle` 은 함께 들어간다 — 리더에서 같은 노트 제목이 상단 바와 머리에 같이 보인다(`font-reader-portrait`).
 - 목록 밖: `display`(점수 숫자) · `headline`(퀴즈 문항 = 읽는 문장) · `cardTitle` 이하 · 본문 제목 블록 · 본문.
 - 알고 가는 것: 통계 요약의 지난 것은 W600 을 청하는데 700 하나만 받으므로 700 으로 그려진다 — 지난 것은 색(`text2`)으로만 갈린다(`font-stats-portrait`). 상단 바 ☰ 글리프도 `sectionTitle` 이다.
@@ -171,10 +190,11 @@ BR-8 시험이 이 표의 첫 칸(백틱 이름)을 목록으로 읽는다. 굵�
 
 | 절 | 줄 |
 |---|---|
-| 2 | `#### 로고 전용 색` 표(밤 · 아이콘 바탕 위 · 아래 · 주광 위 · 아래) + "UI 면 · 글자 · 상태에 쓰지 않는다. 앱 바탕은 bg 이고 밤은 스플래시 바탕뿐이다" |
+| 2 | `#### 로고 전용 색` 표(밤 · 아이콘 바탕 위 · 아래 · 주광 위 · 아래) + "UI 면 · 글자 · 상태에 쓰지 않는다. 앱 바탕은 bg 이고 밤은 스플래시 바탕뿐이다" · 2.1 `bg` 쓰는 자리에 "테마 창 바탕(`window_background` 리소스)" |
 | 2.3 | `accent` ④ 로고 = 마크 창틀(그대로 맞다) |
-| 3.1 · 3.5 | "글꼴은 시스템 기본이고 제목 글꼴 스타일 넷(noteTitle · title · sectionTitle · screenTitle)만 Gothic A1 700 을 내려받아 쓴다 — 못 받으면 그 프로세스 동안 기기 글꼴. 넷은 줄 높이를 고정해 두 글꼴의 높이가 같다" |
+| 3.1 · 3.5 | "글꼴은 시스템 기본이고 제목 글꼴 스타일 넷(noteTitle · title · sectionTitle · screenTitle)만 Gothic A1 700 을 내려받아 쓴다 — 못 받으면 그 프로세스 동안 기기 글꼴. 넷은 줄 높이와 LineHeightStyle(Center · Trim.None)을 고정해 두 글꼴의 높이가 같고, copy 로 줄 높이를 덮어도 LineHeightStyle 은 물려받는다" |
 | 3.3 | "`heroTitleSize` 는 히어로 워드마크의 x높이다(dp · 글자 배율 무시)" |
+| 6.1 | 표에 `MyNoteExitEasing` (0.4, 0, 1, 1) · `ds/motion/Motion.kt` · 북마크 사라짐 · 스플래시 내려감 — 6.6 "떠남" 행의 곡선 칸이 이 이름을 가리킨다 |
 | 6.5 · 6.6 | "스플래시 불 켜짐 450(+ 지연 100)은 420–460 대역, 내려감 180 은 180–260 대역. 스플래시는 시스템이 그려 감속 모션은 시스템 배율로 처리한다" |
 | 7.1 | "로고는 A 마크 그림(창틀 accent + 빛 주광)이고 히어로는 마크 + 워드마크 ImageVector 다" — 지금의 "accent 사각 + 글자 N" 줄을 바꾼다 |
 
@@ -185,7 +205,7 @@ BR-8 시험이 이 표의 첫 칸(백틱 이름)을 목록으로 읽는다. 굵�
 | `shots/launcher-sheet` | 골든 없음 | `BR-1 아치 꼭대기가 안전 원 안이다`(꼭대기 점 27.0 · 바깥 끝 30.6 < 33) · 계측 `BR-1 마스크 렌더` | 없음 — 구현 뒤 에뮬레이터 사진 |
 | `shots/splash-*` | 골든 없음 | `BR-5 스플래시 움직임은 1000ms 이하이고 테마 길이와 같다`(550) | 없음 — 구현 뒤 녹화 |
 | `shots/hero-*` | 골든 없음 | 계측 `BR-6 …`(히어로 컴포넌트 사진) | 없음 |
-| `shots/font-*` | 골든 없음 | `BR-8 제목 글꼴 스타일만 Gothic A1 을 쓴다`(이 문서 `## 제목 글꼴` 표) | 없음 |
+| `shots/font-*` | 골든 없음 | `BR-8 제목 글꼴 스타일만 Gothic A1 을 쓴다`(이 문서 `## 제목 글꼴` 첫 표) | 없음 — 통계 요약 · 연결 입구 제목은 구현 뒤 위아래 여백 사진 |
 
 시안은 HTML 근사다 — 앱 크롬은 자리만 그렸다. 가운데 말줄임 · `LineHeightStyle` 은 구현 사진으로 본다.
 
@@ -194,9 +214,11 @@ BR-8 시험이 이 표의 첫 칸(백틱 이름)을 목록으로 읽는다. 굵�
 | 날짜 · run | 검토 | 누가 | 판정 | 왕복 |
 |---|---|---|---|---|
 | 2026-10-08 · brand-identity | 실현성(기준 0352b59) | 디자인 · android-ui · dev | 조건부 7 · 조건부 10 · 조건부 8 | 1 |
+| 2026-10-08 · brand-identity | 구현 가능(기준 f4bce5b) | 개발 | 디자인 몫 고칠 것 2(BR-8 · BR-4 · BR-5) · 메모 2 — 고침 1 로 반영 | 1 |
 
 ## 바뀐 기록
 
 | 날짜 | run | 무엇이 |
 |---|---|---|
 | 2026-10-08 | brand-identity | 처음 — 런처 세 층 · 스플래시 전용 아이콘과 불 켜짐 550 · 히어로(맨 마크 · 워드마크 x높이 = heroTitleSize · 저장소 줄 모노 가운데 말줄임) · 제목 글꼴 스타일 넷 700 · 로고 전용 색 다섯 |
+| 2026-10-08 | brand-identity · 고침 1 | copy 로 줄 높이를 덮는 두 자리는 LineHeightStyle 을 물려받음 · `window_background` · `MyNoteExitEasing` · `MyNoteBrandColors` 는 LampTop · LampBottom 만 · 런처 첫 원호 반지름 12.4365 · 사진 `font-copy-lineheight` 더함 |
