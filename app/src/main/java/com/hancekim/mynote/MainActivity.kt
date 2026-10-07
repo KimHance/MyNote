@@ -22,16 +22,27 @@ class MainActivity : ComponentActivity() {
 
     @Inject lateinit var modelDownloads: ModelDownloads
 
+    private var createdInTask = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
         )
         super.onCreate(savedInstanceState)
+        createdInTask = taskId
+        if (liveTasks.enter(createdInTask)) {
+            splashScreen.setOnExitAnimationListener { it.fadeOutAfterIcon() }
+        }
         consumeSettingsRequest(intent)
         setContent {
             NotesRoute()
         }
+    }
+
+    override fun onDestroy() {
+        liveTasks.leave(createdInTask)
+        super.onDestroy()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -51,6 +62,8 @@ class MainActivity : ComponentActivity() {
     }
 
     companion object {
+        private val liveTasks = LiveTasks()
+
         const val EXTRA_OPEN_SETTINGS = "open_settings"
 
         const val EXTRA_RETRY_DOWNLOAD = "retry_download"

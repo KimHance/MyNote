@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+    <aapt:attr name="android:drawable">
+        <vector
+            android:width="288dp"
+            android:height="288dp"
+            android:viewportWidth="288"
+            android:viewportHeight="288">
+            <path
+                android:name="frame"
+                android:pathData="M100.06 203.8 V111.695 A21.97 21.97 0 0 1 144 111.695 V203.8 M144 111.695 A21.97 21.97 0 0 1 187.94 111.695 V203.8"
+                android:strokeWidth="11.05"
+                android:strokeColor="#6EA8FE" />
+            <group
+                android:name="lamp_group"
+                android:pivotX="165.97"
+                android:pivotY="203.8">
+                <path
+                    android:name="lamp"
+                    android:fillAlpha="1"
+                    android:pathData="M153.685 203.8 V111.695 A12.285 12.285 0 0 1 178.255 111.695 V203.8 Z">
+                    <aapt:attr name="android:fillColor">
+                        <gradient
+                            android:endColor="@color/brand_lamp_bottom"
+                            android:endX="0"
+                            android:endY="203.8"
+                            android:startColor="@color/brand_lamp_top"
+                            android:startX="0"
+                            android:startY="84.2"
+                            android:type="linear" />
+                    </aapt:attr>
+                </path>
+            </group>
+        </vector>
+    </aapt:attr>
+    <target android:name="lamp">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="616"
+                android:interpolator="@android:interpolator/linear">
+                <propertyValuesHolder
+                    android:propertyName="fillAlpha"
+                    android:valueType="floatType">
+                    <keyframe
+                        android:fraction="0"
+                        android:value="0" />
+                    <keyframe
+                        android:fraction="0.269481"
+                        android:value="0" />
+                    <keyframe
+                        android:fraction="1"
+                        android:interpolator="@interpolator/my_note_easing"
+                        android:value="1" />
+                </propertyValuesHolder>
+            </objectAnimator>
+        </aapt:attr>
+    </target>
+    <target android:name="lamp_group">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="616"
+                android:interpolator="@android:interpolator/linear">
+                <propertyValuesHolder
+                    android:propertyName="scaleY"
+                    android:valueType="floatType">
+                    <keyframe
+                        android:fraction="0"
+                        android:value="0.8" />
+                    <keyframe
+                        android:fraction="0.269481"
+                        android:value="0.8" />
+                    <keyframe
+                        android:fraction="1"
+                        android:interpolator="@interpolator/my_note_easing"
+                        android:value="1" />
+                </propertyValuesHolder>
+            </objectAnimator>
+        </aapt:attr>
+    </target>
+</animated-vector>

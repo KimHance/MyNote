@@ -105,7 +105,7 @@ MyNote 는 GitHub 의 노트(마크다운 · 옛 JSON)를 받아 **읽기만 하
 
 | 이름 | 코드 값 | RGB · 불투명도 | 쓰는 자리 |
 |---|---|---|---|
-| `bg` | `0xFF0E1217` | `#0E1217` · 100% | 화면 배경(`Surface(color = colors.bg)`), 유리 폴백의 합성 바탕, 페이드 끝색, 표 가로 스크롤 페이드 |
+| `bg` | `0xFF0E1217` | `#0E1217` · 100% | 화면 배경(`Surface(color = colors.bg)`), 유리 폴백의 합성 바탕, 페이드 끝색, 표 가로 스크롤 페이드, 테마 창 바탕(`:app` `window_background` 리소스 — 스플래시가 내려간 뒤 첫 프레임 전) |
 | `surface` | `0xFF161C24` | `#161C24` · 100% | 카드 면(`NoteCard`, 북마크 큰 카드), 고정 패널, 눌림 면 |
 | `surface2` | `0xFF1B232D` | `#1B232D` · 100% | 한 단 더 올라온 면 — 스낵바, 검색칸, 코드 블록·인라인 코드 바탕, 표 머리 행 바탕, 모델 카드 진행 막대 트랙(카드 면은 `SettingsCard` 의 `surface`) |
 | `border` | `0xFF283039` | `#283039` · 100% | 카드 테두리 1dp, 구분선, 차트 트랙, 표 바깥 테두리·칸 선 |
@@ -674,7 +674,8 @@ MyNote 는 GitHub 의 노트(마크다운 · 옛 JSON)를 받아 **읽기만 하
 
 | 이름 | 곡선 | 정의 | 쓰는 자리 |
 |---|---|---|---|
-| `MyNoteEasing` | `cubic-bezier(0.2, 0.8, 0.2, 1)` | `ds/motion/Motion.kt` | 앱 공용. `riseIn`, `flip`, 차트, 북마크 행·큰 카드, 모델 알약 여백 |
+| `MyNoteEasing` | `cubic-bezier(0.2, 0.8, 0.2, 1)` | `ds/motion/Motion.kt` | 앱 공용. `riseIn`, `flip`, 차트, 북마크 행·큰 카드, 모델 알약 여백, 스플래시 불 켜짐(`:app` `interpolator/my_note_easing` — 같은 값) |
+| `MyNoteExitEasing` | `cubic-bezier(0.4, 0, 1, 1)` | `ds/motion/Motion.kt` | 떠남 공용. 북마크 행·화면 사라짐, 스플래시 내려감(`:app` `SplashExit.kt`) |
 | `SceneMotion.Easing` | `cubic-bezier(0.2, 0, 0, 1)` | `nav/motion/SceneMotion.kt`(internal) | 씬 전환 전용 |
 | `FastOutSlowInEasing` | Compose 기본 | — | 플로팅 내비 숨김, 맨 위로 버튼 |
 
@@ -750,6 +751,9 @@ MyNote 는 GitHub 의 노트(마크다운 · 옛 JSON)를 받아 **읽기만 하
 | 효과를 끈다 | 퀴즈 CTA 의 `aiShine`(`cta.shine && !rememberReduceMotion()`) |
 | 처음부터 끝 값 | 차트 `rememberChartProgress` 가 1에서 시작 |
 
+스플래시는 시스템이 그려 감속 모션도 시스템 배율로 처리된다 — 움직임 없이 끝 그림(불 켜진 마크)이 보이고, 앱이 하는 기다림 · 내려감도
+애니메이터 배율을 곱해 0 이 된다(`:app` `SplashExit.kt` · `brand` BR-4 · BR-5).
+
 **감속 모션을 반영하지 않는 곳**(2026-10-02): 씬 전환(`:core:navigation` 은 이 함수를 못 본다), 플로팅 내비 숨김·선택,
 맨 위로 버튼, `PressIndication`, `NoteCard` 리본 페이드, `CategoryRow` 캐럿, `StatusRing` 무한 회전(상태 알약·목록 패널 설정 줄),
 퀴즈 화면의 `riseIn`(풀이·결과·실패 화면 15곳), 퀴즈 설정 다이얼로그의 `flip`(`QuizOverlay`).
@@ -782,7 +786,7 @@ MyNote 는 GitHub 의 노트(마크다운 · 옛 JSON)를 받아 **읽기만 하
 | **도착**(빠르게 출발해 부드럽게 멈춤) | `MyNoteEasing` | 등장 · 펼침 · 막대·게이지 · 재배치 · 뒤집기 회전 |
 | **장면**(무게 있는 이동) | (0.2, 0, 0, 1) — `SceneMotion.Easing`, 같은 값의 `NotesTopBar` 튀기 곡선 | 화면 push/pop · 리더 토글 튀기 |
 | **표준** | `FastOutSlowInEasing` | 내비 숨김/복귀 · 맨 위로 · 리더 토글 색 |
-| **떠남**(가속) | (0.4, 0, 1, 1) — 북마크 화면 private | 사라지는 항목 |
+| **떠남**(가속) | `MyNoteExitEasing` (0.4, 0, 1, 1) | 사라지는 항목 · 스플래시 내려감 |
 | **시간 그 자체** | 선형 | 무한 회전 · shimmer · 자동 진행 링 · 차트 전체 진행도 |
 | **탄성** | spring | 뒤집기 크기 · 눌림 복귀 · 내비 선택 |
 
@@ -797,9 +801,9 @@ MyNote 는 GitHub 의 노트(마크다운 · 옛 JSON)를 받아 **읽기만 하
 | 대역 | 쓰는 곳 |
 |---|---|
 | 90–160ms | 눌림 · 라벨 페이드 · 색 바뀜 · 리본 — 손에 붙는 피드백 |
-| 180–260ms | 작은 등장·퇴장 · 맨 위로 · 다이얼로그 닫힘 |
+| 180–260ms | 작은 등장·퇴장 · 맨 위로 · 다이얼로그 닫힘 · 스플래시 내려감(180) |
 | 300–340ms | `riseIn` · 레이아웃 이동 · 장면 전환 · 내비 숨김 |
-| 420–460ms | 점수 게이지 등장 · 뒤집기 등장 — "한 번 보여 줄 것" |
+| 420–460ms | 점수 게이지 등장 · 뒤집기 등장 · 스플래시 불 켜짐(450, 앞에 꺼진 채 166 — 전체 616) — "한 번 보여 줄 것" |
 | 900ms 이상 | 점수 게이지 채움(900, QZ §4) · 무한 루프 한 바퀴(링 1100 · 샤인 3200) |
 
 900ms 이상인 일회성 모션은 결과 화면의 게이지 하나다. 사용자가 기다리는 동안이 아니라 **결과를 보는 동안**이라 길어도 된다 — 다른 자리에서 이 길이를 빌리지 않는다.
@@ -855,6 +859,10 @@ Material 아이콘 세트를 쓰지 않는다.
 | 채움 | 흰색. 쓰는 쪽이 `tint` 로 색을 입힌다 |
 
 자주 쓰는 표시 크기: 내비 아이콘 21dp, 맨 위로 21dp, 상태 알약 14dp(링 18 − 4), 북마크 글리프 12dp, 체크 상자 1.25em(본문 16sp 에서 20dp — 본문 글자와 같이 커진다).
+
+**앱 밖에 보이는 아이콘**은 `MyNoteIcons` 가 아니라 `:app` 리소스다. 런처 아이콘은 adaptive 세 층(`ic_launcher_background` 밤 그라디언트 ·
+`_foreground` 아치 창 마크 · `_monochrome` 테마 아이콘용 실루엣)이고, 스플래시 아이콘은 불 켜짐 AVD(`splash_icon`)다. 그림 원본은
+`labs/brand-design/app/svg/`, 규격 · 움직임은 `docs/design/brand.md` 다. 창틀 선은 `accent` 값, 빛은 로고 전용 주광 그라디언트다(`brand` BR-1 · BR-5).
 
 ### 7.1 아이콘 사용 규칙
 
