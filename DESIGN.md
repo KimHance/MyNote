@@ -173,6 +173,18 @@ MyNote 는 GitHub 의 노트(마크다운 · 옛 JSON)를 받아 **읽기만 하
 
 차트의 계열 순서는 `accent` → `chartAccent2` → `chartAccent3` → `text2` → `text3` 다(`ds/chart/CategoryDonut.kt` 프리뷰).
 
+#### 로고 전용 색
+
+토큰이 아니다 — `MyNoteColors` 에 넣지 않고, UI 면 · 글자 · 상태에 쓰지 않는다. 앱 바탕은 `bg` 이고 밤은 스플래시 바탕뿐이다(`docs/design/brand.md` 색).
+
+| 이름 | 값 | 그리는 것 | 코드 자리 |
+|---|---|---|---|
+| 밤 | `#0A0F1C` | 스플래시 바탕 | `:app` 색 리소스 |
+| 아이콘 바탕 위 · 아래 | `#13203A` → `#070B15` | 런처 배경 세로 그라디언트 | `:app` 색 리소스 |
+| 주광 위 · 아래 | `#F4F8FF` → `#B9D5FF` | 마크 오른쪽 창의 빛 — 런처 전경 · 스플래시 · 히어로 마크 | `foundation/token/MyNoteBrandColors.kt` 의 `LampTop` · `LampBottom`(Kotlin 이 읽는 것은 이 둘뿐) · `:app` 색 리소스 |
+
+마크의 창틀 선은 로고 전용 색이 아니라 `accent` 이고, 워드마크 선은 `text` 다(7.2).
+
 ### 2.2 토큰 밖에서 만드는 색
 
 토큰을 그대로 쓰지 않고 **알파만 바꿔** 쓰는 곳이 있다(`colors.X.copy(alpha = …)`). 2026-10-02 기준 26곳
@@ -292,7 +304,7 @@ MyNote 는 GitHub 의 노트(마크다운 · 옛 JSON)를 받아 **읽기만 하
 | 이름 | 크기(sp) | 굵기 | 줄 높이 | 자간 | 쓰는 자리 |
 |---|---|---|---|---|---|
 | `display` | 52 · 짧은 창 40 | 700 | 크기와 같음 | −0.03em | 퀴즈 결과 점수 |
-| `noteTitle` | 28 | 700 | ×1.25 | −0.015em | 리더 노트 제목·홈 히어로. 크기는 3.3 참고 |
+| `noteTitle` | 28 | 700 | ×1.25 | −0.015em | 리더 노트 제목. 크기는 3.3 참고 |
 | `title` | 24 | 700 | — | −0.01em | 퀴즈 결과 제목, 북마크·통계 화면 제목, 큰 카드 제목 |
 | `headline` | 23 | 700 | ×1.45 | −0.01em | 퀴즈 문항 |
 | `sectionTitle` | 21 | 700 | — | −0.01em | 상단 바 제목, 퀴즈 실패 제목, 모델 다이얼로그 제목 |
@@ -330,6 +342,9 @@ MyNote 는 GitHub 의 노트(마크다운 · 옛 JSON)를 받아 **읽기만 하
 `heroTitleSize`/`noteTitleSize` 는 `AdaptiveTokens` 의 `TextUnit` 이다(5.2). 화면은
 `textStyles.noteTitle.copy(fontSize = adaptive.noteTitleSize)` 처럼 합쳐 쓴다.
 **이름 붙은 스타일은 타이포에, 폼팩터에 따라 연속으로 변하는 크기는 창 크기 토큰에** 둔다는 분담이다.
+
+`heroTitleSize` 는 글자 크기가 아니라 **히어로 워드마크의 x높이**다 — 값을 dp 로 읽고 글자 배율은 무시한다(로고 글자라
+글자 배율로 키우지 않는다). 20 · 24 · 28 → 워드마크 높이 31.7 · 38.0 · 44.3dp(7.2). `noteTitleSize` 의 기준값으로는 그대로 sp 다.
 
 ### 3.4 스타일 밖에서 정하는 글자 크기
 
@@ -849,7 +864,24 @@ Material 아이콘 세트를 쓰지 않는다.
 - **크기는 자리로 정한다**: 내비·맨 위로 21dp, 상단 바 토글 22dp(BM1 §3), 설정 줄 20dp(ST §2.3), 해제 버튼 18–20dp(BM3 §1.3), 표기 글리프 12dp. 같은 자리에 다른 크기를 쓰지 않는다.
 - **색은 tint 로만 입힌다.** 기본 `text2`, 켜짐·선택 `accent`, 상단 바 `bodyText`, 상태 아이콘은 상태 색(2.3 상태 색 지도).
 - **장식 아이콘은 설명을 비운다.** 정보가 있는 아이콘(북마크 표기)은 아이콘이 아니라 부모 노드의 상태 설명으로 읽힌다(BM3 §2.3). 아이콘만 있는 버튼은 동작 이름을 설명으로 단다("북마크 해제", "맨 위로").
-- 로고는 이미지가 아니라 `accent` 사각 + 글자 "N" 이다(SN Assets).
+- 로고는 A 마크 그림(창틀 `accent` + 빛 주광)이고, 히어로는 마크 + 워드마크 `ImageVector` 다(7.2). 아이콘 규격 · tint 규칙 밖이다.
+
+### 7.2 로고 — `ds/component/MyNoteLogo.kt` · `MyNoteHero.kt`
+
+방향 A(켜 둔 불) 최종 그림(`labs/brand-design/app/svg/` 의 `hero-mark` · `hero-wordmark`)을 변환 없이 옮긴 `ImageVector` 둘이다
+(`docs/design/brand.md` 히어로).
+
+| 그림 | 뷰포트 | 칠 | 히어로 크기 |
+|---|---|---|---|
+| 마크 | 76.1 × 92 | 창틀 선 8.5 = `accent` · 오른쪽 창 빛 = 주광 세로 그라디언트(로고 전용 색, 2.1) | 높이 `heroLogoSize`(46 · 54 · 높이 Compact 없음 = 그리지 않음) |
+| 워드마크 `mynote` | 315.3 × 114 · x높이 72 | 선 8.5 = `text` | x높이 = `heroTitleSize` 값(dp, 3.3) |
+
+- **tint 를 쓰지 않는다.** tint 는 빛 그라디언트까지 한 색으로 지운다. 색을 인자로 받아 `remember(accent)` · `remember(text)` 로 만든다.
+- `MyNoteHero(title, repoName, hint)` 세로 쌓기: 마크 → 16 → 워드마크 → 8 → 저장소 줄 → 8 → 안내, 위아래 8. 저장소 줄은
+  `mono` · `text2` · 한 줄 · 가운데 말줄임(`TextOverflow.MiddleEllipsis` — 앞 소유자와 끝 저장소 이름이 남는다)이고 `repoName == null` 이면
+  그 줄과 위 8 이 빠진다. 안내(`body` · `text2`)는 마크가 있을 때만 그린다.
+- 접근성: 워드마크 = 제목(heading) · 이름은 `title`(앱 이름 MyNote) / 마크 = 설명 없음 / 저장소 줄 = 원문 전체 글자.
+- 소문자 `mynote` 는 워드마크 그림에만 있다. 화면 글자 · 설정 · 접근성 이름은 MyNote 다.
 
 ---
 
@@ -923,7 +955,7 @@ foundation 기본값 `DefaultDebugIndication`(눌림 검정 30% 사각 덮개, �
 
 ### 8.5 아이콘
 
-`MyNoteIcons` — 7절.
+`MyNoteIcons` — 7절. 로고 그림과 히어로 `MyNoteHero` — 7.2.
 
 ### 8.6 본문 블록 — `ds/block/`
 

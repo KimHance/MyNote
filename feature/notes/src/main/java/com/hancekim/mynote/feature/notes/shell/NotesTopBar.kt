@@ -226,7 +226,7 @@ private fun NotesTopBarBookmarkedPreview() {
 private fun NotesTopBarHomePreview() {
     MyNoteTheme {
         NotesTopBar(
-            title = "공부 기록",
+            title = stringResource(R.string.notes_app_title),
             showBack = false,
             bookmarked = null,
             onMenu = {},

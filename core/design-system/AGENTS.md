@@ -222,7 +222,10 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
   `NoteContentBlock.BulletList(items: ImmutableList<NoteContentListItem>)`. `List<T>` 금지.
 - **UI 를 그리는 Composable 은 같은 파일에 `@Preview` 동반**, `MyNoteTheme { }` 로 감싸고 다크 배경 지정.
   프리뷰가 없는 파일은 **UI 를 emit 하지 않는 것**들뿐이다(`NoteContentBlock`=데이터,
-  `FloatingNavScrollState`=상태 홀더, `MyNoteIcons`=`ImageVector`, `Motion`, `MyNoteTheme`).
+  `FloatingNavScrollState`=상태 홀더, `MyNoteIcons`·`MyNoteLogo`=`ImageVector`, `Motion`, `MyNoteTheme`).
+- **로고 그림(`MyNoteLogo` 의 마크 · 워드마크)은 tint 하지 않는다.** 마크는 창틀(`accent`)과 빛(로고 전용 주광 그라디언트,
+  foundation `MyNoteBrandColors`)이 다른 색이라 tint 가 빛을 한 색으로 지운다. 색을 인자로 받아 `remember(색)` 으로 만든다.
+  크기는 `MyNoteHero` 가 `heroLogoSize`(없으면 마크 없음)와 `heroTitleSize` 값을 dp 로 읽은 x높이로 정한다 — 글자 배율로 안 커진다.
 - **여러 상태를 갖는 컴포넌트는 `private class …PreviewParameterProvider`** 로 상태를 주입한다
   (`FloatingNav` hidden, `NoteRow`/`CategoryRow` active/expanded, `SearchField` 빈/입력, `MyNoteSnackbar` 액션 유무).
 - **클릭 가능한 `Box`/`Text` 는 `role`** 을 준다(`Role.Button`/`Tab`/`RadioButton`), 장식 아이콘은
@@ -245,8 +248,11 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
 
 ## 테스트
 
-계측 테스트는 `androidTest` 의 `NoteContentSemanticsTest` 하나다 — 본문 블록이 시맨틱 트리에 싣는 것(취소선 낭독 글자 ·
-체크 상태 설명 · 표 행 · 열 수와 칸 정보 · 머리 칸 제목 · 제목 블록 제목)을 Compose 시험으로 본다. **`./gradlew test` 에는 들지 않는다.**
+계측 테스트는 `androidTest` 의 둘이다. `NoteContentSemanticsTest` 는 본문 블록이 시맨틱 트리에 싣는 것(취소선 낭독 글자 ·
+체크 상태 설명 · 표 행 · 열 수와 칸 정보 · 머리 칸 제목 · 제목 블록 제목)을, `MyNoteHeroTest`(BR-6)는 히어로의 긴 저장소 이름 한 줄 ·
+높이 같음 · 워드마크 제목(heading) · 저장소 줄 전체 글자 · 높이 Compact 마크 없음 · 워드마크가 글자 배율로 안 커짐을 Compose 시험으로 본다.
+`MyNoteHeroTest` 는 `captureToImage` 사진을 시험 APK 의 외부 파일 폴더 `hero/` 에 남긴다(`adb pull` 로 꺼낸다).
+**`./gradlew test` 에는 들지 않는다.**
 기기 하나만 붙여 `ANDROID_SERIAL=<기기 serial> ./gradlew :core:design-system:connectedDebugAndroidTest` 로 돌린다.
 라이브러리 시험이라 앱을 지우지 않지만, 같은 기기에서 계측 시험을 동시에 돌리면 시험 APK 재설치로 서로 죽는다 — 차례로 돌린다.
 
