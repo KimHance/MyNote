@@ -99,8 +99,8 @@ noteTitle · title · sectionTitle · screenTitle, 정본은 `docs/design/brand.
   여기로 합쳐졌다. 화면 하나가 디자인 시스템을 우회하면 나머지 화면과 조용히 어긋나고, 같은 값이
   두 이름으로 존재하게 된다(합칠 때 `failTitle` 은 `sectionTitle` 과 값이 같아 그대로 흡수됐다).
 - **히어로/노트 제목 크기만 타이포가 아니라 `AdaptiveTokens` 의 `TextUnit` 이다**
-  (`heroTitleSize`/`noteTitleSize`). 화면이 `textStyles.noteTitle.copy(fontSize = adaptive.noteTitleSize)`
-  로 합쳐 쓴다. 이름 붙은 스타일은 타이포에, 폼팩터에 따라 연속적으로 변하는 크기는 반응형 토큰에 —
+  (`heroTitleSize`/`noteTitleSize`). 화면이 `textStyles.noteTitle.resized(adaptive.noteTitleSize)`
+  로 합쳐 쓴다 — `copy(fontSize = …)` 만 하면 고정된 sp 줄 높이를 그대로 받아 큰 크기에서 줄이 붙는다. `resized` 가 줄 높이를 같은 배율로 맞춘다. 이름 붙은 스타일은 타이포에, 폼팩터에 따라 연속적으로 변하는 크기는 반응형 토큰에 —
   라는 분담이다. `heroTitleSize` 는 히어로 워드마크 그림의 x높이로도 읽힌다(design-system `MyNoteHero` 가 값을 dp 로 —
   글자 배율 무시). 값을 바꾸면 워드마크 크기가 같이 바뀐다.
 

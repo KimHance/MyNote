@@ -344,7 +344,7 @@ APK 에 글꼴 파일은 없다.
 ### 3.3 히어로·노트 제목 크기는 타이포가 아니라 창 크기 토큰이다
 
 `heroTitleSize`/`noteTitleSize` 는 `AdaptiveTokens` 의 `TextUnit` 이다(5.2). 화면은
-`textStyles.noteTitle.copy(fontSize = adaptive.noteTitleSize)` 처럼 합쳐 쓴다.
+`textStyles.noteTitle.resized(adaptive.noteTitleSize)` 처럼 합쳐 쓴다 — `resized` 는 sp 줄 높이도 같은 배율(×1.25)로 따라 키운다.
 **이름 붙은 스타일은 타이포에, 폼팩터에 따라 연속으로 변하는 크기는 창 크기 토큰에** 둔다는 분담이다.
 
 `heroTitleSize` 는 글자 크기가 아니라 **히어로 워드마크의 x높이**다 — 값을 dp 로 읽고 글자 배율은 무시한다(로고 글자라

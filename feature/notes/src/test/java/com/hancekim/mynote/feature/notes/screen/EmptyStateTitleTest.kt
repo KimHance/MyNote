@@ -14,7 +14,7 @@ class EmptyStateTitleTest {
         val style = styles.emptyStateTitle()
 
         assertEquals(17.sp, style.fontSize)
-        assertEquals((17 * 1.3f).sp, style.lineHeight)
+        assertEquals(17 * 1.3f, style.lineHeight.value, 0.001f)
         assertEquals(styles.title.lineHeightStyle, style.lineHeightStyle)
         assertEquals(FontFamily.Cursive, style.fontFamily)
         assertEquals(FontWeight.W700, style.fontWeight)

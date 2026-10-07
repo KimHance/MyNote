@@ -5,6 +5,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.hancekim.mynote.core.designfoundation.window.MyNoteHeightClass
@@ -41,6 +42,16 @@ data class MyNoteTextStyles(
 
 /** 제목 글꼴(titleFontFamily)을 받는 스타일 이름. */
 internal val TitleFontStyleNames: Set<String> = setOf("noteTitle", "title", "sectionTitle", "screenTitle")
+
+/**
+ * 글자 크기를 바꾸고, sp 로 정한 줄 높이도 같은 배율로 맞춘다. 줄 높이가 없거나 em 이면 크기만 바꾼다.
+ *
+ * @param fontSize 새 글자 크기.
+ */
+fun TextStyle.resized(fontSize: TextUnit): TextStyle {
+    if (!lineHeight.isSp || !this.fontSize.isSp || !fontSize.isSp) return copy(fontSize = fontSize)
+    return copy(fontSize = fontSize, lineHeight = (fontSize.value * lineHeight.value / this.fontSize.value).sp)
+}
 
 private val TitleLineHeightStyle =
     LineHeightStyle(
