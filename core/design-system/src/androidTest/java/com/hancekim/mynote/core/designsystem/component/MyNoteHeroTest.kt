@@ -18,6 +18,7 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHeightIsEqualTo
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.hasContentDescription
@@ -143,11 +144,24 @@ class MyNoteHeroTest {
 
     @Test
     fun `BR-6 연결이 없으면 저장소 줄이 없다`() {
-        show(null, heightClass = MyNoteHeightClass.Expanded, windowClass = MyNoteWindowClass.Expanded, width = 560.dp)
+        var name by mutableStateOf<String?>(shortName)
+        rule.setContent {
+            MyNoteTheme(windowClass = MyNoteWindowClass.Expanded, heightClass = MyNoteHeightClass.Expanded) {
+                Box(Modifier.testTag(FRAME).width(560.dp).background(MyNoteTheme.colors.bg)) {
+                    MyNoteHero(title = TITLE, repoName = name, hint = HINT)
+                }
+            }
+        }
+        val repoTop = rule.onNodeWithText(shortName).getUnclippedBoundsInRoot().top
+
+        name = null
+        rule.waitForIdle()
 
         rule.onNodeWithTag(HERO_MARK_TAG).assertExists()
-        rule.onNodeWithText(shortName).assertDoesNotExist()
         rule.onNode(hasContentDescription(TITLE)).assertExists()
+        rule.onAllNodes(anyText).assertCountEquals(1)
+        rule.onNode(anyText).assertTextEquals(HINT)
+        assertEquals(repoTop, rule.onNodeWithText(HINT).getUnclippedBoundsInRoot().top)
         capture("hero-none-expanded")
     }
 
@@ -173,5 +187,6 @@ class MyNoteHeroTest {
         const val FRAME = "hero_frame"
         const val TITLE = "MyNote"
         const val HINT = "읽고 싶은 노트를 고르세요."
+        val anyText = SemanticsMatcher.keyIsDefined(SemanticsProperties.Text)
     }
 }
