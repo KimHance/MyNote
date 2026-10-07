@@ -37,10 +37,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.hancekim.mynote.core.designfoundation.token.MyNoteTextStyles
 import com.hancekim.mynote.core.designsystem.motion.MyNoteEasing
 import com.hancekim.mynote.core.designsystem.motion.rememberReduceMotion
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
@@ -231,7 +234,7 @@ private fun NumberCell(
         Row {
             Text(
                 text = value,
-                style = styles.title.copy(fontSize = 24.sp, lineHeight = 30.sp),
+                style = styles.statsHeaderValue(),
                 color = colors.text,
                 maxLines = 1,
                 softWrap = false,
@@ -451,6 +454,10 @@ private const val PERCENT = "%"
 private const val PERCENT_POINT = "%p"
 private const val SEPARATOR = ", "
 private const val BLANK = " "
+
+/** 통계 머리 숫자 칸 — 값이라 제목 글꼴을 쓰지 않고 시스템 글꼴 · 줄 상자 그대로 `title` 크기만 빌린다. */
+internal fun MyNoteTextStyles.statsHeaderValue(): TextStyle =
+    title.copy(fontFamily = FontFamily.Default, fontSize = 24.sp, lineHeight = 30.sp, lineHeightStyle = null)
 
 @Preview(name = "PeriodSegment · 이번 달", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 360)
 @Composable
