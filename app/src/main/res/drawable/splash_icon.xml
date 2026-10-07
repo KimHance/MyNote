@@ -36,7 +36,9 @@
     </aapt:attr>
     <target android:name="lamp">
         <aapt:attr name="android:animation">
-            <objectAnimator android:duration="550">
+            <objectAnimator
+                android:duration="616"
+                android:interpolator="@android:interpolator/linear">
                 <propertyValuesHolder
                     android:propertyName="fillAlpha"
                     android:valueType="floatType">
@@ -44,7 +46,7 @@
                         android:fraction="0"
                         android:value="0" />
                     <keyframe
-                        android:fraction="0.181818"
+                        android:fraction="0.269481"
                         android:value="0" />
                     <keyframe
                         android:fraction="1"
@@ -56,7 +58,9 @@
     </target>
     <target android:name="lamp_group">
         <aapt:attr name="android:animation">
-            <objectAnimator android:duration="550">
+            <objectAnimator
+                android:duration="616"
+                android:interpolator="@android:interpolator/linear">
                 <propertyValuesHolder
                     android:propertyName="scaleY"
                     android:valueType="floatType">
@@ -64,7 +68,7 @@
                         android:fraction="0"
                         android:value="0.8" />
                     <keyframe
-                        android:fraction="0.181818"
+                        android:fraction="0.269481"
                         android:value="0.8" />
                     <keyframe
                         android:fraction="1"
