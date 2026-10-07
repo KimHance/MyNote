@@ -23,7 +23,6 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -113,9 +112,7 @@ private fun EmptyColumn(
         Spacer(Modifier.height(18.dp))
         KeepWordsText(
             text = stringResource(title),
-            style =
-                MyNoteTheme.textStyles.title
-                    .copy(fontSize = 17.sp, fontWeight = FontWeight.W700),
+            style = MyNoteTheme.textStyles.emptyStateTitle(),
             color = colors.text,
             textAlign = TextAlign.Center,
             modifier = Modifier.semantics { heading() },

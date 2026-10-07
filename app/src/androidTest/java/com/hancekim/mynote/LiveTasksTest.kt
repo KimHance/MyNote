@@ -14,6 +14,8 @@ class LiveTasksTest {
         assertTrue(tasks.enter(TASK))
         assertFalse(tasks.enter(TASK))
         tasks.leave(TASK)
+        assertFalse("둘 중 하나만 끝나면 아직 이전 화면이 남아 있다", tasks.enter(TASK))
+        tasks.leave(TASK)
         tasks.leave(TASK)
         assertTrue(tasks.enter(TASK))
     }

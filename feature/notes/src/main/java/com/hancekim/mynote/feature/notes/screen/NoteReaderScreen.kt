@@ -18,9 +18,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.hancekim.mynote.core.designfoundation.token.MyNoteTextStyles
+import com.hancekim.mynote.core.designfoundation.token.resized
+import com.hancekim.mynote.core.designfoundation.window.AdaptiveTokens
 import com.hancekim.mynote.core.designsystem.block.NoteContent
 import com.hancekim.mynote.core.designsystem.block.NoteContentBlock
 import com.hancekim.mynote.core.designsystem.block.NoteContentListItem
@@ -84,7 +88,7 @@ internal fun NoteReaderScreen(
                 }
                 Text(
                     text = note.title,
-                    style = MyNoteTheme.textStyles.noteTitle.copy(fontSize = adaptive.noteTitleSize),
+                    style = MyNoteTheme.textStyles.readerTitle(adaptive),
                     color = MyNoteTheme.colors.text,
                     modifier = shared.title.semantics { heading() },
                 )
@@ -134,6 +138,11 @@ private val previewNote =
                 NoteContentBlock.Code("var text by rememberSaveable { mutableStateOf(\"\") }"),
             ),
     )
+
+/** 리더 머리 노트 제목 — 창 크기 토큰의 크기로 키우고 줄 높이도 같은 배율로 맞춘다. */
+internal fun MyNoteTextStyles.readerTitle(
+    adaptive: AdaptiveTokens,
+): TextStyle = noteTitle.resized(adaptive.noteTitleSize)
 
 @Preview(name = "Reader", showBackground = true, widthDp = 400, heightDp = 720)
 @Composable

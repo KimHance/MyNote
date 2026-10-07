@@ -6,7 +6,7 @@
 
 화면도 상태도 없다. 루트에 `MyNoteApplication`·`MainActivity`·`SplashExit`·`TokenSync`, `di/` 에 모듈 넷,
 `download/` 에 모델 내려받기 배선 둘이 있고 하는 일은 넷이다 — **Hilt 그래프 완성**,
-**`BuildConfig`(debug 시드)/토큰 배선**, **Activity 껍데기**(edge-to-edge + 스플래시 내리기 + `NotesRoute` 호출),
+**`BuildConfig`(debug 시드)/토큰 배선**, **Activity 껍데기**(edge-to-edge + 스플래시 내리기 + 제목 글꼴 첫 프레임 문 + `NotesRoute` 호출),
 **시스템과 닿는 지점**(알림 `PendingIntent`·딥링크·프로세스 라이프사이클). 기능 코드는 여기에 넣지 않는다.
 여기 파일이 늘어나는 건 "앱 전체에 하나뿐인 것" 이거나 "`PendingIntent`/매니페스트 컴포넌트가 필요한 것"이
 생겼을 때뿐이다.
@@ -47,7 +47,7 @@
   `:core:network`·`:core:data` 가 `BuildConfig` 를 모르게 하는 것이 이 모듈의 존재 이유다.
 
 `:core:design-foundation`/`:core:design-system` 에는 `@Module` 이 없다. `:app` 코드가 참조하는 것은 스플래시 내려감의
-떠남 곡선(`MyNoteExitEasing`) 하나다 — 나머지는 `:feature:notes`(feature convention) → design-system →
+떠남 곡선(`MyNoteExitEasing`)과 제목 글꼴 문(`font/` · `ProvideTitleFontFamily`)이다 — 나머지는 `:feature:notes`(feature convention) → design-system →
 `api(design-foundation)` 로 이미 들어온다.
 
 ## 토큰 — 저장소에서 OkHttp 로 가는 유일한 길
@@ -85,7 +85,7 @@ DataStore(DataStoreTokenStore) → TokenRepository → ObserveTokenUseCase
 저장소 연결은 앱 화면(`:feature:notes` 연결 화면)에서 한다. 빌드가 넣는 값은 **둘**이다: **debug 첫 실행 시드**와
 **템플릿 저장소 주소**(RC-26). `RemoteConfigModule` 이 시드를 `ConnectionSeed?`(`GITHUB_OWNER`·`GITHUB_REPO` 둘 다 채워졌을 때만),
 템플릿 주소를 `TemplateRepo?`(`parseTemplateRepo(BuildConfig.TEMPLATE_REPO)` — 모양이 틀리거나 비면 `null`)로 만든다.
-필드는 다섯: `GITHUB_OWNER`·`GITHUB_REPO`·`GITHUB_BRANCH`·`GITHUB_TOKEN`·`TEMPLATE_REPO`.
+필드는 여섯: `GITHUB_OWNER`·`GITHUB_REPO`·`GITHUB_BRANCH`·`GITHUB_TOKEN`·`TEMPLATE_REPO`·`TITLE_FONT_NAME`(아래 제목 글꼴 절).
 
 - **`TEMPLATE_REPO` 는 `local.properties` 가 아니라 커밋되는 루트 `gradle.properties` 의 `template.repo` 에서 온다**(결정 54).
   `defaultConfig` 에서 한 번만 넣는다 — `debug{}`·`release{}` 에 쓰지 않으므로 둘이 같은 값이고 release 의 시드 비우기와 겹치지 않는다.
@@ -113,8 +113,8 @@ DataStore(DataStoreTokenStore) → TokenRepository → ObserveTokenUseCase
 ## Activity / Manifest
 
 `MainActivity` 는 `super.onCreate` 앞에서 `enableEdgeToEdge(SystemBarStyle.dark(TRANSPARENT), …)` 를
-한 번 부르고, 같은 태스크에 이전 화면이 살아 있지 않으면 스플래시 내려감 리스너를 걸고, 설정 딥링크 인텐트를 한 번 소비한 뒤
-`setContent { NotesRoute() }` 만 한다.
+한 번 부르고, 같은 태스크에 이전 화면이 살아 있지 않으면 스플래시 내려감 리스너를 걸고, 설정 딥링크 인텐트를 한 번 소비하고,
+제목 글꼴 첫 프레임 문을 건 뒤 `setContent { ProvideTitleFontFamily(…) { NotesRoute() } }` 만 한다.
 `MyNoteTheme` 은 화면에서 시작한다 — Activity 는 Compose 테마를 모른다.
 
 - **시스템바 아이콘 명암을 여기서 고정하는 이유:** 앱은 다크 단일 테마인데 XML `Theme.MyNote` 의 부모는
@@ -190,6 +190,27 @@ DataStore(DataStoreTokenStore) → TokenRepository → ObserveTokenUseCase
   카운터를 지우면 컴파일 · 콜드 시작은 그대로이고 그 웜 시작에서만 빈 바탕이 다시 남는다.
 - 핫 시작(살아 있는 화면으로 돌아옴) · 최근 앱에서 돌아옴에는 스플래시가 없다(플랫폼). 안드로이드 12+ 는 루트 화면에서 뒤로가기를
   눌러도 화면을 끝내지 않아 다시 켜면 핫 시작이다.
+
+### 제목 글꼴 — 첫 프레임 문
+
+제목 글꼴 스타일만 Gothic A1 을 GMS 글꼴 제공자에서 받는다(`brand` BR-8 · 판단은 `:core:design-system` `font/`). `MainActivity` 가 하는 것:
+
+- **프로세스마다 한 번 정한다.** companion 의 `TitleFontGate` 하나가 처음 결정(Gothic A1 또는 기기 글꼴)을 들고 있고, 재생성 · 웜 시작은
+  그 값을 그대로 쓴다. 받지 못했거나 늦었으면 그 프로세스 내내 기기 글꼴이다 — 제공자는 뒤에서 받기를 마저 끝내 다음 프로세스부터 빠르다.
+- **받기는 `onCreate` 맨 앞에서 시작하고, 첫 프레임을 그릴 수 있게 된 뒤 불 켜짐이 남은 만큼만 더 기다린다.** 불 켜짐 끝 =
+  실행 요청 시각 + 테마 `windowSplashScreenAnimationDuration`(AVD 길이와 같다 — BR-5 시험) × 애니메이터 배율. 실행 요청 시각은 프로세스가
+  이 실행으로 막 떴으면(화면을 만들기까지 5초 안) 프로세스 시작 요청(33+ `Process.getStartRequestedUptimeMillis()` · 32 `getStartUptimeMillis()`),
+  아니면 `onCreate` 다. 첫 프레임이 불 켜짐 끝보다 늦으면 그 사이에 온 글꼴을 쓰고 더 기다리지 않는다 — 어느 쪽이든 글꼴이 스플래시를 더
+  붙잡지 않는다(`brand` 결정 10). 감속 모션이면 불 켜짐이 0 이라 첫 프레임까지 온 글꼴만 쓴다.
+- **제공자의 답은 메인이 아니라 따로 둔 루퍼 스레드로 받는다**(`GoogleTitleFont.kt`). 메인으로 받으면 첫 컴포지션이 끝날 때까지 답이 줄을 서
+  늘 첫 프레임에 진다 — 부하 큰 에뮬레이터에서 받아 둔 글꼴(제공자 응답 약 30ms)도 기기 글꼴이 됐다. 판정도 `Dispatchers.Default` 에서 한다.
+- **화면은 바로 짓고 그리기만 막는다.** `setContent` 는 곧바로 해 ViewModel · 시작 판정이 늦지 않고, `OnPreDrawListener` 가 그리기를 막다가
+  정한 글꼴로 컴포지션이 적용되면(`SideEffect`) 연다. 처음 막힌 그리기가 "첫 프레임을 그릴 수 있게 됨" 신호다. 정하기 전 컴포지션은 기기 글꼴이고
+  그려지지 않는다 — 그래서 한 화면에서 글꼴이 바뀌는 프레임이 없다. 이미 정한 프로세스의 재생성은 첫 컴포지션에서 바로 연다(스플래시 없는
+  재생성에서 빈 창을 붙잡지 않는다).
+- **받지 못하는 경우를 보려면** `./gradlew :app:installDebug -Ptitle.font=<없는 이름>`. debug `BuildConfig.TITLE_FONT_NAME` 에만 들어가고
+  release 는 늘 빈 값(= 정식 이름)이다. `gradle.properties` 에 키를 두지 않는다.
+- 글꼴 파일은 APK 에 없다(`notes-tests/test_brand_font.py` 가 소스를, 검수가 APK 목록을 본다).
 
 ## `download/` — 시스템이 앱을 깨우는 두 자리
 

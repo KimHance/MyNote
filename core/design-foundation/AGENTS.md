@@ -89,12 +89,18 @@
 나머지는 고정값이다. 새 스타일을 넣을 때 "짧은 창에서 줄어야 한다"면 `short` 분기를, "본문과 함께
 커져야 한다"면 `bodySizeSp` 기반을 쓴다 — 섞으면 둘 다 아닌 값이 된다.
 
+크기가 아니라 글꼴을 바꾸는 셋째 인자 `titleFontFamily`(기본 기기 글꼴)는 제목 글꼴 스타일 넷(`TitleFontStyleNames` —
+noteTitle · title · sectionTitle · screenTitle, 정본은 `docs/design/brand.md` 의 제목 글꼴 표)에만 간다(`brand` BR-8). 넷은 줄 높이와
+`LineHeightStyle(Center, Trim.None)` 을 고정한다 — Gothic A1 은 줄 상자가 줄 높이 그대로다. 기기 글꼴은 한글이 대체 글꼴로 그려져
+그 높이(약 1.45em)가 줄 높이보다 크면 그만큼 남는다(에뮬레이터 실측: `title` 한 줄 34.9 · Gothic A1 31.9dp). 줄 수는 같다. 글꼴 값은 `:core:design-system` 이 받아 넘긴다(이 모듈은 받는 법을 모른다). `TitleFontStylesTest` 가 목록 밖
+스타일이 글꼴 인자와 무관하게 그대로인지 본다. 목록에 스타일을 더하거나 빼면 디자인 문서 표도 같이 고친다(`notes-tests/test_brand_font.py`).
+
 - **한 화면 전용 타이포 스케일을 그 화면에 두지 않는다.** 퀴즈가 자기 스케일 11종을 들고 있다가
   여기로 합쳐졌다. 화면 하나가 디자인 시스템을 우회하면 나머지 화면과 조용히 어긋나고, 같은 값이
   두 이름으로 존재하게 된다(합칠 때 `failTitle` 은 `sectionTitle` 과 값이 같아 그대로 흡수됐다).
 - **히어로/노트 제목 크기만 타이포가 아니라 `AdaptiveTokens` 의 `TextUnit` 이다**
-  (`heroTitleSize`/`noteTitleSize`). 화면이 `textStyles.noteTitle.copy(fontSize = adaptive.noteTitleSize)`
-  로 합쳐 쓴다. 이름 붙은 스타일은 타이포에, 폼팩터에 따라 연속적으로 변하는 크기는 반응형 토큰에 —
+  (`heroTitleSize`/`noteTitleSize`). 화면이 `textStyles.noteTitle.resized(adaptive.noteTitleSize)`
+  로 합쳐 쓴다 — `copy(fontSize = …)` 만 하면 고정된 sp 줄 높이를 그대로 받아 큰 크기에서 줄이 붙는다. `resized` 가 줄 높이를 같은 배율로 맞춘다. 이름 붙은 스타일은 타이포에, 폼팩터에 따라 연속적으로 변하는 크기는 반응형 토큰에 —
   라는 분담이다. `heroTitleSize` 는 히어로 워드마크 그림의 x높이로도 읽힌다(design-system `MyNoteHero` 가 값을 dp 로 —
   글자 배율 무시). 값을 바꾸면 워드마크 크기가 같이 바뀐다.
 

@@ -287,6 +287,9 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
 ```bash
 ./gradlew :feature:notes:testDebugUnitTest   # QuizGradingTest (순수 JVM, 13건)
 ./gradlew :app:compileDebugKotlin            # 이 모듈 변경 검증은 :app 컴파일로
+ANDROID_SERIAL=<기기 serial> ./gradlew :feature:notes:connectedDebugAndroidTest
+# TitleFontScreensTest(brand BR-8) — 가로 800×360 첫 실행 연결 화면 · 통계 요약 카드를 기기 글꼴과 Gothic A1 로 그려 스크롤 없음 · 두 단 ·
+# 줄 수를 보고 PNG 를 시험 APK 외부 캐시 brand-font/ 에 남긴다. Gothic A1 쪽은 글꼴 제공자 · 네트워크가 없으면 건너뛴다
 ```
 
 ---

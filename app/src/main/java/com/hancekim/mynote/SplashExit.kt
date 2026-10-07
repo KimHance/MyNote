@@ -2,6 +2,7 @@ package com.hancekim.mynote
 
 import android.animation.TimeInterpolator
 import android.animation.ValueAnimator
+import android.content.Context
 import android.os.Build
 import android.provider.Settings
 import android.view.View
@@ -15,7 +16,7 @@ internal fun SplashScreenView.fadeOutAfterIcon() {
         splashWaitMillis(
             startMillis = iconAnimationStart?.toEpochMilli(),
             durationMillis = iconAnimationDuration?.toMillis(),
-            scale = animatorScale(),
+            scale = context.animatorScale(),
             nowMillis = System.currentTimeMillis(),
         )
     postDelayed(::fadeOut, waitMillis)
@@ -36,11 +37,7 @@ internal fun splashWaitMillis(
     return (endMillis - nowMillis).coerceAtLeast(0L)
 }
 
-/**
- * 살아 있는 [MainActivity] 들의 태스크. 같은 태스크에 아직 끝나지 않은 이전 화면이 있으면(`--activity-clear-task` 웜 시작)
- * 그 화면이 스플래시 도중 끝날 때 시스템이 넘겨준 아이콘 표면을 태스크 단위로 거둬 가, 마크가 사라지고 빈 밤 바탕만 남는다.
- * 그때는 앱이 내리지 않고 시스템이 첫 프레임에 앱 메인 스레드와 상관없이 내리게 둔다. 메인 스레드에서만 부른다.
- */
+/** 살아 있는 [MainActivity] 를 태스크마다 센다. 같은 태스크에 이전 화면이 남아 있으면 앱이 스플래시를 내리지 않는다. 메인 스레드에서만 부른다. */
 internal class LiveTasks {
     private val tasks = mutableListOf<Int>()
 
@@ -56,11 +53,11 @@ internal class LiveTasks {
     }
 }
 
-private fun SplashScreenView.animatorScale(): Float =
+internal fun Context.animatorScale(): Float =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         ValueAnimator.getDurationScale()
     } else {
-        Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f)
+        Settings.Global.getFloat(contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f)
     }
 
 private fun SplashScreenView.fadeOut() {

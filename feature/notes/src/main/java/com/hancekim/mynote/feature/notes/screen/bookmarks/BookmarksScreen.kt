@@ -42,7 +42,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -64,6 +63,7 @@ import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesTab
 import com.hancekim.mynote.feature.notes.screen.SecondaryButton
+import com.hancekim.mynote.feature.notes.screen.emptyStateTitle
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
@@ -373,7 +373,7 @@ private fun BookmarksEmpty(
         Spacer(Modifier.height(18.dp))
         Text(
             text = stringResource(R.string.notes_bookmark_empty_title),
-            style = MyNoteTheme.textStyles.title.copy(fontSize = 17.sp, fontWeight = FontWeight.W700),
+            style = MyNoteTheme.textStyles.emptyStateTitle(),
             color = colors.text,
             textAlign = TextAlign.Center,
             modifier = Modifier.semantics { heading() },
