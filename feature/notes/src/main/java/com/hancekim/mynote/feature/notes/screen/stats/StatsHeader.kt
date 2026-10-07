@@ -455,7 +455,7 @@ private const val PERCENT_POINT = "%p"
 private const val SEPARATOR = ", "
 private const val BLANK = " "
 
-/** 통계 머리 숫자 칸 — 값이라 제목 글꼴을 쓰지 않고 시스템 글꼴 · 줄 상자 그대로 `title` 크기만 빌린다. */
+/** 통계 머리 숫자 칸 스타일 — `title` 의 굵기 · 자간에 시스템 글꼴 · 24sp · 줄 높이 30 을 쓴다. */
 internal fun MyNoteTextStyles.statsHeaderValue(): TextStyle =
     title.copy(fontFamily = FontFamily.Default, fontSize = 24.sp, lineHeight = 30.sp, lineHeightStyle = null)
 
