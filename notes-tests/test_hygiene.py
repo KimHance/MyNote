@@ -18,6 +18,7 @@ EMAIL_ALLOWED = {"a@b.com", "git@github.com"}
 
 HOME_SHORT = "홈 폴더 줄임 경로"
 EMAIL = "이메일"
+PATH_NAME = re.compile(r"[\w.-]*", re.ASCII)
 PATTERNS = {
     "홈 폴더 절대 경로": re.compile(r"(?<![\w.-])/(?:Users|home|root)/|\b[A-Za-z]:[\\/]+[Uu]sers[\\/]"),
     HOME_SHORT: re.compile(r"(?:(?<![\w~])~|\$HOME\b|\$\{HOME\}|%USERPROFILE%)[\\/]+(?P<name>[^\s\\/`'\")\]]*)"),
@@ -28,11 +29,12 @@ PATTERNS = {
     "GitHub 토큰": re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{82})\b"),
     EMAIL: re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}"),
     "대화 인용": re.compile(
-        r"사용자\s*(?:지시|말|요청|발화)\s*[(（:]\s*[\"“”'‘’「『]"
-        r"|사용자가\s*[\"“”][^\"“”\n]{1,200}[\"“”]\s*(?:이?라고|고)\s*(?:했|말했)"
+        r"사용자\s*(?:지시|말|요청|발화|결정)?\s*[(（:]\s*[\"“”'‘’「『]"
+        r"|사용자가\s*[\"“”'‘’「『][^\"“”'‘’「」『』\n]{1,200}[\"“”'‘’」』]\s*(?:이?라고|고)\s*(?:했|말했)"
     ),
 }
-CONVERSATION_ID = re.compile(r"대화\s*`?[0-9a-f]{8}")
+CONVERSATION_ID = re.compile(r"대화[^상]{0,4}`?[0-9a-f]{6,}")
+RUN_MATERIAL = re.compile(r"<runs>|(?<![\w.-])(?:runs|shots)/")
 
 
 def violations(text):
@@ -41,7 +43,7 @@ def violations(text):
     for number, line in enumerate(text.splitlines(), 1):
         for label, pattern in PATTERNS.items():
             for match in pattern.finditer(line):
-                if label == HOME_SHORT and match.group("name") in HOME_ALLOWED:
+                if label == HOME_SHORT and PATH_NAME.match(match.group("name")).group(0).rstrip(".") in HOME_ALLOWED:
                     continue
                 if label == EMAIL and match.group(0) in EMAIL_ALLOWED:
                     continue
@@ -86,13 +88,13 @@ def scan(root):
     return hits
 
 
-def conversation_ids(root):
-    """디자인 도구 대화 ID 가 든 줄을 `경로:줄` 목록으로 돌려준다."""
+def leftovers(root, pattern):
+    """검사 대상 문서에서 pattern 이 든 줄을 `경로:줄` 목록으로 돌려준다."""
     return [
         f"{rel}:{number}"
         for rel in tracked_docs(root)
         for number, line in enumerate((root / rel).read_text(encoding="utf-8").splitlines(), 1)
-        if CONVERSATION_ID.search(line)
+        if pattern.search(line)
     ]
 
 
@@ -104,19 +106,27 @@ def check_stdin():
 
 PLANTED = {
     "홈 폴더 절대 경로": ["/Users/someone/notes", "/home/someone/notes", "C:\\Users\\someone\\notes"],
-    HOME_SHORT: ["~/notes/a.md", "$HOME/notes", "~/.gradle-old/x"],
+    HOME_SHORT: ["~/notes/a.md", "$HOME/notes", "~/.gradle-old/x", "~/.gradle.d/x"],
     "임시 폴더 경로": ["/tmp/build.log", "/private/var/folders/x/T/a", "$TMPDIR/a", "%TEMP%\\a"],
     "GitHub 토큰": ["ghp_" + "A1" * 18, "github_pat_" + "a1B2" * 20 + "c3"],
     EMAIL: ["someone@example.org"],
-    "대화 인용": ['사용자 지시("이렇게 해 줘")', "사용자 말('그만')", '사용자가 "그만" 이라고 했다'],
+    "대화 인용": [
+        '사용자 지시("이렇게 해 줘")',
+        "사용자 말('그만')",
+        '사용자 결정("그렇게 가자")',
+        '사용자: "그만"',
+        '사용자가 "그만" 이라고 했다',
+        "사용자가 '그만' 이라고 했다",
+    ],
 }
 ALLOWED = [
     "`~/.gradle/gradle.properties`",
+    "| ~/.gradle| ~/.gradle, ~/.gradle. ~/.gradle에 둔다 |",
     "`git@github.com:owner/repo.git` · `<a@b.com>`",
     "힌트 `github_pat_…` · `ghp_xxxx`",
     "`/sdcard/Android/data/app/files/model.bin` · `/data/local/tmp`",
     "https://github.com/octo-learner/notes-template",
-    "사용자 결정(장부 D7) · 사용자 지시 · 사용자 말",
+    "사용자 결정(장부 D7) · 사용자 지시 · 사용자 말 · 사용자: 앱을 켜는 사람 · 사용자가 '저장' 을 누르고",
 ]
 
 
@@ -221,10 +231,30 @@ class HygieneTest(unittest.TestCase):
 
     def test_BR_10_디자인_도구_대화_ID_가_없다(self):
         """BR-10 디자인 도구 대화 ID 가 없다"""
-        self.assertEqual(conversation_ids(REPO_ROOT), [])
+        self.assertEqual(leftovers(REPO_ROOT, CONVERSATION_ID), [])
         root = self.tmp / "ids"
-        self.write(root, "docs/a.md", "프로젝트 `0123abcd` · 확인 대화상자\n대화 `0123abcd`\n(대화 0123abcd-4567)\n")
-        self.assertEqual(conversation_ids(root), ["docs/a.md:2", "docs/a.md:3"])
+        lines = [
+            "프로젝트 `0123abcd` · 확인 대화상자 · 대화 상자",
+            "대화 `0123abcd`",
+            "(대화 0123abcd-4567)",
+            "대화 ID `0123abcd`",
+            "대화: 0123abc",
+        ]
+        self.write(root, "docs/a.md", "\n".join(lines) + "\n")
+        self.assertEqual(leftovers(root, CONVERSATION_ID), [f"docs/a.md:{n}" for n in (2, 3, 4, 5)])
+
+    def test_BR_10_레포_밖_run_자료_경로가_없다(self):
+        """BR-10 레포 밖 run 자료 경로가 없다"""
+        self.assertEqual(leftovers(REPO_ROOT, RUN_MATERIAL), [])
+        root = self.tmp / "runs"
+        lines = [
+            "`screenshots/` · `labs/x/r1/` · runs-old/ · 장부 D15",
+            "사진(`<runs>/shots/main-check/`)",
+            "| `shots/retry-display/card.png` |",
+            "runs/brand/brief.md",
+        ]
+        self.write(root, "docs/a.md", "\n".join(lines) + "\n")
+        self.assertEqual(leftovers(root, RUN_MATERIAL), [f"docs/a.md:{n}" for n in (2, 3, 4)])
 
 
 if __name__ == "__main__":
