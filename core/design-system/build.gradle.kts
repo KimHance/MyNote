@@ -13,6 +13,8 @@ dependencies {
     api(libs.backdrop)
 
     implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.ui.text.google.fonts)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

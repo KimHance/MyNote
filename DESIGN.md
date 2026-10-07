@@ -285,18 +285,22 @@ MyNote 는 GitHub 의 노트(마크다운 · 옛 JSON)를 받아 **읽기만 하
 
 ### 3.1 스타일 목록
 
-정의는 `foundation/token/Typography.kt` 의 `data class MyNoteTextStyles`(19개) + `fun myNoteTextStyles(bodySizeSp, heightClass)`.
-접근은 `MyNoteTheme.textStyles.<이름>`. 글꼴은 전부 시스템 기본(`FontFamily.Default`)이고 `mono*` 만 `FontFamily.Monospace` 다.
-별도 글꼴 파일은 없다.
+정의는 `foundation/token/Typography.kt` 의 `data class MyNoteTextStyles`(19개) + `fun myNoteTextStyles(bodySizeSp, heightClass, titleFontFamily)`.
+접근은 `MyNoteTheme.textStyles.<이름>`. 글꼴은 시스템 기본(`FontFamily.Default`)이고 `mono*` 만 `FontFamily.Monospace` 다.
+**제목 글꼴 스타일** 넷(`noteTitle` · `title` · `sectionTitle` · `screenTitle` — 코드 목록 `TitleFontStyleNames`, 정본은 `docs/design/brand.md` 의
+제목 글꼴 표)만 Gothic A1 700 을 내려받아 쓴다(`ds/font/` · `brand` BR-8). 못 받으면 그 프로세스 동안 기기 글꼴이다.
+넷은 줄 높이와 `LineHeightStyle(Center, Trim.None)` 을 고정하고, `copy` 로 줄 높이를 덮어도 `LineHeightStyle` 은 물려받는다. Gothic A1 은 줄 상자가
+줄 높이 그대로이고, 기기 글꼴은 한글 대체 글꼴의 높이(약 1.45em)가 줄 높이보다 크면 그만큼 남는다 — 줄 수는 두 글꼴이 같다.
+APK 에 글꼴 파일은 없다.
 
 | 이름 | 크기(sp) | 굵기 | 줄 높이 | 자간 | 쓰는 자리 |
 |---|---|---|---|---|---|
 | `display` | 52 · 짧은 창 40 | 700 | 크기와 같음 | −0.03em | 퀴즈 결과 점수 |
-| `noteTitle` | 28 | 700 | ×1.25 | −0.015em | 리더 노트 제목·홈 히어로. 크기는 3.3 참고 |
-| `title` | 24 | 700 | — | −0.01em | 퀴즈 결과 제목, 북마크·통계 화면 제목, 큰 카드 제목 |
+| `noteTitle` | 28 | 700 | ×1.25 | −0.015em | 제목 글꼴. 리더 노트 제목·홈 히어로. 크기는 3.3 참고 |
+| `title` | 24 | 700 | ×1.3 | −0.01em | 제목 글꼴. 퀴즈 결과 제목, 북마크·통계 화면 제목, 큰 카드 제목 |
 | `headline` | 23 | 700 | ×1.45 | −0.01em | 퀴즈 문항 |
-| `sectionTitle` | 21 | 700 | — | −0.01em | 상단 바 제목, 퀴즈 실패 제목, 모델 다이얼로그 제목 |
-| `screenTitle` | 19 · 짧은 창 17 | 700 | — | −0.01em | 퀴즈 화면 제목, 퀴즈 설정 다이얼로그 제목 |
+| `sectionTitle` | 21 | 700 | ×1.3 | −0.01em | 제목 글꼴. 상단 바 제목, 퀴즈 실패 제목, 모델 다이얼로그 제목 |
+| `screenTitle` | 19 · 짧은 창 17 | 700 | ×1.3 | −0.01em | 제목 글꼴. 퀴즈 화면 제목, 퀴즈 설정 다이얼로그 제목 |
 | `cardTitle` | 16 | 500 | 22sp | — | `NoteCard` 제목, 모델 카드, 퀴즈 CTA, 설정 행 |
 | `overline` | 12 | 600 | — | +0.08em | 섹션 라벨(`SectionLabel`) |
 | `treeLabel` | 14 | 500 | — | — | 패널 트리 행(`NoteRow`·`CategoryRow`), 번호 행 |

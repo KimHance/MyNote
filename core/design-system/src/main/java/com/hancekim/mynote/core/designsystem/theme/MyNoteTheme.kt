@@ -5,6 +5,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.text.font.FontFamily
 import com.hancekim.mynote.core.designfoundation.token.MyNoteColors
 import com.hancekim.mynote.core.designfoundation.token.MyNoteFontScale
 import com.hancekim.mynote.core.designfoundation.token.MyNoteTextStyles
@@ -28,6 +29,16 @@ private val LocalTextStyles =
         error("MyNoteTextStyles 가 제공되지 않았습니다. MyNoteTheme 으로 감싸세요.")
     }
 private val LocalFontScale = staticCompositionLocalOf { MyNoteFontScale.Normal }
+private val LocalTitleFontFamily = staticCompositionLocalOf<FontFamily> { FontFamily.Default }
+
+/** 안쪽 [MyNoteTheme] 의 제목 글꼴 스타일이 쓸 글꼴을 준다. 주지 않으면 기기 글꼴이다. */
+@Composable
+fun ProvideTitleFontFamily(
+    fontFamily: FontFamily,
+    content: @Composable () -> Unit,
+) {
+    CompositionLocalProvider(LocalTitleFontFamily provides fontFamily, content = content)
+}
 
 @Composable
 fun MyNoteTheme(
@@ -38,7 +49,11 @@ fun MyNoteTheme(
 ) {
     val colors = StudyNotesDarkColors
     val adaptive = remember(windowClass, heightClass) { adaptiveTokensFor(windowClass, heightClass) }
-    val textStyles = remember(fontScale, heightClass) { myNoteTextStyles(fontScale.bodySizeSp, heightClass) }
+    val titleFontFamily = LocalTitleFontFamily.current
+    val textStyles =
+        remember(fontScale, heightClass, titleFontFamily) {
+            myNoteTextStyles(fontScale.bodySizeSp, heightClass, titleFontFamily)
+        }
 
     CompositionLocalProvider(
         LocalMyNoteColors provides colors,

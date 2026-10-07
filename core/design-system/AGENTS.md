@@ -10,7 +10,7 @@
 
 **디자인 시스템의 기준은 루트 `DESIGN.md` 다** — 토큰·창 크기·모션·컴포넌트·문구·접근성 규칙과 디자인 ↔ 코드 차이 표. 화면을 새로 그리기 전에 읽어라.
 
-의존은 네 줄뿐이고 각 줄이 의도를 가진다:
+의존은 다섯 줄뿐이고 각 줄이 의도를 가진다:
 
 | 선언 | 이유 |
 |---|---|
@@ -18,6 +18,7 @@
 | `api(libs.backdrop)` | feature 가 `rememberLayerBackdrop()` 을 부르고 `Backdrop` 을 컴포넌트에 넘긴다. 이 타입도 경계를 넘는다 |
 | `implementation(projects.core.common)` | `Throttler` **하나**만 쓴다(`throttledProcess`). 이게 유일한 비-UI 의존이다 |
 | `implementation(libs.androidx.compose.foundation)` | compose convention 은 `material3`·`ui`·`ui-tooling-preview` 만 넣는다. `foundation`(`clickable`/`BasicTextField`/`Canvas`/`drawBehind`)은 **이 모듈이 직접 선언**한다 |
+| `implementation(libs.androidx.compose.ui.text.google.fonts)` | 제목 글꼴(Gothic A1)을 GMS 글꼴 제공자에서 내려받는다(`font/` — `brand` BR-8). 버전은 BOM 이다 |
 
 `:feature:notes` 는 `:core:design-foundation` 을 자기 `build.gradle.kts` 에 적지 않는다 —
 위의 `api` 로 받는다. 토큰이 필요해졌다고 feature 에 의존을 추가하지 말 것.
@@ -40,6 +41,10 @@
 
 `MyNoteTheme` 은 `staticCompositionLocalOf` 넷을 제공한다: colors / adaptive / textStyles / fontScale.
 앞의 셋은 **기본값이 `error(...)`** 다. `MyNoteTheme { }` 으로 감싸지 않으면 프리뷰가 예외로 죽는다.
+
+다섯째 `LocalTitleFontFamily` 는 반대로 `MyNoteTheme` **바깥**에서 들어온다 — `ProvideTitleFontFamily` 로 `:app` 의
+`MainActivity` 가 프로세스마다 한 번 정한 제목 글꼴을 주고, `MyNoteTheme` 이 그것을 `myNoteTextStyles(…, titleFontFamily)` 에 넘긴다.
+기본값은 기기 글꼴(`FontFamily.Default`)이라 프리뷰 · 시험은 감쌀 필요가 없다. `textStyles` 의 `remember` 키에 이 글꼴도 들어 있다.
 
 `static`- 이라 값이 바뀌면 fine-grained 무효화가 아니라 **content 서브트리 전체가 재컴포즈**된다.
 그래서 `adaptive`/`textStyles` 는 `remember(windowClass, heightClass)` / `remember(fontScale, heightClass)`
@@ -173,6 +178,13 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
 ## 패키지 경계
 
 - **`theme/`** — `MyNoteTheme` 과 CompositionLocal 배선 **전용**. 여기 있는 것은 테마에 참여한다.
+- **`font/`** — 제목 글꼴(`brand` BR-8). `TitleFontGate.kt` 는 순수 판단 — `decideTitleFont(source, giveUp)`(받기와 `giveUp` 을 함께
+  시작해 먼저 끝난 쪽 · 제공자 없음 · 실패 · 늦음이면 기기 글꼴, 예외를 밖으로 내지 않는다. 제공자 확인과 받기는 나란히 돈다) ·
+  `TitleFontGate`(처음 결정을 들고 다시 받지 않는다) · `titleFontWaitMillis`(불 켜짐 끝까지 남은 시간 — 실행 요청 시각 기준).
+  `GoogleTitleFont.kt` 는 GMS 제공자(인증서 배열 `ds_com_google_android_gms_fonts_certs`)에서 700 하나를 `AndroidFont.typefaceLoader` 로
+  직접 받아 `FontFamily(Typeface)` 로 돌려준다 — 이미 받은 글꼴이라 그리는 도중에 바뀌지 않는다. 제공자는 부른 스레드의 루퍼로 답하므로
+  따로 둔 `title-font` 루퍼 스레드에서 부른다(메인으로 받으면 첫 컴포지션 뒤로 밀린다). `FontFamily(Font(GoogleFont…))` 를 컴포지션에
+  그대로 주면 리졸버가 늦게 받은 글꼴로 다시 그리므로 쓰지 않는다. 첫 프레임 문은 `:app` `MainActivity` 가 한다.
 - **`motion/`** — `MyNoteEasing`, `rememberReduceMotion()`. CompositionLocal 로 제공되지도 않고
   테마에 참여하지도 않아서 `theme/` 에서 빠져나온 것들이다. 모션 상수를 `theme/` 에 넣지 말 것.
   `rememberReduceMotion()` 은 `LocalInspectionMode` 를 OR 로 물고 있어 **프리뷰에서는 항상 true** 다.
@@ -251,7 +263,8 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
 라이브러리 시험이라 앱을 지우지 않지만, 같은 기기에서 계측 시험을 동시에 돌리면 시험 APK 재설치로 서로 죽는다 — 차례로 돌린다.
 
 단위 테스트는 `FloatingNavScrollStateTest`·`RawSliceTest`(원문 자르기 `sliceRaw`)·`NoteContentStateTest`(펼침 상태와 저장)·
-`TableColumnWidthsTest`(표 열 폭)·`NoteListMarkerTest`(글머리 · 들여쓰기 멈춤)·`NoteSpansTest`(취소선 낭독 · 구간 모양)인데, 가능한 이유는
+`TableColumnWidthsTest`(표 열 폭)·`NoteListMarkerTest`(글머리 · 들여쓰기 멈춤)·`NoteSpansTest`(취소선 낭독 · 구간 모양)·
+`TitleFontGateTest`(제목 글꼴 문 — 가짜 글꼴 출처와 가상 시간, 그래서 `kotlinx-coroutines-test` 시험 의존이 있다)인데, 가능한 이유는
 같다 — 판정을 Compose 밖 순수 함수·클래스로 뺐다. `FloatingNavScrollStateTest` 가 가능한 이유는
 `FloatingNavScrollState` 가 **Compose 를 모르고 px 두 개만 받는 순수 클래스**이고
 `rememberFloatingNavScrollState()` 가 density 변환만 담당하도록 갈라 뒀기 때문이다.
@@ -261,6 +274,17 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
 `FloatingNavScrollState` 의 실제 규칙 세 가지: `6.dp` 미만 이동은 떨림으로 무시, 상단 `48.dp`
 안전지대에서는 숨지 않음, 누적 오프셋은 0 아래로 안 내려감. 노트를 바꿀 때 `reset()` 을
 불러야 기준점까지 되돌아간다(`NotesShell` 의 `LaunchedEffect(uiState.activeNoteId)`).
+
+---
+
+## 라이선스
+
+| 무엇 | 라이선스 | 어디에 |
+|---|---|---|
+| Gothic A1(제목 글꼴) | SIL Open Font License 1.1 | APK 에 들지 않는다 — 기기의 GMS 글꼴 제공자가 받아 둔 것을 쓴다 |
+| `androidx.compose.ui:ui-text-google-fonts` | Apache License 2.0 | 라이브러리 |
+
+앱 안에 오픈소스 고지 화면을 만들면 둘 다 싣는다.
 
 ---
 

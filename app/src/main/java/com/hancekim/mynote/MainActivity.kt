@@ -3,17 +3,37 @@ package com.hancekim.mynote
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
+import android.os.Process
+import android.os.SystemClock
+import android.view.View
+import android.view.ViewTreeObserver
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.font.FontFamily
+import androidx.lifecycle.lifecycleScope
 import com.hancekim.mynote.core.ai.download.ModelDownloads
+import com.hancekim.mynote.core.designsystem.font.TitleFontGate
+import com.hancekim.mynote.core.designsystem.font.googleTitleFontSource
+import com.hancekim.mynote.core.designsystem.font.titleFontWaitMillis
+import com.hancekim.mynote.core.designsystem.theme.ProvideTitleFontFamily
 import com.hancekim.mynote.core.navigation.NavCommand
 import com.hancekim.mynote.core.navigation.Navigator
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import com.hancekim.mynote.feature.notes.NotesRoute
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -22,7 +42,14 @@ class MainActivity : ComponentActivity() {
 
     @Inject lateinit var modelDownloads: ModelDownloads
 
+    private var titleFontFamily by mutableStateOf(titleFontGate.fontFamily)
+
+    private var titleFontApplied = false
+
+    private val firstFrameReady = CompletableDeferred<Unit>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        if (titleFontFamily == null) decideTitleFont(createdMillis = SystemClock.uptimeMillis())
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
@@ -30,10 +57,50 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         splashScreen.setOnExitAnimationListener { it.fadeOutAfterIcon() }
         consumeSettingsRequest(intent)
+        holdFirstFrameUntilTitleFont()
         setContent {
-            NotesRoute()
+            val fontFamily = titleFontFamily
+            ProvideTitleFontFamily(fontFamily ?: FontFamily.Default) {
+                NotesRoute()
+            }
+            if (fontFamily != null) SideEffect { titleFontApplied = true }
         }
     }
+
+    private fun decideTitleFont(createdMillis: Long) {
+        val source = googleTitleFontSource(this, BuildConfig.TITLE_FONT_NAME.ifEmpty { null })
+        val lampMillis = (splashAnimationMillis() * animatorScale()).toLong()
+        val giveUp: suspend () -> Unit = {
+            firstFrameReady.await()
+            delay(titleFontWaitMillis(processStartMillis(), createdMillis, SystemClock.uptimeMillis(), lampMillis))
+        }
+        lifecycleScope.launch {
+            titleFontFamily = withContext(Dispatchers.Default) { titleFontGate.decide(source, giveUp) }
+        }
+    }
+
+    private fun holdFirstFrameUntilTitleFont() {
+        val content = findViewById<View>(android.R.id.content)
+        content.viewTreeObserver.addOnPreDrawListener(
+            object : ViewTreeObserver.OnPreDrawListener {
+                override fun onPreDraw(): Boolean {
+                    if (!titleFontApplied) {
+                        firstFrameReady.complete(Unit)
+                        return false
+                    }
+                    content.viewTreeObserver.removeOnPreDrawListener(this)
+                    return true
+                }
+            },
+        )
+    }
+
+    // 33+ 는 시스템이 이 값 대신 AVD 길이를 읽지만 둘은 같다(BR-5 시험).
+    @Suppress("DEPRECATION")
+    private fun splashAnimationMillis(): Int =
+        theme
+            .obtainStyledAttributes(intArrayOf(android.R.attr.windowSplashScreenAnimationDuration))
+            .use { it.getInt(0, 0) }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
@@ -52,6 +119,8 @@ class MainActivity : ComponentActivity() {
     }
 
     companion object {
+        private val titleFontGate = TitleFontGate()
+
         const val EXTRA_OPEN_SETTINGS = "open_settings"
 
         const val EXTRA_RETRY_DOWNLOAD = "retry_download"
@@ -75,3 +144,10 @@ class MainActivity : ComponentActivity() {
                 ).putExtra(EXTRA_OPEN_SETTINGS, true)
     }
 }
+
+private fun processStartMillis(): Long =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        Process.getStartRequestedUptimeMillis()
+    } else {
+        Process.getStartUptimeMillis()
+    }

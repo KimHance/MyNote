@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.hancekim.mynote.core.designfoundation.window.MyNoteHeightClass
@@ -38,11 +39,25 @@ data class MyNoteTextStyles(
     val monoSmall: TextStyle,
 )
 
+/** 제목 글꼴(titleFontFamily)을 받는 스타일 이름. 정본은 디자인 문서의 제목 글꼴 표다. */
+internal val TitleFontStyleNames: Set<String> = setOf("noteTitle", "title", "sectionTitle", "screenTitle")
+
+private val TitleLineHeightStyle =
+    LineHeightStyle(
+        alignment = LineHeightStyle.Alignment.Center,
+        trim = LineHeightStyle.Trim.None,
+    )
+
+/**
+ * @param titleFontFamily 제목 글꼴 스타일([TitleFontStyleNames])이 쓰는 글꼴.
+ */
 fun myNoteTextStyles(
     bodySizeSp: Float,
     heightClass: MyNoteHeightClass = MyNoteHeightClass.Medium,
+    titleFontFamily: FontFamily = FontFamily.Default,
 ): MyNoteTextStyles {
     val short = heightClass == MyNoteHeightClass.Compact
+    val screenTitleSize = if (short) 17f else 19f
     return MyNoteTextStyles(
         display =
             TextStyle(
@@ -54,18 +69,21 @@ fun myNoteTextStyles(
             ),
         noteTitle =
             TextStyle(
-                fontFamily = FontFamily.Default,
+                fontFamily = titleFontFamily,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.W700,
                 letterSpacing = (-0.015).em,
                 lineHeight = (28 * 1.25f).sp,
+                lineHeightStyle = TitleLineHeightStyle,
             ),
         title =
             TextStyle(
-                fontFamily = FontFamily.Default,
+                fontFamily = titleFontFamily,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.W700,
                 letterSpacing = (-0.01).em,
+                lineHeight = (24 * 1.3f).sp,
+                lineHeightStyle = TitleLineHeightStyle,
             ),
         headline =
             TextStyle(
@@ -77,17 +95,21 @@ fun myNoteTextStyles(
             ),
         sectionTitle =
             TextStyle(
-                fontFamily = FontFamily.Default,
+                fontFamily = titleFontFamily,
                 fontSize = 21.sp,
                 fontWeight = FontWeight.W700,
                 letterSpacing = (-0.01).em,
+                lineHeight = (21 * 1.3f).sp,
+                lineHeightStyle = TitleLineHeightStyle,
             ),
         screenTitle =
             TextStyle(
-                fontFamily = FontFamily.Default,
-                fontSize = if (short) 17.sp else 19.sp,
+                fontFamily = titleFontFamily,
+                fontSize = screenTitleSize.sp,
                 fontWeight = FontWeight.W700,
                 letterSpacing = (-0.01).em,
+                lineHeight = (screenTitleSize * 1.3f).sp,
+                lineHeightStyle = TitleLineHeightStyle,
             ),
         cardTitle =
             TextStyle(

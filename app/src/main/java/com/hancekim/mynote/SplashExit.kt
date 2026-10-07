@@ -2,6 +2,7 @@ package com.hancekim.mynote
 
 import android.animation.TimeInterpolator
 import android.animation.ValueAnimator
+import android.content.Context
 import android.os.Build
 import android.provider.Settings
 import android.view.View
@@ -17,17 +18,17 @@ internal fun SplashScreenView.fadeOutAfterIcon() {
         if (start == null || duration == null) {
             0L
         } else {
-            val endMillis = start.toEpochMilli() + (duration.toMillis() * animatorScale()).toLong()
+            val endMillis = start.toEpochMilli() + (duration.toMillis() * context.animatorScale()).toLong()
             (endMillis - System.currentTimeMillis()).coerceAtLeast(0L)
         }
     postDelayed(::fadeOut, waitMillis)
 }
 
-private fun SplashScreenView.animatorScale(): Float =
+internal fun Context.animatorScale(): Float =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         ValueAnimator.getDurationScale()
     } else {
-        Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f)
+        Settings.Global.getFloat(contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f)
     }
 
 private fun SplashScreenView.fadeOut() {
