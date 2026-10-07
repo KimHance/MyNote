@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="notes_app_title">공부 기록</string>
+    <string name="notes_app_title">MyNote</string>
     <string name="notes_home_hint_compact">읽고 싶은 노트를 고르세요. 왼쪽 위 ☰ 를 누르면 전체 목록이 열립니다.</string>
     <string name="notes_home_hint_wide">왼쪽 목록에서 읽고 싶은 노트를 고르세요.</string>
     <string name="notes_home_recent">최근 노트</string>

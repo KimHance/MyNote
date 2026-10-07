@@ -93,6 +93,8 @@ data class NotesUiState(
 
     val connectedRepo: RepoConnection? get() = (connection as? ConnectionState.Connected)?.connection
 
+    val heroRepoName: String? get() = connectedRepo?.fullName
+
     val start: StartDestination
         get() =
             startDestination(

@@ -101,7 +101,8 @@ noteTitle · title · sectionTitle · screenTitle, 정본은 `docs/design/brand.
 - **히어로/노트 제목 크기만 타이포가 아니라 `AdaptiveTokens` 의 `TextUnit` 이다**
   (`heroTitleSize`/`noteTitleSize`). 화면이 `textStyles.noteTitle.copy(fontSize = adaptive.noteTitleSize)`
   로 합쳐 쓴다. 이름 붙은 스타일은 타이포에, 폼팩터에 따라 연속적으로 변하는 크기는 반응형 토큰에 —
-  라는 분담이다.
+  라는 분담이다. `heroTitleSize` 는 히어로 워드마크 그림의 x높이로도 읽힌다(design-system `MyNoteHero` 가 값을 dp 로 —
+  글자 배율 무시). 값을 바꾸면 워드마크 크기가 같이 바뀐다.
 
 ## 색
 
@@ -113,5 +114,8 @@ noteTitle · title · sectionTitle · screenTitle, 정본은 `docs/design/brand.
   그리고 선택 알약용 `navItemSelectedTop`·`Bottom`·`Rim`·`Specular`·`Caustic`·`Pressed` 6종.
 - `correct`/`wrong` 은 **색만으로 말하지 않는다**는 전제로 만들어졌다(아이콘·글자와 함께 쓴다).
   `warn`/`warnText` 는 실패가 아니라 "요청보다 적게 만들어짐" 안내라서 빨강이 아니다.
+- **로고 전용 색은 팔레트 밖이다** — `token/MyNoteBrandColors.kt` 의 `object MyNoteBrandColors`(`LampTop` · `LampBottom`).
+  히어로 마크의 빛 그라디언트만 읽는다. UI 면 · 글자 · 상태에 쓰지 않고, Kotlin 이 읽는 색만 둔다(밤 · 아이콘 바탕은 `:app`
+  색 리소스). `MyNoteColors` 에 넣으면 토큰처럼 읽혀 화면에 새어 나간다.
 - **안 쓰는 토큰은 남기지 않는다.** 팔레트가 유일한 출처라서 쓰이지 않는 이름도 "있는 값"처럼 읽히고,
   다음 사람이 그걸 근거로 쓴다(과거에 `navItemSelected`·`scrimTop`·`gesturePill` 을 정리한 이유).
