@@ -1,9 +1,11 @@
 import os
+import posixpath
 import re
 import subprocess
 import sys
 import tempfile
 import unittest
+from fnmatch import fnmatchcase
 from pathlib import Path, PurePosixPath
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -34,7 +36,8 @@ PATTERNS = {
     ),
 }
 CONVERSATION_ID = re.compile(r"대화[^상]{0,4}`?[0-9a-f]{6,}")
-RUN_MATERIAL = re.compile(r"<runs>|(?<![\w.-])(?:runs|shots)/")
+RUN_MARKER = re.compile(r"<runs>|office/runs/|(?<![\w./-])runs/<")
+RUN_PATH = re.compile(r"(?<![\w./-])(?:[\w.-]+/)*(?P<kind>runs|shots)/[\w.*/-]*", re.ASCII)
 
 
 def violations(text):
@@ -96,6 +99,34 @@ def leftovers(root, pattern):
         for number, line in enumerate((root / rel).read_text(encoding="utf-8").splitlines(), 1)
         if pattern.search(line)
     ]
+
+
+def in_repo(files, folder, path, kind):
+    """문서 폴더 folder 의 글이 가리키는 runs · shots 경로 path 가 추적 목록 files 에 있는가."""
+    path = path.rstrip(".")
+    if path == f"{kind}/":
+        return True
+    if path.startswith("shots/"):
+        return any(fnmatchcase(rel, f"*{path}*") for rel in files)
+    tail = "*" if kind == "shots" else ""
+    for base in (folder, ""):
+        target = posixpath.normpath(posixpath.join(base, path))
+        if any(fnmatchcase(rel, target + tail) or fnmatchcase(rel, f"{target}/*") for rel in files):
+            return True
+    return False
+
+
+def run_material(root):
+    """레포 밖 run 자료를 가리키는 줄을 `경로:줄` 목록으로 돌려준다."""
+    files = all_files(root)
+    hits = []
+    for rel in tracked_docs(root):
+        folder = posixpath.dirname(rel)
+        for number, line in enumerate((root / rel).read_text(encoding="utf-8").splitlines(), 1):
+            paths = RUN_PATH.finditer(line)
+            if RUN_MARKER.search(line) or any(not in_repo(files, folder, m.group(0), m.group("kind")) for m in paths):
+                hits.append(f"{rel}:{number}")
+    return hits
 
 
 def check_stdin():
@@ -245,16 +276,38 @@ class HygieneTest(unittest.TestCase):
 
     def test_BR_10_레포_밖_run_자료_경로가_없다(self):
         """BR-10 레포 밖 run 자료 경로가 없다"""
-        self.assertEqual(leftovers(REPO_ROOT, RUN_MATERIAL), [])
-        root = self.tmp / "runs"
+        self.assertEqual(run_material(REPO_ROOT), [])
+        root = self.tmp / "work"
+        for rel in (
+            "runs/fixtures/a.md",
+            "labs/x/runs/day1/a.txt",
+            "labs/x/shots/launcher-sheet.png",
+            "labs/x/shots/splash-1.png",
+            "labs/x/shots/Hero.png",
+        ):
+            self.write(root, rel, "문서\n")
+        (root / "labs" / "x" / "runs" / "empty").mkdir()
         lines = [
-            "`screenshots/` · `labs/x/r1/` · runs-old/ · 장부 D15",
+            "`screenshots/` · `labs/x/r1/` · runs-old/ · `runs/` · `shots/` · `shots/…` · 장부 D15",
             "사진(`<runs>/shots/main-check/`)",
-            "| `shots/retry-display/card.png` |",
+            "| 런처 | `shots/launcher-sheet.png` · `shots/splash-*.png` · `shots/launcher-sheet` |",
             "runs/brand/brief.md",
+            "python3 gen_app.py --shots    # 찍어 shots/ 에",
+            "데이터 칸 `plugins/data/x/office/runs/brand-identity/brief.md`",
+            "`runs/<작업>/intent/<단위>.md`",
+            "`runs/fixtures/a.md` 를 읽는다 · runs/fixtures. · runs/fixtures에 둔다",
+            "| 5 | 아이콘 | `shots/main-check/2-retry.png` |",
+            "`shots/retry-display/` 6장",
+            "`labs/x/runs/day1/a.txt` · `labs/x/shots/` · https://github.com/o/r/actions/runs/123",
+            "`shots/hero.png`",
+            "`runs/Fixtures/a.md`",
+            "`labs/y/runs/fixtures/`",
         ]
         self.write(root, "docs/a.md", "\n".join(lines) + "\n")
-        self.assertEqual(leftovers(root, RUN_MATERIAL), [f"docs/a.md:{n}" for n in (2, 3, 4)])
+        self.write(root, "labs/x/README.md", "`runs/day1/` 에 둔다\n`runs/day2/` 에 둔다\n`runs/empty/` 는 빈 폴더\n")
+        expected = [f"docs/a.md:{n}" for n in (2, 4, 6, 7, 9, 10, 12, 13, 14)]
+        expected += ["labs/x/README.md:2", "labs/x/README.md:3"]
+        self.assertEqual(run_material(root), expected)
 
 
 if __name__ == "__main__":
