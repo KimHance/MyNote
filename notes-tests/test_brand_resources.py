@@ -25,6 +25,7 @@ SAFE_CENTER = (54.0, 54.0)
 SAFE_RADIUS = 33.0
 SPLASH_LIMIT_MILLIS = 1000
 SPLASH_HOLD_LIMIT_MILLIS = 166
+LINEAR = "@android:interpolator/linear"
 NIGHT = "#0A0F1C"
 ROBOT_MARKS = ("#3DDC84", "M65.3,45.828", "M31,63.928")
 LAYERS = {
@@ -281,6 +282,7 @@ def animators(animated_vector):
                     "hold_millis": offset + round(max(held) * duration),
                     "end_millis": offset + duration,
                     "interpolator": frames[-1][2],
+                    "timing": android(animator, "interpolator"),
                     "repeat": android(animator, "repeatCount", "0"),
                 }
 
@@ -376,6 +378,8 @@ class BrandResourcesTest(unittest.TestCase):
                 if "fractions" in motion:
                     self.assertEqual(motion["fractions"][0], 0)
                     self.assertEqual(motion["fractions"][-1], 1)
+                    # 빠지면 기본 AccelerateDecelerate 가 keyframe 시각과 곡선을 함께 휜다
+                    self.assertEqual(motion["timing"], LINEAR)
                 easing = resource_root(motion["interpolator"])
                 control = [android(easing, key) for key in ("controlX1", "controlY1", "controlX2", "controlY2")]
                 self.assertEqual(cubic(control), cubic(value.strip() for value in mine.group(1).split(",")))

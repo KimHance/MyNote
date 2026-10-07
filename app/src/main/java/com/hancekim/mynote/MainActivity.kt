@@ -48,6 +48,8 @@ class MainActivity : ComponentActivity() {
 
     private val firstFrameReady = CompletableDeferred<Unit>()
 
+    private var createdInTask = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         if (titleFontFamily == null) decideTitleFont(createdMillis = SystemClock.uptimeMillis())
         enableEdgeToEdge(
@@ -55,7 +57,10 @@ class MainActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
         )
         super.onCreate(savedInstanceState)
-        splashScreen.setOnExitAnimationListener { it.fadeOutAfterIcon() }
+        createdInTask = taskId
+        if (liveTasks.enter(createdInTask)) {
+            splashScreen.setOnExitAnimationListener { it.fadeOutAfterIcon() }
+        }
         consumeSettingsRequest(intent)
         holdFirstFrameUntilTitleFont()
         setContent {
@@ -65,6 +70,11 @@ class MainActivity : ComponentActivity() {
             }
             if (fontFamily != null) SideEffect { titleFontApplied = true }
         }
+    }
+
+    override fun onDestroy() {
+        liveTasks.leave(createdInTask)
+        super.onDestroy()
     }
 
     private fun decideTitleFont(createdMillis: Long) {
@@ -120,6 +130,8 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         private val titleFontGate = TitleFontGate()
+
+        private val liveTasks = LiveTasks()
 
         const val EXTRA_OPEN_SETTINGS = "open_settings"
 

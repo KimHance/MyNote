@@ -664,7 +664,7 @@ APK 에 글꼴 파일은 없다.
 | 이름 | 곡선 | 정의 | 쓰는 자리 |
 |---|---|---|---|
 | `MyNoteEasing` | `cubic-bezier(0.2, 0.8, 0.2, 1)` | `ds/motion/Motion.kt` | 앱 공용. `riseIn`, `flip`, 차트, 북마크 행·큰 카드, 모델 알약 여백, 스플래시 불 켜짐(`:app` `interpolator/my_note_easing` — 같은 값) |
-| `MyNoteExitEasing` | `cubic-bezier(0.4, 0, 1, 1)` | `ds/motion/Motion.kt` | 떠남 공용. 스플래시 내려감(`:app` `SplashExit.kt`). 북마크 화면 사라짐은 같은 값을 아직 private `FadeOutEasing` 으로 갖고 있다 |
+| `MyNoteExitEasing` | `cubic-bezier(0.4, 0, 1, 1)` | `ds/motion/Motion.kt` | 떠남 공용. 북마크 행·화면 사라짐, 스플래시 내려감(`:app` `SplashExit.kt`) |
 | `SceneMotion.Easing` | `cubic-bezier(0.2, 0, 0, 1)` | `nav/motion/SceneMotion.kt`(internal) | 씬 전환 전용 |
 | `FastOutSlowInEasing` | Compose 기본 | — | 플로팅 내비 숨김, 맨 위로 버튼 |
 
@@ -792,7 +792,7 @@ APK 에 글꼴 파일은 없다.
 | 90–160ms | 눌림 · 라벨 페이드 · 색 바뀜 · 리본 — 손에 붙는 피드백 |
 | 180–260ms | 작은 등장·퇴장 · 맨 위로 · 다이얼로그 닫힘 · 스플래시 내려감(180) |
 | 300–340ms | `riseIn` · 레이아웃 이동 · 장면 전환 · 내비 숨김 |
-| 420–460ms | 점수 게이지 등장 · 뒤집기 등장 · 스플래시 불 켜짐(450, 앞에 꺼진 채 100) — "한 번 보여 줄 것" |
+| 420–460ms | 점수 게이지 등장 · 뒤집기 등장 · 스플래시 불 켜짐(450, 앞에 꺼진 채 166 — 전체 616) — "한 번 보여 줄 것" |
 | 900ms 이상 | 점수 게이지 채움(900, QZ §4) · 무한 루프 한 바퀴(링 1100 · 샤인 3200) |
 
 900ms 이상인 일회성 모션은 결과 화면의 게이지 하나다. 사용자가 기다리는 동안이 아니라 **결과를 보는 동안**이라 길어도 된다 — 다른 자리에서 이 길이를 빌리지 않는다.
