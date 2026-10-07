@@ -34,7 +34,7 @@ PATTERNS = {
     ),
 }
 CONVERSATION_ID = re.compile(r"대화[^상]{0,4}`?[0-9a-f]{6,}")
-RUN_MATERIAL = re.compile(r"<runs>|(?<![\w.-])(?:runs|shots)/")
+RUN_MATERIAL = re.compile(r"<runs>|office/runs/|(?<![\w.-])runs/(?P<name>[^\s/`'\")\]|,]+)")
 
 
 def violations(text):
@@ -96,6 +96,21 @@ def leftovers(root, pattern):
         for number, line in enumerate((root / rel).read_text(encoding="utf-8").splitlines(), 1)
         if pattern.search(line)
     ]
+
+
+def run_material(root):
+    """레포 밖 run 자료를 가리키는 줄을 `경로:줄` 목록으로 돌려준다."""
+    hits = []
+    for rel in tracked_docs(root):
+        bases = ((root / rel).parent, root)
+        for number, line in enumerate((root / rel).read_text(encoding="utf-8").splitlines(), 1):
+            for match in RUN_MATERIAL.finditer(line):
+                name = (match.group("name") or "").rstrip(".")
+                if name and any((base / "runs" / name).is_dir() for base in bases):
+                    continue
+                hits.append(f"{rel}:{number}")
+                break
+    return hits
 
 
 def check_stdin():
@@ -245,16 +260,24 @@ class HygieneTest(unittest.TestCase):
 
     def test_BR_10_레포_밖_run_자료_경로가_없다(self):
         """BR-10 레포 밖 run 자료 경로가 없다"""
-        self.assertEqual(leftovers(REPO_ROOT, RUN_MATERIAL), [])
-        root = self.tmp / "runs"
+        self.assertEqual(run_material(REPO_ROOT), [])
+        root = self.tmp / "work"
+        (root / "runs" / "fixtures").mkdir(parents=True)
+        (root / "labs" / "x" / "runs" / "day1").mkdir(parents=True)
         lines = [
-            "`screenshots/` · `labs/x/r1/` · runs-old/ · 장부 D15",
+            "`screenshots/` · `labs/x/r1/` · runs-old/ · `runs/` · 장부 D15",
             "사진(`<runs>/shots/main-check/`)",
-            "| `shots/retry-display/card.png` |",
+            "| 런처 | `shots/launcher-sheet.png` · `shots/splash-*.png` |",
             "runs/brand/brief.md",
+            "python3 gen_app.py --shots    # 찍어 shots/ 에",
+            "데이터 칸 `plugins/data/x/office/runs/brand-identity/brief.md`",
+            "`runs/<작업>/intent/<단위>.md`",
+            "`runs/fixtures/a.md` 를 읽는다 · runs/fixtures.",
         ]
         self.write(root, "docs/a.md", "\n".join(lines) + "\n")
-        self.assertEqual(leftovers(root, RUN_MATERIAL), [f"docs/a.md:{n}" for n in (2, 3, 4)])
+        self.write(root, "labs/x/README.md", "`runs/day1/` 에 둔다\n`runs/day2/` 에 둔다\n")
+        expected = [f"docs/a.md:{n}" for n in (2, 4, 6, 7)] + ["labs/x/README.md:2"]
+        self.assertEqual(run_material(root), expected)
 
 
 if __name__ == "__main__":
