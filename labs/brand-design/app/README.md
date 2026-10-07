@@ -16,7 +16,7 @@ python3 gen_app.py --shots    # 위 + scenes/*.html 을 headless Chrome 으로 �
 | `launcher-background.svg` | 108 | `:app` `ic_launcher_background` | 세로 그라디언트 아이콘 바탕 위 → 아래 |
 | `launcher-foreground.svg` | 108 | `:app` `ic_launcher_foreground` | 창틀 선 6.255 · 빛 그라디언트 y 30 → 112. 기둥은 캔버스 아래 끝(108)에서 끝난다 |
 | `launcher-monochrome.svg` | 108 | `:app` `ic_launcher_monochrome`(새) | 같은 자리 · 단색 칠. 시스템이 색을 입힌다 |
-| `splash-icon.svg` | 288 | `:app` 스플래시 AVD 의 그림 | 끝 그림 = 기본 상태. 움직이는 것은 `lamp_group`(scaleY) · `lamp`(fillAlpha) 둘 |
+| `splash-icon.svg` | 288 | `:app` 스플래시 AVD 의 그림 | 끝 그림 = 기본 상태. 움직이는 것은 `lamp_group`(scaleY) · `lamp`(fillAlpha) 둘 — 앞 166 꺼진 값 keyframe · 뒤 450 MyNoteEasing · 합 616 |
 | `hero-mark.svg` | 76.1 × 92 | `:core:design-system` 히어로 마크 ImageVector | 창틀 = accent 토큰 · 빛 = 로고 전용 색 |
 | `hero-wordmark.svg` | 315.3 × 114 | `:core:design-system` 히어로 워드마크 ImageVector | 바탕 사각 없음 · 선 한 색(text 토큰으로 칠한다). x높이 72 = 위에서 18 ~ 90 |
 
@@ -29,7 +29,7 @@ python3 gen_app.py --shots    # 위 + scenes/*.html 을 headless Chrome 으로 �
 | 사진 | 무엇 |
 |---|---|
 | `launcher-sheet` | 세 층 · 보이는 72 · 안전 원 66 · 마스크 넷(원 · 둥근 사각 · 스쿼클 · 물방울) · 테마 아이콘 밝은 · 어두운 · 48 · 36dp |
-| `splash-1-off` · `-2-mid` · `-3-on` | 불 켜짐 처음(빛 0 · scaleY 0.8) · 움직임 25% 지점(진행 0.767) · 끝(= 감속 모션 첫 프레임) |
+| `splash-1-off` · `-2-mid` · `-3-on` | 불 켜짐 처음(빛 0 · scaleY 0.8 — 앞 166 동안 그대로) · 불 켜짐 450 의 25% 지점(진행 0.767) · 끝(= 감속 모션 첫 프레임) |
 | `splash-4-exit-reading` · `-5-exit-home` | 내려감 90ms 지점(덮개 0.675) — 아래가 읽는 중 화면 · 홈 |
 | `hero-{repo,none,long}-{landscape,portrait,tablet}` | 연결 있음 · 없음(연결 안내 띠) · 긴 이름(39 + 100자) × 높이 Compact(800×360) · Medium(360×800) · Expanded(800×1280) |
 | `hero-repo-portrait-x2` · `hero-long-portrait-x2` | 글자 배율 200% — 마크 · 워드마크는 그대로, 저장소 줄 · 안내는 커진다 |

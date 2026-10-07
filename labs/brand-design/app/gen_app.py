@@ -22,7 +22,7 @@ MARK_W, MARK_H = 76.1, 92.0  # 맨 마크 상자(선 바깥까지)
 
 LAUNCHER = dict(scale=0.73587, tx=26.0, ty=112.0, pillar=-90.28)   # 108 캔버스 · 기둥은 일부러 마스크 밖
 SPLASH = dict(canvas=288, circle=192, scale=1.3)                     # 바탕 없음 · 원 안에 마크 전체
-MOTION = dict(delay=100, dur=450, alpha_from=0.0, scale_from=0.8, exit=180)
+MOTION = dict(hold=166, dur=450, alpha_from=0.0, scale_from=0.8, exit=180)   # 앞 166 꺼진 값 keyframe · 뒤 450 MyNoteEasing · 합 616 = 테마 길이
 EASE_ARRIVE = (0.2, 0.8, 0.2, 1.0)   # MyNoteEasing
 EASE_LEAVE = (0.4, 0.0, 1.0, 1.0)    # 떠남
 
@@ -623,21 +623,21 @@ def sheet():
     (t1, r1), (t2, r2) = safe_circle_check()
     _, p_mid, exit_mid = splash_frames()
     d = MOTION
-    total = d['delay'] + d['dur']
+    total = d['hold'] + d['dur']
+    k = 0.45   # 시간 줄 1ms = 0.45px
 
     def cell(inner, label, bg=TOK['bg']):
         return f'<figure><div class="tile" style="background:{bg}">{inner}</div><figcaption>{label}</figcaption></figure>'
 
     def bar(x0, x1, y, label, color):
-        k = 520 / 1000
         return (f'<rect x="{f(x0 * k)}" y="{y}" width="{f((x1 - x0) * k)}" height="16" rx="3" fill="{color}"/>'
                 f'<text x="400" y="{y + 12}" font-size="11" fill="{TOK["text2"]}">{label}</text>')
     timeline = ('<svg viewBox="0 0 720 96" width="720" height="96" font-family="sans-serif">'
-                + bar(0, d['delay'], 6, f'기다림 {d["delay"]}', TOK['border'])
-                + bar(d['delay'], total, 28, f'불 켜짐 {d["dur"]} · fillAlpha {f(d["alpha_from"])}→1 · scaleY {d["scale_from"]}→1 · MyNoteEasing', TOK['accent'])
+                + bar(0, d['hold'], 6, f'꺼진 채 붙잡음 {d["hold"]} · 같은 꺼진 값 keyframe 둘(비율 0 · {d["hold"] / total:.6f})', TOK['border'])
+                + bar(d['hold'], total, 28, f'불 켜짐 {d["dur"]} · fillAlpha {f(d["alpha_from"])}→1 · scaleY {d["scale_from"]}→1 · MyNoteEasing', TOK['accent'])
                 + bar(total, total + d['exit'], 50, f'내려감 {d["exit"]} · 알파 1→0 · 떠남 곡선', TOK['text3'])
-                + ''.join(f'<line x1="{f(t * .52)}" y1="0" x2="{f(t * .52)}" y2="74" stroke="#FF5FD2" stroke-dasharray="2 3"/>'
-                          f'<text x="{f(t * .52 + 3)}" y="90" font-size="10" fill="{TOK["text3"]}">{t}ms</text>' for t in (0, d['delay'], total, total + d['exit']))
+                + ''.join(f'<line x1="{f(t * k)}" y1="0" x2="{f(t * k)}" y2="74" stroke="#FF5FD2" stroke-dasharray="2 3"/>'
+                          f'<text x="{f(t * k + 3)}" y="90" font-size="10" fill="{TOK["text3"]}">{t}ms</text>' for t in (0, d['hold'], total, total + d['exit']))
                 + '</svg>')
     colors = ''.join(f'<tr><td><span class="sw" style="background:{v}"></span></td><td>{n}</td><td><code>{v}</code></td><td>{u}</td></tr>'
                      for n, v, u in (('밤 night', BRAND['night'], '스플래시 바탕'), ('아이콘 바탕 위 iconTop', BRAND['icon_top'], '런처 배경 그라디언트 0'),
@@ -674,7 +674,8 @@ td,th{{border-bottom:1px solid var(--border);padding:8px 10px;text-align:left;ve
 <h2>색 — 로고 전용</h2><div class="scroll"><table><tr><th></th><th>이름</th><th>값</th><th>쓰는 곳</th></tr>{colors}</table></div>
 <p>로고 전용 색은 UI 면 · 글자에 쓰지 않는다. 앱 바탕은 토큰 bg {TOK["bg"]} 그대로다.</p>
 <h2>스플래시 움직임</h2><div class="scroll">{timeline}</div>
-<p>끝 그림이 그림의 기본 상태다 — 감속 모션 · 12L · 프리뷰에서는 처음부터 끝 그림. 중간 프레임(시작 뒤 25%) 진행도 {f(p_mid)} · 내려감 중간 덮개 {f(exit_mid)}.</p>
+<p>objectAnimator {total}ms 하나에 keyframe 셋 — 앞 {d["hold"]} 은 꺼진 값 그대로(startOffset 이 아니다 — 지연 동안은 켜진 기본 상태가 그려진다) · 뒤 {d["dur"]} 은 마지막 keyframe 의 보간기 MyNoteEasing · objectAnimator 보간기는 선형. 테마 windowSplashScreenAnimationDuration 도 {total}.</p>
+<p>끝 그림이 그림의 기본 상태다 — 감속 모션 · 12L · 프리뷰에서는 처음부터 끝 그림. 중간 프레임(불 켜짐 25%) 진행도 {f(p_mid)} · 내려감 중간 덮개 {f(exit_mid)}.</p>
 <h2>홈 히어로</h2><div class="scroll"><table><tr><th>높이</th><th>마크 높이</th><th>워드마크 x높이</th><th>그 밖</th></tr>
 <tr><td>Compact</td><td>없음</td><td>20</td><td>저장소 줄만 · 안내 숨김</td></tr><tr><td>Medium</td><td>46</td><td>24</td><td>저장소 줄 · 안내</td></tr>
 <tr><td>Expanded</td><td>54</td><td>28</td><td>저장소 줄 · 안내</td></tr></table></div>
