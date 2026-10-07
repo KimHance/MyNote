@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.lifecycle.lifecycleScope
 import com.hancekim.mynote.core.ai.download.ModelDownloads
 import com.hancekim.mynote.core.designsystem.font.TitleFontGate
+import com.hancekim.mynote.core.designsystem.font.awaitFirstFrameAndLamp
 import com.hancekim.mynote.core.designsystem.font.googleTitleFontSource
 import com.hancekim.mynote.core.designsystem.font.titleFontWaitMillis
 import com.hancekim.mynote.core.designsystem.theme.ProvideTitleFontFamily
@@ -31,7 +32,6 @@ import com.hancekim.mynote.feature.notes.NotesRoute
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -81,8 +81,9 @@ class MainActivity : ComponentActivity() {
         val source = googleTitleFontSource(this, BuildConfig.TITLE_FONT_NAME.ifEmpty { null })
         val lampMillis = (splashAnimationMillis() * animatorScale()).toLong()
         val giveUp: suspend () -> Unit = {
-            firstFrameReady.await()
-            delay(titleFontWaitMillis(processStartMillis(), createdMillis, SystemClock.uptimeMillis(), lampMillis))
+            awaitFirstFrameAndLamp(firstFrameReady::await) {
+                titleFontWaitMillis(processStartMillis(), createdMillis, SystemClock.uptimeMillis(), lampMillis)
+            }
         }
         lifecycleScope.launch {
             titleFontFamily = withContext(Dispatchers.Default) { titleFontGate.decide(source, giveUp) }
@@ -105,7 +106,7 @@ class MainActivity : ComponentActivity() {
         )
     }
 
-    // 33+ 는 시스템이 이 값 대신 AVD 길이를 읽지만 둘은 같다(BR-5 시험).
+    // 33+ 는 시스템이 이 값 대신 AVD 길이를 읽지만 둘은 같게 둔다.
     @Suppress("DEPRECATION")
     private fun splashAnimationMillis(): Int =
         theme

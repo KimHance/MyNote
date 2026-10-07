@@ -4,6 +4,7 @@ import androidx.compose.ui.text.font.FontFamily
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.sync.Mutex
@@ -55,6 +56,20 @@ private suspend fun loadOrNull(source: TitleFontSource): FontFamily? =
         currentCoroutineContext().ensureActive()
         null
     }
+
+/**
+ * 첫 앱 프레임 준비와 불 켜짐 끝 중 늦은 쪽까지 기다린다. [decideTitleFont] 의 giveUp 으로 쓴다.
+ *
+ * @param firstFrame 첫 앱 프레임을 그릴 수 있게 되면 돌아오는 대기.
+ * @param lampRemainingMillis 부른 때부터 불 켜짐 끝까지 남은 시간. 첫 프레임이 준비된 뒤에 읽는다.
+ */
+suspend fun awaitFirstFrameAndLamp(
+    firstFrame: suspend () -> Unit,
+    lampRemainingMillis: () -> Long,
+) {
+    firstFrame()
+    delay(lampRemainingMillis())
+}
 
 /**
  * 불 켜짐이 끝날 때까지 남은 시간. 기준은 실행 요청 시각이다 — 프로세스가 이 실행으로 막 떴으면 프로세스 시작, 아니면 화면을 만든 때.

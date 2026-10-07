@@ -180,7 +180,8 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
 - **`theme/`** — `MyNoteTheme` 과 CompositionLocal 배선 **전용**. 여기 있는 것은 테마에 참여한다.
 - **`font/`** — 제목 글꼴(`brand` BR-8). `TitleFontGate.kt` 는 순수 판단 — `decideTitleFont(source, giveUp)`(받기와 `giveUp` 을 함께
   시작해 먼저 끝난 쪽 · 제공자 없음 · 실패 · 늦음이면 기기 글꼴, 예외를 밖으로 내지 않는다. 제공자 확인과 받기는 나란히 돈다) ·
-  `TitleFontGate`(처음 결정을 들고 다시 받지 않는다) · `titleFontWaitMillis`(불 켜짐 끝까지 남은 시간 — 실행 요청 시각 기준).
+  `TitleFontGate`(처음 결정을 들고 다시 받지 않는다) · `awaitFirstFrameAndLamp`(`:app` 이 쓰는 `giveUp` — 첫 앱 프레임 준비와 불 켜짐 끝 중
+  늦은 쪽) · `titleFontWaitMillis`(불 켜짐 끝까지 남은 시간 — 실행 요청 시각 기준).
   `GoogleTitleFont.kt` 는 GMS 제공자(인증서 배열 `ds_com_google_android_gms_fonts_certs`)에서 700 하나를 `AndroidFont.typefaceLoader` 로
   직접 받아 `FontFamily(Typeface)` 로 돌려준다 — 이미 받은 글꼴이라 그리는 도중에 바뀌지 않는다. 제공자는 부른 스레드의 루퍼로 답하므로
   따로 둔 `title-font` 루퍼 스레드에서 부른다(메인으로 받으면 첫 컴포지션 뒤로 밀린다). `FontFamily(Font(GoogleFont…))` 를 컴포지션에

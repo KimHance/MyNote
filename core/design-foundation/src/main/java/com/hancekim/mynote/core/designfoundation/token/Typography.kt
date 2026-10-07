@@ -39,7 +39,7 @@ data class MyNoteTextStyles(
     val monoSmall: TextStyle,
 )
 
-/** 제목 글꼴(titleFontFamily)을 받는 스타일 이름. 정본은 디자인 문서의 제목 글꼴 표다. */
+/** 제목 글꼴(titleFontFamily)을 받는 스타일 이름. */
 internal val TitleFontStyleNames: Set<String> = setOf("noteTitle", "title", "sectionTitle", "screenTitle")
 
 private val TitleLineHeightStyle =
