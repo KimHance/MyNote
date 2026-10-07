@@ -28,6 +28,7 @@ class MainActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
         )
         super.onCreate(savedInstanceState)
+        splashScreen.setOnExitAnimationListener { it.fadeOutAfterIcon() }
         consumeSettingsRequest(intent)
         setContent {
             NotesRoute()

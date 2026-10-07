@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="brand_night">#0A0F1C</color>
+    <color name="brand_icon_top">#13203A</color>
+    <color name="brand_icon_bottom">#070B15</color>
+    <color name="brand_lamp_top">#F4F8FF</color>
+    <color name="brand_lamp_bottom">#B9D5FF</color>
+    <color name="window_background">#0E1217</color>
+</resources>

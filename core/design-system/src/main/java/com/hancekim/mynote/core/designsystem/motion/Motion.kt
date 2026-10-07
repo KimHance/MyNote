@@ -10,6 +10,8 @@ import androidx.compose.ui.platform.LocalInspectionMode
 
 val MyNoteEasing: Easing = CubicBezierEasing(0.2f, 0.8f, 0.2f, 1f)
 
+val MyNoteExitEasing: Easing = CubicBezierEasing(0.4f, 0f, 1f, 1f)
+
 @Composable
 fun rememberReduceMotion(): Boolean {
     val inspecting = LocalInspectionMode.current
