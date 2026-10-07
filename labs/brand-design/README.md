@@ -38,19 +38,14 @@ src/                               보드와 에셋을 만드는 스크립트(�
 
 워드마크 · 락업 · 아이콘 SVG 는 글자까지 윤곽(path)이라 글꼴 없이 열린다. 워드마크 · 락업 파일에는 브랜드 바탕 사각이 들어 있다.
 
-## 고르면 앱에 넣는 법
+## 앱에 넣은 자리 — A
 
-- **런처 아이콘** — `icon-background.svg` · `icon-foreground.svg` · `icon-monochrome.svg` 를 Android Studio *Vector Asset* 으로 각각
-  `app/src/main/res/drawable/ic_launcher_background.xml` · `ic_launcher_foreground.xml` · `ic_launcher_monochrome.xml` 로 가져오고,
-  `mipmap-anydpi/ic_launcher.xml` · `ic_launcher_round.xml` 의 `<monochrome>` 을 새 monochrome 으로 바꾼다(지금은 전경을 그대로 쓴다).
-  A 의 빛은 2정지점 선형 그라디언트(`gradientUnits=userSpaceOnUse`)라 `aapt:attr` 그라디언트로, B 의 겹침은 `fillAlpha`, C 의 도장은 `group` 의 `clip-path` + `fillType="evenOdd"` 로 옮겨진다.
-  가져온 뒤 원 · 둥근 사각 마스크에서 한 번 눈으로 본다(A 는 기둥이 일부러 마스크 밖으로 나간다). mipmap PNG 는 `minSdk 32` 라 adaptive 만으로 충분하다.
-- **알림 작은 아이콘** — `notification.svg` 를 `drawable/ic_stat_mynote.xml` 로 가져온다. 지금 `core/ai` 의 `DownloadNotices` 는 시스템 아이콘(`stat_sys_download` 등)을 쓴다 — 바꿀지는 따로 정할 일.
-- **홈 히어로** — `feature/notes/.../HomeScreen.kt` 의 `Hero` 가 accent 사각 + `"N"` 을 그린다. 그 Box 를 `Image(painterResource(R.drawable.<로고>))` 로 바꾼다.
-  A · B 는 아이콘 합본(배경 + 전경)을 `heroLogoSize`(46 · 54dp)에 반경 `0.29 × 크기` 그대로, C 는 도장 자체가 모양이라 clip 없이 놓는다.
-  로고 드로어블은 `:core:design-system` 리소스로 두면 `ds_` 접두사가 붙는다.
-- **스플래시** — `minSdk 32` 라 SplashScreen API 가 모든 기기에 있다. 테마에 `windowSplashScreenBackground`(A `#0A0F1C` · B `#141519` · C `#17130F`)와
-  `windowSplashScreenAnimatedIcon`(아이콘 전경)을 준다. 보드의 움직임(불 켜짐 · 획 순서 · 도장)은 AnimatedVectorDrawable 로 옮길 수 있는 길이(0.4–0.9초)다.
+고른 A 는 `app/svg/` 의 최종 그림으로 앱에 들어갔다(정본 `docs/design/brand.md`). 이 보드의 `assets/a-lamp/` 는 원본으로 남는다.
+
+- **런처 아이콘** — `:app` `drawable/ic_launcher_background.xml` · `ic_launcher_foreground.xml` · `ic_launcher_monochrome.xml`(`app/svg/launcher-*.svg` 를 옮김). `mipmap-anydpi/ic_launcher*.xml` 의 `<monochrome>` 은 전용 그림이다.
+- **알림 작은 아이콘** — 바꾸지 않았다(시스템 아이콘 그대로 · 기능 문서 결정 9).
+- **홈 히어로** — `:core:design-system` `MyNoteHero` 가 마크 · 워드마크 ImageVector(`MyNoteLogo.kt` · `app/svg/hero-*.svg` 를 옮김)와 연결 저장소 줄(mono · 가운데 말줄임)을 세로로 쌓는다. 높이 Compact 에서는 마크가 없다.
+- **스플래시** — 테마 `windowSplashScreenBackground` = `brand_night` · `windowSplashScreenAnimatedIcon` = `splash_icon`(불 켜짐 AVD — 앞 166 꺼진 채 + 450 = 616) · 내려감은 `:app` `SplashExit.kt` 가 그린다.
 
 ## 다시 만들기
 
@@ -63,6 +58,6 @@ cd labs/brand-design/src && python3 build.py ..        # index.html · assets/ �
 
 ## 하지 않은 것
 
-- 앱 코드 · `DESIGN.md` · 리소스는 건드리지 않았다. 고른 뒤 DESIGN.md 7절(아이콘 · 로고) · 2절에 브랜드 색 규칙을 옮겨야 한다.
-- VectorDrawable XML 은 만들지 않았다(위 Vector Asset 가져오기로 만든다). 실제 기기 · 에뮬레이터 런처에는 넣어 보지 않았다 — 홈 화면 장면은 HTML 로 그린 것이다.
+- 보드를 만들 때는 앱 코드 · `DESIGN.md` · 리소스를 건드리지 않았다. 고른 A 는 위 자리로 들어갔고 브랜드 색 · 로고 규칙은 DESIGN.md 2 · 7 에 옮겨졌다.
+- 이 보드의 홈 화면 장면은 HTML 로 그린 것이다 — 앱에 넣은 뒤의 확인은 디자인 문서 `## 확인`.
 - 사용자 인터뷰 없이 브리프만으로 만들었다.
