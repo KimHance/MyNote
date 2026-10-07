@@ -134,16 +134,16 @@ BR-8 시험이 이 절 첫 표의 첫 칸(백틱 이름)을 목록으로 읽는�
 | `screenTitle` | 19 · 짧은 창 17 | ×1.3(새로 정함) | 퀴즈 화면 · 퀴즈 설정 대화상자 · 연결 입구 제목 |
 
 - 줄 높이를 정하는 까닭: Gothic A1 의 ascent + descent 는 1.0em, 기기 글꼴 한글은 약 1.45em 이라 비워 두면 높이가 글꼴 따라 갈린다. 넷 모두 `LineHeightStyle(Center, Trim.None)` 도 둔다(자르면 자르는 양이 글꼴 지표를 따른다). 실측(장부 D49): Gothic A1 은 줄 상자 = 줄 수 × 줄 높이, 기기 글꼴은 한글 대체 글꼴 높이가 남아 줄마다 약 (1.45em − 줄 높이)만큼 크다 — 크기 따라 커진다. ×1.3 · 24sp 이하는 1–3dp(연결 화면 제목 `title` 1줄 34.9 · 31.9dp), 리더 머리 ×1.25 · 28sp 는 한 줄 약 6 · 두 줄 약 11dp(어림). 줄 수 · 첫 실행 연결 화면 가로 한 화면은 둘 다 지키고, 한 프로세스 안에서는 글꼴이 안 바뀌어 튀지 않는다.
-- copy 로 덮는 자리도 이 `LineHeightStyle` 을 물려받는다 — 자르기를 되살리면 Gothic A1 이 7–9dp 짧아져 더 갈린다(`font-copy-lineheight` 시안). 크기만 덮는 자리는 줄 높이도 크기 × 스타일 배율(×1.3 · `noteTitle` ×1.25)로 함께 덮는다 — 안 덮으면 작은 글자는 헐겁고(17sp 에 31.2) 큰 글자는 줄이 붙는다(32sp 에 35). 실측은 기기 · Gothic A1:
+- copy 로 덮는 자리도 이 `LineHeightStyle` 을 물려받는다 — 자르기를 되살리면 Gothic A1 이 7–9dp 짧아져 더 갈린다(`font-copy-lineheight` 시안). 크기만 바꾸는 자리는 `resized` 로 sp 줄 높이도 같은 배율로 맞춘다 — `copy(fontSize)` 만 쓰면 작은 글자는 헐겁고(17sp 에 31.2) 큰 글자는 줄이 붙는다(32sp 에 35). 실측은 기기 · Gothic A1:
 
 | 자리 | 덮는 값 | 정한 것 · 실측 |
 |---|---|---|
 | 통계 요약 문장(SummaryCard) | `title.copy(lineHeight = 1.4.em)` · 19sp(지난 것 17 · 짧은 판 16) | 물려받음 · 카드 전체 261.5 · 260.7 |
 | 연결 입구 제목(ConnectEntry) | `screenTitle.copy(lineHeight = 19 × 1.35)` | 물려받음 · 1줄 27.3 · 25.8 |
-| 리더 머리 노트 제목(NoteReaderScreen) | `noteTitle.copy(fontSize = noteTitleSize)` · 높이마다 24 · 28 · 32sp | 줄 높이 ×1.25(30 · 35 · 40)를 함께 덮음 |
+| 리더 머리 노트 제목(NoteReaderScreen) | `noteTitle.resized(noteTitleSize)` · 높이마다 24 · 28 · 32sp | 줄 높이 ×1.25(30 · 35 · 40) |
 | 북마크 큰 카드 노트 제목(FeaturedBookmarkCard) | `title.copy` 판마다 18–26sp · 줄 ×1.3–1.35 | 물려받음 |
-| 북마크 · 홈 빈 상태 제목(BookmarksScreen · HomeEmpty) | `title.copy(fontSize = 17.sp)` | Gothic A1 · 줄 높이 17 × 1.3 = 22.1 을 함께 덮음 |
-| 통계 머리 숫자 칸(StatsHeader) | `title.copy(24sp · lineHeight 30)` | 목록 밖 — 시스템 글꼴 · 줄 상자는 바꾸기 전 그대로(아래) |
+| 북마크 · 홈 빈 상태 제목(BookmarksScreen · HomeEmpty) | `title.resized(17.sp)`(`emptyStateTitle()`) | Gothic A1 · 줄 높이 17 × 1.3 = 22.1 |
+| 통계 머리 숫자 칸(StatsHeader) | `title.copy(24sp · 줄 30 · 기본 글꼴 · lineHeightStyle 없음)` | 목록 밖 — 줄 상자는 바꾸기 전 그대로(아래) |
 
 - `noteTitle` 과 `sectionTitle` 은 함께 들어간다 — 리더에서 같은 노트 제목이 상단 바와 머리에 같이 보인다(`font-reader-portrait`).
 - 목록 밖: `display`(점수 숫자) · `headline`(퀴즈 문항 = 읽는 문장) · `cardTitle` 이하 · 본문 제목 블록 · 본문 · 통계 머리 숫자 칸(`title.copy` 지만 값이라 점수 숫자처럼 시스템 글꼴 — 값 숫자 둘이 한 글꼴이고 옆 단위 글자와 갈리지 않는다).
