@@ -21,6 +21,14 @@ val templateRepo =
         .takeIf { Regex("[A-Za-z0-9._/-]*").matches(it) }
         .orEmpty()
 
+// debug 에서만 -Ptitle.font=<이름> 으로 제목 글꼴 이름을 바꾼다(받지 못하는 경우를 보려고). release 는 늘 정식 이름이다.
+val titleFontName =
+    providers
+        .gradleProperty("title.font")
+        .getOrElse("")
+        .takeIf { Regex("[A-Za-z0-9 ]*").matches(it) }
+        .orEmpty()
+
 android {
     namespace = "com.hancekim.mynote"
 
@@ -37,6 +45,7 @@ android {
         buildConfigField("String", "GITHUB_BRANCH", "\"\"")
         buildConfigField("String", "GITHUB_TOKEN", "\"\"")
         buildConfigField("String", "TEMPLATE_REPO", "\"$templateRepo\"")
+        buildConfigField("String", "TITLE_FONT_NAME", "\"\"")
 
         // litertlm 엔진(.so)이 CPU 종류마다 따로 들어 있어 기본값이면 안 쓰는 게
         // 25MB 실린다. 실기기·에뮬레이터 이미지가 전부 arm64 라 그것만 남긴다.
@@ -56,12 +65,14 @@ android {
             buildConfigField("String", "GITHUB_REPO", "\"${prop("github.repo")}\"")
             buildConfigField("String", "GITHUB_BRANCH", "\"${prop("github.branch")}\"")
             buildConfigField("String", "GITHUB_TOKEN", "\"${prop("github.token")}\"")
+            buildConfigField("String", "TITLE_FONT_NAME", "\"$titleFontName\"")
         }
         release {
             buildConfigField("String", "GITHUB_OWNER", "\"\"")
             buildConfigField("String", "GITHUB_REPO", "\"\"")
             buildConfigField("String", "GITHUB_BRANCH", "\"\"")
             buildConfigField("String", "GITHUB_TOKEN", "\"\"")
+            buildConfigField("String", "TITLE_FONT_NAME", "\"\"")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(

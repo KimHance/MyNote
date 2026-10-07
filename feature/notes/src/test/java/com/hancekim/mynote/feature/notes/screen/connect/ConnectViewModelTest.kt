@@ -26,6 +26,7 @@ import com.hancekim.mynote.feature.notes.element.ConfirmKind
 import com.hancekim.mynote.feature.notes.element.ConfirmUi
 import com.hancekim.mynote.feature.notes.element.ConnectNotice
 import com.hancekim.mynote.feature.notes.element.ConnectStep
+import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.element.NoticeWays
 import com.hancekim.mynote.feature.notes.element.SecretText
 import com.hancekim.mynote.feature.notes.element.noticeWays
@@ -243,6 +244,33 @@ class ConnectViewModelTest {
             assertEquals(1, probe.calls)
             assertEquals(1, connections.begun)
             assertEquals(0, connections.discarded)
+            collector.cancel()
+        }
+
+    @Test
+    fun `BR-6 히어로 저장소 줄은 확정된 연결에서만 나온다`() =
+        runTest {
+            val old = RepoConnection("Old-Owner", "Old-Notes", "main", "notes/index.json", isPublic = true)
+            val connections = FakeConnections(MutableStateFlow(ConnectionState.Connected(SourceId("s0"), old)))
+            val vm = viewModel(FakeProbe { ConnectProbeResult.Verified(repo, emptySet()) }, connections)
+            val collector = launch(UnconfinedTestDispatcher(testScheduler)) { vm.state.collect {} }
+
+            fun heroRepo() = NotesUiState(connection = connections.connection.value).heroRepoName
+
+            vm.onIntent(ConnectIntent.LinkChanged(link))
+            vm.onIntent(ConnectIntent.Submit(null))
+            val dialog = vm.state.value.confirm
+            assertEquals(ConfirmKind.Switch, dialog?.kind)
+            assertEquals("Old-Owner/Old-Notes", heroRepo())
+
+            vm.onIntent(ConnectIntent.AcceptConfirm)
+            assertEquals(ConnectStep.Syncing, vm.state.value.step)
+            assertEquals("Old-Owner/Old-Notes", heroRepo())
+
+            connections.syncGate.complete(Result.success(SyncOutcome(added = 3)))
+
+            assertEquals(ConnectStep.Done, vm.state.value.step)
+            assertEquals("octo-learner/android-notes", heroRepo())
             collector.cancel()
         }
 

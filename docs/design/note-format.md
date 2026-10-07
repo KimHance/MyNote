@@ -5,7 +5,7 @@
 | 기능 | note-format |
 | 기능 문서 | docs/spec/note-format.md (기준 67c1533 · 고침 2) |
 | 등급 | 화면 |
-| 마지막 변경 | 2026-10-07 · 승격 — 구현이 정한 것(행 기준선 · 인용 안 코드 · 체크 아이콘 · 3단 실측 · 제목 낭독) · 한도 넘음 문구 원인 넷 · 표 칸 4,096 |
+| 마지막 변경 | 2026-10-08 · 문서 위생 — 디자인 도구 대화 ID · 확인 칸의 run 사진 경로를 지움(`brand` 결정 7 · 8) |
 
 ## 시안
 
@@ -15,7 +15,7 @@
 | 1 | B 가로선만 | 고르지 않음(D29) | 메인 | `labs/note-format-design/r1/B`(비교용 · 구현 기준 아님) | 없음 | 없음 | 같은 파일 |
 | 1 · 고침 1–2 | A · 공통 | | 디자이너 | 같은 폴더 — A 표 ② 328 맞춤 · 5단 글머리 간격 · `common/한도 넘음-compact` 더함(NF-8) | 없음 | 없음 | 같은 파일 |
 
-표 장 5장씩은 `r1/A` · `r1/B`, 나머지 9장은 `r1/common` · 장 설명 · 토큰은 `r1/README.md`. 시안 도구: Claude Design 프로젝트 `190a5d4b` 대화 `d3aab3ef` · 요청서 `briefs/note-format-r1.md` · 핸드오프 `design_handoff_note_format/`.
+표 장 5장씩은 `r1/A` · `r1/B`, 나머지 9장은 `r1/common` · 장 설명 · 토큰은 `r1/README.md`. 시안 도구: Claude Design 프로젝트 `190a5d4b` · 요청서 `briefs/note-format-r1.md` · 핸드오프 `design_handoff_note_format/`.
 
 ## 제약
 
@@ -223,7 +223,7 @@ B 가로선만은 고르지 않았다 — A · B 비교는 `r1/README.md`.
 
 | 시안 | 골든 | 시험 이름 | 실화면 결과 |
 |---|---|---|---|
-| `r1/` 19장 | 골든 없음 | `NoteContentSemanticsTest`(NF-3 · NF-4 · NF-5 · NF-6 낭독) · `TableColumnWidthsTest` · `NoteListMarkerTest` · `NoteSpansTest` | 2026-10-07 · PreviewActivity 견본 사진 17장(runs `shots/reader-ui/` — 휘발) · 시안 검수 통과(왕복 2). 본 것: compact · 852 · 큰 글자 · 글자 2.0 · 표 행 기준선 · 한도 넘음. 못 본 것: TalkBack 실제 소리 · 실기기 |
+| `r1/` 19장 | 골든 없음 | `NoteContentSemanticsTest`(NF-3 · NF-4 · NF-5 · NF-6 낭독) · `TableColumnWidthsTest` · `NoteListMarkerTest` · `NoteSpansTest` | 2026-10-07 · PreviewActivity 견본 사진 17장 · 시안 검수 통과(왕복 2). 본 것: compact · 852 · 큰 글자 · 글자 2.0 · 표 행 기준선 · 한도 넘음. 못 본 것: TalkBack 실제 소리 · 실기기 |
 
 ## 검토
 
@@ -241,3 +241,4 @@ B 가로선만은 고르지 않았다 — A · B 비교는 `r1/README.md`.
 | 2026-10-07 | markdown-engine | 기능 문서 고침 1 맞춤 — 빈 항목 · 하위 제목 · 한도 넘음 상자 문구 · 시안 한 장 |
 | 2026-10-07 | markdown-engine · 고침 1 | 후보 A(D29) · 표 칸 코드 한 낱말 · 목록만 멈춤 · 1em · 구현 제약 셋 |
 | 2026-10-07 | markdown-engine · 승격 | 정한 것 7–13 · 한도 넘음 본문 원인 넷 · 제약을 지금 사실로(표 칸 4,096) · 확인 결과 · 기준 67c1533 |
+| 2026-10-08 | brand-identity | 문서 위생(`brand` 결정 7 · 8): 시안 도구 줄의 디자인 도구 대화 ID 와 확인 칸의 run 사진 경로를 지움. 프로젝트 ID 는 남김 |

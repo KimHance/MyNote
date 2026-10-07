@@ -69,6 +69,7 @@ internal fun NotesNavDisplay(
                                 HomeScreen(
                                     recentNotes = uiState.recentNotes,
                                     body = uiState.homeBody,
+                                    repoName = uiState.heroRepoName,
                                     showConnectBand = uiState.showConnectBand && MyNoteTheme.adaptive.useModalDrawer,
                                     onIntent = onIntent,
                                     contentBottomPadding = contentBottomPadding,

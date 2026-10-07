@@ -287,6 +287,9 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
 ```bash
 ./gradlew :feature:notes:testDebugUnitTest   # QuizGradingTest (순수 JVM, 13건)
 ./gradlew :app:compileDebugKotlin            # 이 모듈 변경 검증은 :app 컴파일로
+ANDROID_SERIAL=<기기 serial> ./gradlew :feature:notes:connectedDebugAndroidTest
+# TitleFontScreensTest(brand BR-8) — 가로 800×360 첫 실행 연결 화면 · 통계 요약 카드를 기기 글꼴과 Gothic A1 로 그려 스크롤 없음 · 두 단 ·
+# 줄 수를 보고 PNG 를 시험 APK 외부 캐시 brand-font/ 에 남긴다. Gothic A1 쪽은 글꼴 제공자 · 네트워크가 없으면 건너뛴다
 ```
 
 ---
@@ -367,4 +370,7 @@ Column(fillMaxSize) {
 - **판정 로직은 순수 함수**(`element/`)다: `startDestination` · `screenCleanupOf` · `connectBackAction` · `repoCardUi`(RC-13) · `reduceTokenEdit`(RC-18 전이표 + D37 · D39) · `homeBodyOf`(RC-21) · `issueOfProbe`/`issueOfSync` · `linkCheckOf` · `confirmUiOf`. 시험 이름에 항목 ID.
 - **입구 구역(RC-25) · 목록 없음 상자의 길(RC-9)** 은 `TemplateRepo?`(앱이 제공, `ConnectViewModel` 생성자 → `ConnectUiState.template`)가 있을 때만 그려진다. 보임·위계·두 단·길 판정은 순수 함수 `element/ConnectEntry.kt`(`entryVisible` · `entryEmphasis` · `twoColumnsOf` · `noticeWays`)이고, 확인 대화상자는 입력이 아니다.
   링크 구역(안내·칸·알림·토큰·`연결`)은 `movableContentOf` 한 벌이라 가로 두 단 ↔ 한 단에서 칸이 새로 만들어지지 않는다 — **이 구역을 `Row`/`Column` 에 두 번 쓰지 말 것**(포커스·키보드가 날아간다). 입구 버튼은 VM 을 거치지 않고 `openExternal` 로 외부 브라우저만 연다.
+- **홈 히어로의 저장소 줄은 확정된 연결의 정식 이름 그대로다**(`NotesUiState.heroRepoName` = `connectedRepo?.fullName`, BR-6). 바꾸는 중의
+  대상(확인 · 첫 동기화)은 `ConnectViewModel` 에만 있어 홈에 안 보이고, 확정되면 `observeConnection` 이 새 이름을 흘린다. 연결이 없으면 줄이 없다.
+  히어로 그림 · 배치는 design-system `MyNoteHero` 이고 제목 이름은 `notes_app_title`(MyNote — 상단 바 · 읽는 중 화면과 같은 문자열)이다.
 - 동기화 트리거는 `ObserveSyncRunsUseCase` 다. 연결 직후 동기화는 `announce` 가 꺼져 스낵바가 없고(SY-6), 새로고침에만 반영 알림이 뜬다.

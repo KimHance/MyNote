@@ -30,8 +30,11 @@ GitHub 의 마크다운 노트(옛 JSON 도)를 받아 읽는 **읽기 전용** 
 ```bash
 ./gradlew ktlintCheck :app:assembleDebug test lintDebug
 python3 -I -m unittest discover notes-tests && python3 -I -m unittest discover public-repos/tests && python3 -I -m unittest discover public-repos/notes-kit/tests
-# 계측 시험 — 기기 하나를 붙여 모듈마다 차례로 돌린다(`test` 에 안 든다 · 한 호출에 묶으면 병렬로 겹쳐 서로 죽는다). 라이브러리 시험이라 앱을 지우지 않는다
+# 계측 시험 — 모듈마다 차례로 돌린다(`test` 에 안 든다 · 한 호출에 묶으면 병렬로 겹쳐 서로 죽는다). ANDROID_SERIAL 이 비면 붙은 기기 전부에 설치한다
+# 라이브러리 셋은 앱을 건드리지 않고, :app 은 앱을 덮어 설치하지만 gradle.properties 의 leaveApksInstalledAfterRun 이 지우지 않게 막는다
 ANDROID_SERIAL=<기기 serial> ./gradlew :core:design-system:connectedDebugAndroidTest && ANDROID_SERIAL=<기기 serial> ./gradlew :core:database:connectedDebugAndroidTest
+ANDROID_SERIAL=<기기 serial> ./gradlew :feature:notes:connectedDebugAndroidTest
+ANDROID_SERIAL=<기기 serial> ./gradlew :app:connectedDebugAndroidTest
 ```
 
 **단일 테스트:**
@@ -137,6 +140,8 @@ feature 에서는 안 보인다. (`feature/notes/AGENTS.md`)
 
 **언어** — 대화 응답·코드 주석·문서 전부 한국어.
 
+**문서 위생** — 레포 문서(AGENTS.md · 기능 문서 · 디자인 문서 · DECISIONS · README · labs README)와 커밋 본문에 로컬 절대 경로 · 개인 경로 · 대화 인용 · 시크릿 · 이메일을 넣지 않고, 근거는 `사용자 결정` · 결정 번호로 적는다. 꼴을 설명할 때도 글자 대신 말로 적는다. 문서는 `notes-tests/test_hygiene.py`(BR-9)가 보고, 커밋 본문은 `git log -1 --format=%B | python3 notes-tests/test_hygiene.py -` 로 본다.
+
 **화면 문구는 `strings.xml`.** 코드에 한글 리터럴을 두지 않는다(프리뷰 더미와 개발자용 `error()`·예외
 메시지는 예외). 모듈별 `resourcePrefix` 가 걸려 있다 — design-system `ds_`, feature:notes `notes_`.
 공통 문구(확인·취소·저장·닫기·되돌리기)는 design-system 의 `ds_*` 를 쓴다.
@@ -202,7 +207,6 @@ ktlint·Compose 의존·Hilt 는 컨벤션이 자동으로 넣는다. (`build-lo
 퀴즈용 LiteRT-LM 모델(2.59GB)은 **APK 에 들어 있지 않다.** 기기에 따로 넣는다.
 
 ```
-PC   <PC 의 모델 폴더>/gemma-4-E2B-it.litertlm
 기기  /sdcard/Android/data/com.hancekim.mynote/files/gemma-4-E2B-it.litertlm
 ```
 

@@ -1,4 +1,4 @@
-> **저장소 안 경로**: 핸드오프 원본의 평평한 이름 `A-<장>.png` · `B-<장>.png` · `공통-<장>.png` 는 이 폴더에서 `A/<장>.png` · `B/<장>.png` · `common/<장>.png` 다(접두사를 폴더로). 디자인 문서: `docs/design/repo-connect.md`. Claude Design 파일: `Repo Connect Entry.dc.html`(프로젝트 190a5d4b · 대화 57e6d1a0).
+> **저장소 안 경로**: 핸드오프 원본의 평평한 이름 `A-<장>.png` · `B-<장>.png` · `공통-<장>.png` 는 이 폴더에서 `A/<장>.png` · `B/<장>.png` · `common/<장>.png` 다(접두사를 폴더로). 디자인 문서: `docs/design/repo-connect.md`. Claude Design 파일: `Repo Connect Entry.dc.html`(프로젝트 190a5d4b).
 > **고침 2(D27 · D28)**: 가로 두 단은 H1 이 왼쪽 단 맨 위 · 위 20 · 아래 8 · 폭 상한 800 — 가로 PNG 는 다시 안 그렸고 문서 규칙이 이긴다.
 > **고침 1(2026-10-06 · D22 · D26)**: 후보 A 확정(B 는 비교용) · 위 여백은 코드 값(compact 28 · 852 72 · 가로 20 — 입구 유무와 무관, 사진의 852 96 · 가로 16 은 틀림) · 가로 두 단 구분은 선만.
 > §1–§10 은 Claude Design 이 낸 핸드오프 README 그대로다. §11 은 디자인 문서에서 옮긴 차수 1 문구표다.

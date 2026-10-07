@@ -105,7 +105,7 @@ MyNote 는 GitHub 의 노트(마크다운 · 옛 JSON)를 받아 **읽기만 하
 
 | 이름 | 코드 값 | RGB · 불투명도 | 쓰는 자리 |
 |---|---|---|---|
-| `bg` | `0xFF0E1217` | `#0E1217` · 100% | 화면 배경(`Surface(color = colors.bg)`), 유리 폴백의 합성 바탕, 페이드 끝색, 표 가로 스크롤 페이드 |
+| `bg` | `0xFF0E1217` | `#0E1217` · 100% | 화면 배경(`Surface(color = colors.bg)`), 유리 폴백의 합성 바탕, 페이드 끝색, 표 가로 스크롤 페이드, 테마 창 바탕(`:app` `window_background` 리소스 — 스플래시가 내려간 뒤 첫 프레임 전) |
 | `surface` | `0xFF161C24` | `#161C24` · 100% | 카드 면(`NoteCard`, 북마크 큰 카드), 고정 패널, 눌림 면 |
 | `surface2` | `0xFF1B232D` | `#1B232D` · 100% | 한 단 더 올라온 면 — 스낵바, 검색칸, 코드 블록·인라인 코드 바탕, 표 머리 행 바탕, 모델 카드 진행 막대 트랙(카드 면은 `SettingsCard` 의 `surface`) |
 | `border` | `0xFF283039` | `#283039` · 100% | 카드 테두리 1dp, 구분선, 차트 트랙, 표 바깥 테두리·칸 선 |
@@ -172,6 +172,18 @@ MyNote 는 GitHub 의 노트(마크다운 · 옛 JSON)를 받아 **읽기만 하
 | `chartFuture` | `0xFF3A4450` | `#3A4450` · 100% | 아직 오지 않은 칸(`ChartBarKind.Pending`) |
 
 차트의 계열 순서는 `accent` → `chartAccent2` → `chartAccent3` → `text2` → `text3` 다(`ds/chart/CategoryDonut.kt` 프리뷰).
+
+#### 로고 전용 색
+
+토큰이 아니다 — `MyNoteColors` 에 넣지 않고, UI 면 · 글자 · 상태에 쓰지 않는다. 앱 바탕은 `bg` 이고 밤은 스플래시 바탕뿐이다(`docs/design/brand.md` 색).
+
+| 이름 | 값 | 그리는 것 | 코드 자리 |
+|---|---|---|---|
+| 밤 | `#0A0F1C` | 스플래시 바탕 | `:app` 색 리소스 |
+| 아이콘 바탕 위 · 아래 | `#13203A` → `#070B15` | 런처 배경 세로 그라디언트 | `:app` 색 리소스 |
+| 주광 위 · 아래 | `#F4F8FF` → `#B9D5FF` | 마크 오른쪽 창의 빛 — 런처 전경 · 스플래시 · 히어로 마크 | `foundation/token/MyNoteBrandColors.kt` 의 `LampTop` · `LampBottom`(Kotlin 이 읽는 것은 이 둘뿐) · `:app` 색 리소스 |
+
+마크의 창틀 선은 로고 전용 색이 아니라 `accent` 이고, 워드마크 선은 `text` 다(7.2).
 
 ### 2.2 토큰 밖에서 만드는 색
 
@@ -285,18 +297,22 @@ MyNote 는 GitHub 의 노트(마크다운 · 옛 JSON)를 받아 **읽기만 하
 
 ### 3.1 스타일 목록
 
-정의는 `foundation/token/Typography.kt` 의 `data class MyNoteTextStyles`(19개) + `fun myNoteTextStyles(bodySizeSp, heightClass)`.
-접근은 `MyNoteTheme.textStyles.<이름>`. 글꼴은 전부 시스템 기본(`FontFamily.Default`)이고 `mono*` 만 `FontFamily.Monospace` 다.
-별도 글꼴 파일은 없다.
+정의는 `foundation/token/Typography.kt` 의 `data class MyNoteTextStyles`(19개) + `fun myNoteTextStyles(bodySizeSp, heightClass, titleFontFamily)`.
+접근은 `MyNoteTheme.textStyles.<이름>`. 글꼴은 시스템 기본(`FontFamily.Default`)이고 `mono*` 만 `FontFamily.Monospace` 다.
+**제목 글꼴 스타일** 넷(`noteTitle` · `title` · `sectionTitle` · `screenTitle` — 코드 목록 `TitleFontStyleNames`, 정본은 `docs/design/brand.md` 의
+제목 글꼴 표)만 Gothic A1 700 을 내려받아 쓴다(`ds/font/` · `brand` BR-8). 못 받으면 그 프로세스 동안 기기 글꼴이다.
+넷은 줄 높이와 `LineHeightStyle(Center, Trim.None)` 을 고정하고, `copy` 로 줄 높이를 덮어도 `LineHeightStyle` 은 물려받는다. Gothic A1 은 줄 상자가
+줄 높이 그대로이고, 기기 글꼴은 한글 대체 글꼴의 높이(약 1.45em)가 줄 높이보다 크면 그만큼 남는다 — 줄 수는 두 글꼴이 같다.
+APK 에 글꼴 파일은 없다.
 
 | 이름 | 크기(sp) | 굵기 | 줄 높이 | 자간 | 쓰는 자리 |
 |---|---|---|---|---|---|
 | `display` | 52 · 짧은 창 40 | 700 | 크기와 같음 | −0.03em | 퀴즈 결과 점수 |
-| `noteTitle` | 28 | 700 | ×1.25 | −0.015em | 리더 노트 제목·홈 히어로. 크기는 3.3 참고 |
-| `title` | 24 | 700 | — | −0.01em | 퀴즈 결과 제목, 북마크·통계 화면 제목, 큰 카드 제목 |
+| `noteTitle` | 28 | 700 | ×1.25 | −0.015em | 제목 글꼴. 리더 노트 제목. 크기는 3.3 참고 |
+| `title` | 24 | 700 | ×1.3 | −0.01em | 제목 글꼴. 퀴즈 결과 제목, 북마크·통계 화면 제목, 큰 카드 제목 |
 | `headline` | 23 | 700 | ×1.45 | −0.01em | 퀴즈 문항 |
-| `sectionTitle` | 21 | 700 | — | −0.01em | 상단 바 제목, 퀴즈 실패 제목, 모델 다이얼로그 제목 |
-| `screenTitle` | 19 · 짧은 창 17 | 700 | — | −0.01em | 퀴즈 화면 제목, 퀴즈 설정 다이얼로그 제목 |
+| `sectionTitle` | 21 | 700 | ×1.3 | −0.01em | 제목 글꼴. 상단 바 제목, 퀴즈 실패 제목, 모델 다이얼로그 제목 |
+| `screenTitle` | 19 · 짧은 창 17 | 700 | ×1.3 | −0.01em | 제목 글꼴. 퀴즈 화면 제목, 퀴즈 설정 다이얼로그 제목 |
 | `cardTitle` | 16 | 500 | 22sp | — | `NoteCard` 제목, 모델 카드, 퀴즈 CTA, 설정 행 |
 | `overline` | 12 | 600 | — | +0.08em | 섹션 라벨(`SectionLabel`) |
 | `treeLabel` | 14 | 500 | — | — | 패널 트리 행(`NoteRow`·`CategoryRow`), 번호 행 |
@@ -328,8 +344,11 @@ MyNote 는 GitHub 의 노트(마크다운 · 옛 JSON)를 받아 **읽기만 하
 ### 3.3 히어로·노트 제목 크기는 타이포가 아니라 창 크기 토큰이다
 
 `heroTitleSize`/`noteTitleSize` 는 `AdaptiveTokens` 의 `TextUnit` 이다(5.2). 화면은
-`textStyles.noteTitle.copy(fontSize = adaptive.noteTitleSize)` 처럼 합쳐 쓴다.
+`textStyles.noteTitle.resized(adaptive.noteTitleSize)` 처럼 합쳐 쓴다 — `resized` 는 sp 줄 높이도 같은 배율(×1.25)로 따라 키운다.
 **이름 붙은 스타일은 타이포에, 폼팩터에 따라 연속으로 변하는 크기는 창 크기 토큰에** 둔다는 분담이다.
+
+`heroTitleSize` 는 글자 크기가 아니라 **히어로 워드마크의 x높이**다 — 값을 dp 로 읽고 글자 배율은 무시한다(로고 글자라
+글자 배율로 키우지 않는다). 20 · 24 · 28 → 워드마크 높이 31.7 · 38.0 · 44.3dp(7.2). `noteTitleSize` 의 기준값으로는 그대로 sp 다.
 
 ### 3.4 스타일 밖에서 정하는 글자 크기
 
@@ -659,7 +678,8 @@ MyNote 는 GitHub 의 노트(마크다운 · 옛 JSON)를 받아 **읽기만 하
 
 | 이름 | 곡선 | 정의 | 쓰는 자리 |
 |---|---|---|---|
-| `MyNoteEasing` | `cubic-bezier(0.2, 0.8, 0.2, 1)` | `ds/motion/Motion.kt` | 앱 공용. `riseIn`, `flip`, 차트, 북마크 행·큰 카드, 모델 알약 여백 |
+| `MyNoteEasing` | `cubic-bezier(0.2, 0.8, 0.2, 1)` | `ds/motion/Motion.kt` | 앱 공용. `riseIn`, `flip`, 차트, 북마크 행·큰 카드, 모델 알약 여백, 스플래시 불 켜짐(`:app` `interpolator/my_note_easing` — 같은 값) |
+| `MyNoteExitEasing` | `cubic-bezier(0.4, 0, 1, 1)` | `ds/motion/Motion.kt` | 떠남 공용. 북마크 행·화면 사라짐, 스플래시 내려감(`:app` `SplashExit.kt`) |
 | `SceneMotion.Easing` | `cubic-bezier(0.2, 0, 0, 1)` | `nav/motion/SceneMotion.kt`(internal) | 씬 전환 전용 |
 | `FastOutSlowInEasing` | Compose 기본 | — | 플로팅 내비 숨김, 맨 위로 버튼 |
 
@@ -735,6 +755,9 @@ MyNote 는 GitHub 의 노트(마크다운 · 옛 JSON)를 받아 **읽기만 하
 | 효과를 끈다 | 퀴즈 CTA 의 `aiShine`(`cta.shine && !rememberReduceMotion()`) |
 | 처음부터 끝 값 | 차트 `rememberChartProgress` 가 1에서 시작 |
 
+스플래시는 시스템이 그려 감속 모션도 시스템 배율로 처리된다 — 움직임 없이 끝 그림(불 켜진 마크)이 보이고, 앱이 하는 기다림 · 내려감도
+애니메이터 배율을 곱해 0 이 된다(`:app` `SplashExit.kt` · `brand` BR-4 · BR-5).
+
 **감속 모션을 반영하지 않는 곳**(2026-10-02): 씬 전환(`:core:navigation` 은 이 함수를 못 본다), 플로팅 내비 숨김·선택,
 맨 위로 버튼, `PressIndication`, `NoteCard` 리본 페이드, `CategoryRow` 캐럿, `StatusRing` 무한 회전(상태 알약·목록 패널 설정 줄),
 퀴즈 화면의 `riseIn`(풀이·결과·실패 화면 15곳), 퀴즈 설정 다이얼로그의 `flip`(`QuizOverlay`).
@@ -767,7 +790,7 @@ MyNote 는 GitHub 의 노트(마크다운 · 옛 JSON)를 받아 **읽기만 하
 | **도착**(빠르게 출발해 부드럽게 멈춤) | `MyNoteEasing` | 등장 · 펼침 · 막대·게이지 · 재배치 · 뒤집기 회전 |
 | **장면**(무게 있는 이동) | (0.2, 0, 0, 1) — `SceneMotion.Easing`, 같은 값의 `NotesTopBar` 튀기 곡선 | 화면 push/pop · 리더 토글 튀기 |
 | **표준** | `FastOutSlowInEasing` | 내비 숨김/복귀 · 맨 위로 · 리더 토글 색 |
-| **떠남**(가속) | (0.4, 0, 1, 1) — 북마크 화면 private | 사라지는 항목 |
+| **떠남**(가속) | `MyNoteExitEasing` (0.4, 0, 1, 1) | 사라지는 항목 · 스플래시 내려감 |
 | **시간 그 자체** | 선형 | 무한 회전 · shimmer · 자동 진행 링 · 차트 전체 진행도 |
 | **탄성** | spring | 뒤집기 크기 · 눌림 복귀 · 내비 선택 |
 
@@ -782,9 +805,9 @@ MyNote 는 GitHub 의 노트(마크다운 · 옛 JSON)를 받아 **읽기만 하
 | 대역 | 쓰는 곳 |
 |---|---|
 | 90–160ms | 눌림 · 라벨 페이드 · 색 바뀜 · 리본 — 손에 붙는 피드백 |
-| 180–260ms | 작은 등장·퇴장 · 맨 위로 · 다이얼로그 닫힘 |
+| 180–260ms | 작은 등장·퇴장 · 맨 위로 · 다이얼로그 닫힘 · 스플래시 내려감(180) |
 | 300–340ms | `riseIn` · 레이아웃 이동 · 장면 전환 · 내비 숨김 |
-| 420–460ms | 점수 게이지 등장 · 뒤집기 등장 — "한 번 보여 줄 것" |
+| 420–460ms | 점수 게이지 등장 · 뒤집기 등장 · 스플래시 불 켜짐(450, 앞에 꺼진 채 166 — 전체 616) — "한 번 보여 줄 것" |
 | 900ms 이상 | 점수 게이지 채움(900, QZ §4) · 무한 루프 한 바퀴(링 1100 · 샤인 3200) |
 
 900ms 이상인 일회성 모션은 결과 화면의 게이지 하나다. 사용자가 기다리는 동안이 아니라 **결과를 보는 동안**이라 길어도 된다 — 다른 자리에서 이 길이를 빌리지 않는다.
@@ -841,6 +864,10 @@ Material 아이콘 세트를 쓰지 않는다.
 
 자주 쓰는 표시 크기: 내비 아이콘 21dp, 맨 위로 21dp, 상태 알약 14dp(링 18 − 4), 북마크 글리프 12dp, 체크 상자 1.25em(본문 16sp 에서 20dp — 본문 글자와 같이 커진다).
 
+**앱 밖에 보이는 아이콘**은 `MyNoteIcons` 가 아니라 `:app` 리소스다. 런처 아이콘은 adaptive 세 층(`ic_launcher_background` 밤 그라디언트 ·
+`_foreground` 아치 창 마크 · `_monochrome` 테마 아이콘용 실루엣)이고, 스플래시 아이콘은 불 켜짐 AVD(`splash_icon`)다. 그림 원본은
+`labs/brand-design/app/svg/`, 규격 · 움직임은 `docs/design/brand.md` 다. 창틀 선은 `accent` 값, 빛은 로고 전용 주광 그라디언트다(`brand` BR-1 · BR-5).
+
 ### 7.1 아이콘 사용 규칙
 
 - **한 벌만 쓴다.** `MyNoteIcons` 의 규격(7절 표)으로 그린 선 아이콘이다(NAV §4-4, QZ §8). 다른 세트에서 가져와 섞지 않는다 — 선 굵기가 다르면 바로 티가 난다. 없는 아이콘은 같은 규격으로 그려 더한다.
@@ -849,7 +876,24 @@ Material 아이콘 세트를 쓰지 않는다.
 - **크기는 자리로 정한다**: 내비·맨 위로 21dp, 상단 바 토글 22dp(BM1 §3), 설정 줄 20dp(ST §2.3), 해제 버튼 18–20dp(BM3 §1.3), 표기 글리프 12dp. 같은 자리에 다른 크기를 쓰지 않는다.
 - **색은 tint 로만 입힌다.** 기본 `text2`, 켜짐·선택 `accent`, 상단 바 `bodyText`, 상태 아이콘은 상태 색(2.3 상태 색 지도).
 - **장식 아이콘은 설명을 비운다.** 정보가 있는 아이콘(북마크 표기)은 아이콘이 아니라 부모 노드의 상태 설명으로 읽힌다(BM3 §2.3). 아이콘만 있는 버튼은 동작 이름을 설명으로 단다("북마크 해제", "맨 위로").
-- 로고는 이미지가 아니라 `accent` 사각 + 글자 "N" 이다(SN Assets).
+- 로고는 A 마크 그림(창틀 `accent` + 빛 주광)이고, 히어로는 마크 + 워드마크 `ImageVector` 다(7.2). 아이콘 규격 · tint 규칙 밖이다.
+
+### 7.2 로고 — `ds/component/MyNoteLogo.kt` · `MyNoteHero.kt`
+
+방향 A(켜 둔 불) 최종 그림(`labs/brand-design/app/svg/` 의 `hero-mark` · `hero-wordmark`)을 변환 없이 옮긴 `ImageVector` 둘이다
+(`docs/design/brand.md` 히어로).
+
+| 그림 | 뷰포트 | 칠 | 히어로 크기 |
+|---|---|---|---|
+| 마크 | 76.1 × 92 | 창틀 선 8.5 = `accent` · 오른쪽 창 빛 = 주광 세로 그라디언트(로고 전용 색, 2.1) | 높이 `heroLogoSize`(46 · 54 · 높이 Compact 없음 = 그리지 않음) |
+| 워드마크 `mynote` | 315.3 × 114 · x높이 72 | 선 8.5 = `text` | x높이 = `heroTitleSize` 값(dp, 3.3) |
+
+- **tint 를 쓰지 않는다.** tint 는 빛 그라디언트까지 한 색으로 지운다. 색을 인자로 받아 `remember(accent)` · `remember(text)` 로 만든다.
+- `MyNoteHero(title, repoName, hint)` 세로 쌓기: 마크 → 16 → 워드마크 → 8 → 저장소 줄 → 8 → 안내, 위아래 8. 저장소 줄은
+  `mono` · `text2` · 한 줄 · 가운데 말줄임(`TextOverflow.MiddleEllipsis` — 앞 소유자와 끝 저장소 이름이 남는다)이고 `repoName == null` 이면
+  그 줄과 위 8 이 빠진다. 안내(`body` · `text2`)는 마크가 있을 때만 그린다.
+- 접근성: 워드마크 = 제목(heading) · 이름은 `title`(앱 이름 MyNote) / 마크 = 설명 없음 / 저장소 줄 = 원문 전체 글자.
+- 소문자 `mynote` 는 워드마크 그림에만 있다. 화면 글자 · 설정 · 접근성 이름은 MyNote 다.
 
 ---
 
@@ -923,7 +967,7 @@ foundation 기본값 `DefaultDebugIndication`(눌림 검정 30% 사각 덮개, �
 
 ### 8.5 아이콘
 
-`MyNoteIcons` — 7절.
+`MyNoteIcons` — 7절. 로고 그림과 히어로 `MyNoteHero` — 7.2.
 
 ### 8.6 본문 블록 — `ds/block/`
 

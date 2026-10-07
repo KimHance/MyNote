@@ -3,7 +3,7 @@
 리더 본문의 새 모양(기울임 · 취소선 · 표 · 하위 블록 · 체크 · 시작 번호)과 "한도 넘음" 상자 시안 19장. 표만 후보 둘(A 칸 격자 · B 가로선만), 나머지는 `common/`. **고른 것: A**(장부 D29) — `B/` 는 비교용이고 구현 기준이 아니다.
 
 - 규칙의 정본은 `docs/design/note-format.md` `## 모양` · `## 넘침` 이다. 이 폴더는 그 규칙을 그린 그림이다.
-- 원본: Claude Design 프로젝트 `190a5d4b` 의 `Note Format.dc.html` · 핸드오프 `design_handoff_note_format/` · 요청서 `briefs/note-format-r1.md` (대화 `d3aab3ef`).
+- 원본: Claude Design 프로젝트 `190a5d4b` 의 `Note Format.dc.html` · 핸드오프 `design_handoff_note_format/` · 요청서 `briefs/note-format-r1.md`.
 - 1x PNG · 디자인 px = dp · 다크(유일). 노트 · 날짜는 가짜다.
 - **HTML 은 안드로이드의 한글 합성 기울임 · 줄긋기 위치 · `◦` `▪` 글리프와 다르게 보일 수 있다 — 규칙이 정본이고 실화면은 PreviewActivity 견본 사진으로 본다.**
 

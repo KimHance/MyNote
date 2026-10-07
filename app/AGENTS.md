@@ -4,9 +4,9 @@
 
 ## 이 모듈의 역할
 
-화면도 상태도 없다. 루트에 `MyNoteApplication`·`MainActivity`·`TokenSync`, `di/` 에 모듈 넷,
+화면도 상태도 없다. 루트에 `MyNoteApplication`·`MainActivity`·`SplashExit`·`TokenSync`, `di/` 에 모듈 넷,
 `download/` 에 모델 내려받기 배선 둘이 있고 하는 일은 넷이다 — **Hilt 그래프 완성**,
-**`BuildConfig`(debug 시드)/토큰 배선**, **Activity 껍데기**(edge-to-edge + `NotesRoute` 호출),
+**`BuildConfig`(debug 시드)/토큰 배선**, **Activity 껍데기**(edge-to-edge + 스플래시 내리기 + 제목 글꼴 첫 프레임 문 + `NotesRoute` 호출),
 **시스템과 닿는 지점**(알림 `PendingIntent`·딥링크·프로세스 라이프사이클). 기능 코드는 여기에 넣지 않는다.
 여기 파일이 늘어나는 건 "앱 전체에 하나뿐인 것" 이거나 "`PendingIntent`/매니페스트 컴포넌트가 필요한 것"이
 생겼을 때뿐이다.
@@ -46,8 +46,9 @@
 - **`ConnectionSeed?`·`TemplateRepo?`** (`RemoteConfigModule`) — `BuildConfig` 의 시드·템플릿 주소 필드를 읽어 넘긴다(비면 `null`).
   `:core:network`·`:core:data` 가 `BuildConfig` 를 모르게 하는 것이 이 모듈의 존재 이유다.
 
-`:core:design-foundation`/`:core:design-system` 의존은 `:app` 코드가 참조하지 않고 `@Module` 도 없다 —
-`:feature:notes`(feature convention) → design-system → `api(design-foundation)` 로 이미 들어온다.
+`:core:design-foundation`/`:core:design-system` 에는 `@Module` 이 없다. `:app` 코드가 참조하는 것은 스플래시 내려감의
+떠남 곡선(`MyNoteExitEasing`)과 제목 글꼴 문(`font/` · `ProvideTitleFontFamily`)이다 — 나머지는 `:feature:notes`(feature convention) → design-system →
+`api(design-foundation)` 로 이미 들어온다.
 
 ## 토큰 — 저장소에서 OkHttp 로 가는 유일한 길
 
@@ -84,7 +85,7 @@ DataStore(DataStoreTokenStore) → TokenRepository → ObserveTokenUseCase
 저장소 연결은 앱 화면(`:feature:notes` 연결 화면)에서 한다. 빌드가 넣는 값은 **둘**이다: **debug 첫 실행 시드**와
 **템플릿 저장소 주소**(RC-26). `RemoteConfigModule` 이 시드를 `ConnectionSeed?`(`GITHUB_OWNER`·`GITHUB_REPO` 둘 다 채워졌을 때만),
 템플릿 주소를 `TemplateRepo?`(`parseTemplateRepo(BuildConfig.TEMPLATE_REPO)` — 모양이 틀리거나 비면 `null`)로 만든다.
-필드는 다섯: `GITHUB_OWNER`·`GITHUB_REPO`·`GITHUB_BRANCH`·`GITHUB_TOKEN`·`TEMPLATE_REPO`.
+필드는 여섯: `GITHUB_OWNER`·`GITHUB_REPO`·`GITHUB_BRANCH`·`GITHUB_TOKEN`·`TEMPLATE_REPO`·`TITLE_FONT_NAME`(아래 제목 글꼴 절).
 
 - **`TEMPLATE_REPO` 는 `local.properties` 가 아니라 커밋되는 루트 `gradle.properties` 의 `template.repo` 에서 온다**(결정 54).
   `defaultConfig` 에서 한 번만 넣는다 — `debug{}`·`release{}` 에 쓰지 않으므로 둘이 같은 값이고 release 의 시드 비우기와 겹치지 않는다.
@@ -112,13 +113,16 @@ DataStore(DataStoreTokenStore) → TokenRepository → ObserveTokenUseCase
 ## Activity / Manifest
 
 `MainActivity` 는 `super.onCreate` 앞에서 `enableEdgeToEdge(SystemBarStyle.dark(TRANSPARENT), …)` 를
-한 번 부르고, 설정 딥링크 인텐트를 한 번 소비한 뒤 `setContent { NotesRoute() }` 만 한다.
-`MyNoteTheme` 은 화면에서 시작한다 — Activity 는 테마를 모른다.
+한 번 부르고, 같은 태스크에 이전 화면이 살아 있지 않으면 스플래시 내려감 리스너를 걸고, 설정 딥링크 인텐트를 한 번 소비하고,
+제목 글꼴 첫 프레임 문을 건 뒤 `setContent { ProvideTitleFontFamily(…) { NotesRoute() } }` 만 한다.
+`MyNoteTheme` 은 화면에서 시작한다 — Activity 는 Compose 테마를 모른다.
 
 - **시스템바 아이콘 명암을 여기서 고정하는 이유:** 앱은 다크 단일 테마인데 XML `Theme.MyNote` 의 부모는
-  `android:Theme.Material.Light.NoActionBar` 다(윈도우 배경은 플랫폼 라이트 값, 다크 팔레트는 Compose
-  안에서만 시작한다). 한 번에 고정해 두기 때문에 "화면에서 `statusBarsPadding` 을 수동으로 더하지
-  않는다"는 규칙이 성립한다.
+  `android:Theme.Material.Light.NoActionBar` 다(다크 팔레트는 Compose 안에서만 시작한다). 한 번에 고정해 두기 때문에
+  "화면에서 `statusBarsPadding` 을 수동으로 더하지 않는다"는 규칙이 성립한다.
+- **창 바탕은 `@color/window_background`(= 토큰 `bg`)다**(`brand` BR-4). 스플래시가 내려간 뒤 Compose 가 첫 프레임을
+  그리기 전에 보이는 색이라, 부모 테마의 라이트 바탕으로 두면 흰 프레임이 낀다. 토큰 `bg` 를 바꾸면 이 값도 같이 바꾼다
+  (`notes-tests/test_brand_resources.py` 가 둘을 대조한다).
 - `android:enableOnBackInvokedCallback="true"` — 예측 뒤로가기용(커밋 `f97d89d`).
 - `android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden"`
   — 회전·분할에서 Activity 가 재생성되지 않는다. 그래서 씬 슬롯의 낡은 캡처가 실제 버그가 되고,
@@ -156,6 +160,57 @@ DataStore(DataStoreTokenStore) → TokenRepository → ObserveTokenUseCase
 `ACTION_OPEN_SETTINGS` 라는 전용 액션을 쓰는 이유는 `:core:ai` 의 `openApp()` 이 만드는
 런처 `PendingIntent`(request code 0)와 `filterEquals` 로 구분되게 하려는 것이다. 액션이 같으면
 `FLAG_UPDATE_CURRENT` 가 서로의 extra 를 덮어쓴다.
+
+### 런처 아이콘 · 스플래시 — 리소스와 내리기
+
+그림의 정본은 `labs/brand-design/app/svg/` 이고 값 · 움직임은 `docs/design/brand.md` 다. 여기 리소스는 그 SVG 를 손으로 옮긴
+것이고 `notes-tests/test_brand_resources.py` 가 path 이름(= SVG id)별로 경로 글자 · 선 · 그라디언트 좌표 · 색을 대조한다.
+그림을 바꾸면 SVG 와 리소스를 같이 고친다.
+
+- **런처** — `mipmap-anydpi/ic_launcher{,_round}.xml` 이 같은 세 층(`ic_launcher_background` · `_foreground` ·
+  `_monochrome`)을 가리킨다. `minSdk` 32 라 밀도별 비트맵은 두지 않는다. monochrome 은 전경과 다른 전용 그림이다(테마 아이콘).
+  창틀 선 색은 토큰 `accent` 값을 리소스에 그대로 적은 것이다 — 시험이 토큰과 대조한다.
+- **스플래시** — 플랫폼 SplashScreen API(새 의존성 없음). 테마의 `windowSplashScreenBackground`(밤) ·
+  `windowSplashScreenAnimatedIcon`(`drawable/splash_icon` AVD) · `windowSplashScreenAnimationDuration`(AVD 길이와 같게 616 = 꺼진 채 166 + 불 켜짐 450).
+  알림으로 시작할 때도 플랫폼 기본 그대로다(`windowSplashScreenBehavior` 안 씀).
+- **AVD 의 기본 상태는 끝 그림(불 켜짐)이다.** 감속 모션 · 움직임을 못 돌리는 판에서 시스템이 기본 상태를 그리기 때문이다.
+  처음 166ms(플랫폼이 허용하는 시작 지연 상한)는 `startOffset` 이 아니라 같은 값 두 keyframe 으로 꺼진 채 붙잡는다 — `startOffset`
+  이면 그 동안 기본 상태(켜짐)가 그려져 스플래시 첫 프레임에 불이 이미 켜져 있었다(에뮬레이터 녹화). 시스템은 창이 다 열리기 전에
+  움직임을 시작해, 앞의 꺼진 창은 창이 커지는 전환과 겹친다 — 붙잡기를 상한까지 늘린 이유다.
+  두 `objectAnimator` 의 보간기는 선형이어야 한다 — 빠지면 기본 AccelerateDecelerate 가 keyframe 시각과 곡선을 함께 휜다(시험이 본다).
+- **내리기는 앱이 한다** — `SplashExit.kt` 의 `fadeOutAfterIcon()`. `iconAnimationStart + iconAnimationDuration × 애니메이터 배율`
+  까지 남은 시간을 기다렸다가 스플래시 뷰와 아이콘 뷰를 함께 알파 0 으로(180ms · `MyNoteExitEasing`) 내리고 `remove()` 한다.
+  아이콘은 별도 `SurfaceView` 로 넘어와 부모 알파만으로는 안 사라질 수 있어 둘 다 내린다. 리스너를 지우면 시스템 기본 내려감이 돈다.
+  리스너는 앱 첫 프레임 뒤에 불리므로 데이터를 기다리며 붙잡지 않는다(`brand` 결정 10) — 시작 판정이 남았으면 읽는 중 화면이 이어진다.
+  기다림 계산은 순수 함수 `splashWaitMillis`(시작 · 길이 · 배율 · 지금 → 기다림)다.
+- **같은 태스크에 끝나 가는 이전 `MainActivity` 가 살아 있으면 리스너를 걸지 않는다**(`LiveTasks` · `onCreate` 에서 적고 `onDestroy`
+  에서 지운다). `--activity-clear-task` 웜 시작이 그 경우다 — 이전 화면이 스플래시 도중 파괴될 때 시스템이 앱에 넘긴 아이콘 표면을
+  태스크 단위로 거둬 가, 마크가 사라지고 빈 밤 바탕만 내려감까지 남았다(에뮬레이터 녹화 · 다른 태스크의 이전 화면이면 안 사라짐).
+  리스너가 없으면 넘김 자체가 없고 시스템이 앱 첫 프레임에 앱 메인 스레드와 상관없이 내린다 — 그 경로는 불 켜짐이 덜 끝났어도 내려간다.
+  카운터를 지우면 컴파일 · 콜드 시작은 그대로이고 그 웜 시작에서만 빈 바탕이 다시 남는다.
+- 핫 시작(살아 있는 화면으로 돌아옴) · 최근 앱에서 돌아옴에는 스플래시가 없다(플랫폼). 안드로이드 12+ 는 루트 화면에서 뒤로가기를
+  눌러도 화면을 끝내지 않아 다시 켜면 핫 시작이다.
+
+### 제목 글꼴 — 첫 프레임 문
+
+제목 글꼴 스타일만 Gothic A1 을 GMS 글꼴 제공자에서 받는다(`brand` BR-8 · 판단은 `:core:design-system` `font/`). `MainActivity` 가 하는 것:
+
+- **프로세스마다 한 번 정한다.** companion 의 `TitleFontGate` 하나가 처음 결정(Gothic A1 또는 기기 글꼴)을 들고 있고, 재생성 · 웜 시작은
+  그 값을 그대로 쓴다. 받지 못했거나 늦었으면 그 프로세스 내내 기기 글꼴이다 — 제공자는 뒤에서 받기를 마저 끝내 다음 프로세스부터 빠르다.
+- **받기는 `onCreate` 맨 앞에서 시작하고, 첫 프레임을 그릴 수 있게 된 뒤 불 켜짐이 남은 만큼만 더 기다린다.** 불 켜짐 끝 =
+  실행 요청 시각 + 테마 `windowSplashScreenAnimationDuration`(AVD 길이와 같다 — BR-5 시험) × 애니메이터 배율. 실행 요청 시각은 프로세스가
+  이 실행으로 막 떴으면(화면을 만들기까지 5초 안) 프로세스 시작 요청(33+ `Process.getStartRequestedUptimeMillis()` · 32 `getStartUptimeMillis()`),
+  아니면 `onCreate` 다. 첫 프레임이 불 켜짐 끝보다 늦으면 그 사이에 온 글꼴을 쓰고 더 기다리지 않는다 — 어느 쪽이든 글꼴이 스플래시를 더
+  붙잡지 않는다(`brand` 결정 10). 감속 모션이면 불 켜짐이 0 이라 첫 프레임까지 온 글꼴만 쓴다.
+- **제공자의 답은 메인이 아니라 따로 둔 루퍼 스레드로 받는다**(`GoogleTitleFont.kt`). 메인으로 받으면 첫 컴포지션이 끝날 때까지 답이 줄을 서
+  늘 첫 프레임에 진다 — 부하 큰 에뮬레이터에서 받아 둔 글꼴(제공자 응답 약 30ms)도 기기 글꼴이 됐다. 판정도 `Dispatchers.Default` 에서 한다.
+- **화면은 바로 짓고 그리기만 막는다.** `setContent` 는 곧바로 해 ViewModel · 시작 판정이 늦지 않고, `OnPreDrawListener` 가 그리기를 막다가
+  정한 글꼴로 컴포지션이 적용되면(`SideEffect`) 연다. 처음 막힌 그리기가 "첫 프레임을 그릴 수 있게 됨" 신호다. 정하기 전 컴포지션은 기기 글꼴이고
+  그려지지 않는다 — 그래서 한 화면에서 글꼴이 바뀌는 프레임이 없다. 이미 정한 프로세스의 재생성은 첫 컴포지션에서 바로 연다(스플래시 없는
+  재생성에서 빈 창을 붙잡지 않는다).
+- **받지 못하는 경우를 보려면** `./gradlew :app:installDebug -Ptitle.font=<없는 이름>`. debug `BuildConfig.TITLE_FONT_NAME` 에만 들어가고
+  release 는 늘 빈 값(= 정식 이름)이다. `gradle.properties` 에 키를 두지 않는다.
+- 글꼴 파일은 APK 에 없다(`notes-tests/test_brand_font.py` 가 소스를, 검수가 APK 목록을 본다).
 
 ## `download/` — 시스템이 앱을 깨우는 두 자리
 
@@ -232,8 +287,10 @@ APK 85.4MB → 60.6MB. **되돌릴 조건은 하나다: 인텔 맥에서 x86_64 
   `dependencies` 블록은 모듈 목록 + `core-ktx`·`lifecycle-runtime`·`lifecycle-process`·
   `work-runtime`·`hilt-work` 뿐이다. `lifecycle-process` 는 `ProcessLifecycleOwner` 때문에,
   `work-runtime`/`hilt-work` 는 `HiltWorkerFactory` 배선 때문에 여기 있다.
-- `:app` 의 테스트는 계측 하나뿐이다 — `src/androidTest/…/insight/InsightEvalTest`(통계 LLM 평가 하네스). 배선 검증은
-  여전히 `./gradlew :app:compileDebugKotlin`(= Hilt 그래프 검증)이다.
+- `:app` 의 테스트는 계측 넷이다 — `src/androidTest/…/insight/InsightEvalTest`(통계 LLM 평가 하네스 · 인자 없으면 건너뜀),
+  `…/brand/LauncherMaskTest`(`brand` BR-1 — 런처 세 층을 원 · 둥근 사각 · 기기 마스크로 그려 아치가 안 잘리는지 보고 PNG 를
+  앱 외부 캐시 `brand-mask/` 에 남긴다), `SplashWaitTest` · `LiveTasksTest`(`brand` BR-4 — 내려가기 기다림 계산과 같은 태스크 판단). 런처 그림은 `:app` 리소스라 라이브러리 계측에서 안 보여 여기 있다. 리소스 값 대조는
+  파이썬(`notes-tests/test_brand_resources.py`)이다. 배선 검증은 여전히 `./gradlew :app:compileDebugKotlin`(= Hilt 그래프 검증)이다.
 
 ## 계측 테스트 — 평가 하네스와 "앱이 지워지지 않게"
 

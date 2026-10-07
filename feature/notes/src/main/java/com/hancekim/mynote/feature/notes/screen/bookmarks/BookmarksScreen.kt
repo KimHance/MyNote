@@ -1,7 +1,6 @@
 package com.hancekim.mynote.feature.notes.screen.bookmarks
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
@@ -43,7 +42,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -56,6 +54,7 @@ import com.hancekim.mynote.core.designsystem.component.MyNoteIcons
 import com.hancekim.mynote.core.designsystem.component.fadingEdges
 import com.hancekim.mynote.core.designsystem.component.throttledProcess
 import com.hancekim.mynote.core.designsystem.motion.MyNoteEasing
+import com.hancekim.mynote.core.designsystem.motion.MyNoteExitEasing
 import com.hancekim.mynote.core.designsystem.motion.rememberReduceMotion
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.BookmarkUi
@@ -64,6 +63,7 @@ import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesTab
 import com.hancekim.mynote.feature.notes.screen.SecondaryButton
+import com.hancekim.mynote.feature.notes.screen.emptyStateTitle
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
@@ -98,7 +98,7 @@ internal fun BookmarksScreen(
                             fadeIn(snap()) togetherWith fadeOut(snap())
                         } else {
                             fadeIn(tween(FADE_IN_MILLIS, delayMillis = FADE_OUT_MILLIS)) togetherWith
-                                fadeOut(tween(FADE_OUT_MILLIS, easing = FadeOutEasing))
+                                fadeOut(tween(FADE_OUT_MILLIS, easing = MyNoteExitEasing))
                         }
                     },
                     contentAlignment = Alignment.TopCenter,
@@ -152,7 +152,7 @@ private fun rememberRowMotion(): RowMotion {
         } else {
             RowMotion(
                 fadeIn = tween(FADE_IN_MILLIS, easing = MyNoteEasing),
-                fadeOut = tween(FADE_OUT_MILLIS, easing = FadeOutEasing),
+                fadeOut = tween(FADE_OUT_MILLIS, easing = MyNoteExitEasing),
                 placement = tween(PLACEMENT_MILLIS, easing = MyNoteEasing),
             )
         }
@@ -373,7 +373,7 @@ private fun BookmarksEmpty(
         Spacer(Modifier.height(18.dp))
         Text(
             text = stringResource(R.string.notes_bookmark_empty_title),
-            style = MyNoteTheme.textStyles.title.copy(fontSize = 17.sp, fontWeight = FontWeight.W700),
+            style = MyNoteTheme.textStyles.emptyStateTitle(),
             color = colors.text,
             textAlign = TextAlign.Center,
             modifier = Modifier.semantics { heading() },
@@ -396,7 +396,6 @@ private fun BookmarksEmpty(
 private const val FEATURED_KEY = "featured"
 private const val EARLIER_KEY = "earlier"
 private const val FEATURED_WEIGHT = 1.15f
-private val FadeOutEasing = CubicBezierEasing(0.4f, 0f, 1f, 1f)
 private const val FADE_OUT_MILLIS = 180
 private const val PLACEMENT_MILLIS = 300
 private const val FADE_IN_MILLIS = 240
