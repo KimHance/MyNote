@@ -12,6 +12,8 @@ KIT = PUBLIC / "notes-kit"
 KIT_TOOL = KIT / "tools" / "note_tool.py"
 KIT_SPEC = KIT / "SPEC.md"
 GEN_INDEX = REPO_ROOT / "notes" / "gen_index.py"
+SCHEMA = REPO_ROOT / "notes" / "SCHEMA.md"
+FRONT_MATTER_BUNDLE = REPO_ROOT / "notes-tests" / "fixtures" / "front-matter"
 PLACEHOLDERS = PUBLIC / "PLACEHOLDERS.md"
 
 OWNER = "KimHance"
@@ -52,6 +54,35 @@ def table_firsts(text, heading):
         if match:
             values.append(match.group(1))
     return values
+
+
+def section(text, heading):
+    """heading 줄 아래부터 같은 단계 이상의 다음 제목 앞까지의 줄 목록."""
+    lines = text.splitlines()
+    start = lines.index(heading)
+    level = len(heading) - len(heading.lstrip("#"))
+    body = []
+    for line in lines[start + 1:]:
+        hashes = len(line) - len(line.lstrip("#"))
+        if 0 < hashes <= level and line[hashes:hashes + 1] == " ":
+            break
+        body.append(line)
+    return body
+
+
+def first_table_cells(text, heading):
+    """heading 바로 아래 첫 표의 본문 행 첫 칸 — 칸 글자 전체를 앞뒤 공백만 떼고."""
+    cells, seen_table = [], False
+    for line in section(text, heading):
+        if not line.startswith("|"):
+            if seen_table:
+                break
+            continue
+        seen_table = True
+        first = re.split(r"(?<!\\)\|", line.strip().strip("|"))[0].strip()
+        if not set(first) <= set("-: "):
+            cells.append(first)
+    return cells[1:]
 
 
 def clean_env(home):

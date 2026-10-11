@@ -4,15 +4,15 @@
       "id": "getting-started",
       "title": "시작하기",
       "date": "2026.10.06",
-      "path": "notes/start/getting-started.json",
-      "hash": "ce56fb53677f4df80fcf504c8c79af57bec34a3fb6909be9ced43e3834210d71"
+      "path": "notes/start/getting-started.md",
+      "hash": "a091b3da0965cf6db5c9a7c0ced58ad3c57ffeb98f6d8e3966c2137fddf6c73c"
     },
     {
       "id": "note-format",
       "title": "노트 형식 둘러보기",
       "date": "2026.10.06",
-      "path": "notes/start/note-format.json",
-      "hash": "d68f4dc95591c5107075de0a1c1f6c485b2e183fb91cd8cf06997ecc18b07919"
+      "path": "notes/start/note-format.md",
+      "hash": "50ba042e6f83157396912ed4b7f225ce2ebf4d25cf0d575374f354c18783c3ba"
     }
   ]
 }

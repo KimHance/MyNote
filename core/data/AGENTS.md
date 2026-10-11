@@ -142,5 +142,5 @@ M0 에 쓰는 코드가 없어 여기에 없다 — 쓰는 단계에서 더한�
 - `MarkdownSyncTest` — 실제 엔진(`NoteFormat()`)으로 한도 안의 큰 입력이 동기화를 멈추지 않는지(NF-8), 옛 판이 상자로 굳힌 `.md` 행이
   네트워크 없이 다시 만들어지는지(NF-9), 이 레포 노트 22개를 `.md` 로 옮긴 목록으로 동기화하면 추가 0 · 삭제 0 · 갱신 22 이고 북마크가
   그대로인지(NF-16). 노트 사본은 `:core:format` 의 공유 시험 자료(`testFixtures(projects.core.format)` → `ParityNotes`)를 읽는다.
-- `TemplateNotesTest` — 템플릿 JSON 예시가 `NoteFormat` 에서 강등 0 · 동기화로 전부 받아진다(NT-6).
+- `TemplateNotesTest` — 템플릿 마크다운 예시(`public-repos/notes-template` 의 `.md` 둘)가 `NoteFormat` 에서 강등 0 · 앞머리가 블록으로 새지 않음 · 동기화로 전부 받아짐 · 앱이 그리는 모양을 다 씀 · 글자로만 보이는 문법 흔적 없음(NT-6). 템플릿 폴더가 시험 입력이라 한 글자만 바뀌어도 다시 돈다.
 - `ConnectionRepositoryTest` · `ConnectionConfigCodecTest` · `SyncFailureKindTest` · `BookmarkRepositoryImplTest`.
