@@ -7,10 +7,6 @@
     <string name="notes_panel_count">노트 %1$d개</string>
     <string name="notes_panel_empty">검색 결과가 없습니다</string>
 
-    <string name="notes_nav_home">홈</string>
-    <string name="notes_nav_bookmark">북마크</string>
-    <string name="notes_nav_stats">통계</string>
-
     <string name="notes_bookmark_remove">북마크 해제</string>
     <string name="notes_bookmark_latest">가장 최근</string>
     <string name="notes_bookmark_earlier">그전에 모은 노트</string>
@@ -20,8 +16,6 @@
     <string name="notes_bookmark_empty_title">북마크한 노트가 없습니다</string>
     <string name="notes_bookmark_empty_body">노트를 읽다가 위쪽 바의 북마크 아이콘을 누르면 여기에 모입니다.</string>
     <string name="notes_bookmark_empty_action">홈에서 노트 고르기</string>
-
-    <string name="notes_exit_hint">한 번 더 누르면 종료합니다</string>
 
     <string name="notes_quiz_cta_title">이 노트로 퀴즈 풀기</string>
 
@@ -192,7 +186,6 @@
     <string name="notes_stats_summary_desc">%1$s, %2$s, %3$s</string>
     <string name="notes_stats_focus_desc">초점 %1$s</string>
     <string name="notes_stats_pattern">틀린 문제 패턴</string>
-    <string name="notes_stats_history_title">지난 요약</string>
     <string name="notes_stats_history_intro">주마다 마지막으로 정리한 요약 하나를 남깁니다.</string>
     <string name="notes_stats_history_none">이 주에는 요약이 없습니다.</string>
     <string name="notes_stats_history_line">노트 %1$d개 · %2$d분 · 정답률 %3$d%%</string>

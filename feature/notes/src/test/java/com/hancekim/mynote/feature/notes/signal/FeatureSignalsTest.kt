@@ -20,10 +20,6 @@ import com.hancekim.mynote.feature.notes.element.ReaderScrollRequest
 import com.hancekim.mynote.feature.notes.quiz.QuizIntent
 import com.hancekim.mynote.feature.notes.quiz.QuizUiState
 import com.hancekim.mynote.feature.notes.settings.SettingsIntent
-import com.hancekim.mynote.feature.notes.shell.CtaTarget
-import com.hancekim.mynote.feature.notes.shell.ShellIntent
-import com.hancekim.mynote.feature.notes.shell.ctaTarget
-import com.hancekim.mynote.feature.notes.shell.scrollToTopVisible
 import com.hancekim.mynote.feature.notes.stats.StatsIntent
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -134,43 +130,6 @@ class FeatureSignalsTest {
         }
 
     @Test
-    fun `FM-6 설정을 열면 토큰 편집을 정리한다`() =
-        runTest {
-            val fixture = FeatureFixture(this)
-            val notes = fixture.notes()
-            val shell = fixture.shell()
-            val settings = fixture.settings()
-            fixture.subscribe(notes, shell, settings)
-
-            settings.onIntent(SettingsIntent.StartTokenEdit)
-            assertTrue(settings.state.value.tokenEditing)
-            notes.onIntent(NotesIntent.OpenSettings)
-
-            assertFalse(settings.state.value.tokenEditing)
-            assertEquals(
-                NotesNavKey.Settings,
-                fixture.navigator.stack.value
-                    .last(),
-            )
-
-            settings.onIntent(SettingsIntent.StartTokenEdit)
-            shell.onIntent(ShellIntent.OpenSettings)
-
-            assertFalse(settings.state.value.tokenEditing)
-        }
-
-    @Test
-    fun `FM-6 모델이 없을 때 CTA 는 받기 확인을 띄운다`() {
-        val missing = ctaTarget(NOTE_ID, CATEGORY, quizCtaUi(ModelStatus.Missing).action)
-        val ready = ctaTarget(NOTE_ID, CATEGORY, quizCtaUi(ModelStatus.Ready).action)
-        val paused = ctaTarget(NOTE_ID, CATEGORY, quizCtaUi(ModelStatus.Paused(received = 1L, total = 2L)).action)
-
-        assertEquals(CtaTarget.ConfirmDownload, missing)
-        assertEquals(CtaTarget.Quiz(QuizIntent.OpenSetup(NOTE_ID, CATEGORY)), ready)
-        assertEquals(CtaTarget.Settings(SettingsIntent.StartModelDownload), paused)
-    }
-
-    @Test
     fun `FM-6 퀴즈가 리더를 덮는 동안 읽기 세션이 멈춘다`() =
         runTest {
             val fixture = FeatureFixture(this)
@@ -196,46 +155,6 @@ class FeatureSignalsTest {
                     .single()
                     .activeMillis,
             )
-        }
-
-    @Test
-    fun `FM-6 연결이 바뀌면 스택과 퀴즈와 마지막 동기화를 같이 정리한다`() =
-        runTest {
-            val fixture = FeatureFixture(this)
-            val shell = fixture.shell()
-            val notes = fixture.notes()
-            val settings = fixture.settings()
-            val quiz = fixture.quiz()
-            fixture.subscribe(shell, notes, settings, quiz)
-            notes.onIntent(NotesIntent.SelectNote(NOTE_ID))
-            quiz.onIntent(QuizIntent.OpenSetup(NOTE_ID, CATEGORY))
-            quiz.onIntent(QuizIntent.Generate(NOTE_ID, 3))
-            fixture.lastSync.set(LastSync.Failed(SyncFailureKind.Offline))
-            fixture.settle()
-            assertTrue(quiz.state.value.quiz is QuizUiState.Solving)
-
-            fixture.connections.connection.value =
-                ConnectionState.Connected(SourceId("s2"), REPO.copy(repo = "kotlin-notes"))
-
-            assertEquals(listOf(NotesNavKey.Home), fixture.navigator.stack.value)
-            assertEquals(QuizUiState.Idle, quiz.state.value.quiz)
-            assertFalse(fixture.signals.quizCoversReader.value)
-            assertEquals(LastSync.Succeeded, fixture.lastSync.value.value)
-            assertEquals(LastSync.Succeeded, settings.state.value.lastSync)
-            assertEquals(listOf(NotesNavKey.Home), shell.state.value.backStack)
-        }
-
-    @Test
-    fun `FM-6 토큰 편집 중에는 맨 위로를 숨긴다`() =
-        runTest {
-            val fixture = FeatureFixture(this)
-            val settings = fixture.settings()
-            fixture.subscribe(settings)
-            assertTrue(scrollToTopVisible(true, false, false, settings.state.value.tokenEditing))
-
-            settings.onIntent(SettingsIntent.StartTokenEdit)
-
-            assertFalse(scrollToTopVisible(true, false, false, settings.state.value.tokenEditing))
         }
 
     @Test

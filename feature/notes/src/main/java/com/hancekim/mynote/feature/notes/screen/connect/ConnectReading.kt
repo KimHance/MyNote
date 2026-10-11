@@ -24,7 +24,7 @@ import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.core.ui.R as UiR
 
 @Composable
-internal fun ConnectReadingScreen(modifier: Modifier = Modifier) {
+fun ConnectReadingScreen(modifier: Modifier = Modifier) {
     val colors = MyNoteTheme.colors
     Surface(modifier = modifier.fillMaxSize(), color = colors.bg) {
         Box(

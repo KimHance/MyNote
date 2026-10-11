@@ -43,7 +43,7 @@ import com.kyant.backdrop.Backdrop
 import com.hancekim.mynote.core.designsystem.R as DsR
 
 @Composable
-internal fun BoxScope.QuizOverlay(
+fun BoxScope.QuizOverlay(
     state: QuizUiState,
     noteTitle: String,
     onIntent: (QuizIntent) -> Unit,

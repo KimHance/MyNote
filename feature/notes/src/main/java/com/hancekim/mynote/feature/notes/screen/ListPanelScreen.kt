@@ -71,7 +71,7 @@ import com.hancekim.mynote.core.ui.R as UiR
 
 /** 목록 패널이 다른 기능의 상태에서 받는 값 — 셸이 묶어 넘긴다. */
 @Immutable
-internal data class ListPanelChrome(
+data class ListPanelChrome(
     val activeNoteId: String? = null,
     val settingsOpen: Boolean = false,
     val tokenCheck: Boolean = false,
@@ -79,7 +79,7 @@ internal data class ListPanelChrome(
 )
 
 @Composable
-internal fun ListPanelScreen(
+fun ListPanelScreen(
     uiState: NotesUiState,
     chrome: ListPanelChrome,
     onIntent: (NotesIntent) -> Unit,

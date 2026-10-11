@@ -17,7 +17,7 @@ import com.hancekim.mynote.feature.notes.screen.bookmarks.BookmarksScreen
  *
  * 리더 끝 CTA 는 퀴즈 · 모델 받기 쪽 값이라 셸이 묶어 넘긴다 — [modelStatus] 와 [onQuizAction](노트 id, 행동).
  */
-internal fun notesDestinations(
+fun notesDestinations(
     state: () -> NotesUiState,
     onIntent: (NotesIntent) -> Unit,
     modelStatus: () -> ModelStatus,

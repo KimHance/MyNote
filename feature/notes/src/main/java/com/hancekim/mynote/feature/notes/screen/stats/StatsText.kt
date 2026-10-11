@@ -19,7 +19,7 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 @Immutable
-internal class StatsFormats(
+class StatsFormats internal constructor(
     val date: DateTimeFormatter,
     val week: DateTimeFormatter,
     val month: DateTimeFormatter,
@@ -35,7 +35,7 @@ internal class StatsFormats(
 }
 
 @Composable
-internal fun rememberStatsFormats(): StatsFormats {
+fun rememberStatsFormats(): StatsFormats {
     val date = stringResource(R.string.notes_stats_date)
     val week = stringResource(R.string.notes_stats_bucket_week)
     val month = stringResource(R.string.notes_stats_bucket_month)

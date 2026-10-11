@@ -8,7 +8,7 @@ import com.hancekim.mynote.feature.notes.screen.SettingsScreen
 /**
  * 설정 기능의 목적지. 설정 상태는 화면 안에서 읽는다. [onEnableNotifications] 는 시스템 알림 설정을 여는 루트의 일이다.
  */
-internal fun settingsDestinations(
+fun settingsDestinations(
     state: () -> SettingsUiState,
     onIntent: (SettingsIntent) -> Unit,
     onEnableNotifications: () -> Unit,

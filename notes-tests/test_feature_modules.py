@@ -144,12 +144,29 @@ SHARED_STRING_HOMES = (CORE_UI, ":core:design-system")
 # 아직 `:feature:notes` 한 모듈이 쓰지만 기능을 다 떼면 둘 이상이 쓰는 문구 — 공용 조각과 같이 `:core:ui` 로 먼저 옮겼다.
 # 실제로 둘 이상이 쓰게 되면 시험이 이 목록에서 지우라고 알린다
 PLACED_AHEAD = {
-    "ui_settings": "노트 목록 패널 · 셸 상단 바",
-    "ui_model_percent": "셸 알약 · 노트 목록 패널 · 설정 모델 카드",
     "ui_token_browser_missing": "연결 · 설정",
     "ui_token_classic_warn": "연결 · 설정",
     "ui_token_verifying": "연결 · 설정",
 }
+# FM-5 — 셸은 `:app` 에 산다. 결정 12 의 고정 순서 호출(연결 루트 · 읽는 중 · 모델 확인 대화상자 · 뒤로가기 핸들러 · 목록 패널 ·
+# 퀴즈 오버레이 · 상단 바)과 드로어 틀은 `:app` 의 셸 파일 한 곳에서 부른다. 기능 모듈에는 NavDisplay · 드로어 틀이 없다
+SHELL_FILE = "NotesShell.kt"
+SHELL_ONLY_CALLS = ("NavDisplay", "ModalNavigationDrawer")
+ORDERED_CALLS = (
+    "ConnectRoute",
+    "ConnectReadingScreen",
+    "ModelConfirmDialog",
+    "BackHandler",
+    "ListPanelScreen",
+    "QuizOverlay",
+    "NotesTopBar",
+    "ModalNavigationDrawer",
+)
+MULTIBINDING = re.compile(r"@(?:IntoSet|IntoMap|ElementsIntoSet)\b")
+ROOT_ROUTE = "NotesRoute"
+# FM-11 — 결정 16. `:app` 은 resourcePrefix 를 걸지 않고 셸 문구만 `shell_` 로 시작한다. 셸 문구가 아닌 앱 리소스 이름
+APP_NON_SHELL_STRINGS = {"app_name"}
+SHELL_PREFIX = "shell_"
 STRING_REFERENCE = re.compile(r"\b\w*R\.(?:string|array|plurals)\.(\w+)")
 XML_STRING_REFERENCE = re.compile(r"@(?:string|array|plurals)/(\w+)")
 # 맨 윗줄 공개 · 모듈 선언 — `private` 는 같은 이름의 파일 안 도우미라 조각이 아니다
@@ -279,6 +296,11 @@ def call_arguments(text, name):
                     break
 
 
+def calls_in(text, name):
+    """`name(` 호출 수 — 선언(`fun name(`)과 이름이 더 긴 것(`NotesNavDisplay(`)은 빼고."""
+    return len(re.findall(r"(?<![\w.])(?<!fun )" + re.escape(name) + r"\s*\(", text))
+
+
 def view_model_sources():
     return [path for path in kotlin_main_sources() if path.name.endswith("ViewModel.kt")]
 
@@ -379,6 +401,39 @@ class FeatureModulesTest(unittest.TestCase):
         ]
         self.assertEqual(found, [])
 
+
+    def test_FM_5_셸은_app_에_살고_순서를_한_파일이_고정한다(self):
+        sources = {path: path.read_text(encoding="utf-8") for path in kotlin_main_sources()}
+        app = {path: text for path, text in sources.items() if module_of(path) == ":app"}
+        features = {path: text for path, text in sources.items() if module_of(path).startswith(":feature:")}
+        # 헛통과 막이 — 셸 쪽에서 호출을 실제로 알아보는지 먼저 본다
+        for name in (*SHELL_ONLY_CALLS, *ORDERED_CALLS):
+            self.assertGreater(sum(calls_in(text, name) for text in app.values()), 0, f"`:app` 에서 `{name}(` 을 찾지 못했습니다")
+        in_features = [
+            f"{path.relative_to(REPO_ROOT)}: {name}("
+            for path, text in features.items()
+            for name in SHELL_ONLY_CALLS
+            if calls_in(text, name)
+        ]
+        self.assertEqual(in_features, [])
+        ordered = sorted({path.name for path, text in app.items() for name in ORDERED_CALLS if calls_in(text, name)})
+        self.assertEqual(ordered, [SHELL_FILE])
+        bound = [str(path.relative_to(REPO_ROOT)) for path, text in {**app, **features}.items() if MULTIBINDING.search(text)]
+        self.assertEqual(bound, [])
+        self.assertEqual(declared_in(ROOT_ROUTE), [":app"])
+        activity = next(text for path, text in app.items() if path.name == "MainActivity.kt")
+        self.assertGreater(calls_in(activity, ROOT_ROUTE), 0)
+
+    def test_FM_11_셸_문구는_shell__로_시작한다(self):
+        defined = string_definitions()
+        app = {name for name, homes in defined.items() if ":app" in homes}
+        self.assertTrue(APP_NON_SHELL_STRINGS <= app, "`:app` 문구 파일을 읽지 못했습니다")
+        self.assertTrue(any(name.startswith(SHELL_PREFIX) for name in app), "셸 문구가 하나도 없습니다")
+        self.assertEqual(sorted(name for name in app - APP_NON_SHELL_STRINGS if not name.startswith(SHELL_PREFIX)), [])
+        self.assertEqual(
+            sorted(f"{name}: {homes}" for name, homes in defined.items() if name.startswith(SHELL_PREFIX) and homes != [":app"]),
+            [],
+        )
 
     def test_FM_1_모듈_지도의_모듈이_모두_등록돼_있다(self):
         graph = module_graph()

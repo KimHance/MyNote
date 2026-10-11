@@ -7,7 +7,6 @@ import com.hancekim.mynote.core.common.throttle.WallClock
 import com.hancekim.mynote.core.domain.AddBookmarkUseCase
 import com.hancekim.mynote.core.domain.CancelModelDownloadUseCase
 import com.hancekim.mynote.core.domain.ClearStudyLogUseCase
-import com.hancekim.mynote.core.domain.ConsumeSeedUseCase
 import com.hancekim.mynote.core.domain.CountErasableUseCase
 import com.hancekim.mynote.core.domain.DeleteModelUseCase
 import com.hancekim.mynote.core.domain.DiscardPartialModelUseCase
@@ -33,7 +32,6 @@ import com.hancekim.mynote.core.domain.SetFontScaleUseCase
 import com.hancekim.mynote.core.domain.SetStudyLogEnabledUseCase
 import com.hancekim.mynote.core.domain.StartModelDownloadUseCase
 import com.hancekim.mynote.core.domain.SyncNotesUseCase
-import com.hancekim.mynote.core.domain.SyncPendingConnectionUseCase
 import com.hancekim.mynote.core.domain.VerifyConnectLinkUseCase
 import com.hancekim.mynote.core.domain.connect.ConnectCandidate
 import com.hancekim.mynote.core.domain.connect.ConnectLinkRepo
@@ -85,7 +83,6 @@ import com.hancekim.mynote.core.ui.signal.FeatureSignals
 import com.hancekim.mynote.core.ui.signal.LastSyncHolder
 import com.hancekim.mynote.feature.notes.quiz.QuizViewModel
 import com.hancekim.mynote.feature.notes.settings.SettingsViewModel
-import com.hancekim.mynote.feature.notes.shell.ShellViewModel
 import com.hancekim.mynote.feature.notes.stats.StatsTrace
 import com.hancekim.mynote.feature.notes.stats.StatsViewModel
 import kotlinx.coroutines.CompletableDeferred
@@ -101,7 +98,7 @@ import kotlinx.coroutines.test.advanceTimeBy
 import java.time.LocalDate
 
 /**
- * 기능 ViewModel 넷(+ 통계)을 같은 Navigator · 신호 계약 · 마지막 동기화 홀더로 세운다 — 앱의 싱글턴과 같은 모양.
+ * 기능 ViewModel 셋(+ 통계)을 같은 Navigator · 신호 계약 · 마지막 동기화 홀더로 세운다 — 앱의 싱글턴과 같은 모양.
  * 가짜 저장소로 실제 UseCase 를 만들고, 시계는 runTest 스케줄러에 묶는다.
  */
 internal class FeatureFixture(
@@ -126,25 +123,6 @@ internal class FeatureFixture(
     val navigator = Navigator(scope.backgroundScope, NotesNavKey.Home, clock = clock)
     private val failureLog = FailureLog { _, _, cause -> failures += cause }
     private val probe = FakeProbe(probeGate)
-
-    fun shell() =
-        ShellViewModel(
-            observeConnection = ObserveConnectionUseCase(connections),
-            consumeSeed =
-                ConsumeSeedUseCase(
-                    null,
-                    connections,
-                    tokens,
-                    SyncPendingConnectionUseCase(connections, tokens, tokens),
-                ),
-            observeFontScale = ObserveFontScaleUseCase(FakeSettings),
-            observeModelStatus = ObserveModelStatusUseCase(models),
-            navigator = navigator,
-            signals = signals,
-            lastSync = lastSync,
-            clock = clock,
-            failureLog = failureLog,
-        )
 
     fun notes() =
         NotesViewModel(
