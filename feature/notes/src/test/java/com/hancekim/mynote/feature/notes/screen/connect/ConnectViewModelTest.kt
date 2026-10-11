@@ -22,13 +22,13 @@ import com.hancekim.mynote.core.domain.repository.AppliedTokenSource
 import com.hancekim.mynote.core.domain.repository.ConnectionRepository
 import com.hancekim.mynote.core.domain.repository.NetworkStatusSource
 import com.hancekim.mynote.core.domain.repository.TokenRepository
+import com.hancekim.mynote.core.ui.element.SecretText
 import com.hancekim.mynote.feature.notes.element.ConfirmKind
 import com.hancekim.mynote.feature.notes.element.ConfirmUi
 import com.hancekim.mynote.feature.notes.element.ConnectNotice
 import com.hancekim.mynote.feature.notes.element.ConnectStep
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.element.NoticeWays
-import com.hancekim.mynote.feature.notes.element.SecretText
 import com.hancekim.mynote.feature.notes.element.noticeWays
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers

@@ -19,7 +19,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -36,12 +35,13 @@ import com.hancekim.mynote.core.designsystem.component.throttledProcess
 import com.hancekim.mynote.core.designsystem.motion.rememberReduceMotion
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.domain.model.ModelStatus
+import com.hancekim.mynote.core.ui.element.CtaAction
+import com.hancekim.mynote.core.ui.element.QuizCtaUi
+import com.hancekim.mynote.core.ui.element.fractionOrNull
+import com.hancekim.mynote.core.ui.element.quizCtaUi
 import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.element.CtaAction
-import com.hancekim.mynote.feature.notes.element.QuizCtaUi
-import com.hancekim.mynote.feature.notes.element.fractionOrNull
-import com.hancekim.mynote.feature.notes.element.quizCtaUi
 import com.hancekim.mynote.feature.notes.quiz.QuizUiState
+import com.hancekim.mynote.core.ui.R as UiR
 
 @Suppress("ktlint:compose:modifier-clickable-order", "ktlint:compose:lambda-param-event-trailing")
 @Composable
@@ -139,24 +139,27 @@ internal fun QuizCtaCard(
 private fun ctaSubtitle(
     cta: QuizCtaUi,
     status: ModelStatus,
-): String =
-    when {
-        cta.subtitle == R.string.notes_quiz_cta_subtitle -> {
+): String {
+    // 다른 모듈의 공개 속성이라 스마트 캐스트가 안 된다 — 한 번 읽어 둔다
+    val arg = cta.subtitleArg
+    return when {
+        cta.subtitle == UiR.string.ui_quiz_cta_subtitle -> {
             stringResource(cta.subtitle, QuizUiState.MAX_COUNT)
         }
 
-        cta.subtitle == R.string.notes_quiz_cta_downloading -> {
+        cta.subtitle == UiR.string.ui_quiz_cta_downloading -> {
             stringResource(cta.subtitle, ((status.fractionOrNull() ?: 0f) * 100).toInt())
         }
 
-        cta.subtitleArg != null -> {
-            stringResource(cta.subtitle, cta.subtitleArg)
+        arg != null -> {
+            stringResource(cta.subtitle, arg)
         }
 
         else -> {
             stringResource(cta.subtitle)
         }
     }
+}
 
 private val CARD_RADIUS = 18.dp
 private val RING_WIDTH = 1.5.dp

@@ -61,6 +61,25 @@ import com.hancekim.mynote.core.designsystem.component.MyNoteSnackbarHost
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.domain.connect.ConnectLinkRejection
 import com.hancekim.mynote.core.domain.connect.TemplateRepo
+import com.hancekim.mynote.core.ui.element.TokenDraft
+import com.hancekim.mynote.core.ui.element.TokenFailureKind
+import com.hancekim.mynote.core.ui.element.TokenReason
+import com.hancekim.mynote.core.ui.element.tokenFailureRes
+import com.hancekim.mynote.core.ui.screen.CONTENT_MAX_WIDTH
+import com.hancekim.mynote.core.ui.screen.PrimaryButton
+import com.hancekim.mynote.core.ui.screen.QuietButton
+import com.hancekim.mynote.core.ui.screen.connect.ConnectIcons
+import com.hancekim.mynote.core.ui.screen.connect.KeepWordsText
+import com.hancekim.mynote.core.ui.screen.connect.NoticeBox
+import com.hancekim.mynote.core.ui.screen.connect.ProgressBar
+import com.hancekim.mynote.core.ui.screen.connect.TOKEN_PAGE_URL
+import com.hancekim.mynote.core.ui.screen.connect.TokenCreateButton
+import com.hancekim.mynote.core.ui.screen.connect.TokenField
+import com.hancekim.mynote.core.ui.screen.connect.TokenHowTo
+import com.hancekim.mynote.core.ui.screen.connect.VerifyingLine
+import com.hancekim.mynote.core.ui.screen.connect.monoAnnotated
+import com.hancekim.mynote.core.ui.screen.connect.openExternal
+import com.hancekim.mynote.core.ui.shell.NotesTopBar
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.ConfirmKind
 import com.hancekim.mynote.feature.notes.element.ConfirmUi
@@ -71,29 +90,22 @@ import com.hancekim.mynote.feature.notes.element.ConnectStep
 import com.hancekim.mynote.feature.notes.element.EntryEmphasis
 import com.hancekim.mynote.feature.notes.element.LinkCheck
 import com.hancekim.mynote.feature.notes.element.NoticeWays
-import com.hancekim.mynote.feature.notes.element.TokenDraft
-import com.hancekim.mynote.feature.notes.element.TokenFailureKind
-import com.hancekim.mynote.feature.notes.element.TokenReason
 import com.hancekim.mynote.feature.notes.element.canConnect
 import com.hancekim.mynote.feature.notes.element.connectBackAction
 import com.hancekim.mynote.feature.notes.element.connectNoticeRes
 import com.hancekim.mynote.feature.notes.element.entryEmphasis
 import com.hancekim.mynote.feature.notes.element.linkReasonRes
 import com.hancekim.mynote.feature.notes.element.noticeWays
-import com.hancekim.mynote.feature.notes.element.tokenFailureRes
 import com.hancekim.mynote.feature.notes.element.twoColumnsOf
-import com.hancekim.mynote.feature.notes.screen.CONTENT_MAX_WIDTH
-import com.hancekim.mynote.feature.notes.screen.PrimaryButton
-import com.hancekim.mynote.feature.notes.screen.QuietButton
-import com.hancekim.mynote.feature.notes.shell.NotesTopBar
 import kotlinx.coroutines.launch
 import com.hancekim.mynote.core.designsystem.R as DsR
+import com.hancekim.mynote.core.ui.R as UiR
 
 @Composable
 internal fun ConnectRoute(
     place: ConnectPlace,
     hasConnection: Boolean,
-    drafts: com.hancekim.mynote.feature.notes.element.NotesDrafts,
+    drafts: com.hancekim.mynote.core.ui.element.NotesDrafts,
     snackbarHostState: SnackbarHostState,
     onShellBack: () -> Unit,
     modifier: Modifier = Modifier,
@@ -481,7 +493,7 @@ private fun TokenCard(
                     text =
                         stringResource(
                             if (panel.reason == TokenReason.Limit) {
-                                R.string.notes_token_err_limit_title
+                                UiR.string.ui_token_err_limit_title
                             } else {
                                 R.string.notes_connect_token_title
                             },

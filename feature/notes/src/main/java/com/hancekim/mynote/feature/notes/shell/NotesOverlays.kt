@@ -15,8 +15,9 @@ import com.hancekim.mynote.core.designsystem.component.FloatingNavScrollState
 import com.hancekim.mynote.core.designsystem.component.MyNoteIcons
 import com.hancekim.mynote.core.designsystem.component.ScrollToTopButton
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
+import com.hancekim.mynote.core.navigation.NotesTab
+import com.hancekim.mynote.core.ui.shell.NotesScrollState
 import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.element.NotesTab
 import com.hancekim.mynote.feature.notes.quiz.QuizUiState
 import com.kyant.backdrop.Backdrop
 import kotlinx.collections.immutable.ImmutableList

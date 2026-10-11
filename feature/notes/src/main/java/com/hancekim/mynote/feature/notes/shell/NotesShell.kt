@@ -44,14 +44,17 @@ import com.hancekim.mynote.core.designsystem.component.MyNoteSnackbarHost
 import com.hancekim.mynote.core.designsystem.component.rememberFloatingNavScrollState
 import com.hancekim.mynote.core.designsystem.motion.MyNoteEasing
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
+import com.hancekim.mynote.core.ui.element.NotesDrafts
+import com.hancekim.mynote.core.ui.element.NotesSignal
+import com.hancekim.mynote.core.ui.frame.ShellFrame
+import com.hancekim.mynote.core.ui.shell.NotesScrollState
+import com.hancekim.mynote.core.ui.shell.NotesTopBar
+import com.hancekim.mynote.core.ui.shell.rememberNotesScrollState
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.ConnectPlace
-import com.hancekim.mynote.feature.notes.element.NotesDrafts
 import com.hancekim.mynote.feature.notes.element.NotesIntent
-import com.hancekim.mynote.feature.notes.element.NotesSignal
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.element.StartDestination
-import com.hancekim.mynote.feature.notes.frame.ShellFrame
 import com.hancekim.mynote.feature.notes.quiz.QuizOverlay
 import com.hancekim.mynote.feature.notes.screen.ListPanelChrome
 import com.hancekim.mynote.feature.notes.screen.ListPanelScreen
@@ -62,6 +65,7 @@ import com.hancekim.mynote.feature.notes.settings.SettingsIntent
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import kotlinx.coroutines.launch
+import com.hancekim.mynote.core.ui.R as UiR
 
 // 결정 12 — 순서가 뜻을 갖는 호출(시작 분기의 읽는 중 · 연결 루트, 모델 확인 대화상자, 뒤로가기 핸들러, 목록 패널,
 // 퀴즈 오버레이, 상단 바 행동)은 이 파일 한 곳에서 컴포즈 순서대로 직접 부른다. 순서 없는 집합으로 받지 않는다.
@@ -376,7 +380,7 @@ private fun rememberNotesHeaderSlot(
     onMenu: () -> Unit,
 ): @Composable () -> Unit {
     val currentMenu = rememberUpdatedState(onMenu)
-    val homeTitle = stringResource(R.string.notes_app_title)
+    val homeTitle = stringResource(UiR.string.ui_app_title)
     val settingsTitle = stringResource(R.string.notes_settings)
     val bookmarksTitle = stringResource(R.string.notes_nav_bookmark)
     val statsTitle = stringResource(R.string.notes_nav_stats)

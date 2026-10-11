@@ -1,13 +1,13 @@
 package com.hancekim.mynote.feature.notes
 
 import com.hancekim.mynote.core.domain.model.Bookmark
+import com.hancekim.mynote.core.ui.element.LastSync
+import com.hancekim.mynote.core.ui.element.NotesSignal
 import com.hancekim.mynote.feature.notes.FeatureFixture.Companion.EVENT_ID
 import com.hancekim.mynote.feature.notes.FeatureFixture.Companion.NOTE_ID
 import com.hancekim.mynote.feature.notes.FeatureFixture.Companion.SETTLE
 import com.hancekim.mynote.feature.notes.FeatureFixture.Companion.WALL_BASE
-import com.hancekim.mynote.feature.notes.element.LastSync
 import com.hancekim.mynote.feature.notes.element.NotesIntent
-import com.hancekim.mynote.feature.notes.element.NotesSignal
 import com.hancekim.mynote.feature.notes.shell.ShellIntent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi

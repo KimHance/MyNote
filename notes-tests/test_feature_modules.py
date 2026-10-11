@@ -69,6 +69,76 @@ PREFIXES = {
     ":core:ai": "ai_",
 }
 
+# FM-1 — 공용 조각 표(기능 문서 feature-modules). 선언 이름 → 사는 모듈. 탭 · 리더 열기 명령은 `:core:navigation`
+SHARED_PIECES = {
+    CORE_UI: (
+        "TokenField",
+        "TokenHowTo",
+        "TokenCreateButton",
+        "VerifyingLine",
+        "NoticeBox",
+        "monoAnnotated",
+        "ProgressBar",
+        "ConnectIcons",
+        "KeepWordsText",
+        "openExternal",
+        "TOKEN_PAGE_URL",
+        "TokenFailureKind",
+        "TokenReason",
+        "tokenFailureRes",
+        "RepoCardUi",
+        "repoCardUi",
+        "LastSync",
+        "TokenDraft",
+        "NotesDrafts",
+        "ModelCardUi",
+        "modelCardUi",
+        "modelPillUi",
+        "quizCtaUi",
+        "ModelTone.color",
+        "ModelPreviewFrame",
+        "NotesSignal",
+        "unseen",
+        "PrimaryButton",
+        "SecondaryButton",
+        "SolidDestructiveButton",
+        "QuietButton",
+        "CONTENT_MAX_WIDTH",
+        "NotesTopBar",
+        "ActionDialog",
+        "rememberBookmarkTimeLabel",
+        "NotesScrollState",
+        "ShellFrame",
+        "ShellDestinations",
+        "sceneEdgeModifier",
+    ),
+    ":core:navigation": ("openReaderCommand", "switchTabCommand", "NotesTab"),
+}
+# 외부 브라우저 찾기 — `openExternal` 과 같은 모듈 manifest 에 있어야 한다
+BROWSER_QUERY = "android.intent.category.BROWSABLE"
+
+# FM-6 — 기능 사이 이동 · 신호가 지나는 타입. 모두 `:core:*` 에 하나씩
+SIGNAL_TYPES = (
+    "FeatureSignals",
+    "ReaderOpened",
+    "QuizSetupRequest",
+    "openSettings",
+    "LastSyncHolder",
+    "LastSync",
+    "Navigator",
+    "NavCommand",
+    "MyNoteNavKey",
+    "NotesNavKey",
+)
+
+# FM-11 — 결정 15. 공통 액션 문구는 참조 수와 상관없이 design-system 에 산다
+COMMON_ACTION = "ds_action_"
+SHARED_STRING_HOMES = (CORE_UI, ":core:design-system")
+STRING_REFERENCE = re.compile(r"\b\w*R\.(?:string|array|plurals)\.(\w+)")
+XML_STRING_REFERENCE = re.compile(r"@(?:string|array|plurals)/(\w+)")
+# 맨 윗줄 공개 · 모듈 선언 — `private` 는 같은 이름의 파일 안 도우미라 조각이 아니다
+DECLARATION = r"^(?:(?:public|internal)\s+)?(?:(?:const|data|enum|sealed|inline)\s+)*(?:fun|val|var|class|interface|object|typealias)\s+(?:<[^>]+>\s+)?"
+
 INCLUDE = re.compile(r'include\(\s*"(:[\w:-]+)"\s*\)')
 PROJECT_PATH = re.compile(r'project\(\s*"(:[\w:-]+)"\s*\)')
 PROJECT_ACCESSOR = re.compile(r"\bprojects((?:\.\w+)+)")
@@ -197,6 +267,58 @@ def view_model_sources():
     return [path for path in kotlin_main_sources() if path.name.endswith("ViewModel.kt")]
 
 
+def module_of(path):
+    """소스 · 리소스 경로 → 그 모듈 경로(`core/ui/src/…` → `:core:ui`)."""
+    parts = path.relative_to(REPO_ROOT).parts
+    return ":" + ":".join(parts[: parts.index("src")])
+
+
+def declared_in(name):
+    """`main` 소스에서 이름을 맨 윗줄에 (`private` 가 아니게) 선언한 모듈들. `Receiver.name` 은 그 받는 쪽의 확장으로 찾는다."""
+    receiver, _, simple = name.rpartition(".")
+    owner = re.escape(receiver) + r"\." if receiver else r"(?:[\w<>?, ]+\.)?"
+    pattern = re.compile(DECLARATION + owner + re.escape(simple) + r"(?![\w.])", re.MULTILINE)
+    return [module_of(path) for path in kotlin_main_sources() if pattern.search(path.read_text(encoding="utf-8"))]
+
+
+@functools.cache
+def main_files():
+    """모든 모듈 `src/main` 아래 파일 — 빌드 폴더는 내려가지 않는다."""
+    found = []
+    for top in SOURCE_ROOTS:
+        for directory, children, files in os.walk(REPO_ROOT / top):
+            children[:] = sorted(child for child in children if child not in SKIPPED_DIRS)
+            rel = Path(directory).relative_to(REPO_ROOT).parts
+            if "src" in rel and rel[rel.index("src") + 1 :][:1] == ("main",):
+                found += [Path(directory) / name for name in sorted(files)]
+    return tuple(found)
+
+
+def string_definitions():
+    """문구 이름 → 정의한 모듈들(`src/main/res/values/strings.xml`)."""
+    defined = {}
+    for path in main_files():
+        if path.name == "strings.xml" and path.parent.name == "values":
+            for node in ET.parse(path).getroot():
+                defined.setdefault(node.get("name"), []).append(module_of(path))
+    return defined
+
+
+def string_references():
+    """문구 이름 → 그것을 참조하는 모듈들 — `main` 의 Kotlin `R.string.…`(별칭 `UiR` · `DsR` 포함)과 XML `@string/…`."""
+    found = {}
+    for path in main_files():
+        if path.suffix == ".kt":
+            names = STRING_REFERENCE.findall(path.read_text(encoding="utf-8"))
+        elif path.suffix == ".xml" and path.name != "strings.xml":
+            names = XML_STRING_REFERENCE.findall(path.read_text(encoding="utf-8"))
+        else:
+            continue
+        for name in names:
+            found.setdefault(name, set()).add(module_of(path))
+    return found
+
+
 class FeatureModulesTest(unittest.TestCase):
     def test_FM_8_ViewModel_은_시간과_문구를_직접_읽지_않는다(self):
         sources = list(view_model_sources())
@@ -298,6 +420,46 @@ class FeatureModulesTest(unittest.TestCase):
         self.assertEqual(wrong, [])
         self.assertEqual(unprefixed, [])
         self.assertNotIn(ANDROID_LIBRARY, graph[":app"]["plugins"])
+
+    def test_FM_1_공용_조각은_core_ui_와_core_navigation_에_산다(self):
+        wrong = [
+            f"{name}: {declared_in(name)}"
+            for home, names in SHARED_PIECES.items()
+            for name in names
+            if declared_in(name) != [home]
+        ]
+        self.assertEqual(wrong, [])
+        manifests = {module_of(path) for path in main_files() if path.name == "AndroidManifest.xml" and BROWSER_QUERY in path.read_text(encoding="utf-8")}
+        self.assertEqual(manifests, {CORE_UI}, "외부 브라우저 찾기 `<queries>` 는 `openExternal` 이 사는 모듈에 하나")
+
+    def test_FM_6_기능_사이_신호_타입은_core_에_있다(self):
+        wrong = [f"{name}: {declared_in(name)}" for name in SIGNAL_TYPES if len(declared_in(name)) != 1 or not declared_in(name)[0].startswith(":core:")]
+        self.assertEqual(wrong, [])
+
+    def test_FM_11_문구는_참조하는_모듈_자리에_산다(self):
+        defined, references = string_definitions(), string_references()
+        # 헛통과 막이 — 별칭 참조(`UiR`)와 둘 이상이 쓰는 문구를 실제로 알아보는지 먼저 본다
+        self.assertGreaterEqual(len(references.get("ui_app_title", ())), 2, "둘 이상이 쓰는 문구를 알아보지 못했습니다")
+        self.assertIn(":app", references.get("app_name", ()), "manifest 의 문구 참조를 읽지 못했습니다")
+        wrong = []
+        for name, homes in sorted(defined.items()):
+            users = references.get(name, set())
+            if name.startswith(COMMON_ACTION):
+                expected = {":core:design-system"}
+            elif len(users) == 1:
+                expected = users
+            elif len(users) > 1:
+                expected = set(SHARED_STRING_HOMES)
+            else:
+                continue
+            if not set(homes) <= expected:
+                wrong.append(f"{name}: 정의 {homes} · 참조 {sorted(users)}")
+        self.assertEqual(wrong, [])
+
+    def test_FM_11_문구_이름은_모듈을_넘어_겹치지_않는다(self):
+        defined = string_definitions()
+        self.assertGreaterEqual(len({home for homes in defined.values() for home in homes}), 4, "문구 파일을 다 찾지 못했습니다")
+        self.assertEqual({name: homes for name, homes in defined.items() if len(homes) > 1}, {})
 
 if __name__ == "__main__":
     unittest.main()

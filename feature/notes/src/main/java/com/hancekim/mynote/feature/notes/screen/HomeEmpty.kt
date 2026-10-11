@@ -28,11 +28,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
+import com.hancekim.mynote.core.ui.screen.SecondaryButton
+import com.hancekim.mynote.core.ui.screen.connect.ConnectIcons
+import com.hancekim.mynote.core.ui.screen.connect.KeepWordsText
+import com.hancekim.mynote.core.ui.screen.connect.ProgressBar
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.HomeBody
-import com.hancekim.mynote.feature.notes.screen.connect.ConnectIcons
-import com.hancekim.mynote.feature.notes.screen.connect.KeepWordsText
-import com.hancekim.mynote.feature.notes.screen.connect.ProgressBar
+import com.hancekim.mynote.core.ui.R as UiR
 
 @Composable
 internal fun HomeEmpty(
@@ -66,7 +68,7 @@ internal fun HomeEmpty(
                 modifier = modifier,
             ) {
                 Box(Modifier.minimumInteractiveComponentSize(), contentAlignment = Alignment.Center) {
-                    SecondaryButton(text = stringResource(R.string.notes_action_refresh), onClick = onRefresh)
+                    SecondaryButton(text = stringResource(UiR.string.ui_action_refresh), onClick = onRefresh)
                 }
             }
         }

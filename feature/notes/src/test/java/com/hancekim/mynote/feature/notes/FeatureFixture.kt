@@ -79,11 +79,11 @@ import com.hancekim.mynote.core.domain.repository.TokenRepository
 import com.hancekim.mynote.core.domain.stats.StatsPeriod
 import com.hancekim.mynote.core.navigation.Navigator
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
+import com.hancekim.mynote.core.ui.signal.FeatureSignals
+import com.hancekim.mynote.core.ui.signal.LastSyncHolder
 import com.hancekim.mynote.feature.notes.quiz.QuizViewModel
 import com.hancekim.mynote.feature.notes.settings.SettingsViewModel
 import com.hancekim.mynote.feature.notes.shell.ShellViewModel
-import com.hancekim.mynote.feature.notes.signal.FeatureSignals
-import com.hancekim.mynote.feature.notes.signal.LastSyncHolder
 import com.hancekim.mynote.feature.notes.stats.StatsTrace
 import com.hancekim.mynote.feature.notes.stats.StatsViewModel
 import kotlinx.coroutines.CompletableDeferred

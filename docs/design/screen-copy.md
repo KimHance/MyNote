@@ -50,8 +50,8 @@
 | 오래 열지 않은 북마크 | 안 본 | `묵은` | 글자 | — | 구역 제목이 안 본 |
 | 노트를 담은 GitHub 저장소 | 저장소 | `레포` | 글자 | — | repo-connect 디자인 |
 | 앱 이름 | MyNote | `공부 기록` | 글자 | — | brand 디자인 |
-| 토큰 안내 낱말 | 세분화된 토큰 · 이 저장소 하나만 · 콘텐츠 읽기 전용 | — | — | `notes_token_howto_kind` · `notes_token_howto_scope` · `notes_token_howto_perm` | 동결(기능 문서 결정 5). GitHub 화면 이름과 짝이고 템플릿 README 시험이 본다 |
-| 화면 제목 | MyNote · 설정 · 북마크 · 통계 · 지난 요약 | — | — | `notes_app_title` · `app_name` · `notes_settings` · `notes_nav_bookmark` · `notes_nav_stats` · `notes_stats_history_title` | 동결(BR-7) |
+| 토큰 안내 낱말 | 세분화된 토큰 · 이 저장소 하나만 · 콘텐츠 읽기 전용 | — | — | `ui_token_howto_kind` · `ui_token_howto_scope` · `ui_token_howto_perm` | 동결(기능 문서 결정 5). GitHub 화면 이름과 짝이고 템플릿 README 시험이 본다 |
+| 화면 제목 | MyNote · 설정 · 북마크 · 통계 · 지난 요약 | — | — | `ui_app_title` · `app_name` · `notes_settings` · `notes_nav_bookmark` · `notes_nav_stats` · `notes_stats_history_title` | 동결(BR-7) |
 | 저장소를 앱에 묶음 | 연결 · 연결 끊기 · 저장소 바꾸기 | — | — | — | 그대로 |
 
 ### 끝말
@@ -85,8 +85,8 @@ SC-1 이 보지 않는 문구다. 이름으로만 뺀다.
 | 이름 | 왜 |
 |---|---|
 | `notes_settings_preview_text` | 노트 본문 견본이라 노트의 해라체를 그대로 보인다 |
-| `notes_app_title` · `app_name` · `notes_model_name` · `notes_settings_token_placeholder` | 고유명사 · 토큰 머리 견본 |
-| `notes_bookmark_time` · `notes_bookmark_date_this_year` · `notes_bookmark_date_other_year` · `notes_bookmark_date_other_year_short` · `notes_stats_date` · `notes_stats_bucket_week` · `notes_stats_bucket_month` | 날짜 · 시각 형식 문구 |
+| `ui_app_title` · `app_name` · `notes_model_name` · `ui_settings_token_placeholder` | 고유명사 · 토큰 머리 견본 |
+| `ui_bookmark_time` · `ui_bookmark_date_this_year` · `ui_bookmark_date_other_year` · `ui_bookmark_date_other_year_short` · `notes_stats_date` · `notes_stats_bucket_week` · `notes_stats_bucket_month` | 날짜 · 시각 형식 문구 |
 | `notes_bookmark_row_sub` · `notes_stats_row_sub` · `notes_stats_row_sub3` · `notes_stats_cell_desc` · `notes_stats_bars_desc` · `notes_stats_summary_desc` · `notes_stats_history_row_desc` · `notes_stats_range` · `notes_stats_retry_value` · `notes_model_bytes` · `notes_model_percent` | 자리만 있는 형식 문구 |
 
 ### 쓰지 않는 표현
@@ -133,13 +133,13 @@ SC-1 이 보지 않는 문구다. 이름으로만 뺀다.
 
 | 자리 | 파일 | 리소스 | 이번에 바꾼 행 |
 |---|---|---|---|
-| 상단 바 제목 | `shell/NotesTopBar.kt` | `notes_app_title` · `notes_settings` · `notes_nav_bookmark` · `notes_nav_stats` · `notes_stats_history_title` · `notes_connect_change_title` · `notes_connect_attach_title` | 없음 |
+| 상단 바 제목 | `shell/NotesTopBar.kt` | `ui_app_title` · `notes_settings` · `notes_nav_bookmark` · `notes_nav_stats` · `notes_stats_history_title` · `notes_connect_change_title` · `notes_connect_attach_title` | 없음 |
 | 플로팅 내비 라벨(12sp) | ds `FloatingNav.kt` | `notes_nav_home` · `notes_nav_bookmark` · `notes_nav_stats` | 없음 |
 | 상태 알약 | ds `FloatingStatusPill.kt` | `notes_pill_*` 다섯 · `notes_model_percent` | 없음 |
-| 퀴즈 CTA 부제 | `quiz/component/QuizCtaCard.kt` | `notes_quiz_cta_subtitle` · `notes_quiz_cta_need_model` · `notes_quiz_cta_paused` · `notes_quiz_cta_downloading` · `notes_pill_failed` | 없음 |
+| 퀴즈 CTA 부제 | `quiz/component/QuizCtaCard.kt` | `ui_quiz_cta_subtitle` · `ui_quiz_cta_need_model` · `ui_quiz_cta_paused` · `ui_quiz_cta_downloading` · `ui_pill_failed` | 없음 |
 | 퀴즈 설정 부제 | `quiz/component/QuizSetupDialog.kt` | `notes_quiz_setup_subtitle` | `notes_quiz_setup_subtitle` +0 |
-| 모델 카드 상태 · 세부 | `screen/ModelCard.kt` | `notes_model_missing` · `waiting` · `preparing` · `downloading` · `retrying` · `verifying` · `paused` · `ready` · `failed` 와 그 `_desc` · `notes_model_failed_space` · `notes_model_failed_generic` | `notes_model_failed_generic` −2 |
-| 저장소 카드 상태 라벨 | `screen/RepoSection.kt` | `notes_repo_state_none` · `check_token` · `idle` · `token` · `public` | `notes_repo_state_idle` −3 |
+| 모델 카드 상태 · 세부 | `screen/ModelCard.kt` | `ui_model_missing` · `waiting` · `preparing` · `downloading` · `retrying` · `verifying` · `paused` · `ready` · `failed` 와 그 `_desc` · `ui_model_failed_space` · `ui_model_failed_generic` | `ui_model_failed_generic` −2 |
+| 저장소 카드 상태 라벨 | `screen/RepoSection.kt` | `ui_repo_state_none` · `check_token` · `idle` · `token` · `public` | `ui_repo_state_idle` −3 |
 | 버튼(설정 · 연결 · 모델 · 대화상자) | `screen/SettingsScreen.kt` 버튼 라벨 · 퀴즈 설정 버튼 · 연결 띠 | `notes_*` 버튼 문구 스물아홉 · `ds_action_save` · `ds_action_cancel` · `notes_quiz_create` · `notes_home_connect_action` | 없음 — `notes_model_delete` 를 그대로 둔 까닭(용어 표) |
 | 통계 머리 기간 · 숫자 칸 · 구역 칩 | `screen/stats/StatsHeader.kt` | `notes_stats_period_*` · `notes_stats_num_*` · `notes_stats_unit_*` · `notes_stats_first_week` · `notes_stats_questions` · `notes_stats_section_*` | `notes_stats_questions` +0 |
 | 통계 차트 제목 · 단위 · 범례 초점 | `screen/stats/StatsSections.kt` | `notes_stats_time_by_*` · `notes_stats_accuracy_by_category` · `notes_stats_bookmark_trend` · `notes_stats_pattern` · `notes_stats_minutes_value` · `notes_stats_generated_*` · `notes_stats_focus` · `notes_stats_retry_value` · `notes_stats_bookmark_age` | 없음 |
@@ -149,13 +149,13 @@ SC-1 이 보지 않는 문구다. 이름으로만 뺀다.
 | 북마크 행 · 큰 카드 시각 | `screen/bookmarks/` | `notes_bookmark_row_sub` · `notes_bookmark_added_*` · 날짜 형식 | 없음 |
 | 목록 패널 설정 줄 · 배지 | `screen/ListPanelScreen.kt` | `notes_settings` · `notes_model_badge_*` · `notes_settings_token_check_badge` · `notes_model_percent` | 없음 |
 | 원문 보기 버튼 | ds `UnsupportedBlock.kt` | `ds_unsupported_show_raw` · `hide_raw` · `more_lines` | 없음 |
-| 주소 · 토큰 칸 힌트 | `screen/connect/ConnectParts.kt` | `notes_connect_link_hint` · `notes_settings_token_placeholder` | 없음 |
+| 주소 · 토큰 칸 힌트 | `screen/connect/ConnectParts.kt` | `notes_connect_link_hint` · `ui_settings_token_placeholder` | 없음 |
 
 한 줄 자리는 아니지만 줄 수를 늘리면 안 되는 곳:
 
 | 자리 | 왜 | 이번에 바꾼 행 |
 |---|---|---|
-| 첫 실행 연결 화면(가로 800 × 336 · 두 단) | BR-8 — 스크롤 없이 한 화면 | `notes_entry_title` −1 · `notes_entry_step_1` −1 · `notes_connect_token_desc` −3 · `notes_connect_syncing_desc` −4 · `notes_connect_err_offline` −5. 늘어나는 행은 `notes_token_err_rejected` +8 하나 — 토큰을 넣은 뒤의 오류 상자라 BR-8 이 보는 첫 화면에는 없다. SC-9 캡처로 본다 |
+| 첫 실행 연결 화면(가로 800 × 336 · 두 단) | BR-8 — 스크롤 없이 한 화면 | `notes_entry_title` −1 · `notes_entry_step_1` −1 · `notes_connect_token_desc` −3 · `notes_connect_syncing_desc` −4 · `ui_connect_err_offline` −5. 늘어나는 행은 `ui_token_err_rejected` +8 하나 — 토큰을 넣은 뒤의 오류 상자라 BR-8 이 보는 첫 화면에는 없다. SC-9 캡처로 본다 |
 | 접힌 알림 | 접히면 한 줄 | `ai_model_download_no_space` −3 · `ai_model_download_failed_body` −2 |
 
 ### 같이 바뀔 것

@@ -39,9 +39,9 @@ import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.domain.model.ConnectionState
 import com.hancekim.mynote.core.domain.model.RepoConnection
 import com.hancekim.mynote.core.domain.model.SourceId
-import com.hancekim.mynote.feature.notes.element.NotesDrafts
+import com.hancekim.mynote.core.ui.element.NotesDrafts
+import com.hancekim.mynote.core.ui.element.NotesSignal
 import com.hancekim.mynote.feature.notes.element.NotesIntent
-import com.hancekim.mynote.feature.notes.element.NotesSignal
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.element.NoticeUi
 import com.hancekim.mynote.feature.notes.quiz.QuizIntent

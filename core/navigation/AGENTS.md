@@ -6,7 +6,8 @@
 
 ## 이 모듈이 있는 이유
 
-**내비게이션 계약 모듈.** 목적지 키 · 씬/씬 전략 · 전환 모션 · 공유 요소 배선 · 백스택 소유자 · 목적지 등록 틀만 둔다.
+**내비게이션 계약 모듈.** 목적지 키 · 씬/씬 전략 · 전환 모션 · 공유 요소 배선 · 백스택 소유자 · 목적지 등록 틀 ·
+여러 기능이 같이 쓰는 이동 명령(리더 열기 · 탭 전환과 탭 종류)만 둔다.
 
 feature 마다 자기 키를 들면 feature 끼리 서로의 목적지를 몰라 이동할 수 없고, feature ↔ feature
 직접 의존은 모듈 규칙 위반이다. 그래서 **키를 계약 모듈로 올려** 각 feature 가 서로를 모른 채 두고,
@@ -180,11 +181,21 @@ nav3 의 `LocalNavAnimatedContentScope` 는 미설정 시 **예외를 던진다*
 - `ListDetailSceneStrategyTest` — 상세가 바뀌어도 씬 키 고정, `entries` 1개, `previousEntries` 파생.
   `SceneStrategyScope()` 를 직접 만들어 Compose 없이 돈다.
 - `NotesNavKeyTest` — `activeNoteId()` 는 맨 위가 `Reader` 일 때만 답한다.
+- `OpenReaderTest` · `TabSwitchTest` — 아래 이동 명령 절.
 
 여기 손대면 **변이 테스트로 확인할 것.** 예: 게이트에서 `tryAccept()` 를 부르게 바꾸면
 "no-op 은 창을 열지 않는다" 가 빨간불이 돼야 한다.
 
 ---
+
+## 이동 명령 — `OpenReader.kt` · `TabSwitch.kt` · `NotesTab.kt`
+
+노트 · 통계 · 퀴즈 · 셸이 같이 쓰는 스택 계산이라 여기 있다(기능 문서 `feature-modules` 모듈 지도). 셋 다 스택을 받아
+`NavCommand` 하나를 돌려주는 순수 함수다 — 바뀔 스택을 한 번에 계산해 `dispatch` 하나로 보내야 쓰로틀에 안 걸린다(위 `dispatchImmediately` 절).
+
+- `openReaderCommand(noteId)` — 설정이 맨 위면 설정을 걷고 그 자리에 리더를 둔다(`ReplaceAll`), 아니면 `Push`.
+- `switchTabCommand(tab)` — 플로팅 내비 칸(`NotesTab`). 홈은 `ReplaceAll([Home])`, 북마크 · 통계는 `[Home]` 에서 `Push` · 그 밖에서
+  `ReplaceAll([Home, 탭])`. 이미 그 자리면 `Navigator` 가 `Ignored` 로 받는다.
 
 ## 등록 틀 — `registry/Destinations.kt`
 
@@ -206,7 +217,7 @@ nav3 의 `LocalNavAnimatedContentScope` 는 미설정 시 **예외를 던진다*
 ## 새 목적지를 붙일 때
 
 1. 키를 `MyNoteNavKey` 하위에 추가한다(sealed 이므로 다른 모듈에서 못 만든다).
-2. **feature 이름이 박힌 API 를 만들지 않는다.** 현재 예외는 `NotesNavKey` 와 `activeNoteId()` 뿐이고
+2. **feature 이름이 박힌 API 를 만들지 않는다.** 현재 예외는 `NotesNavKey` · `activeNoteId()` 와 위 이동 명령(`NotesTab` 포함)뿐이고
    그건 계약 자체라 여기 있는 게 맞다. 씬·모션·공유요소 헬퍼는 feature 를 타지 않게 유지한다.
 3. Compose 의존은 foundation 까지. material3 를 끌어오지 않는다.
 4. 화면 조립·슬롯·테마는 feature 가 한다. 이 모듈은 "어디로 갈 수 있는가"와 "어떻게 전환되는가"만 안다.

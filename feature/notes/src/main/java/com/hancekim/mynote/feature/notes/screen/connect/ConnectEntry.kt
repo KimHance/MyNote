@@ -34,9 +34,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
+import com.hancekim.mynote.core.ui.screen.QuietButton
+import com.hancekim.mynote.core.ui.screen.SecondaryButton
+import com.hancekim.mynote.core.ui.screen.connect.ConnectIcons
+import com.hancekim.mynote.core.ui.screen.connect.KeepWordsText
 import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.screen.QuietButton
-import com.hancekim.mynote.feature.notes.screen.SecondaryButton
 
 private val ENTRY_STEPS =
     intArrayOf(R.string.notes_entry_step_1, R.string.notes_entry_step_2, R.string.notes_entry_step_3)

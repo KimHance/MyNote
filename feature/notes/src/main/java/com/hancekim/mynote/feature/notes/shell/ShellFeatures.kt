@@ -2,8 +2,8 @@ package com.hancekim.mynote.feature.notes.shell
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import com.hancekim.mynote.core.ui.element.CtaAction
 import com.hancekim.mynote.feature.notes.NoteUi
-import com.hancekim.mynote.feature.notes.element.CtaAction
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.quiz.QuizIntent

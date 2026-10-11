@@ -49,8 +49,8 @@ import com.hancekim.mynote.core.designsystem.component.SectionLabel
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.domain.stats.BucketState
 import com.hancekim.mynote.core.domain.stats.StatsPeriod
+import com.hancekim.mynote.core.ui.screen.bookmarks.rememberBookmarkTimeLabel
 import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.screen.bookmarks.rememberBookmarkTimeLabel
 import com.hancekim.mynote.feature.notes.stats.BookmarkStatsUi
 import com.hancekim.mynote.feature.notes.stats.CategoryMinutesUi
 import com.hancekim.mynote.feature.notes.stats.PatternUi

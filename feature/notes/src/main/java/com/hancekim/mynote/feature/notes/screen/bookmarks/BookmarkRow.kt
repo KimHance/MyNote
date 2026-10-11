@@ -38,6 +38,7 @@ import com.hancekim.mynote.core.designsystem.component.MyNoteIcons
 import com.hancekim.mynote.core.designsystem.component.PressIndication
 import com.hancekim.mynote.core.designsystem.component.throttledProcess
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
+import com.hancekim.mynote.core.ui.screen.bookmarks.rememberBookmarkTimeLabel
 import com.hancekim.mynote.feature.notes.BookmarkUi
 import com.hancekim.mynote.feature.notes.NoteUi
 import com.hancekim.mynote.feature.notes.R

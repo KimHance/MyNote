@@ -34,7 +34,7 @@ import com.hancekim.mynote.core.domain.repository.StudyLogRepository
 import com.hancekim.mynote.core.domain.stats.StatsPeriod
 import com.hancekim.mynote.core.navigation.Navigator
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
-import com.hancekim.mynote.feature.notes.signal.FeatureSignals
+import com.hancekim.mynote.core.ui.signal.FeatureSignals
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow

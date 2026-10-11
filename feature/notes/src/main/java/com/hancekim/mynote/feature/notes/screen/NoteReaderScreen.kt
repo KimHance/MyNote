@@ -38,8 +38,8 @@ import com.hancekim.mynote.core.designsystem.component.fadingEdges
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.domain.model.ModelStatus
 import com.hancekim.mynote.core.domain.model.NoteLimits
+import com.hancekim.mynote.core.ui.element.CtaAction
 import com.hancekim.mynote.feature.notes.NoteUi
-import com.hancekim.mynote.feature.notes.element.CtaAction
 import com.hancekim.mynote.feature.notes.navigation.rememberNoteSharedModifiers
 import com.hancekim.mynote.feature.notes.quiz.component.QuizCtaCard
 import kotlinx.collections.immutable.persistentListOf

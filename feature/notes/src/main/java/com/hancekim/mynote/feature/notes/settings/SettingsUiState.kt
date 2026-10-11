@@ -7,14 +7,14 @@ import com.hancekim.mynote.core.designfoundation.token.MyNoteFontScale
 import com.hancekim.mynote.core.domain.model.ConnectionState
 import com.hancekim.mynote.core.domain.model.ModelStatus
 import com.hancekim.mynote.core.domain.model.RepoConnection
+import com.hancekim.mynote.core.ui.element.LastSync
+import com.hancekim.mynote.core.ui.element.NotesSignal
+import com.hancekim.mynote.core.ui.element.RepoCardUi
+import com.hancekim.mynote.core.ui.element.SecretText
+import com.hancekim.mynote.core.ui.element.repoCardUi
 import com.hancekim.mynote.feature.notes.element.DisconnectDialogUi
-import com.hancekim.mynote.feature.notes.element.LastSync
-import com.hancekim.mynote.feature.notes.element.NotesSignal
 import com.hancekim.mynote.feature.notes.element.NoticeUi
-import com.hancekim.mynote.feature.notes.element.RepoCardUi
-import com.hancekim.mynote.feature.notes.element.SecretText
 import com.hancekim.mynote.feature.notes.element.TokenEditState
-import com.hancekim.mynote.feature.notes.element.repoCardUi
 
 @Stable
 data class SettingsUiState(

@@ -3,6 +3,8 @@ package com.hancekim.mynote.feature.notes.element
 import com.hancekim.mynote.core.domain.connect.ConnectLinkRejection
 import com.hancekim.mynote.core.domain.connect.ConnectProbeFailure
 import com.hancekim.mynote.core.domain.model.SyncFailure
+import com.hancekim.mynote.core.ui.element.TokenFailureKind
+import com.hancekim.mynote.core.ui.element.tokenFailureRes
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

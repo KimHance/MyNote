@@ -56,13 +56,13 @@ import com.hancekim.mynote.core.designsystem.component.fadingEdges
 import com.hancekim.mynote.core.designsystem.component.throttledProcess
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.domain.model.ModelStatus
+import com.hancekim.mynote.core.ui.element.fractionOrNull
+import com.hancekim.mynote.core.ui.element.isBusy
 import com.hancekim.mynote.feature.notes.CategoryUi
 import com.hancekim.mynote.feature.notes.NoteUi
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
-import com.hancekim.mynote.feature.notes.element.fractionOrNull
-import com.hancekim.mynote.feature.notes.element.isBusy
 import com.hancekim.mynote.feature.notes.screen.connect.ConnectBand
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf

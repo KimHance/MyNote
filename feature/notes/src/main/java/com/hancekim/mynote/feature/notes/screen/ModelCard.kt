@@ -12,20 +12,16 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -33,21 +29,25 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.hancekim.mynote.core.designsystem.component.MyNoteIcons
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.domain.model.ModelFailure
 import com.hancekim.mynote.core.domain.model.ModelStatus
+import com.hancekim.mynote.core.ui.element.ModelAction
+import com.hancekim.mynote.core.ui.element.ModelCardUi
+import com.hancekim.mynote.core.ui.element.ModelProgressUi
+import com.hancekim.mynote.core.ui.element.gigabytes
+import com.hancekim.mynote.core.ui.element.modelCardUi
+import com.hancekim.mynote.core.ui.screen.DestructiveButton
+import com.hancekim.mynote.core.ui.screen.ModelPreviewFrame
+import com.hancekim.mynote.core.ui.screen.PrimaryButton
+import com.hancekim.mynote.core.ui.screen.SecondaryButton
+import com.hancekim.mynote.core.ui.screen.color
+import com.hancekim.mynote.core.ui.screen.connect.KeepWordsText
 import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.element.ModelAction
-import com.hancekim.mynote.feature.notes.element.ModelCardUi
-import com.hancekim.mynote.feature.notes.element.ModelProgressUi
-import com.hancekim.mynote.feature.notes.element.ModelTone
-import com.hancekim.mynote.feature.notes.element.gigabytes
-import com.hancekim.mynote.feature.notes.element.modelCardUi
-import com.hancekim.mynote.feature.notes.screen.connect.KeepWordsText
 import com.hancekim.mynote.feature.notes.settings.SettingsIntent
+import com.hancekim.mynote.core.ui.R as UiR
 
 @Composable
 internal fun ModelSection(
@@ -240,21 +240,21 @@ private fun ModelActions(
             when (action) {
                 ModelAction.Download -> {
                     PrimaryButton(
-                        text = stringResource(R.string.notes_model_download),
+                        text = stringResource(UiR.string.ui_model_download),
                         onClick = { onIntent(SettingsIntent.StartModelDownload) },
                     )
                 }
 
                 ModelAction.Resume -> {
                     PrimaryButton(
-                        text = stringResource(R.string.notes_model_resume),
+                        text = stringResource(UiR.string.ui_model_resume),
                         onClick = { onIntent(SettingsIntent.StartModelDownload) },
                     )
                 }
 
                 ModelAction.Retry -> {
                     PrimaryButton(
-                        text = stringResource(R.string.notes_model_retry),
+                        text = stringResource(UiR.string.ui_model_retry),
                         onClick = { onIntent(SettingsIntent.StartModelDownload) },
                     )
                 }
@@ -284,48 +284,11 @@ private fun ModelActions(
     }
 }
 
-@Composable
-internal fun ModelTone.color(): Color {
-    val colors = MyNoteTheme.colors
-    return when (this) {
-        ModelTone.Neutral -> colors.text3
-        ModelTone.Accent -> colors.accent
-        ModelTone.Warn -> colors.warn
-        ModelTone.Wrong -> colors.wrong
-        ModelTone.Correct -> colors.correct
-    }
-}
-
 private val MODEL_INDENT = 70.dp
 private val BAR_HEIGHT = 6.dp
 private val BAR_RADIUS = 3.dp
 private const val HINT_FILL_ALPHA = 0.08f
 private const val HINT_BORDER_ALPHA = 0.20f
-
-@Composable
-internal fun ModelPreviewFrame(
-    largeFont: Boolean,
-    content: @Composable () -> Unit,
-) {
-    MyNoteTheme {
-        val density = LocalDensity.current.density
-        val fontScale = if (largeFont) PREVIEW_LARGE_FONT_SCALE else 1f
-        CompositionLocalProvider(LocalDensity provides Density(density, fontScale)) {
-            Box(
-                Modifier
-                    .background(MyNoteTheme.colors.bg)
-                    .safeDrawingPadding()
-                    .width(PREVIEW_WINDOW_WIDTH)
-                    .padding(horizontal = MyNoteTheme.adaptive.page, vertical = 16.dp),
-            ) {
-                content()
-            }
-        }
-    }
-}
-
-private val PREVIEW_WINDOW_WIDTH = 360.dp
-private const val PREVIEW_LARGE_FONT_SCALE = 1.3f
 
 private class ModelCardStatusProvider : PreviewParameterProvider<ModelStatus> {
     override val values =

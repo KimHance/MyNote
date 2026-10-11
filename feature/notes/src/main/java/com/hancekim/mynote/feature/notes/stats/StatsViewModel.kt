@@ -15,8 +15,8 @@ import com.hancekim.mynote.core.domain.stats.StatsPeriod
 import com.hancekim.mynote.core.navigation.NavResult
 import com.hancekim.mynote.core.navigation.Navigator
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
-import com.hancekim.mynote.feature.notes.navigation.openReaderCommand
-import com.hancekim.mynote.feature.notes.signal.FeatureSignals
+import com.hancekim.mynote.core.navigation.openReaderCommand
+import com.hancekim.mynote.core.ui.signal.FeatureSignals
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
