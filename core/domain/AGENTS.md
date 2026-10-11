@@ -86,7 +86,7 @@ debug 내장 토큰은 시드 연결(`ConsumeSeedUseCase`)이 저장 칸에 쓰�
 
 경계 두 가지:
 
-- **timeout 은 여기 없다.** `NotesViewModel` 의 `withTimeoutOrNull(60초)` 가 감싼다. 그래서 UI 쪽
+- **timeout 은 여기 없다.** `:feature:quiz` 의 `QuizViewModel` 이 `withTimeoutOrNull(60초)` 로 감싼다. 그래서 UI 쪽
   `QuizUiState.Failed.Kind` 에는 `Timeout` 이 있는데 `QuizFailure` 에는 없다 — 불일치가 아니라 소유자가 다르다.
 - `isAvailable()` 은 UseCase 를 거치지 않는다. feature 가 `QuizGenerator` 를 직접 주입받아 부른다
   (도메인 인터페이스라 경계 위반은 아니다). 모델 파일 존재 여부를 묻는 것뿐이라 감싸도 얻는 게 없다.
