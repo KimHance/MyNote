@@ -16,10 +16,10 @@ import com.hancekim.mynote.core.navigation.shared.LocalSharedTransitionScope
 import com.hancekim.mynote.core.ui.element.CtaAction
 import com.hancekim.mynote.core.ui.frame.ShellDestinations
 import com.hancekim.mynote.core.ui.frame.ShellFrame
+import com.hancekim.mynote.feature.connect.screen.connectDestinations
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.notesDestinations
-import com.hancekim.mynote.feature.notes.screen.connect.connectDestinations
 import com.hancekim.mynote.feature.notes.settings.SettingsIntent
 import com.hancekim.mynote.feature.notes.settings.SettingsUiState
 import com.hancekim.mynote.feature.notes.settings.settingsDestinations

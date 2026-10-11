@@ -1,10 +1,10 @@
-package com.hancekim.mynote.feature.notes.element
+package com.hancekim.mynote.feature.connect.element
 
 import androidx.annotation.StringRes
 import com.hancekim.mynote.core.domain.connect.ConnectProbeFailure
 import com.hancekim.mynote.core.domain.model.SyncFailure
 import com.hancekim.mynote.core.ui.element.TokenFailureKind
-import com.hancekim.mynote.feature.notes.R
+import com.hancekim.mynote.feature.connect.R
 import com.hancekim.mynote.core.ui.R as UiR
 
 enum class ConnectNotice { NoList, BadList, Offline, Transient }
@@ -95,34 +95,10 @@ fun issueOfSync(
         }
     }
 
-fun tokenFailureOfProbe(failure: ConnectProbeFailure): TokenFailureKind =
-    when (val issue = issueOfProbe(failure, hadToken = true)) {
-        is ConnectIssue.TokenField -> {
-            issue.kind
-        }
-
-        ConnectIssue.Limit -> {
-            TokenFailureKind.Limit
-        }
-
-        ConnectIssue.NeedsToken -> {
-            TokenFailureKind.Rejected
-        }
-
-        is ConnectIssue.Notice -> {
-            when (issue.kind) {
-                ConnectNotice.NoList -> TokenFailureKind.NoList
-                ConnectNotice.BadList -> TokenFailureKind.BadList
-                ConnectNotice.Offline -> TokenFailureKind.Offline
-                ConnectNotice.Transient -> TokenFailureKind.Transient
-            }
-        }
-    }
-
 @StringRes
 fun connectNoticeRes(kind: ConnectNotice): Int =
     when (kind) {
-        ConnectNotice.NoList -> R.string.notes_connect_err_no_list
+        ConnectNotice.NoList -> R.string.connect_err_no_list
         ConnectNotice.BadList -> UiR.string.ui_connect_err_bad_list
         ConnectNotice.Offline -> UiR.string.ui_connect_err_offline
         ConnectNotice.Transient -> UiR.string.ui_connect_err_transient

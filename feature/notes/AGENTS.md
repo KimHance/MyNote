@@ -3,8 +3,8 @@
 이 파일은 이 모듈에서 작업하는 에이전트를 위한 안내다.
 
 셸을 뺀 앱 화면이 여기 있다. `MainActivity` 가 부르는 `NotesRoute()` 와 셸(`NavDisplay` 하나 · `MyNoteTheme` 하나 · 셸 ViewModel)은
-`:app` 의 `shell/` 이고, 셸이 이 모듈의 ViewModel 셋(노트 · 설정 · 퀴즈, + 연결 `ConnectViewModel`)과 등록 파일 셋을 불러
-화면 9개(Home · Bookmarks · ListPanel · NoteReader · Settings · 퀴즈 4개)를 그린다. 통계 · 지난 요약은 `:feature:stats` 에 있다(`feature/stats/AGENTS.md`). "새 화면을 추가한다" 는 대개
+`:app` 의 `shell/` 이고, 셸이 이 모듈의 ViewModel 셋(노트 · 설정 · 퀴즈)과 등록 파일 둘을 불러
+화면 9개(Home · Bookmarks · ListPanel · NoteReader · Settings · 퀴즈 4개)를 그린다. 통계 · 지난 요약은 `:feature:stats`(`feature/stats/AGENTS.md`), 연결 화면은 `:feature:connect`(`feature/connect/AGENTS.md`)에 있다. "새 화면을 추가한다" 는 대개
 새 모듈이 아니라 이 구조 안에 끼우는 일이다.
 
 의존은 컨벤션(`hancenote.android.feature`)이 `:core:common` · `:core:design-system` ·
@@ -27,7 +27,6 @@ UseCase 와 `QuizGenerator` 인터페이스로만 들어온다.
 | `Navigator`(`:core:navigation`, `@Singleton`) | **백스택** | 소유자가 하나여야 하고, 입구가 하나라 거기서 쓰로틀을 건다 |
 | 컴포지션 로컬(`rememberSaveable`) | 드로어 열림 · 고정 패널 펼침 · 모델 확인 다이얼로그 | 목적지가 아니고 레이아웃 상태다. 백스택 엔트리가 아니다 |
 | `NotesDrafts`(`:app` 셸 `NotesScreen` 의 `remember`, 셸 분기 위) | **토큰 입력 draft · 보기 여부**(연결 화면 · 설정 편집기 각각) | 저장하지 않는다 — 상태 복원 번들에 원문이 안 들어가고(결정 16), 접기·펴기·회전에는 셸 분기가 바뀌어도 남는다. `toString` 에 원문이 없다(`TokenDraft`) |
-| `ConnectViewModel`(Activity 스코프) | 연결 화면 흐름(확인 중 · 토큰 갈래 · 첫 동기화 · 확인 대화상자). 링크 draft 만 `SavedStateHandle` | 루트와 쌓은 화면이 같은 상태를 쓴다 |
 
 플로팅 내비의 선택은 이 셋 어디에도 없다 — `ShellUiState.selectedTab`(`Reader`·`Settings` 를 건너뛴 가장 위의
 `Home`/`Bookmarks`/`Stats`)으로 **백스택에서 파생**한다. 선택 상태를 따로 두면 화면과 어긋난다.
@@ -120,12 +119,11 @@ UseCase 와 `QuizGenerator` 인터페이스로만 들어온다.
 
 시작 분기 · Scaffold · 드로어/고정 패널 틀 · `NavDisplay` · 오버레이 자리 · 뒤로가기 7단 순서 · 루트 스낵바 · 모델 알약 · 셸 ViewModel 은
 `:app` 의 `shell/` 이다(기능 문서 `feature-modules` 결정 2 · FM-5). 뒤로가기 순위 표와 셸 파일 나눔은 `app/AGENTS.md` 에 있다.
-이 모듈은 셸이 부르는 것 — 등록 파일 셋(`notesDestinations` · `settingsDestinations` · `connectDestinations`) ·
+이 모듈은 셸이 부르는 것 — 등록 파일 둘(`notesDestinations` · `settingsDestinations`) ·
 목록 패널(`ListPanelScreen` · `ListPanelChrome`) · 퀴즈 오버레이(`QuizOverlay`) · 모델 확인 대화상자(`ModelConfirmDialog`) ·
-연결 루트(`ConnectRoute`) · 읽는 중 화면(`ConnectReadingScreen`) · ViewModel 셋 — 만 공개로 내놓고 셸을 import 하지 않는다.
-BR-8 계측이 그리는 연결 화면(`ConnectScreen`)도 그래서 공개다.
+ViewModel 셋 — 만 공개로 내놓고 셸을 import 하지 않는다. 연결 루트 · 읽는 중 화면은 `:feature:connect` 에 있다.
 
-엔트리 안 핸들러(설정의 토큰 편집 취소 · 쌓은 연결 화면의 뒤로)는 이 모듈 화면에 있다. `NavDisplay` 뒤에 컴포즈되어 pop 보다
+엔트리 안 핸들러(설정의 토큰 편집 취소)는 이 모듈 화면에 있다(쌓은 연결 화면의 뒤로는 `:feature:connect`). `NavDisplay` 뒤에 컴포즈되어 pop 보다
 먼저 받는다 — 7단 밖이고 `:app` 의 `BackOrderTest`(`FM-10 토큰 편집 중 뒤로가기는 편집을 취소한다`)가 지킨다.
 
 ---
@@ -339,12 +337,8 @@ Column(fillMaxSize) {
   연결 루트는 셸 밖이라 인셋을 직접 갖고 스낵바는 루트 호스트를 받는다. 루트의 뒤로가기는 콜백(`onShellBack`)으로 셸 VM 에 간다. `NotesExitEffects`(셸 파일의 `internal`)는 `NotesRoute` 가 분기 위에서
   한 번 부른다. 분기마다 두면 연결 루트와 셸을 오갈 때 종료 안내가 다시 뜬다. 연결을 읽기 전(`connection == null`) · 노트를 읽기 전(`notesLoaded`) · 시드 소비 전(`seedPending`)에는 연결 화면도 홈도 그리지 않는다.
 - **화면 정리는 연결 상태 전이가 한다.** `:app` 의 `ShellViewModel.onConnectionChanged` 가 (이전 → 다음 연결) 을 `shell/ScreenCleanup.kt:screenCleanupOf` 에 넘겨 스택 `[Home]` · 퀴즈 닫기 · 마지막 동기화를 같은 틱에 정한다(FM-6 ⑨). 시드 · 확정 · 끊기 어느 길이든 한 곳이고, 화면이 따로 discard 를 부르지 않는다.
-- **연결 화면 자리는 둘**: 첫 실행 루트(`ConnectPlace.Root`) · 쌓은 화면(`ConnectPlace.Stacked`, `NotesNavKey.Connect` entry + 자체 `NotesTopBar`). 셸은 `Connect` 가 top 이면 topBar · 플로팅 내비 · 알약 · 맨 위로 · 드로어 제스처를 숨긴다.
-  뒤로가기는 엔트리 안 `BackHandler`(NavDisplay 뒤에 컴포즈되어 이긴다) — 판정은 순수 함수 `connectBackAction`.
-- **판정 로직은 순수 함수**(`element/` — 시작 분기 둘 `startDestination` · `screenCleanupOf` 는 `:app` `shell/`)다: `startDestination` · `screenCleanupOf` · `connectBackAction` · `repoCardUi`(RC-13) · `reduceTokenEdit`(RC-18 전이표 + D37 · D39) · `homeBodyOf`(RC-21) · `issueOfProbe`/`issueOfSync` · `linkCheckOf` · `confirmUiOf`. 시험 이름에 항목 ID.
-- **입구 구역(RC-25) · 목록 없음 상자의 길(RC-9)** 은 `TemplateRepo?`(앱이 제공, `ConnectViewModel` 생성자 → `ConnectUiState.template`)가 있을 때만 그려진다. 보임·위계·두 단·길 판정은 순수 함수 `element/ConnectEntry.kt`(`entryVisible` · `entryEmphasis` · `twoColumnsOf` · `noticeWays`)이고, 확인 대화상자는 입력이 아니다.
-  링크 구역(안내·칸·알림·토큰·`연결`)은 `movableContentOf` 한 벌이라 가로 두 단 ↔ 한 단에서 칸이 새로 만들어지지 않는다 — **이 구역을 `Row`/`Column` 에 두 번 쓰지 말 것**(포커스·키보드가 날아간다). 입구 버튼은 VM 을 거치지 않고 `openExternal` 로 외부 브라우저만 연다.
-  `openExternal` 은 브라우저 패키지(기본 → Chrome → 처음 찾은 것)를 골라 열어 주소를 맡겠다고 한 다른 앱을 거치지 않는다. `openExternal` 은 `:core:ui` 에 있고, 브라우저를 찾는 데 그 모듈 manifest 의 `<queries>` 가 필요하다 — 지우면 조용히 일반 열기로 돌아간다.
+- **연결 화면(첫 실행 루트 · 쌓은 화면 · 입구 구역 · 확인 대화상자)은 `:feature:connect` 다** — `feature/connect/AGENTS.md`. 이 모듈에는 홈 · 목록 패널의 연결 띠(`screen/connect/ConnectBand.kt`)와 설정의 끊기 대화상자(`screen/connect/DisconnectDialog.kt`)만 남았다.
+- **판정 로직은 순수 함수**(`element/` — 시작 분기 둘 `startDestination` · `screenCleanupOf` 는 `:app` `shell/`, 연결 화면 판정은 `:feature:connect`)다: `startDestination` · `screenCleanupOf` · `repoCardUi`(RC-13 · `:core:ui`) · `reduceTokenEdit`(RC-18 전이표 + D37 · D39) · `homeBodyOf`(RC-21) · `tokenFailureOfProbe`(설정 토큰 확인). 시험 이름에 항목 ID.
 - **홈 히어로의 저장소 줄은 확정된 연결의 정식 이름 그대로다**(`NotesUiState.heroRepoName` = `connectedRepo?.fullName`, BR-6). 바꾸는 중의
   대상(확인 · 첫 동기화)은 `ConnectViewModel` 에만 있어 홈에 안 보이고, 확정되면 `observeConnection` 이 새 이름을 흘린다. 연결이 없으면 줄이 없다.
   히어로 그림 · 배치는 design-system `MyNoteHero` 이고 제목 이름은 `ui_app_title`(MyNote — 상단 바 · 읽는 중 화면과 같은 문자열)이다.

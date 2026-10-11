@@ -6,7 +6,7 @@
 | 기능 문서 | docs/spec/screen-copy.md |
 | 등급 | 문구만 |
 | 바꾼 문구 표 | docs/design/screen-copy-rows.md (이 문서가 20 KB 를 넘지 않게 나눴다) |
-| 마지막 변경 | 2026-10-12 · 통계 문구의 리소스 이름을 `stats_` 로 · 한 줄 고정 자리 파일 칸을 통계 모듈 경로로(move-stats — 값 그대로) |
+| 마지막 변경 | 2026-10-12 · 연결 문구의 리소스 이름을 `connect_` 로 · 한 줄 고정 자리 파일 칸을 연결 모듈 경로로(move-connect — 값 그대로) |
 
 ## 문구
 
@@ -133,7 +133,7 @@ SC-1 이 보지 않는 문구다. 이름으로만 뺀다.
 
 | 자리 | 파일 | 리소스 | 이번에 바꾼 행 |
 |---|---|---|---|
-| 상단 바 제목 | `shell/NotesTopBar.kt` | `ui_app_title` · `ui_settings` · `shell_nav_bookmark` · `shell_nav_stats` · `shell_stats_history_title` · `notes_connect_change_title` · `notes_connect_attach_title` | 없음 |
+| 상단 바 제목 | `shell/NotesTopBar.kt` | `ui_app_title` · `ui_settings` · `shell_nav_bookmark` · `shell_nav_stats` · `shell_stats_history_title` · `connect_change_title` · `connect_attach_title` | 없음 |
 | 플로팅 내비 라벨(12sp) | ds `FloatingNav.kt` | `shell_nav_home` · `shell_nav_bookmark` · `shell_nav_stats` | 없음 |
 | 상태 알약 | ds `FloatingStatusPill.kt` | `ui_pill_*` 다섯 · `ui_model_percent` | 없음 |
 | 퀴즈 CTA 부제 | `quiz/component/QuizCtaCard.kt` | `ui_quiz_cta_subtitle` · `ui_quiz_cta_need_model` · `ui_quiz_cta_paused` · `ui_quiz_cta_downloading` · `ui_pill_failed` | 없음 |
@@ -149,13 +149,13 @@ SC-1 이 보지 않는 문구다. 이름으로만 뺀다.
 | 북마크 행 · 큰 카드 시각 | `screen/bookmarks/` | `notes_bookmark_row_sub` · `ui_bookmark_added_*` · 날짜 형식 | 없음 |
 | 목록 패널 설정 줄 · 배지 | `screen/ListPanelScreen.kt` | `ui_settings` · `notes_model_badge_*` · `notes_settings_token_check_badge` · `ui_model_percent` | 없음 |
 | 원문 보기 버튼 | ds `UnsupportedBlock.kt` | `ds_unsupported_show_raw` · `hide_raw` · `more_lines` | 없음 |
-| 주소 · 토큰 칸 힌트 | `screen/connect/ConnectParts.kt` | `notes_connect_link_hint` · `ui_settings_token_placeholder` | 없음 |
+| 주소 · 토큰 칸 힌트 | connect `screen/ConnectParts.kt` | `connect_link_hint` · `ui_settings_token_placeholder` | 없음 |
 
 한 줄 자리는 아니지만 줄 수를 늘리면 안 되는 곳:
 
 | 자리 | 왜 | 이번에 바꾼 행 |
 |---|---|---|
-| 첫 실행 연결 화면(가로 800 × 336 · 두 단) | BR-8 — 스크롤 없이 한 화면 | `notes_entry_title` −1 · `notes_entry_step_1` −1 · `notes_connect_token_desc` −3 · `notes_connect_syncing_desc` −4 · `ui_connect_err_offline` −5. 늘어나는 행은 `ui_token_err_rejected` +8 하나 — 토큰을 넣은 뒤의 오류 상자라 BR-8 이 보는 첫 화면에는 없다. SC-9 캡처로 본다 |
+| 첫 실행 연결 화면(가로 800 × 336 · 두 단) | BR-8 — 스크롤 없이 한 화면 | `connect_entry_title` −1 · `connect_entry_step_1` −1 · `connect_token_desc` −3 · `connect_syncing_desc` −4 · `ui_connect_err_offline` −5. 늘어나는 행은 `ui_token_err_rejected` +8 하나 — 토큰을 넣은 뒤의 오류 상자라 BR-8 이 보는 첫 화면에는 없다. SC-9 캡처로 본다 |
 | 접힌 알림 | 접히면 한 줄 | `ai_model_download_no_space` −3 · `ai_model_download_failed_body` −2 |
 
 ### 같이 바뀔 것
@@ -164,7 +164,7 @@ copy-apply 가 `strings.xml` 과 한 묶음으로 고친다. 인용 글자가 `s
 
 | # | 갈래 | 파일 · 자리 | 무엇 | 누가 |
 |---|---|---|---|---|
-| ① | 템플릿 README | `public-repos/notes-template/README.md` 앱 용어 일곱 · 문제 해결의 연결 실패 문장 | 바뀌는 값 없음 — 일곱(`notes_entry_create` · `notes_connect_link_label` · `notes_connect_action` · `notes_connect_token_title` · `ui_token_howto_*` 셋)과 `notes_connect_err_no_list` 는 그대로. 확인만 | copy-apply |
+| ① | 템플릿 README | `public-repos/notes-template/README.md` 앱 용어 일곱 · 문제 해결의 연결 실패 문장 | 바뀌는 값 없음 — 일곱(`connect_entry_create` · `connect_link_label` · `connect_action` · `connect_token_title` · `ui_token_howto_*` 셋)과 `connect_err_no_list` 는 그대로. 확인만 | copy-apply |
 | ② | DESIGN.md | 9.2 `ds_unsupported_*` 다섯 · 9.3 권유 끝말 · 9.4 옮긴 문구 표의 ☰ 줄 · 확인 다이얼로그 예 · 실패 예 · 쓰지 않는 표현 머리 | 이 문서와 같은 커밋에서 고쳤다 | 디자인(끝남) |
 | ③ | 공개 규격 | `public-repos/notes-kit/SPEC.md` 와 플러그인 사본 | 인용 낱말(`원문 보기` · `노트 목록` · `노트 저장소`)이 그대로라 고칠 것 없음. 확인만 | copy-apply |
 | ④ | 기능 문서 | `docs/spec/sync.md` SY-6 `노트 변경 반영 — …` → `노트를 불러왔습니다 · …` | 인용 글자만 · 바뀐 기록 `인용 문구만` | copy-spec |
@@ -213,3 +213,4 @@ copy-apply 가 `strings.xml` 과 한 묶음으로 고친다. 인용 글자가 `s
 | 2026-10-11 | feature-modules | 끝말 막음 8 · 9 넓히고 10 더함 — 검수가 `맞지?` · `다시 해` 거짓 통과를 찾았다 |
 | 2026-10-12 | feature-modules | 리소스 이름만 — 셸이 `:app` 으로 가며 셸만 쓰는 내비 · 제목 문구 넷이 `notes_` 에서 `shell_` 로(값 그대로 · feature-modules 결정 15 · 16) |
 | 2026-10-12 | feature-modules | 리소스 이름 · 경로만 — 통계가 `:feature:stats` 로 가며 통계만 쓰는 문구가 `notes_stats_` 에서 `stats_` 로(값 그대로 · feature-modules 결정 15) · 한 줄 고정 자리 통계 세 행의 파일 칸이 통계 모듈 안 경로로 |
+| 2026-10-12 | feature-modules | 리소스 이름 · 경로만 — 연결 화면이 `:feature:connect` 로 가며 연결만 쓰는 문구가 `notes_connect_` · `notes_entry_` · `notes_link_reason_` · 바꾸기 · 받아들이기 대화상자에서 `connect_` 로(값 그대로 · feature-modules 결정 15) · 한 줄 고정 자리 주소 칸 힌트 행의 파일 칸이 연결 모듈 안 경로로 |

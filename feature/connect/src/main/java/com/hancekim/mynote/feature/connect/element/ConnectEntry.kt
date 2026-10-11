@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.element
+package com.hancekim.mynote.feature.connect.element
 
 enum class EntryEmphasis { Equal, LinkFirst }
 

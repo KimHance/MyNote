@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen.connect
+package com.hancekim.mynote.feature.connect.screen
 
 import androidx.lifecycle.SavedStateHandle
 import com.hancekim.mynote.core.domain.ConnectRepositoryUseCase
@@ -23,13 +23,12 @@ import com.hancekim.mynote.core.domain.repository.ConnectionRepository
 import com.hancekim.mynote.core.domain.repository.NetworkStatusSource
 import com.hancekim.mynote.core.domain.repository.TokenRepository
 import com.hancekim.mynote.core.ui.element.SecretText
-import com.hancekim.mynote.feature.notes.element.ConfirmKind
-import com.hancekim.mynote.feature.notes.element.ConfirmUi
-import com.hancekim.mynote.feature.notes.element.ConnectNotice
-import com.hancekim.mynote.feature.notes.element.ConnectStep
-import com.hancekim.mynote.feature.notes.element.NotesUiState
-import com.hancekim.mynote.feature.notes.element.NoticeWays
-import com.hancekim.mynote.feature.notes.element.noticeWays
+import com.hancekim.mynote.feature.connect.element.ConfirmKind
+import com.hancekim.mynote.feature.connect.element.ConfirmUi
+import com.hancekim.mynote.feature.connect.element.ConnectNotice
+import com.hancekim.mynote.feature.connect.element.ConnectStep
+import com.hancekim.mynote.feature.connect.element.NoticeWays
+import com.hancekim.mynote.feature.connect.element.noticeWays
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -255,33 +254,6 @@ class ConnectViewModelTest {
         }
 
     @Test
-    fun `BR-6 히어로 저장소 줄은 확정된 연결에서만 나온다`() =
-        runTest {
-            val old = RepoConnection("Old-Owner", "Old-Notes", "main", "notes/index.json", isPublic = true)
-            val connections = FakeConnections(MutableStateFlow(ConnectionState.Connected(SourceId("s0"), old)))
-            val vm = viewModel(FakeProbe { ConnectProbeResult.Verified(repo, emptySet()) }, connections)
-            val collector = launch(UnconfinedTestDispatcher(testScheduler)) { vm.state.collect {} }
-
-            fun heroRepo() = NotesUiState(connection = connections.connection.value).heroRepoName
-
-            vm.onIntent(ConnectIntent.LinkChanged(link))
-            vm.onIntent(ConnectIntent.Submit(null))
-            val dialog = vm.state.value.confirm
-            assertEquals(ConfirmKind.Switch, dialog?.kind)
-            assertEquals("Old-Owner/Old-Notes", heroRepo())
-
-            vm.onIntent(ConnectIntent.AcceptConfirm)
-            assertEquals(ConnectStep.Syncing, vm.state.value.step)
-            assertEquals("Old-Owner/Old-Notes", heroRepo())
-
-            connections.syncGate.complete(Result.success(SyncOutcome(added = 3)))
-
-            assertEquals(ConnectStep.Done, vm.state.value.step)
-            assertEquals("octo-learner/android-notes", heroRepo())
-            collector.cancel()
-        }
-
-    @Test
     fun `RC-5 무인증 404 는 토큰 요청 상태가 되고 링크는 그대로다`() =
         runTest {
             val probe = FakeProbe { ConnectProbeResult.Failed(ConnectProbeFailure.NeedsToken) }
@@ -316,7 +288,7 @@ class ConnectViewModelTest {
             assertNull(state.notice)
             assertNull(state.tokenPanel)
             assertEquals(ConnectStep.Editing, state.step)
-            assertFalse(state.linkCheck is com.hancekim.mynote.feature.notes.element.LinkCheck.Found)
+            assertFalse(state.linkCheck is com.hancekim.mynote.feature.connect.element.LinkCheck.Found)
             assertTrue(state.resetCount > 0)
             collector.cancel()
         }

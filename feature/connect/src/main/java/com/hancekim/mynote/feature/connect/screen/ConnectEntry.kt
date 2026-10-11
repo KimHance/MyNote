@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen.connect
+package com.hancekim.mynote.feature.connect.screen
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
@@ -38,10 +38,10 @@ import com.hancekim.mynote.core.ui.screen.QuietButton
 import com.hancekim.mynote.core.ui.screen.SecondaryButton
 import com.hancekim.mynote.core.ui.screen.connect.ConnectIcons
 import com.hancekim.mynote.core.ui.screen.connect.KeepWordsText
-import com.hancekim.mynote.feature.notes.R
+import com.hancekim.mynote.feature.connect.R
 
 private val ENTRY_STEPS =
-    intArrayOf(R.string.notes_entry_step_1, R.string.notes_entry_step_2, R.string.notes_entry_step_3)
+    intArrayOf(R.string.connect_entry_step_1, R.string.connect_entry_step_2, R.string.connect_entry_step_3)
 
 @Composable
 internal fun EntrySection(
@@ -51,7 +51,7 @@ internal fun EntrySection(
     val colors = MyNoteTheme.colors
     Column(modifier = modifier.fillMaxWidth()) {
         KeepWordsText(
-            text = stringResource(R.string.notes_entry_title),
+            text = stringResource(R.string.connect_entry_title),
             style =
                 MyNoteTheme.textStyles.screenTitle.copy(
                     fontSize = ENTRY_TITLE_SIZE.sp,
@@ -61,7 +61,7 @@ internal fun EntrySection(
             modifier = Modifier.semantics { heading() },
         )
         KeepWordsText(
-            text = stringResource(R.string.notes_entry_desc),
+            text = stringResource(R.string.connect_entry_desc),
             style = MyNoteTheme.textStyles.bodySmall,
             color = colors.text2,
             modifier = Modifier.padding(top = 6.dp),
@@ -78,7 +78,7 @@ internal fun EntrySection(
             }
         }
         KeepWordsText(
-            text = stringResource(R.string.notes_entry_private),
+            text = stringResource(R.string.connect_entry_private),
             style = MyNoteTheme.textStyles.caption,
             color = colors.text3,
             modifier = Modifier.padding(top = 12.dp),
@@ -134,9 +134,9 @@ internal fun EntryCreateButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val label = stringResource(R.string.notes_entry_create_a11y)
+    val label = stringResource(R.string.connect_entry_create_a11y)
     SecondaryButton(
-        text = stringResource(R.string.notes_entry_create),
+        text = stringResource(R.string.connect_entry_create),
         onClick = onClick,
         trailingIcon = ConnectIcons.External,
         modifier = modifier.minimumInteractiveComponentSize().semantics { contentDescription = label },
@@ -149,9 +149,9 @@ internal fun EntryGuideButton(
     modifier: Modifier = Modifier,
 ) {
     QuietButton(
-        text = stringResource(R.string.notes_entry_guide),
+        text = stringResource(R.string.connect_entry_guide),
         onClick = onClick,
-        contentDescription = stringResource(R.string.notes_entry_guide_a11y),
+        contentDescription = stringResource(R.string.connect_entry_guide_a11y),
         trailingIcon = ConnectIcons.External,
         modifier = modifier.minimumInteractiveComponentSize(),
     )
@@ -176,7 +176,7 @@ internal fun EntryDivider(modifier: Modifier = Modifier) {
     ) {
         Box(Modifier.weight(1f).height(1.dp).background(colors.border))
         KeepWordsText(
-            text = stringResource(R.string.notes_entry_or),
+            text = stringResource(R.string.connect_entry_or),
             style = MyNoteTheme.textStyles.caption,
             color = colors.text3,
         )

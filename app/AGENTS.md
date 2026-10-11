@@ -76,7 +76,7 @@
 
 **목적지 키 7개의 화면은 기능별 등록 파일이 등록한다(FM-4).** `:feature:notes` 의 `NotesDestinations.kt`(홈 · 북마크 · 리더) ·
 `:feature:stats` 의 `screen/StatsDestinations.kt`(통계 · 지난 요약) · `settings/SettingsDestinations.kt`(설정) ·
-`screen/connect/ConnectDestinations.kt`(쌓은 연결 화면). 셸 파일은 목적지 화면을 부르지 않고, `shellDestinations` 가 기능마다
+`:feature:connect` 의 `screen/ConnectDestinations.kt`(쌓은 연결 화면). 셸 파일은 목적지 화면을 부르지 않고, `shellDestinations` 가 기능마다
 자기 상태 · 입구만 넘겨 묶는다. 화면이 셸에게서 받는 틀 값은 셸 틀 계약 `:core:ui` 의 `frame/ShellFrame`(위 · 아래 · 끝 여백 · 두 단 · 쌓이는 씬 ·
 스크롤 홀더 · draft · 스낵바 호스트)뿐이다. 기능 자기 상태 · 입구와 셸이 묶어 넘기는 화면용 값(연결 있음 · 셸 뒤로 · 리더 CTA 의
 모델 상태 · 행동 · 알림 설정 열기 같은 것)은 틀 밖의 등록 함수 인자다(기능 문서 `feature-modules` 결정 13 · 18). 등록 틀(`:core:navigation` 의 `registry/`)이 모든 화면을 공유 전환 스코프로 감싸고
@@ -192,7 +192,7 @@ DataStore(DataStoreTokenStore) → TokenRepository → ObserveTokenUseCase
 
 ### BuildConfig 필드 — debug 첫 실행 시드 + 템플릿 주소
 
-저장소 연결은 앱 화면(`:feature:notes` 연결 화면)에서 한다. 빌드가 넣는 값은 **둘**이다: **debug 첫 실행 시드**와
+저장소 연결은 앱 화면(`:feature:connect` 연결 화면)에서 한다. 빌드가 넣는 값은 **둘**이다: **debug 첫 실행 시드**와
 **템플릿 저장소 주소**(RC-26). `RemoteConfigModule` 이 시드를 `ConnectionSeed?`(`GITHUB_OWNER`·`GITHUB_REPO` 둘 다 채워졌을 때만),
 템플릿 주소를 `TemplateRepo?`(`parseTemplateRepo(BuildConfig.TEMPLATE_REPO)` — 모양이 틀리거나 비면 `null`)로 만든다.
 필드는 여섯: `GITHUB_OWNER`·`GITHUB_REPO`·`GITHUB_BRANCH`·`GITHUB_TOKEN`·`TEMPLATE_REPO`·`TITLE_FONT_NAME`(아래 제목 글꼴 절).

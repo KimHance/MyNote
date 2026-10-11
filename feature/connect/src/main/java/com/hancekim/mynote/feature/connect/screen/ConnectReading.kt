@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen.connect
+package com.hancekim.mynote.feature.connect.screen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.ui.screen.connect.KeepWordsText
 import com.hancekim.mynote.core.ui.screen.connect.ProgressRing
-import com.hancekim.mynote.feature.notes.R
+import com.hancekim.mynote.feature.connect.R
 import com.hancekim.mynote.core.ui.R as UiR
 
 @Composable
@@ -43,7 +43,7 @@ fun ConnectReadingScreen(modifier: Modifier = Modifier) {
                 )
                 ProgressRing()
                 KeepWordsText(
-                    text = stringResource(R.string.notes_connect_reading),
+                    text = stringResource(R.string.connect_reading),
                     style = MyNoteTheme.textStyles.caption,
                     color = colors.text3,
                 )

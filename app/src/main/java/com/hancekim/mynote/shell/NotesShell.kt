@@ -52,7 +52,9 @@ import com.hancekim.mynote.core.ui.frame.ShellFrame
 import com.hancekim.mynote.core.ui.shell.NotesScrollState
 import com.hancekim.mynote.core.ui.shell.NotesTopBar
 import com.hancekim.mynote.core.ui.shell.rememberNotesScrollState
-import com.hancekim.mynote.feature.notes.element.ConnectPlace
+import com.hancekim.mynote.feature.connect.element.ConnectPlace
+import com.hancekim.mynote.feature.connect.screen.ConnectReadingScreen
+import com.hancekim.mynote.feature.connect.screen.ConnectRoute
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.quiz.QuizOverlay
@@ -60,8 +62,6 @@ import com.hancekim.mynote.feature.notes.quiz.QuizUiState
 import com.hancekim.mynote.feature.notes.screen.ListPanelChrome
 import com.hancekim.mynote.feature.notes.screen.ListPanelScreen
 import com.hancekim.mynote.feature.notes.screen.ModelConfirmDialog
-import com.hancekim.mynote.feature.notes.screen.connect.ConnectReadingScreen
-import com.hancekim.mynote.feature.notes.screen.connect.ConnectRoute
 import com.hancekim.mynote.feature.notes.settings.SettingsIntent
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop

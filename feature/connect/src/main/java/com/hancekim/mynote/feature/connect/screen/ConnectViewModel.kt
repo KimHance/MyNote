@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen.connect
+package com.hancekim.mynote.feature.connect.screen
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -12,15 +12,15 @@ import com.hancekim.mynote.core.domain.connect.TemplateRepo
 import com.hancekim.mynote.core.domain.model.ConnectionState
 import com.hancekim.mynote.core.ui.FailureLog
 import com.hancekim.mynote.core.ui.element.TokenReason
-import com.hancekim.mynote.feature.notes.element.ConfirmUi
-import com.hancekim.mynote.feature.notes.element.ConnectIssue
-import com.hancekim.mynote.feature.notes.element.ConnectNotice
-import com.hancekim.mynote.feature.notes.element.ConnectStep
-import com.hancekim.mynote.feature.notes.element.canConnect
-import com.hancekim.mynote.feature.notes.element.confirmUiOf
-import com.hancekim.mynote.feature.notes.element.issueOfProbe
-import com.hancekim.mynote.feature.notes.element.issueOfSync
-import com.hancekim.mynote.feature.notes.element.linkCheckOf
+import com.hancekim.mynote.feature.connect.element.ConfirmUi
+import com.hancekim.mynote.feature.connect.element.ConnectIssue
+import com.hancekim.mynote.feature.connect.element.ConnectNotice
+import com.hancekim.mynote.feature.connect.element.ConnectStep
+import com.hancekim.mynote.feature.connect.element.canConnect
+import com.hancekim.mynote.feature.connect.element.confirmUiOf
+import com.hancekim.mynote.feature.connect.element.issueOfProbe
+import com.hancekim.mynote.feature.connect.element.issueOfSync
+import com.hancekim.mynote.feature.connect.element.linkCheckOf
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
