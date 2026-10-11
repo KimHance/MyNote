@@ -38,10 +38,10 @@ import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.designsystem.theme.ProvideTitleFontFamily
 import com.hancekim.mynote.core.domain.connect.TemplateRepo
 import com.hancekim.mynote.core.ui.element.TokenDraft
-import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.element.ConnectPlace
-import com.hancekim.mynote.feature.notes.screen.connect.ConnectScreen
-import com.hancekim.mynote.feature.notes.screen.connect.ConnectUiState
+import com.hancekim.mynote.feature.connect.R
+import com.hancekim.mynote.feature.connect.element.ConnectPlace
+import com.hancekim.mynote.feature.connect.screen.ConnectScreen
+import com.hancekim.mynote.feature.connect.screen.ConnectUiState
 import com.hancekim.mynote.feature.stats.GeneratedAgo
 import com.hancekim.mynote.feature.stats.SummaryCardUi
 import com.hancekim.mynote.feature.stats.SummaryLabel
@@ -86,8 +86,8 @@ class TitleFontScreensTest {
                 onCreateToken = {},
             )
         }
-        val heading = context.getString(R.string.notes_connect_title)
-        val entry = context.getString(R.string.notes_entry_title)
+        val heading = context.getString(R.string.connect_title)
+        val entry = context.getString(R.string.connect_entry_title)
         val heights =
             eachFont("connect-800x360") { name ->
                 val scroll = rule.onNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.VerticalScrollAxisRange))

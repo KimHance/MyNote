@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen.connect
+package com.hancekim.mynote.feature.connect.screen
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
@@ -7,9 +7,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.ui.screen.connect.ActionDialog
-import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.element.ConfirmKind
-import com.hancekim.mynote.feature.notes.element.ConfirmUi
+import com.hancekim.mynote.feature.connect.R
+import com.hancekim.mynote.feature.connect.element.ConfirmKind
+import com.hancekim.mynote.feature.connect.element.ConfirmUi
 
 @Composable
 internal fun ConnectConfirmDialog(
@@ -35,24 +35,24 @@ internal fun ConnectConfirmContent(
     val confirmLabel: Int
     when (confirm.kind) {
         ConfirmKind.Switch -> {
-            title = R.string.notes_dialog_switch_title
-            confirmLabel = R.string.notes_dialog_switch_confirm
+            title = R.string.connect_dialog_switch_title
+            confirmLabel = R.string.connect_dialog_switch_confirm
         }
 
         ConfirmKind.Adopt -> {
-            title = R.string.notes_dialog_adopt_title
-            confirmLabel = R.string.notes_dialog_adopt_confirm
+            title = R.string.connect_dialog_adopt_title
+            confirmLabel = R.string.connect_dialog_adopt_confirm
         }
     }
     val body =
         when (confirm.kind) {
             ConfirmKind.Switch -> {
-                val base = stringResource(R.string.notes_dialog_switch_body, confirm.notes, confirm.bookmarks)
-                if (confirm.dropsToken) base + " " + stringResource(R.string.notes_dialog_switch_token) else base
+                val base = stringResource(R.string.connect_dialog_switch_body, confirm.notes, confirm.bookmarks)
+                if (confirm.dropsToken) base + " " + stringResource(R.string.connect_dialog_switch_token) else base
             }
 
             ConfirmKind.Adopt -> {
-                stringResource(R.string.notes_dialog_adopt_body, confirm.notes)
+                stringResource(R.string.connect_dialog_adopt_body, confirm.notes)
             }
         }
     ActionDialog(
@@ -60,43 +60,6 @@ internal fun ConnectConfirmContent(
         body = body,
         confirmLabel = stringResource(confirmLabel),
         destructive = confirm.kind == ConfirmKind.Switch,
-        onDismiss = onDismiss,
-        onConfirm = onConfirm,
-    )
-}
-
-@Composable
-internal fun DisconnectDialog(
-    notes: Int,
-    bookmarks: Int,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit,
-) {
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
-    ) {
-        DisconnectDialogContent(notes = notes, bookmarks = bookmarks, onDismiss = onDismiss, onConfirm = onConfirm)
-    }
-}
-
-@Composable
-internal fun DisconnectDialogContent(
-    notes: Int,
-    bookmarks: Int,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit,
-) {
-    ActionDialog(
-        title = stringResource(R.string.notes_dialog_disconnect_title),
-        body =
-            if (notes == 0 && bookmarks == 0) {
-                stringResource(R.string.notes_dialog_disconnect_empty)
-            } else {
-                stringResource(R.string.notes_dialog_disconnect_body, notes, bookmarks)
-            },
-        confirmLabel = stringResource(R.string.notes_dialog_disconnect_confirm),
-        destructive = true,
         onDismiss = onDismiss,
         onConfirm = onConfirm,
     )
@@ -123,22 +86,6 @@ private fun SwitchDialogTokenPreview() {
             onDismiss = {},
             onConfirm = {},
         )
-    }
-}
-
-@Preview(name = "대화상자 · 끊기", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 360, heightDp = 640)
-@Composable
-private fun DisconnectDialogPreview() {
-    MyNoteTheme {
-        DisconnectDialogContent(notes = 24, bookmarks = 3, onDismiss = {}, onConfirm = {})
-    }
-}
-
-@Preview(name = "대화상자 · 끊기 · 개수 0", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 360, heightDp = 640)
-@Composable
-private fun DisconnectDialogEmptyPreview() {
-    MyNoteTheme {
-        DisconnectDialogContent(notes = 0, bookmarks = 0, onDismiss = {}, onConfirm = {})
     }
 }
 

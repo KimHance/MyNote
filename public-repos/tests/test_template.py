@@ -20,10 +20,10 @@ KIT_TOOL = support.load_module("kit_tool_for_template", support.KIT_TOOL)
 
 README_SECTIONS = ["시작하기", "노트 추가", "비공개로 만들었다면", "형식", "문제 해결"]
 APP_TERMS = [
-    "notes_entry_create",
-    "notes_connect_link_label",
-    "notes_connect_action",
-    "notes_connect_token_title",
+    "connect_entry_create",
+    "connect_link_label",
+    "connect_action",
+    "connect_token_title",
     "ui_token_howto_kind",
     "ui_token_howto_scope",
     "ui_token_howto_perm",

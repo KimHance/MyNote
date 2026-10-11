@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.element
+package com.hancekim.mynote.feature.connect.element
 
 import com.hancekim.mynote.core.domain.connect.ConnectProbeFailure
 import com.hancekim.mynote.core.ui.element.TokenFailureKind

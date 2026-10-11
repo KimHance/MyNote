@@ -5,7 +5,7 @@
 | 기능 | repo-connect |
 | 기능 문서 | docs/spec/repo-connect.md (기준 a5eb8fb) · docs/spec/sync.md SY-5 · docs/spec/note-template.md 머리 |
 | 등급 | 화면 |
-| 마지막 변경 | 2026-10-12 · 리소스 이름만 — 브라우저 없음 스낵바 문구 이름 `ui_token_browser_missing`(feature-modules move-core-ui) |
+| 마지막 변경 | 2026-10-12 · 리소스 이름만 — 입구 · RC-9 문구 이름 `connect_*`(feature-modules move-connect) |
 
 기준: `DESIGN.md` 토큰 · 설정 토큰 카드 · 북마크 빈 상태 문법. 새 색 없음. 가짜 예시만. **차수 1 은 새 컴포넌트 없음, 차수 2 는 새 조립 둘**: 입구 구역(번호 단계 목록 + 보조 외부 버튼) · RC-9 상자 + 버튼 줄(낭독 영역 밖). 차수 2 의 시안은 `r2/`, 장 설명은 `r2/README.md`.
 
@@ -118,14 +118,14 @@
 | 알아본 결과 | 저장소 %1$s · 브랜치 %2$s · 노트 위치 %3$s | RC-2. 브랜치 생략 = `기본 브랜치`(D49) · 위치는 폴더만 | index.json |
 | 브라우저 없음 | 브라우저를 열지 못했습니다 / 브라우저 앱이 있는지 확인하세요. | RC-8 스낵바 · **입구 · 길도 재사용**(중립) | |
 | 목록 없음 | 이 저장소에는 노트 목록이 없습니다. 이 앱은 노트 목록이 있는 저장소만 읽을 수 있습니다. | RC-9 | 지원하지 않는 형식 · 마크다운 |
-| **입구** 제목 | 저장소가 아직 없다면 | `notes_entry_title`. 링크 구역엔 제목 없음(결정 59) | 노트가 없나요 |
-| 입구 한 줄 | 템플릿으로 내 노트 저장소를 만들 수 있습니다. | `notes_entry_desc` | 레포 · 복제 · Fork |
-| 입구 단계 ① ② ③ | ① GitHub에서 템플릿으로 저장소를 만듭니다. ② 만든 저장소의 주소를 복사합니다. ③ 이 앱의 주소 칸에 붙여 넣고 연결합니다. | `notes_entry_step_1~3`. ③ 은 "위 칸" 이 아니다(후보 B 는 칸이 아래) | Use this template · 위 칸 |
-| 입구 비공개 한 줄 | 비공개로 만들면 연결할 때 토큰이 필요합니다. | `notes_entry_private`. 공개 여부를 권하지 않는다 | 비공개를 권합니다 |
-| 입구 버튼 | 저장소 만들기 | `notes_entry_create`. 생성 화면을 외부 브라우저로 여는 일 — **대상(저장소)** 을 말한다. 낭독 `저장소 만들기, 외부 브라우저에서 열립니다` | 새로 만들기 · 노트 만들기 |
-| 구역 구분 | 또는 | `notes_entry_or`(장식 · 낭독 없음) | |
-| **RC-9** 한 줄 | 방금 템플릿으로 만들었다면 잠시 뒤 다시 연결하세요. | 결정 57 · `notes_connect_err_no_list_fresh` · 상자 낭독 영역 안 | 자동으로 다시 시도합니다 |
-| RC-9 길 ① ② | ① 저장소 만들기(입구와 같은 말 · 같은 키) ② 형식 안내 보기 | `notes_entry_guide`. 도착지 = 템플릿 저장소 소개 페이지. 낭독 `형식 안내 보기, 외부 브라우저에서 열립니다` | 템플릿 보기 · 도움말 · 문서 |
+| **입구** 제목 | 저장소가 아직 없다면 | `connect_entry_title`. 링크 구역엔 제목 없음(결정 59) | 노트가 없나요 |
+| 입구 한 줄 | 템플릿으로 내 노트 저장소를 만들 수 있습니다. | `connect_entry_desc` | 레포 · 복제 · Fork |
+| 입구 단계 ① ② ③ | ① GitHub에서 템플릿으로 저장소를 만듭니다. ② 만든 저장소의 주소를 복사합니다. ③ 이 앱의 주소 칸에 붙여 넣고 연결합니다. | `connect_entry_step_1~3`. ③ 은 "위 칸" 이 아니다(후보 B 는 칸이 아래) | Use this template · 위 칸 |
+| 입구 비공개 한 줄 | 비공개로 만들면 연결할 때 토큰이 필요합니다. | `connect_entry_private`. 공개 여부를 권하지 않는다 | 비공개를 권합니다 |
+| 입구 버튼 | 저장소 만들기 | `connect_entry_create`. 생성 화면을 외부 브라우저로 여는 일 — **대상(저장소)** 을 말한다. 낭독 `저장소 만들기, 외부 브라우저에서 열립니다` | 새로 만들기 · 노트 만들기 |
+| 구역 구분 | 또는 | `connect_entry_or`(장식 · 낭독 없음) | |
+| **RC-9** 한 줄 | 방금 템플릿으로 만들었다면 잠시 뒤 다시 연결하세요. | 결정 57 · `connect_err_no_list_fresh` · 상자 낭독 영역 안 | 자동으로 다시 시도합니다 |
+| RC-9 길 ① ② | ① 저장소 만들기(입구와 같은 말 · 같은 키) ② 형식 안내 보기 | `connect_entry_guide`. 도착지 = 템플릿 저장소 소개 페이지. 낭독 `형식 안내 보기, 외부 브라우저에서 열립니다` | 템플릿 보기 · 도움말 · 문서 |
 
 차수 1 의 나머지 문구(토큰 · 링크 이유 · 카드 · 대화상자 · 홈 … 바뀌지 않음)는 구현이 끝나 `strings.xml` 이 정본이고 표는 `labs/repo-connect-design/r2/README.md` §차수 1 문구표 로 옮겼다(문서 ≤ 20 KB).
 
@@ -189,3 +189,4 @@
 | 2026-10-06 | notes-template · 고침 1 | 후보 A 확정(D22) · 여백 값 = 코드 · 가로 `또는` 뺌(D26) · 정한 것 7 · C1–C4 |
 | 2026-10-08 | brand-identity | 문서 위생(`brand` 결정 7): 정한 것 · 확인 칸의 run 사진 경로를 걷음. 확인 내용 · 결정은 그대로 |
 | 2026-10-12 | feature-modules · move-core-ui | 리소스 이름만 — `notes_token_browser_missing` → `ui_token_browser_missing`(문구가 `:core:ui` 로 옮겨 감 · `feature-modules` FM-11 · FM-12). 값 · 뜻은 그대로 |
+| 2026-10-12 | feature-modules · move-connect | 리소스 이름만 — 입구 · RC-9 문구가 `notes_entry_*` · `notes_connect_err_no_list_fresh` 에서 `connect_entry_*` · `connect_err_no_list_fresh` 로(문구가 `:feature:connect` 로 옮겨 감 · `feature-modules` FM-11 · FM-12). 값 · 뜻은 그대로 |

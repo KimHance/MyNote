@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.element
+package com.hancekim.mynote.feature.connect.element
 
 import androidx.compose.runtime.Immutable
 import com.hancekim.mynote.core.domain.connect.ConnectReplacement

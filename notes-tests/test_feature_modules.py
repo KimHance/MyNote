@@ -141,13 +141,9 @@ SIGNAL_TYPES = (
 # FM-11 — 결정 15. 공통 액션 문구는 참조 수와 상관없이 design-system 에 산다
 COMMON_ACTION = "ds_action_"
 SHARED_STRING_HOMES = (CORE_UI, ":core:design-system")
-# 아직 `:feature:notes` 한 모듈이 쓰지만 기능을 다 떼면 둘 이상이 쓰는 문구 — 공용 조각과 같이 `:core:ui` 로 먼저 옮겼다.
-# 실제로 둘 이상이 쓰게 되면 시험이 이 목록에서 지우라고 알린다
-PLACED_AHEAD = {
-    "ui_token_browser_missing": "연결 · 설정",
-    "ui_token_classic_warn": "연결 · 설정",
-    "ui_token_verifying": "연결 · 설정",
-}
+# 아직 한 모듈이 쓰지만 기능을 다 떼면 둘 이상이 쓰는 문구 — 공용 조각과 같이 `:core:ui` 로 먼저 옮겼다.
+# 실제로 둘 이상이 쓰게 되면 시험이 이 목록에서 지우라고 알린다. 연결을 떼며 마지막 셋(`ui_token_*`)이 빠져 지금은 비었다
+PLACED_AHEAD = {}
 # FM-5 — 셸은 `:app` 에 산다. 결정 12 의 고정 순서 호출(연결 루트 · 읽는 중 · 모델 확인 대화상자 · 뒤로가기 핸들러 · 목록 패널 ·
 # 퀴즈 오버레이 · 상단 바)과 드로어 틀은 `:app` 의 셸 파일 한 곳에서 부른다. 기능 모듈에는 NavDisplay · 드로어 틀이 없다
 SHELL_FILE = "NotesShell.kt"
@@ -512,7 +508,9 @@ class FeatureModulesTest(unittest.TestCase):
         # 헛통과 막이 — 별칭 참조(`UiR`)와 둘 이상이 쓰는 문구를 실제로 알아보는지 먼저 본다
         self.assertGreaterEqual(len(references.get("ui_app_title", ())), 2, "둘 이상이 쓰는 문구를 알아보지 못했습니다")
         self.assertIn(":app", references.get("app_name", ()), "manifest 의 문구 참조를 읽지 못했습니다")
-        wrong = []
+        # 앞당긴 목록의 헛통과 막이 — 오타 · 지운 문구 · 아무도 안 쓰는 문구는 아래 반복이 보지 못한다(plan D49)
+        wrong = [f"{name}: 앞당긴 목록에 있지만 정의가 없다" for name in PLACED_AHEAD if name not in defined]
+        wrong += [f"{name}: 앞당긴 목록에 있지만 아무도 쓰지 않는다" for name in PLACED_AHEAD if name in defined and not references.get(name)]
         for name, homes in sorted(defined.items()):
             users = references.get(name, set())
             if name in PLACED_AHEAD:

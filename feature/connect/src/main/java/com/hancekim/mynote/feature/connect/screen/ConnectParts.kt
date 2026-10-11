@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen.connect
+package com.hancekim.mynote.feature.connect.screen
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.ui.screen.connect.FieldBox
 import com.hancekim.mynote.core.ui.screen.connect.KeepWordsText
-import com.hancekim.mynote.feature.notes.R
+import com.hancekim.mynote.feature.connect.R
 
 @Composable
 internal fun FieldLabel(
@@ -49,7 +49,7 @@ internal fun LinkField(
         Box(Modifier.weight(1f).padding(end = 8.dp)) {
             if (value.isEmpty()) {
                 KeepWordsText(
-                    text = stringResource(R.string.notes_connect_link_hint),
+                    text = stringResource(R.string.connect_link_hint),
                     style = MyNoteTheme.textStyles.mono,
                     color = colors.text3,
                     maxLines = 1,

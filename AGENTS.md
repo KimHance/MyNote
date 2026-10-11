@@ -185,7 +185,7 @@ ktlint·Compose 의존·Hilt 는 컨벤션이 자동으로 넣는다. (`build-lo
   `public-repos/tests/` 가 누출과 단독성을 검사한다(공개본에는 안 들어간다).
 - 규격 · 도구의 정본은 `notes-kit/SPEC.md` · `notes-kit/tools/note_tool.py` 하나다. 플러그인 안 사본은 시험이
   바이트 같음으로 묶으니 정본을 고치면 사본도 고친다.
-- 템플릿 README 는 앱 문구(`notes_entry_*` 등)에 시험으로 묶여 있다. 앱 문구를 바꾸면 README 시험이 깨진다(의도).
+- 템플릿 README 는 앱 문구(`connect_entry_*` 등)에 시험으로 묶여 있다. 앱 문구를 바꾸면 README 시험이 깨진다(의도).
 - 템플릿 예시 노트를 바꾸면 `:core:data` 의 NT-6 시험이 앱 파서로 다시 읽어 본다.
 - 앱의 `저장소 만들기` 입구는 루트 `gradle.properties` 의 `template.repo` 가 있을 때만 보인다(지금 빈 값).
 

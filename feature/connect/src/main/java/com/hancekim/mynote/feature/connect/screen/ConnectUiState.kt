@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen.connect
+package com.hancekim.mynote.feature.connect.screen
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
@@ -9,11 +9,11 @@ import com.hancekim.mynote.core.domain.connect.TemplateRepo
 import com.hancekim.mynote.core.ui.element.SecretText
 import com.hancekim.mynote.core.ui.element.TokenFailureKind
 import com.hancekim.mynote.core.ui.element.TokenReason
-import com.hancekim.mynote.feature.notes.element.ConfirmUi
-import com.hancekim.mynote.feature.notes.element.ConnectNotice
-import com.hancekim.mynote.feature.notes.element.ConnectStep
-import com.hancekim.mynote.feature.notes.element.LinkCheck
-import com.hancekim.mynote.feature.notes.element.entryVisible
+import com.hancekim.mynote.feature.connect.element.ConfirmUi
+import com.hancekim.mynote.feature.connect.element.ConnectNotice
+import com.hancekim.mynote.feature.connect.element.ConnectStep
+import com.hancekim.mynote.feature.connect.element.LinkCheck
+import com.hancekim.mynote.feature.connect.element.entryVisible
 
 @Immutable
 data class TokenPanelUi(

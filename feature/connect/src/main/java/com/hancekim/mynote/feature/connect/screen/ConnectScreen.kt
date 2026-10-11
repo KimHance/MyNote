@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen.connect
+package com.hancekim.mynote.feature.connect.screen
 
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -80,23 +80,23 @@ import com.hancekim.mynote.core.ui.screen.connect.VerifyingLine
 import com.hancekim.mynote.core.ui.screen.connect.monoAnnotated
 import com.hancekim.mynote.core.ui.screen.connect.openExternal
 import com.hancekim.mynote.core.ui.shell.NotesTopBar
-import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.element.ConfirmKind
-import com.hancekim.mynote.feature.notes.element.ConfirmUi
-import com.hancekim.mynote.feature.notes.element.ConnectBackAction
-import com.hancekim.mynote.feature.notes.element.ConnectNotice
-import com.hancekim.mynote.feature.notes.element.ConnectPlace
-import com.hancekim.mynote.feature.notes.element.ConnectStep
-import com.hancekim.mynote.feature.notes.element.EntryEmphasis
-import com.hancekim.mynote.feature.notes.element.LinkCheck
-import com.hancekim.mynote.feature.notes.element.NoticeWays
-import com.hancekim.mynote.feature.notes.element.canConnect
-import com.hancekim.mynote.feature.notes.element.connectBackAction
-import com.hancekim.mynote.feature.notes.element.connectNoticeRes
-import com.hancekim.mynote.feature.notes.element.entryEmphasis
-import com.hancekim.mynote.feature.notes.element.linkReasonRes
-import com.hancekim.mynote.feature.notes.element.noticeWays
-import com.hancekim.mynote.feature.notes.element.twoColumnsOf
+import com.hancekim.mynote.feature.connect.R
+import com.hancekim.mynote.feature.connect.element.ConfirmKind
+import com.hancekim.mynote.feature.connect.element.ConfirmUi
+import com.hancekim.mynote.feature.connect.element.ConnectBackAction
+import com.hancekim.mynote.feature.connect.element.ConnectNotice
+import com.hancekim.mynote.feature.connect.element.ConnectPlace
+import com.hancekim.mynote.feature.connect.element.ConnectStep
+import com.hancekim.mynote.feature.connect.element.EntryEmphasis
+import com.hancekim.mynote.feature.connect.element.LinkCheck
+import com.hancekim.mynote.feature.connect.element.NoticeWays
+import com.hancekim.mynote.feature.connect.element.canConnect
+import com.hancekim.mynote.feature.connect.element.connectBackAction
+import com.hancekim.mynote.feature.connect.element.connectNoticeRes
+import com.hancekim.mynote.feature.connect.element.entryEmphasis
+import com.hancekim.mynote.feature.connect.element.linkReasonRes
+import com.hancekim.mynote.feature.connect.element.noticeWays
+import com.hancekim.mynote.feature.connect.element.twoColumnsOf
 import kotlinx.coroutines.launch
 import com.hancekim.mynote.core.designsystem.R as DsR
 import com.hancekim.mynote.core.ui.R as UiR
@@ -148,7 +148,7 @@ fun ConnectRoute(
 
     val title =
         stringResource(
-            if (hasConnection) R.string.notes_connect_change_title else R.string.notes_connect_attach_title,
+            if (hasConnection) R.string.connect_change_title else R.string.connect_attach_title,
         )
     val content =
         @Composable {
@@ -247,7 +247,7 @@ fun ConnectScreen(
                     val withWays = noticeWays(notice, state.template != null) == NoticeWays.CreateAndGuide
                     NoticeBox(
                         text = stringResource(connectNoticeRes(notice)),
-                        secondLine = if (withWays) stringResource(R.string.notes_connect_err_no_list_fresh) else null,
+                        secondLine = if (withWays) stringResource(R.string.connect_err_no_list_fresh) else null,
                         ways =
                             if (withWays) {
                                 (
@@ -278,7 +278,7 @@ fun ConnectScreen(
                     SyncProgressCard()
                 } else {
                     PrimaryButton(
-                        text = stringResource(R.string.notes_connect_action),
+                        text = stringResource(R.string.connect_action),
                         enabled = canSubmit,
                         onClick = submit,
                         modifier = Modifier.fillMaxWidth().bringIntoViewRequester(buttonInView),
@@ -373,7 +373,7 @@ fun ConnectScreen(
 @Composable
 private fun ConnectHeading() {
     KeepWordsText(
-        text = stringResource(R.string.notes_connect_title),
+        text = stringResource(R.string.connect_title),
         style = MyNoteTheme.textStyles.title,
         color = MyNoteTheme.colors.text,
         modifier = Modifier.semantics { heading() },
@@ -383,7 +383,7 @@ private fun ConnectHeading() {
 @Composable
 private fun ConnectIntroText() {
     KeepWordsText(
-        text = stringResource(R.string.notes_connect_intro),
+        text = stringResource(R.string.connect_intro),
         style = MyNoteTheme.textStyles.body,
         color = MyNoteTheme.colors.bodyText,
     )
@@ -403,7 +403,7 @@ private fun LinkBlock(
     val rejected = check as? LinkCheck.Rejected
     val warn = rejected != null && rejected.reason != ConnectLinkRejection.Empty
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        FieldLabel(text = stringResource(R.string.notes_connect_link_label))
+        FieldLabel(text = stringResource(R.string.connect_link_label))
         LinkField(
             value = state.link,
             onValueChange = onLinkChange,
@@ -414,7 +414,7 @@ private fun LinkBlock(
         when {
             state.step == ConnectStep.Probing && showProbing -> {
                 VerifyingLine(
-                    text = stringResource(R.string.notes_connect_probing),
+                    text = stringResource(R.string.connect_probing),
                     trailing = {
                         QuietButton(
                             text = stringResource(DsR.string.ds_action_cancel),
@@ -437,9 +437,9 @@ private fun LinkBlock(
                 KeepWordsText(
                     text =
                         if (check.branch == null) {
-                            monoAnnotated(R.string.notes_connect_found_default, check.repoName, check.folder)
+                            monoAnnotated(R.string.connect_found_default, check.repoName, check.folder)
                         } else {
-                            monoAnnotated(R.string.notes_connect_found, check.repoName, check.branch, check.folder)
+                            monoAnnotated(R.string.connect_found, check.repoName, check.branch, check.folder)
                         },
                     style = MyNoteTheme.textStyles.bodySmall,
                     color = colors.text2,
@@ -495,7 +495,7 @@ private fun TokenCard(
                             if (panel.reason == TokenReason.Limit) {
                                 UiR.string.ui_token_err_limit_title
                             } else {
-                                R.string.notes_connect_token_title
+                                R.string.connect_token_title
                             },
                         ),
                     style = MyNoteTheme.textStyles.cardTitle,
@@ -506,9 +506,9 @@ private fun TokenCard(
                     text =
                         stringResource(
                             if (panel.reason == TokenReason.Limit) {
-                                R.string.notes_token_err_limit_desc
+                                R.string.connect_token_err_limit_desc
                             } else {
-                                R.string.notes_connect_token_desc
+                                R.string.connect_token_desc
                             },
                         ),
                     style = MyNoteTheme.textStyles.bodySmall,
@@ -519,7 +519,7 @@ private fun TokenCard(
         TokenHowTo()
         Row { TokenCreateButton(onClick = onCreateToken) }
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            FieldLabel(text = stringResource(R.string.notes_connect_token_label))
+            FieldLabel(text = stringResource(R.string.connect_token_label))
             TokenField(
                 draft = draft,
                 locked = locked,
@@ -562,12 +562,12 @@ private fun SyncProgressCard() {
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             KeepWordsText(
-                text = stringResource(R.string.notes_connect_syncing_title),
+                text = stringResource(R.string.connect_syncing_title),
                 style = MyNoteTheme.textStyles.cardTitle,
                 color = colors.text,
             )
             KeepWordsText(
-                text = stringResource(R.string.notes_connect_syncing_desc),
+                text = stringResource(R.string.connect_syncing_desc),
                 style = MyNoteTheme.textStyles.caption,
                 color = colors.text3,
             )
