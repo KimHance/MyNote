@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.quiz.screen
+package com.hancekim.mynote.feature.quiz.screen
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
@@ -61,12 +61,12 @@ import com.hancekim.mynote.core.designsystem.component.throttledProcess
 import com.hancekim.mynote.core.designsystem.motion.MyNoteEasing
 import com.hancekim.mynote.core.designsystem.motion.rememberReduceMotion
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
-import com.hancekim.mynote.feature.notes.QuizQuestionUi
-import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.quiz.QuizIntent
-import com.hancekim.mynote.feature.notes.quiz.QuizUiState
-import com.hancekim.mynote.feature.notes.quiz.component.QuizCloseButton
-import com.hancekim.mynote.feature.notes.quiz.component.QuizPrimaryButton
+import com.hancekim.mynote.feature.quiz.QuizIntent
+import com.hancekim.mynote.feature.quiz.QuizQuestionUi
+import com.hancekim.mynote.feature.quiz.QuizUiState
+import com.hancekim.mynote.feature.quiz.R
+import com.hancekim.mynote.feature.quiz.component.QuizCloseButton
+import com.hancekim.mynote.feature.quiz.component.QuizPrimaryButton
 import kotlinx.collections.immutable.persistentListOf
 
 @Composable
@@ -119,7 +119,7 @@ internal fun QuizSolveScreen(
 
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(
-                            text = stringResource(R.string.notes_quiz_question_index, state.index + 1),
+                            text = stringResource(R.string.quiz_question_index, state.index + 1),
                             style = type.monoLabel,
                             color = colors.accent,
                         )
@@ -151,7 +151,7 @@ internal fun QuizSolveScreen(
                     QuizPrimaryButton(
                         text =
                             stringResource(
-                                if (state.isLast) R.string.notes_quiz_see_result else R.string.notes_quiz_next,
+                                if (state.isLast) R.string.quiz_see_result else R.string.quiz_next,
                             ),
                         onClick = throttledProcess { onIntent(QuizIntent.NextQuestion()) },
                         height = 52.dp,
@@ -189,7 +189,7 @@ private fun SolveTopBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         val progressDescription =
-            stringResource(R.string.notes_quiz_progress, state.questions.size, state.index + 1)
+            stringResource(R.string.quiz_progress, state.questions.size, state.index + 1)
         Row(
             modifier =
                 Modifier
@@ -256,7 +256,7 @@ private fun PartialBand(
             modifier = Modifier.size(16.dp),
         )
         Text(
-            text = stringResource(R.string.notes_quiz_partial, count),
+            text = stringResource(R.string.quiz_partial, count),
             style = MyNoteTheme.textStyles.caption,
             color = colors.warnText,
         )
@@ -274,8 +274,8 @@ private fun ChoiceRow(
     val colors = MyNoteTheme.colors
     val shape = RoundedCornerShape(14.dp)
 
-    val correctLabel = stringResource(R.string.notes_quiz_correct)
-    val wrongLabel = stringResource(R.string.notes_quiz_wrong)
+    val correctLabel = stringResource(R.string.quiz_correct)
+    val wrongLabel = stringResource(R.string.quiz_wrong)
     val isAnswer = index == state.current.answerIndex
     val isMyWrong = state.revealed && index == state.picked && !isAnswer
     val revealedAnswer = state.revealed && isAnswer
@@ -391,7 +391,7 @@ private fun Explanation(
             ) {
                 Text(
                     modifier = Modifier.riseIn(delayMillis = RISE_STEP_MILLIS),
-                    text = stringResource(if (correct) R.string.notes_quiz_correct else R.string.notes_quiz_wrong),
+                    text = stringResource(if (correct) R.string.quiz_correct else R.string.quiz_wrong),
                     style = type.bodySmall.copy(fontWeight = FontWeight.W700),
                     color = accentColor,
                 )
@@ -399,7 +399,7 @@ private fun Explanation(
                     Spacer(Modifier.weight(1f))
                     AutoAdvanceRing(color = accentColor)
                     Text(
-                        text = stringResource(R.string.notes_quiz_auto_next),
+                        text = stringResource(R.string.quiz_auto_next),
                         style = type.monoSmall.copy(fontSize = 12.sp),
                         color = colors.text3,
                     )

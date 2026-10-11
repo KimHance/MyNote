@@ -84,7 +84,7 @@ import com.hancekim.mynote.core.ui.NotesMessages
 import com.hancekim.mynote.core.ui.signal.FeatureSignals
 import com.hancekim.mynote.core.ui.signal.LastSyncHolder
 import com.hancekim.mynote.feature.notes.NotesViewModel
-import com.hancekim.mynote.feature.notes.quiz.QuizViewModel
+import com.hancekim.mynote.feature.quiz.QuizViewModel
 import com.hancekim.mynote.feature.settings.SettingsViewModel
 import com.hancekim.mynote.feature.stats.StatsTrace
 import com.hancekim.mynote.feature.stats.StatsViewModel

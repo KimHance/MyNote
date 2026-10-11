@@ -4,15 +4,12 @@ import com.hancekim.mynote.core.common.mvi.MviViewModel
 import com.hancekim.mynote.core.common.throttle.Clock
 import com.hancekim.mynote.core.common.throttle.WallClock
 import com.hancekim.mynote.core.domain.AddBookmarkUseCase
-import com.hancekim.mynote.core.domain.GenerateQuizUseCase
 import com.hancekim.mynote.core.domain.GetCategoriesUseCase
 import com.hancekim.mynote.core.domain.ObserveAppliedTokenUseCase
 import com.hancekim.mynote.core.domain.ObserveBookmarksUseCase
 import com.hancekim.mynote.core.domain.ObserveConnectionUseCase
-import com.hancekim.mynote.core.domain.ObserveModelStatusUseCase
 import com.hancekim.mynote.core.domain.ObserveSyncRunsUseCase
 import com.hancekim.mynote.core.domain.RecordBookmarkEventUseCase
-import com.hancekim.mynote.core.domain.RecordQuizAttemptUseCase
 import com.hancekim.mynote.core.domain.RecordReadSessionUseCase
 import com.hancekim.mynote.core.domain.RemoveBookmarksUseCase
 import com.hancekim.mynote.core.domain.SyncNotesUseCase
@@ -22,14 +19,12 @@ import com.hancekim.mynote.core.domain.model.Category
 import com.hancekim.mynote.core.domain.model.ConnectionState
 import com.hancekim.mynote.core.domain.model.ErasureCount
 import com.hancekim.mynote.core.domain.model.FontScale
-import com.hancekim.mynote.core.domain.model.ModelStatus
 import com.hancekim.mynote.core.domain.model.NetworkStatus
 import com.hancekim.mynote.core.domain.model.Note
 import com.hancekim.mynote.core.domain.model.NoteBlock
 import com.hancekim.mynote.core.domain.model.NoteSpan
 import com.hancekim.mynote.core.domain.model.PendingConnection
 import com.hancekim.mynote.core.domain.model.QuizAttempt
-import com.hancekim.mynote.core.domain.model.QuizQuestion
 import com.hancekim.mynote.core.domain.model.ReadSession
 import com.hancekim.mynote.core.domain.model.RepoConnection
 import com.hancekim.mynote.core.domain.model.SourceId
@@ -40,8 +35,6 @@ import com.hancekim.mynote.core.domain.repository.BookmarkRepository
 import com.hancekim.mynote.core.domain.repository.ConnectionRepository
 import com.hancekim.mynote.core.domain.repository.NetworkStatusSource
 import com.hancekim.mynote.core.domain.repository.NotesRepository
-import com.hancekim.mynote.core.domain.repository.QuizGenerator
-import com.hancekim.mynote.core.domain.repository.QuizModelSource
 import com.hancekim.mynote.core.domain.repository.SettingsRepository
 import com.hancekim.mynote.core.domain.repository.StudyLogRepository
 import com.hancekim.mynote.core.domain.repository.TokenRepository
@@ -51,7 +44,6 @@ import com.hancekim.mynote.core.ui.FailureLog
 import com.hancekim.mynote.core.ui.NotesMessages
 import com.hancekim.mynote.core.ui.signal.FeatureSignals
 import com.hancekim.mynote.core.ui.signal.LastSyncHolder
-import com.hancekim.mynote.feature.notes.quiz.QuizViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -63,7 +55,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 
 /**
- * 기능 ViewModel 둘(노트 · 퀴즈)을 같은 Navigator · 신호 계약 · 마지막 동기화 홀더로 세운다 — 앱의 싱글턴과 같은 모양.
+ * 노트 ViewModel 을 같은 Navigator · 신호 계약 · 마지막 동기화 홀더로 세운다 — 앱의 싱글턴과 같은 모양.
  * 가짜 저장소로 실제 UseCase 를 만들고, 시계는 runTest 스케줄러에 묶는다.
  */
 internal class FeatureFixture(
@@ -71,7 +63,6 @@ internal class FeatureFixture(
     token: String? = null,
     bookmarks: List<Bookmark> = emptyList(),
     disconnect: Result<Unit> = Result.success(Unit),
-    model: ModelStatus = ModelStatus.Ready,
 ) {
     val clock = Clock { scope.testScheduler.currentTime }
     val wallClock = WallClock { WALL_BASE + scope.testScheduler.currentTime }
@@ -80,7 +71,6 @@ internal class FeatureFixture(
     val studyLog = FakeStudyLog()
     val connections = FakeConnections(disconnect)
     val notesRepo = FakeNotes()
-    val models = FakeModels(model)
     val failures = mutableListOf<Throwable>()
     val signals = FeatureSignals()
     val lastSync = LastSyncHolder()
@@ -103,18 +93,6 @@ internal class FeatureFixture(
             signals = signals,
             lastSync = lastSync,
             clock = clock,
-            wallClock = wallClock,
-            failureLog = failureLog,
-        )
-
-    fun quiz() =
-        QuizViewModel(
-            observeModelStatus = ObserveModelStatusUseCase(models),
-            generateQuiz = GenerateQuizUseCase(notesRepo, FakeGenerator),
-            recordQuizAttempt = RecordQuizAttemptUseCase(studyLog, FakeSettings),
-            autoAdvancePolicy = { true },
-            messages = FakeMessages,
-            signals = signals,
             wallClock = wallClock,
             failureLog = failureLog,
         )
@@ -258,22 +236,6 @@ internal class FeatureFixture(
         override suspend fun pruneAnswers(before: Long) = Unit
     }
 
-    class FakeModels(
-        initial: ModelStatus,
-    ) : QuizModelSource {
-        val status = MutableStateFlow(initial)
-
-        override fun status(): Flow<ModelStatus> = status
-
-        override fun start() = Unit
-
-        override fun cancel() = Unit
-
-        override fun discardPartial() = Unit
-
-        override suspend fun deleteModel() = Unit
-    }
-
     private object FakeSettings : SettingsRepository {
         override fun observeFontScale(): Flow<FontScale> = flowOf(FontScale.Normal)
 
@@ -282,17 +244,6 @@ internal class FeatureFixture(
         override fun observeStudyLogEnabled(): Flow<Boolean> = flowOf(true)
 
         override suspend fun setStudyLogEnabled(enabled: Boolean) = Unit
-    }
-
-    private object FakeGenerator : QuizGenerator {
-        override suspend fun isAvailable() = true
-
-        override suspend fun generate(
-            noteTitle: String,
-            noteText: String,
-            count: Int,
-        ): Result<List<QuizQuestion>> =
-            Result.success(List(count) { QuizQuestion("문항 $it", listOf("가", "나", "다", "라"), 0, "해설") })
     }
 
     object FakeMessages : NotesMessages {

@@ -17,52 +17,6 @@
     <string name="notes_bookmark_empty_body">노트를 읽다가 위쪽 바의 북마크 아이콘을 누르면 여기에 모입니다.</string>
     <string name="notes_bookmark_empty_action">홈에서 노트 고르기</string>
 
-    <string name="notes_quiz_cta_title">이 노트로 퀴즈 풀기</string>
-
-    <string name="notes_quiz_setup_title">퀴즈 만들기</string>
-    <string name="notes_quiz_setup_subtitle">%1$s · 기기 안에서 만듦</string>
-    <string name="notes_quiz_setup_count_label">최대 문제 수</string>
-    <string name="notes_quiz_setup_count_max">최대 %1$d문제</string>
-    <string name="notes_quiz_setup_hint">노트가 짧으면 이보다 적게 나올 수 있습니다. 물어볼 것이 없는 내용으로는 문제를 만들지 않습니다.</string>
-    <string name="notes_quiz_count">%1$d문제</string>
-    <string name="notes_quiz_create">만들기</string>
-
-    <string name="notes_quiz_generating_hint">처음 한 번은 10초쯤 걸립니다</string>
-    <string name="notes_quiz_generating_stop">그만두기</string>
-    <string-array name="notes_quiz_generating_steps">
-        <item>노트를 읽는 중</item>
-        <item>문제를 만드는 중</item>
-        <item>계속 만드는 중</item>
-        <item>아직 만드는 중</item>
-    </string-array>
-
-    <string name="notes_quiz_close">퀴즈 닫기</string>
-    <string name="notes_quiz_partial">%1$d문제만 만들었습니다</string>
-    <string name="notes_quiz_question_index">문제 %1$d</string>
-    <string name="notes_quiz_progress">%1$d문제 중 %2$d번째</string>
-    <string name="notes_quiz_correct">정답</string>
-    <string name="notes_quiz_wrong">오답</string>
-    <string name="notes_quiz_next">다음 문제</string>
-    <string name="notes_quiz_auto_next">다음 문제로</string>
-    <string name="notes_quiz_see_result">결과 보기</string>
-    <string name="notes_quiz_back_to_note">노트로 돌아가기</string>
-
-    <string name="notes_quiz_result_perfect_title">다 맞혔습니다</string>
-    <string name="notes_quiz_result_perfect_body">다른 노트로 퀴즈를 풀어 보세요.</string>
-    <string name="notes_quiz_result_good_title">거의 다 맞혔습니다</string>
-    <string name="notes_quiz_result_retry_title">한 번 더 읽어 보세요</string>
-    <string name="notes_quiz_result_review_body">틀린 문제의 해설은 방금 본 그 자리에 있습니다. 노트를 다시 한 번 훑어보세요.</string>
-    <string name="notes_quiz_result_score">%1$d문제 중 %2$d문제 정답</string>
-    <string name="notes_quiz_result_mark">%1$d번 %2$s</string>
-
-    <string name="notes_quiz_failed_title">문제를 만들지 못했습니다</string>
-    <string name="notes_quiz_failed_parse">모델이 형식에 맞지 않게 답해서 문제를 읽어내지 못했습니다.\n한 번 더 시도하면 대개 성공합니다.</string>
-    <string name="notes_quiz_failed_empty">노트에서 문제로 낼 만한 내용을 찾지 못했습니다.\n노트가 너무 짧을 수 있습니다.</string>
-    <string name="notes_quiz_failed_engine">퀴즈 모델을 실행하지 못했습니다.\n모델 파일을 다시 받아야 할 수 있습니다.</string>
-    <string name="notes_quiz_failed_timeout">시간이 너무 오래 걸려서 멈췄습니다.\n문제 수를 줄이면 빨라집니다.</string>
-    <string name="notes_quiz_retry">다시 만들기</string>
-    <string name="notes_quiz_retry_fewer">최대 %1$d문제로 줄여서 다시</string>
-
     <string name="notes_settings_token_check_badge">토큰 확인</string>
 
     <string name="notes_model_badge_missing">모델 없음</string>

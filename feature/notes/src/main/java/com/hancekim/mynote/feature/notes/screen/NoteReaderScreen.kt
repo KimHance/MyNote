@@ -36,14 +36,15 @@ import com.hancekim.mynote.core.designsystem.block.rememberNoteContentState
 import com.hancekim.mynote.core.designsystem.component.CategoryChip
 import com.hancekim.mynote.core.designsystem.component.fadingEdges
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
-import com.hancekim.mynote.core.domain.model.ModelStatus
 import com.hancekim.mynote.core.domain.model.NoteLimits
-import com.hancekim.mynote.core.ui.element.CtaAction
 import com.hancekim.mynote.feature.notes.NoteUi
 import com.hancekim.mynote.feature.notes.navigation.rememberNoteSharedModifiers
-import com.hancekim.mynote.feature.notes.quiz.component.QuizCtaCard
 import kotlinx.collections.immutable.persistentListOf
 
+/**
+ * 리더 화면. [endCta] 는 본문 맨 끝 자리 — 셸이 퀴즈 CTA 를 넣는다(노트는 퀴즈 모듈을 모른다).
+ * 읽을 수 있는 노트일 때만 그린다(NF-8).
+ */
 @Composable
 internal fun NoteReaderScreen(
     note: NoteUi,
@@ -54,8 +55,7 @@ internal fun NoteReaderScreen(
     contentEndPadding: Dp = 0.dp,
     scrollState: ScrollState = rememberScrollState(),
     contentState: NoteContentState = rememberNoteContentState(),
-    onQuizAction: ((CtaAction) -> Unit)? = null,
-    modelStatus: ModelStatus = ModelStatus.Ready,
+    endCta: (@Composable () -> Unit)? = null,
 ) {
     val shared = rememberNoteSharedModifiers(note.id)
     val adaptive = MyNoteTheme.adaptive
@@ -94,8 +94,8 @@ internal fun NoteReaderScreen(
                     modifier = shared.title.semantics { heading() },
                 )
                 NoteContent(blocks = note.blocks, state = contentState)
-                if (onQuizAction != null && note.readable) {
-                    QuizCtaCard(status = modelStatus, onAction = onQuizAction)
+                if (endCta != null && note.readable) {
+                    endCta()
                 }
             }
         }
@@ -145,24 +145,16 @@ internal fun MyNoteTextStyles.readerTitle(
     adaptive: AdaptiveTokens,
 ): TextStyle = noteTitle.resized(adaptive.noteTitleSize)
 
+/** 끝 자리 표시 — 실제 CTA 카드와 그 상태별 모양은 `:feature:quiz` 의 `QuizCtaCard` 프리뷰에 있다. */
+private val previewEndCta: @Composable () -> Unit = {
+    Text(text = "퀴즈 CTA 자리", style = MyNoteTheme.textStyles.caption, color = MyNoteTheme.colors.text3)
+}
+
 @Preview(name = "Reader", showBackground = true, widthDp = 400, heightDp = 720)
 @Composable
 private fun NoteReaderScreenPreview() {
     MyNoteTheme {
-        NoteReaderScreen(note = previewNote, categoryName = "Android", onQuizAction = {})
-    }
-}
-
-@Preview(name = "Reader · 모델 없음", showBackground = true, widthDp = 400, heightDp = 720)
-@Composable
-private fun NoteReaderScreenNoModelPreview() {
-    MyNoteTheme {
-        NoteReaderScreen(
-            note = previewNote,
-            categoryName = "Android",
-            onQuizAction = {},
-            modelStatus = ModelStatus.Missing,
-        )
+        NoteReaderScreen(note = previewNote, categoryName = "Android", endCta = previewEndCta)
     }
 }
 
@@ -204,7 +196,7 @@ private val previewBrokenNote =
 @Composable
 private fun NoteReaderScreenUnsupportedPreview() {
     MyNoteTheme {
-        NoteReaderScreen(note = previewUnsupportedNote, categoryName = "Network", onQuizAction = {})
+        NoteReaderScreen(note = previewUnsupportedNote, categoryName = "Network", endCta = previewEndCta)
     }
 }
 
@@ -212,7 +204,7 @@ private fun NoteReaderScreenUnsupportedPreview() {
 @Composable
 private fun NoteReaderScreenBrokenNotePreview() {
     MyNoteTheme {
-        NoteReaderScreen(note = previewBrokenNote, categoryName = "Android", onQuizAction = {})
+        NoteReaderScreen(note = previewBrokenNote, categoryName = "Android", endCta = previewEndCta)
     }
 }
 
@@ -238,6 +230,6 @@ private val previewLimitNote =
 @Composable
 private fun NoteReaderScreenLimitPreview() {
     MyNoteTheme {
-        NoteReaderScreen(note = previewLimitNote, categoryName = "Android", onQuizAction = {})
+        NoteReaderScreen(note = previewLimitNote, categoryName = "Android", endCta = previewEndCta)
     }
 }

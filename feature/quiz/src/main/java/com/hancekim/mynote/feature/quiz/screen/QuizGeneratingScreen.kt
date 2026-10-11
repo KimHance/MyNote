@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.quiz.screen
+package com.hancekim.mynote.feature.quiz.screen
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
@@ -52,12 +52,12 @@ import com.hancekim.mynote.core.designfoundation.window.MyNoteWindowClass
 import com.hancekim.mynote.core.designsystem.component.MyNoteIcons
 import com.hancekim.mynote.core.designsystem.motion.rememberReduceMotion
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
-import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.quiz.QuizIntent
-import com.hancekim.mynote.feature.notes.quiz.QuizUiState
-import com.hancekim.mynote.feature.notes.quiz.component.QuizCloseButton
-import com.hancekim.mynote.feature.notes.quiz.component.QuizOrb
-import com.hancekim.mynote.feature.notes.quiz.component.QuizOutlineButton
+import com.hancekim.mynote.feature.quiz.QuizIntent
+import com.hancekim.mynote.feature.quiz.QuizUiState
+import com.hancekim.mynote.feature.quiz.R
+import com.hancekim.mynote.feature.quiz.component.QuizCloseButton
+import com.hancekim.mynote.feature.quiz.component.QuizOrb
+import com.hancekim.mynote.feature.quiz.component.QuizOutlineButton
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -68,7 +68,7 @@ internal fun QuizGeneratingScreen(
     modifier: Modifier = Modifier,
 ) {
     val short = MyNoteTheme.adaptive.heightClass == MyNoteHeightClass.Compact
-    val steps = stringArrayResource(R.array.notes_quiz_generating_steps)
+    val steps = stringArrayResource(R.array.quiz_generating_steps)
 
     var step by remember { mutableIntStateOf(0) }
     LaunchedEffect(steps) {
@@ -151,7 +151,7 @@ private fun GeneratingTitle(
     ) {
         Text(text = title, style = type.screenTitle, color = MyNoteTheme.colors.text)
         Text(
-            text = stringResource(R.string.notes_quiz_generating_hint),
+            text = stringResource(R.string.quiz_generating_hint),
             style = MyNoteTheme.textStyles.caption.copy(fontSize = 13.5f.sp),
             color = MyNoteTheme.colors.text3,
         )
@@ -164,7 +164,7 @@ private fun QuitButton(
     modifier: Modifier = Modifier,
 ) {
     QuizOutlineButton(
-        text = stringResource(R.string.notes_quiz_generating_stop),
+        text = stringResource(R.string.quiz_generating_stop),
         onClick = { onIntent(QuizIntent.Dismiss) },
         modifier = modifier,
     )

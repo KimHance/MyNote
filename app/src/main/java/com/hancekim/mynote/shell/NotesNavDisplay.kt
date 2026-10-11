@@ -6,14 +6,12 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.navigation3.scene.SceneStrategy
 import androidx.navigation3.ui.NavDisplay
-import com.hancekim.mynote.core.domain.model.ModelStatus
 import com.hancekim.mynote.core.navigation.key.MyNoteNavKey
 import com.hancekim.mynote.core.navigation.motion.scenePopTransitionSpec
 import com.hancekim.mynote.core.navigation.motion.scenePredictivePopTransitionSpec
 import com.hancekim.mynote.core.navigation.motion.sceneTransitionSpec
 import com.hancekim.mynote.core.navigation.registry.destinationProvider
 import com.hancekim.mynote.core.navigation.shared.LocalSharedTransitionScope
-import com.hancekim.mynote.core.ui.element.CtaAction
 import com.hancekim.mynote.core.ui.frame.ShellDestinations
 import com.hancekim.mynote.core.ui.frame.ShellFrame
 import com.hancekim.mynote.feature.connect.screen.connectDestinations
@@ -35,13 +33,12 @@ internal fun shellDestinations(
     settings: () -> SettingsUiState,
     onSettingsIntent: (SettingsIntent) -> Unit,
     onEnableNotifications: () -> Unit,
-    quizModelStatus: () -> ModelStatus,
-    onQuizAction: (String, CtaAction) -> Unit,
+    readerEndCta: @Composable (noteId: String) -> Unit,
     hasConnection: () -> Boolean,
     onShellBack: () -> Unit,
 ): List<ShellDestinations> =
     listOf(
-        notesDestinations(notes, onNotesIntent, quizModelStatus, onQuizAction),
+        notesDestinations(notes, onNotesIntent, readerEndCta),
         statsDestinations(),
         settingsDestinations(settings, onSettingsIntent, onEnableNotifications),
         connectDestinations(hasConnection, onShellBack),

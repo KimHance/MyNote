@@ -33,11 +33,3 @@ data class BookmarkUi(
     val categoryName: String,
     val addedAt: Long,
 )
-
-@Immutable
-data class QuizQuestionUi(
-    val question: String,
-    val choices: ImmutableList<String>,
-    val answerIndex: Int,
-    val explanation: String,
-)

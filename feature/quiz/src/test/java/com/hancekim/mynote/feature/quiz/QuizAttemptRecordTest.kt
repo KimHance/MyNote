@@ -1,7 +1,6 @@
-package com.hancekim.mynote.feature.notes.quiz
+package com.hancekim.mynote.feature.quiz
 
 import com.hancekim.mynote.core.domain.model.QuizAnswer
-import com.hancekim.mynote.feature.notes.QuizQuestionUi
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import org.junit.Assert.assertEquals

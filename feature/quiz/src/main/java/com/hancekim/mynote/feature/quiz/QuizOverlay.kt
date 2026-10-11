@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.quiz
+package com.hancekim.mynote.feature.quiz
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -33,12 +33,11 @@ import com.hancekim.mynote.core.designsystem.component.flip
 import com.hancekim.mynote.core.designsystem.component.rememberFlipState
 import com.hancekim.mynote.core.designsystem.motion.MyNoteEasing
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
-import com.hancekim.mynote.feature.notes.quiz.QuizUiState
-import com.hancekim.mynote.feature.notes.quiz.component.QuizSetupDialog
-import com.hancekim.mynote.feature.notes.quiz.screen.QuizFailedScreen
-import com.hancekim.mynote.feature.notes.quiz.screen.QuizGeneratingScreen
-import com.hancekim.mynote.feature.notes.quiz.screen.QuizResultScreen
-import com.hancekim.mynote.feature.notes.quiz.screen.QuizSolveScreen
+import com.hancekim.mynote.feature.quiz.component.QuizSetupDialog
+import com.hancekim.mynote.feature.quiz.screen.QuizFailedScreen
+import com.hancekim.mynote.feature.quiz.screen.QuizGeneratingScreen
+import com.hancekim.mynote.feature.quiz.screen.QuizResultScreen
+import com.hancekim.mynote.feature.quiz.screen.QuizSolveScreen
 import com.kyant.backdrop.Backdrop
 import com.hancekim.mynote.core.designsystem.R as DsR
 

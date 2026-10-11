@@ -121,8 +121,8 @@ debug 내장 토큰은 시드 연결(`ConsumeSeedUseCase`)이 저장 칸에 쓰�
 `sealed class QuizFailure : Exception` — `Parse`/`Empty`/`Engine`. 메시지는 전부 영어 진단 문구다
 (`"parse: no JSON array in output"`, `"engine failed to load or run"`). **화면 문구가 아니다.**
 
-경로: `:core:ai` 가 실패를 만들고 → `NotesViewModel.toFailKind()` 가 `QuizUiState.Failed.Kind` 로 바꾸고
-→ `QuizFailedScreen` 이 `Kind` → `R.string.notes_quiz_failed_*` 로 그린다.
+경로: `:core:ai` 가 실패를 만들고 → `:feature:quiz` 의 `QuizViewModel.toFailKind()` 가 `QuizUiState.Failed.Kind` 로 바꾸고
+→ `QuizFailedScreen` 이 `Kind` → `R.string.quiz_failed_*` 로 그린다.
 
 여기에 한국어 안내 문장을 쓰면 안 되는 이유 셋:
 

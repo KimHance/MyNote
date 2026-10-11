@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.quiz
+package com.hancekim.mynote.feature.quiz
 
 import androidx.lifecycle.viewModelScope
 import com.hancekim.mynote.core.common.mvi.MviViewModel
@@ -14,8 +14,6 @@ import com.hancekim.mynote.core.ui.element.NotesSignal
 import com.hancekim.mynote.core.ui.element.unseen
 import com.hancekim.mynote.core.ui.signal.FeatureSignals
 import com.hancekim.mynote.core.ui.signal.QuizSetupRequest
-import com.hancekim.mynote.feature.notes.QuizQuestionUi
-import com.hancekim.mynote.feature.notes.mapper.toUi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList

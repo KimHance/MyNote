@@ -6,7 +6,7 @@
 | 기능 문서 | docs/spec/screen-copy.md |
 | 등급 | 문구만 |
 | 바꾼 문구 표 | docs/design/screen-copy-rows.md (이 문서가 20 KB 를 넘지 않게 나눴다) |
-| 마지막 변경 | 2026-10-12 · 설정 문구의 리소스 이름을 `settings_` 로 · 한 줄 고정 자리 파일 칸을 설정 모듈 경로로(move-settings — 값 그대로) |
+| 마지막 변경 | 2026-10-12 · 퀴즈 문구의 리소스 이름을 `quiz_` 로 · 한 줄 고정 자리 파일 칸을 퀴즈 모듈 경로로(move-quiz — 값 그대로) |
 
 ## 문구
 
@@ -136,11 +136,11 @@ SC-1 이 보지 않는 문구다. 이름으로만 뺀다.
 | 상단 바 제목 | `shell/NotesTopBar.kt` | `ui_app_title` · `ui_settings` · `shell_nav_bookmark` · `shell_nav_stats` · `shell_stats_history_title` · `connect_change_title` · `connect_attach_title` | 없음 |
 | 플로팅 내비 라벨(12sp) | ds `FloatingNav.kt` | `shell_nav_home` · `shell_nav_bookmark` · `shell_nav_stats` | 없음 |
 | 상태 알약 | ds `FloatingStatusPill.kt` | `ui_pill_*` 다섯 · `ui_model_percent` | 없음 |
-| 퀴즈 CTA 부제 | `quiz/component/QuizCtaCard.kt` | `ui_quiz_cta_subtitle` · `ui_quiz_cta_need_model` · `ui_quiz_cta_paused` · `ui_quiz_cta_downloading` · `ui_pill_failed` | 없음 |
-| 퀴즈 설정 부제 | `quiz/component/QuizSetupDialog.kt` | `notes_quiz_setup_subtitle` | `notes_quiz_setup_subtitle` +0 |
+| 퀴즈 CTA 부제 | quiz `component/QuizCtaCard.kt` | `ui_quiz_cta_subtitle` · `ui_quiz_cta_need_model` · `ui_quiz_cta_paused` · `ui_quiz_cta_downloading` · `ui_pill_failed` | 없음 |
+| 퀴즈 설정 부제 | quiz `component/QuizSetupDialog.kt` | `quiz_setup_subtitle` | `quiz_setup_subtitle` +0 |
 | 모델 카드 상태 · 세부 | settings `screen/ModelCard.kt` | `ui_model_missing` · `waiting` · `preparing` · `downloading` · `retrying` · `verifying` · `paused` · `ready` · `failed` 와 그 `_desc` · `ui_model_failed_space` · `ui_model_failed_generic` | `ui_model_failed_generic` −2 |
 | 저장소 카드 상태 라벨 | settings `screen/RepoSection.kt` | `ui_repo_state_none` · `check_token` · `idle` · `token` · `public` | `ui_repo_state_idle` −3 |
-| 버튼(설정 · 연결 · 모델 · 대화상자) | settings `screen/SettingsScreen.kt` 버튼 라벨 · 퀴즈 설정 버튼 · 연결 띠 | `notes_*` · `settings_*` · `ui_*` 버튼 문구 스물아홉 · `ds_action_save` · `ds_action_cancel` · `notes_quiz_create` · `notes_home_connect_action` | 없음 — `settings_model_delete` 를 그대로 둔 까닭(용어 표) |
+| 버튼(설정 · 연결 · 모델 · 대화상자) | settings `screen/SettingsScreen.kt` 버튼 라벨 · 퀴즈 설정 버튼 · 연결 띠 | `notes_*` · `settings_*` · `ui_*` 버튼 문구 스물아홉 · `ds_action_save` · `ds_action_cancel` · `quiz_create` · `notes_home_connect_action` | 없음 — `settings_model_delete` 를 그대로 둔 까닭(용어 표) |
 | 통계 머리 기간 · 숫자 칸 · 구역 칩 | stats `screen/StatsHeader.kt` | `stats_period_*` · `stats_num_*` · `stats_unit_*` · `stats_first_week` · `stats_questions` · `stats_section_*` | `stats_questions` +0 |
 | 통계 차트 제목 · 단위 · 범례 초점 | stats `screen/StatsSections.kt` | `stats_time_by_*` · `stats_accuracy_by_category` · `stats_bookmark_trend` · `stats_pattern` · `stats_minutes_value` · `stats_generated_*` · `stats_focus` · `stats_retry_value` · `stats_bookmark_age` | 없음 |
 | 정답률 막대 행 부제 | ds `HBarRow.kt` | `stats_questions` · `stats_not_taken` | `stats_not_taken` +0 |
@@ -215,3 +215,4 @@ copy-apply 가 `strings.xml` 과 한 묶음으로 고친다. 인용 글자가 `s
 | 2026-10-12 | feature-modules | 리소스 이름 · 경로만 — 통계가 `:feature:stats` 로 가며 통계만 쓰는 문구가 `notes_stats_` 에서 `stats_` 로(값 그대로 · feature-modules 결정 15) · 한 줄 고정 자리 통계 세 행의 파일 칸이 통계 모듈 안 경로로 |
 | 2026-10-12 | feature-modules | 리소스 이름 · 경로만 — 연결 화면이 `:feature:connect` 로 가며 연결만 쓰는 문구가 `notes_connect_` · `notes_entry_` · `notes_link_reason_` · 바꾸기 · 받아들이기 대화상자에서 `connect_` 로(값 그대로 · feature-modules 결정 15) · 한 줄 고정 자리 주소 칸 힌트 행의 파일 칸이 연결 모듈 안 경로로 |
 | 2026-10-12 | feature-modules | 리소스 이름 · 경로만 — 설정 화면이 `:feature:settings` 로 가며 설정만 쓰는 문구가 `notes_settings_` · `notes_repo_` · 모델 카드 · 모델 대화상자 · 끊기 대화상자에서 `settings_` 로(값 그대로 · feature-modules 결정 15) · 한 줄 고정 자리 모델 카드 · 저장소 카드 · 버튼 행의 파일 칸이 설정 모듈 안 경로로 |
+| 2026-10-12 | feature-modules | 리소스 이름 · 경로만 — 퀴즈가 `:feature:quiz` 로 가며 퀴즈만 쓰는 문구가 `notes_quiz_` 에서 `quiz_` 로(값 그대로 · feature-modules 결정 15 — CTA 부제 · 그만두기 스낵바처럼 둘 이상이 쓰는 `ui_quiz_*` 는 그대로) · 한 줄 고정 자리 퀴즈 두 행의 파일 칸이 퀴즈 모듈 안 경로로 |

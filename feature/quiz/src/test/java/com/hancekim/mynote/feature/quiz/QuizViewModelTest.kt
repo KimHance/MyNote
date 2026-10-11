@@ -1,8 +1,7 @@
-package com.hancekim.mynote.feature.notes.quiz
+package com.hancekim.mynote.feature.quiz
 
-import com.hancekim.mynote.feature.notes.FeatureFixture
-import com.hancekim.mynote.feature.notes.FeatureFixture.Companion.CATEGORY
-import com.hancekim.mynote.feature.notes.FeatureFixture.Companion.NOTE_ID
+import com.hancekim.mynote.feature.quiz.FeatureFixture.Companion.CATEGORY
+import com.hancekim.mynote.feature.quiz.FeatureFixture.Companion.NOTE_ID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope

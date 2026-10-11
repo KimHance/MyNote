@@ -6,9 +6,9 @@ import com.hancekim.mynote.core.ui.element.CtaAction
 import com.hancekim.mynote.feature.notes.NoteUi
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
-import com.hancekim.mynote.feature.notes.quiz.QuizIntent
-import com.hancekim.mynote.feature.notes.quiz.QuizOverlayState
 import com.hancekim.mynote.feature.notes.screen.ListPanelChrome
+import com.hancekim.mynote.feature.quiz.QuizIntent
+import com.hancekim.mynote.feature.quiz.QuizOverlayState
 import com.hancekim.mynote.feature.settings.SettingsIntent
 import com.hancekim.mynote.feature.settings.SettingsUiState
 

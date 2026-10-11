@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.quiz.screen
+package com.hancekim.mynote.feature.quiz.screen
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
@@ -28,13 +28,13 @@ import com.hancekim.mynote.core.designsystem.component.MyNoteIcons
 import com.hancekim.mynote.core.designsystem.component.riseIn
 import com.hancekim.mynote.core.designsystem.component.throttledProcess
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
-import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.quiz.QuizIntent
-import com.hancekim.mynote.feature.notes.quiz.QuizUiState
-import com.hancekim.mynote.feature.notes.quiz.component.QuizCloseButton
-import com.hancekim.mynote.feature.notes.quiz.component.QuizOutlineButton
-import com.hancekim.mynote.feature.notes.quiz.component.QuizPrimaryButton
-import com.hancekim.mynote.feature.notes.quiz.component.QuizQuietButton
+import com.hancekim.mynote.feature.quiz.QuizIntent
+import com.hancekim.mynote.feature.quiz.QuizUiState
+import com.hancekim.mynote.feature.quiz.R
+import com.hancekim.mynote.feature.quiz.component.QuizCloseButton
+import com.hancekim.mynote.feature.quiz.component.QuizOutlineButton
+import com.hancekim.mynote.feature.quiz.component.QuizPrimaryButton
+import com.hancekim.mynote.feature.quiz.component.QuizQuietButton
 
 @Composable
 internal fun QuizFailedScreen(
@@ -66,7 +66,7 @@ internal fun QuizFailedScreen(
                 FailIcon(modifier = Modifier.riseIn())
                 Text(
                     modifier = Modifier.riseIn(delayMillis = RISE_STEP_MILLIS).padding(top = 26.dp, bottom = 14.dp),
-                    text = stringResource(R.string.notes_quiz_failed_title),
+                    text = stringResource(R.string.quiz_failed_title),
                     style = type.sectionTitle,
                     color = colors.text,
                 )
@@ -84,12 +84,12 @@ internal fun QuizFailedScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     QuizPrimaryButton(
-                        text = stringResource(R.string.notes_quiz_retry),
+                        text = stringResource(R.string.quiz_retry),
                         onClick = throttledProcess { onIntent(QuizIntent.Retry) },
                     )
                     if (state.canRetryWithFewer) {
                         QuizOutlineButton(
-                            text = stringResource(R.string.notes_quiz_retry_fewer, QuizUiState.MIN_COUNT),
+                            text = stringResource(R.string.quiz_retry_fewer, QuizUiState.MIN_COUNT),
                             onClick = { onIntent(QuizIntent.RetryWithFewer(QuizUiState.MIN_COUNT)) },
                         )
                     }
@@ -97,7 +97,7 @@ internal fun QuizFailedScreen(
             }
 
             QuizQuietButton(
-                text = stringResource(R.string.notes_quiz_back_to_note),
+                text = stringResource(R.string.quiz_back_to_note),
                 onClick = { onIntent(QuizIntent.Dismiss) },
                 modifier = Modifier.padding(horizontal = 30.dp, vertical = 12.dp),
             )
@@ -132,10 +132,10 @@ private const val RISE_STEP_MILLIS = 70
 @StringRes
 private fun QuizUiState.Failed.Kind.reasonRes(): Int =
     when (this) {
-        QuizUiState.Failed.Kind.Parse -> R.string.notes_quiz_failed_parse
-        QuizUiState.Failed.Kind.Empty -> R.string.notes_quiz_failed_empty
-        QuizUiState.Failed.Kind.Engine -> R.string.notes_quiz_failed_engine
-        QuizUiState.Failed.Kind.Timeout -> R.string.notes_quiz_failed_timeout
+        QuizUiState.Failed.Kind.Parse -> R.string.quiz_failed_parse
+        QuizUiState.Failed.Kind.Empty -> R.string.quiz_failed_empty
+        QuizUiState.Failed.Kind.Engine -> R.string.quiz_failed_engine
+        QuizUiState.Failed.Kind.Timeout -> R.string.quiz_failed_timeout
     }
 
 private class FailKindProvider : PreviewParameterProvider<QuizUiState.Failed.Kind> {

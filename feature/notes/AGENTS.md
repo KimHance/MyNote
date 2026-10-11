@@ -3,15 +3,15 @@
 이 파일은 이 모듈에서 작업하는 에이전트를 위한 안내다.
 
 셸을 뺀 앱 화면이 여기 있다. `MainActivity` 가 부르는 `NotesRoute()` 와 셸(`NavDisplay` 하나 · `MyNoteTheme` 하나 · 셸 ViewModel)은
-`:app` 의 `shell/` 이고, 셸이 이 모듈의 ViewModel 둘(노트 · 퀴즈)과 등록 파일 하나를 불러
-화면 8개(Home · Bookmarks · ListPanel · NoteReader · 퀴즈 4개)를 그린다. 통계 · 지난 요약은 `:feature:stats`(`feature/stats/AGENTS.md`), 연결 화면은 `:feature:connect`(`feature/connect/AGENTS.md`), 설정 화면은 `:feature:settings`(`feature/settings/AGENTS.md`)에 있다. "새 화면을 추가한다" 는 대개
+`:app` 의 `shell/` 이고, 셸이 이 모듈의 ViewModel 하나(노트)와 등록 파일 하나를 불러
+화면 4개(Home · Bookmarks · ListPanel · NoteReader)를 그린다. 통계 · 지난 요약은 `:feature:stats`(`feature/stats/AGENTS.md`), 연결 화면은 `:feature:connect`(`feature/connect/AGENTS.md`), 설정 화면은 `:feature:settings`(`feature/settings/AGENTS.md`), 퀴즈는 `:feature:quiz`(`feature/quiz/AGENTS.md`)에 있다. "새 화면을 추가한다" 는 대개
 새 모듈이 아니라 이 구조 안에 끼우는 일이다.
 
 의존은 컨벤션(`hancenote.android.feature`)이 `:core:common` · `:core:design-system` ·
 `:core:domain` · `:core:navigation` + Hilt + lifecycle + coroutines 를 자동으로 넣는다.
 `build.gradle.kts` 에 직접 적은 건 `hilt-navigation-compose` 와 `material-icons-core` 둘뿐이다.
 `:core:data`/`:core:network`/`:core:database` 는 의존하지 않는다 — 데이터는 `:core:domain` 의
-UseCase 와 `QuizGenerator` 인터페이스로만 들어온다.
+UseCase 로만 들어온다.
 
 ---
 
@@ -22,7 +22,7 @@ UseCase 와 `QuizGenerator` 인터페이스로만 들어온다.
 | `:app` 의 `shell/ShellViewModel` | 백스택 파생 · 두 번 눌러 종료 · 시작 분기의 연결 · 시드 · 테마 글자 크기 · 알약 모델 상태 · 연결이 바뀔 때 화면 정리 | 여러 기능을 동시에 보는 셸 몫. 노트 목록 · 퀴즈 · 토큰은 들지 않는다 |
 | `NotesViewModel` | 노트 목록 · 검색 · 북마크 · 동기화 · 읽기 기록 · 리더 스크롤 요청 | 동기화를 구독하는 곳은 여기 하나다(SY-1 · FM-7) |
 | `:feature:settings` 의 `SettingsViewModel` | 토큰 편집 · 글자 크기 바꾸기 · 학습 기록 켜기 · 지우기 · 모델 받기 조작 · 끊기 | 마지막 동기화는 홀더에서 읽기만 한다 |
-| `quiz/QuizViewModel` | 퀴즈 상태 · 자동 진행 타이머 · 그만두기 되돌리기 · 결과 기록 | 오버레이 · CTA 의 모델 상태 |
+| `:feature:quiz` 의 `QuizViewModel` | 퀴즈 상태 · 자동 진행 타이머 · 그만두기 되돌리기 · 결과 기록 | 오버레이 · CTA 의 모델 상태 |
 | `:core:ui` 의 `signal/`(`FeatureSignals` · `LastSyncHolder`, `@Singleton`) | 기능 사이에서 ViewModel 이 받는 신호 · 마지막 동기화 값 | 결정 8 · 13. 둘 이상의 기능이 보므로 `:core:ui` 에 산다 |
 | `Navigator`(`:core:navigation`, `@Singleton`) | **백스택** | 소유자가 하나여야 하고, 입구가 하나라 거기서 쓰로틀을 건다 |
 | 컴포지션 로컬(`rememberSaveable`) | 드로어 열림 · 고정 패널 펼침 · 모델 확인 다이얼로그 | 목적지가 아니고 레이아웃 상태다. 백스택 엔트리가 아니다 |
@@ -65,7 +65,7 @@ UseCase 와 `QuizGenerator` 인터페이스로만 들어온다.
   접기 · 펴기에 보이던 것을 다시 띄우지 않는다. 되돌리기는 알림을 낸 VM 의 인텐트로 돌아간다(`NoticeUi<E>`).
   기능 화면 안에 스낵바 수집을 두지 않는다.
 - 문구는 ViewModel 이 `getString` 을 직접 부르지 않는다. 인터페이스 `NotesMessages` 를 주입받아 부르고,
-  `getString` 은 구현 `AndroidNotesMessages`(앱 `Application`)에만 있다. 접근성 판정(`QuizAutoAdvancePolicy`) ·
+  `getString` 은 구현 `AndroidNotesMessages`(앱 `Application`)에만 있다. 접근성 판정(`:feature:quiz` 의 `QuizAutoAdvancePolicy`) ·
   실패 로그(`FailureLog`)도 같은 패턴이고 구현은 `:app` 의 `NotesModule` 이 묶는다.
   `NotesMessages` · `FailureLog` 와 그 구현, 알림 `NoticeUi`, 글자 크기 매핑(`FontScaleUi`)은 여러 기능의 VM 이 같이 써서 `:core:ui` 에 있다.
   이 모듈 안에는 Hilt 모듈이 없다 — 통계 디스패처 `@StatsWork` 의 모듈은 통계 패키지와 같이 `:feature:stats` 로 갔다.
@@ -120,8 +120,8 @@ UseCase 와 `QuizGenerator` 인터페이스로만 들어온다.
 시작 분기 · Scaffold · 드로어/고정 패널 틀 · `NavDisplay` · 오버레이 자리 · 뒤로가기 7단 순서 · 루트 스낵바 · 모델 알약 · 셸 ViewModel 은
 `:app` 의 `shell/` 이다(기능 문서 `feature-modules` 결정 2 · FM-5). 뒤로가기 순위 표와 셸 파일 나눔은 `app/AGENTS.md` 에 있다.
 이 모듈은 셸이 부르는 것 — 등록 파일(`notesDestinations`) ·
-목록 패널(`ListPanelScreen` · `ListPanelChrome`) · 퀴즈 오버레이(`QuizOverlay`) ·
-ViewModel 둘 — 만 공개로 내놓고 셸을 import 하지 않는다. 연결 루트 · 읽는 중 화면은 `:feature:connect`, 모델 확인 대화상자(`ModelConfirmDialog`)는 `:feature:settings` 에 있다.
+목록 패널(`ListPanelScreen` · `ListPanelChrome`) ·
+ViewModel 하나 — 만 공개로 내놓고 셸을 import 하지 않는다. 연결 루트 · 읽는 중 화면은 `:feature:connect`, 모델 확인 대화상자(`ModelConfirmDialog`)는 `:feature:settings`, 퀴즈 오버레이(`QuizOverlay`) · 리더 끝 CTA 카드(`QuizCtaCard`)는 `:feature:quiz` 에 있다.
 
 엔트리 안 핸들러(7단 밖)는 이 모듈에 없다 — 설정의 토큰 편집 취소는 `:feature:settings`, 쌓은 연결 화면의 뒤로는 `:feature:connect`.
 
@@ -173,56 +173,27 @@ ViewModel 둘 — 만 공개로 내놓고 셸을 import 하지 않는다. 연결
 0% 로 저장된다(셸 효과는 다시 시작되지 않아 같은 비율을 다시 보내지 않는다). 그래서 트래커가 top 노트의 마지막
 비율을 기억해 새 세션을 거기서 시작한다(PRD D39, 검수 blocker #1). 닫힌 세션·퀴즈 결과·북마크 이벤트는 `launchSafely { withContext(NonCancellable) { … } }` 로 쓴다 —
 `ON_STOP` 직후 스코프가 취소돼도 한 행은 끝까지 간다. 퀴즈 결과는 퀴즈 VM 이 쓰고 범주는 설정을 연 쪽이 넘긴다. 변환은 순수 함수
-`quiz/QuizAttemptRecord.kt` 의 `completedAttempt()` 이고 `QuizAttemptRecordTest` 가 "결과까지 간 것만" 을 지킨다.
+`:feature:quiz` 의 `QuizAttemptRecord.kt` 에 있는 `completedAttempt()` 이고 `QuizAttemptRecordTest` 가 "결과까지 간 것만" 을 지킨다.
 북마크 화면 해제의 되돌리기는 `added` 를 새로 쓰지 않고 그 해제 이벤트 행을 지운다(`removedEventId`).
 
 ---
 
-## 퀴즈 — 내비게이션 목적지가 아니다
+## 리더 끝 CTA 자리 — 노트는 슬롯만 내놓는다
 
-진입점은 헤더가 아니라 리더 본문 **맨 끝 CTA**(`QuizCtaCard`)다. 모델이 없어도 숨기지 않고
-흐리게 두고, 누르면 상태에 따라 갈 곳이 갈린다 — 순수 함수 `:app` 의 `shell/ShellFeatures.kt:ctaTarget`(준비됨 → 퀴즈 VM 설정 · 없음 → 받기 확인
-대화상자 · 그 밖 → 설정 VM 받기). 알림 권한은 루트가 받기 전에 묻는다.
+퀴즈 진입점은 리더 본문 **맨 끝 CTA** 다. CTA 카드 · 퀴즈 오버레이 · 퀴즈 VM 은 `:feature:quiz`(`feature/quiz/AGENTS.md`)에 있고,
+노트는 퀴즈 모듈을 모른다(FM-2). `NoteReaderScreen` 은 끝 자리 슬롯(`endCta`)을, 등록 파일 `notesDestinations` 는 노트 id 를 받는
+슬롯(`readerEndCta`)을 받을 뿐이고, `:app` 셸이 그 슬롯에 `QuizCtaCard` 를 넣는다.
 
-**예외 하나 — 노트 전체를 읽지 못한 노트(`NoteBlock.Unsupported` 의 `BrokenNote` · `LimitExceeded` 가 있는 노트)는 CTA 를
+**노트 전체를 읽지 못한 노트(`NoteBlock.Unsupported` 의 `BrokenNote` · `LimitExceeded` 가 있는 노트)는 그 자리를
 아예 그리지 않는다.** 퀴즈에 넣을 평문이 없어서다. 판정은 `NotesUiMapper` 가 파생하는 `NoteUi.readable` 하나이고(`NotesUiMapperTest`),
 통계의 "다시 풀기"(`OpenQuizFor`)도 같은 값으로 리더만 열고 퀴즈 설정을 띄우지 않는다(띄우면 `GenerateQuizUseCase` 가
 빈 평문으로 `QuizFailure.Empty`). 블록 몇 개만 못 그린 노트(`UnknownType`·`BrokenBlock`)는 평소대로다. 그 블록은
 `NoteBlockMapper` 가 빈 `text`·`raw` 를 `null` 로 바꿔 design-system `NoteContentBlock.Unsupported` 로 넘긴다(`NoteBlockMapperTest`).
 
-`QuizUiState`(sealed)는 퀴즈 VM 상태 `QuizOverlayState.quiz` 한 칸에 들어가고, `QuizOverlay` 가 리더 **위에 덮인다**.
-`Navigator` 를 건드리지 않으므로 백스택에 없고, 뒤로가기는 오버레이가 한 번 받아 `QuizIntent.Dismiss` 를 쏜다.
-
-- `coversReader` 인 상태(Loading/Solving/Result/Failed)는 `matchParentSize()` 로 콘텐츠 영역을 덮고,
-  Compact 에서는 `Scaffold` 의 topBar 도 같이 숨긴다. 넓은 창에서 패널이 펴져 있으면
-  `startInset = paneWidth + 1.dp` 로 **목록 패널은 남겨 둔다.**
-- **채점·진행 규칙은 `QuizUiState.Solving` 의 순수 함수** `pick()`/`advance()` 다. 아무 일도 없을
-  때는 `this` 를 그대로 돌려줘서 ViewModel 이 "변화 없음"을 `===` 로 알아본다. 이 규칙이 상태로
-  내려와 있는 덕에 `QuizGradingTest` 가 코루틴도 화면도 없이 검증한다(처음엔 고른 답이
-  `rememberSaveable` 에 있어서 고르지 않은 문제에 "오답" 이 뜨는 버그가 있었다).
-- **자동 진행 타이머는 ViewModel 에 있다.** 화면의 `LaunchedEffect` 에 두면 중복 발행되고, 늦게 온
-  타이머가 문항을 건너뛴다 — 그래서 `NextQuestion(fromIndex)` 로 "내가 띄운 타이머가 아직 그 문항을
-  보고 있나" 를 확인한다. TalkBack(터치 탐색)이면 `QuizAutoAdvancePolicy` 가 자동 진행을 끄고
-  화면이 버튼을 대신 띄운다.
-- **생성 중 연출 타이머는 반대로 화면(`QuizGeneratingScreen`)에 있다.** 진행률을 알 수 없는 연출이라
-  1초에 한 번씩 앱 상태를 재조립할 이유가 없다. 대신 마지막 슬롯은 끝까지 채우지 않는다 —
-  거짓 진행률이 된다.
-- `AUTO_ADVANCE_MILLIS` 는 `QuizUiState` 에만 있다. 타이머(VM)와 링(화면)이 같은 값을 봐야 한다 —
-  예전에 양쪽에 복사돼 있어 링과 실제 전환이 어긋났다.
-- 그만두기는 **되돌릴 수 있다.** VM 이 `abandonedSolving` 을 `UNDO_WINDOW_MILLIS` 동안 들고,
-  `quizUndoId` 로 스낵바 액션을 띄운다. 생성은 `quizJob` 으로 중복 실행을 막고
-  `GENERATE_TIMEOUT_MILLIS` 로 끊어 `Kind.Timeout` 으로 떨어뜨린다.
-- 선택지 행은 `key(state.index, index)` 로 감싼다. 없으면 행이 슬롯째 재사용되고 안의
-  `animateColorAsState` 가 이전 문제의 정답/오답 색에서 중립색으로 애니메이션해 한 번 번쩍인다.
-- 무한 애니메이션은 전부 `rememberReduceMotion()` 을 **실제로 반영**해야 한다(판정만 하고 버리면
-  접근성 설정이 무시되고 프리뷰에서도 계속 돈다).
-
 ---
 
 ## 패키지 배치가 뜻하는 것
 
-- `quiz/screen/` 은 화면(한 화면을 다 차지하고 `Surface` 로 배경을 갖는다), `quiz/component/` 는
-  조각이다. `QuizSolveScreen` 은 화면이고 `QuizOrb` 는 아니다.
 - `element/`(상태·인텐트) · `mapper/`(도메인 → UI 단방향) · `navigation/`(노트 전용 공유 요소 키) ·
   `screen/`(본 화면 3개) · 루트(등록 파일 · UI 모델 · VM). 호스트(`shell/`)는 `:app` 에 있다.
 - 같은 패키지라 공짜로 보이던 참조가 import 로 드러나는 게 이 배치의 실익이다. 새 파일을 넣을 때
@@ -263,7 +234,7 @@ ViewModel 둘 — 만 공개로 내놓고 셸을 import 하지 않는다. 연결
 ## 명령
 
 ```bash
-./gradlew :feature:notes:testDebugUnitTest   # QuizGradingTest (순수 JVM, 13건)
+./gradlew :feature:notes:testDebugUnitTest   # 노트 VM · 매퍼 · 홈 판정 (순수 JVM)
 ./gradlew :app:compileDebugKotlin            # 이 모듈 변경 검증은 :app 컴파일로
 # 이 모듈 화면을 그리는 계측(BR-8 TitleFontScreensTest · 뒤로가기 BackOrderTest)은 셸과 같이 :app 으로 갔다 — app/AGENTS.md
 ```
