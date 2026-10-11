@@ -50,7 +50,6 @@ import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.domain.stats.BucketState
 import com.hancekim.mynote.core.domain.stats.StatsPeriod
 import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.screen.bookmarks.rememberBookmarkTimeLabel
 import com.hancekim.mynote.feature.notes.stats.BookmarkStatsUi
 import com.hancekim.mynote.feature.notes.stats.CategoryMinutesUi
@@ -59,6 +58,7 @@ import com.hancekim.mynote.feature.notes.stats.QuizStatsUi
 import com.hancekim.mynote.feature.notes.stats.ReadingUi
 import com.hancekim.mynote.feature.notes.stats.StaleReasonUi
 import com.hancekim.mynote.feature.notes.stats.StatsDeltaFormat
+import com.hancekim.mynote.feature.notes.stats.StatsIntent
 import kotlinx.collections.immutable.toImmutableList
 
 internal enum class ChartSize(
@@ -235,7 +235,7 @@ internal fun ReadingList(
     reading: ReadingUi,
     compactHeight: Boolean,
     first: Boolean,
-    onNotesIntent: (NotesIntent) -> Unit,
+    onIntent: (StatsIntent) -> Unit,
 ) {
     ListLabel(
         text = stringResource(R.string.notes_stats_stalled),
@@ -260,7 +260,7 @@ internal fun ReadingList(
             title = note.title,
             subtitle = subtitle,
             contentDescription = stringResource(R.string.notes_stats_row_desc, index + 1, note.title, subtitle),
-            onClick = { onNotesIntent(NotesIntent.SelectNote(note.noteId, resumeAt = note.percent / FULL)) },
+            onClick = { onIntent(StatsIntent.OpenNote(note.noteId, resumeAt = note.percent / FULL)) },
             compactHeight = compactHeight,
             trailing = { ProgressTrack(note.percent / FULL) },
         )
@@ -310,7 +310,7 @@ internal fun QuizList(
     formats: StatsFormats,
     compactHeight: Boolean,
     first: Boolean,
-    onNotesIntent: (NotesIntent) -> Unit,
+    onIntent: (StatsIntent) -> Unit,
 ) {
     val colors = MyNoteTheme.colors
     if (pattern != null) {
@@ -344,7 +344,7 @@ internal fun QuizList(
             subtitle = subtitle,
             contentDescription =
                 stringResource(R.string.notes_stats_row_desc, index + 1, retry.title, subtitle) + SEPARATOR + value,
-            onClick = { onNotesIntent(NotesIntent.OpenQuizFor(retry.noteId)) },
+            onClick = { onIntent(StatsIntent.RetryQuiz(retry.noteId)) },
             compactHeight = compactHeight,
             trailing = {
                 Text(
@@ -424,7 +424,7 @@ internal fun BookmarkList(
     bookmarks: BookmarkStatsUi,
     compactHeight: Boolean,
     first: Boolean,
-    onNotesIntent: (NotesIntent) -> Unit,
+    onIntent: (StatsIntent) -> Unit,
 ) {
     ListLabel(
         text = stringResource(R.string.notes_stats_bookmark_old),
@@ -450,7 +450,7 @@ internal fun BookmarkList(
             subtitle = subtitle,
             contentDescription =
                 stringResource(R.string.notes_stats_row_desc, index + 1, stale.title, subtitle) + SEPARATOR + age,
-            onClick = { onNotesIntent(NotesIntent.SelectNote(stale.noteId)) },
+            onClick = { onIntent(StatsIntent.OpenNote(stale.noteId)) },
             compactHeight = compactHeight,
             trailing = {
                 Text(

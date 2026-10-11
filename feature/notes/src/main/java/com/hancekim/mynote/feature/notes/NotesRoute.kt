@@ -1,16 +1,18 @@
 package com.hancekim.mynote.feature.notes
 
 import android.Manifest
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -43,29 +45,51 @@ import com.hancekim.mynote.feature.notes.element.NotesDrafts
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesSignal
 import com.hancekim.mynote.feature.notes.element.NotesUiState
+import com.hancekim.mynote.feature.notes.element.NoticeUi
 import com.hancekim.mynote.feature.notes.element.StartDestination
+import com.hancekim.mynote.feature.notes.quiz.QuizIntent
+import com.hancekim.mynote.feature.notes.quiz.QuizViewModel
 import com.hancekim.mynote.feature.notes.screen.ModelConfirmDialog
 import com.hancekim.mynote.feature.notes.screen.connect.ConnectReadingScreen
 import com.hancekim.mynote.feature.notes.screen.connect.ConnectRoute
+import com.hancekim.mynote.feature.notes.settings.SettingsIntent
+import com.hancekim.mynote.feature.notes.settings.SettingsViewModel
+import com.hancekim.mynote.feature.notes.shell.FeatureIntents
+import com.hancekim.mynote.feature.notes.shell.FeatureStates
 import com.hancekim.mynote.feature.notes.shell.NotesExitEffects
 import com.hancekim.mynote.feature.notes.shell.NotesShell
+import com.hancekim.mynote.feature.notes.shell.ShellIntent
+import com.hancekim.mynote.feature.notes.shell.ShellUiState
+import com.hancekim.mynote.feature.notes.shell.ShellViewModel
+import com.hancekim.mynote.feature.notes.shell.startOf
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import com.hancekim.mynote.core.designsystem.R as DsR
 
+/** 기능 ViewModel 넷은 모두 Activity 를 owner 로 받는다 — 창 등급이 바뀌어 NavDisplay 가 다시 만들어져도 남는다(결정 7). */
 @Composable
-fun NotesRoute(viewModel: NotesViewModel = hiltViewModel()) {
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
+fun NotesRoute(
+    shellViewModel: ShellViewModel = hiltViewModel(viewModelStoreOwner = LocalActivity.current as ComponentActivity),
+    notesViewModel: NotesViewModel = hiltViewModel(viewModelStoreOwner = LocalActivity.current as ComponentActivity),
+    settingsViewModel: SettingsViewModel =
+        hiltViewModel(viewModelStoreOwner = LocalActivity.current as ComponentActivity),
+    quizViewModel: QuizViewModel = hiltViewModel(viewModelStoreOwner = LocalActivity.current as ComponentActivity),
+) {
+    val activity = LocalActivity.current
+    val shell by shellViewModel.state.collectAsStateWithLifecycle()
+    val notes by notesViewModel.state.collectAsStateWithLifecycle()
+    val settings by settingsViewModel.state.collectAsStateWithLifecycle()
+    val quiz by quizViewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var notificationsEnabled by remember { mutableStateOf(notificationsAllowed(context)) }
     val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner, viewModel) {
+    DisposableEffect(lifecycleOwner, notesViewModel) {
         val observer =
             LifecycleEventObserver { _, event ->
                 when (event) {
                     Lifecycle.Event.ON_RESUME -> notificationsEnabled = notificationsAllowed(context)
-                    Lifecycle.Event.ON_START -> viewModel.onIntent(NotesIntent.ForegroundChanged(visible = true))
-                    Lifecycle.Event.ON_STOP -> viewModel.onIntent(NotesIntent.ForegroundChanged(visible = false))
+                    Lifecycle.Event.ON_START -> notesViewModel.onIntent(NotesIntent.ForegroundChanged(visible = true))
+                    Lifecycle.Event.ON_STOP -> notesViewModel.onIntent(NotesIntent.ForegroundChanged(visible = false))
                     else -> Unit
                 }
             }
@@ -76,19 +100,36 @@ fun NotesRoute(viewModel: NotesViewModel = hiltViewModel()) {
     val permissionLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             notificationsEnabled = granted
-            viewModel.onIntent(NotesIntent.StartModelDownload)
+            settingsViewModel.onIntent(SettingsIntent.StartModelDownload)
+        }
+    val currentLauncher by rememberUpdatedState(permissionLauncher)
+
+    val intents =
+        remember(context) {
+            FeatureIntents(
+                shell = { shellViewModel.onIntent(it) },
+                notes = { notesViewModel.onIntent(it) },
+                settings = { intent ->
+                    if (intent == SettingsIntent.StartModelDownload && needsNotificationPermission(context)) {
+                        currentLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    } else {
+                        settingsViewModel.onIntent(intent)
+                    }
+                },
+                quiz = { quizViewModel.onIntent(it) },
+            )
         }
 
     NotesScreen(
-        uiState = uiState.copy(notificationsEnabled = notificationsEnabled),
-        onIntent = { intent ->
-            if (intent == NotesIntent.StartModelDownload && needsNotificationPermission(context)) {
-                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            } else {
-                viewModel.onIntent(intent)
-            }
-        },
-        onExit = { (context as? Activity)?.finish() },
+        states =
+            FeatureStates(
+                shell = shell,
+                notes = notes,
+                settings = settings.copy(notificationsEnabled = notificationsEnabled),
+                quiz = quiz,
+            ),
+        intents = intents,
+        onExit = { activity?.finish() },
         onEnableNotifications = { openNotificationSettings(context) },
     )
 }
@@ -112,8 +153,8 @@ private fun openNotificationSettings(context: Context) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun NotesScreen(
-    uiState: NotesUiState,
-    onIntent: (NotesIntent) -> Unit,
+    states: FeatureStates,
+    intents: FeatureIntents,
     onExit: () -> Unit,
     onEnableNotifications: () -> Unit = {},
 ) {
@@ -121,59 +162,15 @@ internal fun NotesScreen(
     val windowClass = MyNoteWindowClass.fromWidth(containerSize.width)
     val heightClass = MyNoteHeightClass.fromHeight(containerSize.height)
 
-    val snackbarHostState = uiState.snackbarHostState
-    val undoLabel = stringResource(DsR.string.ds_action_undo)
-    val undoIntent by rememberUpdatedState(onIntent)
-    LaunchedEffect(uiState.errorId) {
-        val id = uiState.errorId
-        if (id > 0) {
-            uiState.errorMessage?.let { snackbarHostState.showSnackbar(it) }
-            undoIntent(NotesIntent.SignalShown(NotesSignal.Error, id))
-        }
-    }
-    LaunchedEffect(uiState.infoId) {
-        val id = uiState.infoId
-        if (id > 0) {
-            uiState.infoMessage?.let { snackbarHostState.showSnackbar(it) }
-            undoIntent(NotesIntent.SignalShown(NotesSignal.Info, id))
-        }
-    }
-    LaunchedEffect(uiState.quizUndoId) {
-        val id = uiState.quizUndoId
-        val message = uiState.quizUndoMessage
-        if (id > 0 && message != null) {
-            val result =
-                snackbarHostState.showSnackbar(
-                    message = message,
-                    actionLabel = undoLabel,
-                    duration = SnackbarDuration.Short,
-                )
-            if (result == SnackbarResult.ActionPerformed) undoIntent(NotesIntent.UndoQuizExit)
-            undoIntent(NotesIntent.SignalShown(NotesSignal.QuizUndo, id))
-        }
-    }
+    val snackbarHostState = remember { SnackbarHostState() }
+    RootSnackbars(states, intents, snackbarHostState)
 
     var showDownloadConfirm by rememberSaveable { mutableStateOf(false) }
-
-    val notice = uiState.notice
-    LaunchedEffect(notice?.id) {
-        if (notice != null) {
-            val result =
-                snackbarHostState.showSnackbar(
-                    message = notice.message,
-                    actionLabel = if (notice.undo != null) undoLabel else null,
-                    duration = SnackbarDuration.Short,
-                )
-            if (result == SnackbarResult.ActionPerformed) notice.undo?.let(undoIntent)
-            undoIntent(NotesIntent.SignalShown(NotesSignal.Notice, notice.id))
-        }
-    }
-
     val drafts = remember { NotesDrafts() }
 
-    MyNoteTheme(windowClass = windowClass, heightClass = heightClass, fontScale = uiState.fontScale) {
-        NotesExitEffects(uiState, snackbarHostState, onIntent, onExit)
-        when (uiState.start) {
+    MyNoteTheme(windowClass = windowClass, heightClass = heightClass, fontScale = states.shell.fontScale) {
+        NotesExitEffects(states.shell, snackbarHostState, intents.shell, onExit)
+        when (startOf(states.shell, states.notes)) {
             StartDestination.Reading -> {
                 ConnectReadingScreen()
             }
@@ -184,14 +181,14 @@ internal fun NotesScreen(
                     hasConnection = false,
                     drafts = drafts,
                     snackbarHostState = snackbarHostState,
-                    onNotesIntent = onIntent,
+                    onShellBack = { intents.shell(ShellIntent.Back) },
                 )
             }
 
             StartDestination.Shell -> {
                 NotesShell(
-                    uiState = uiState,
-                    onIntent = onIntent,
+                    states = states,
+                    intents = intents,
                     snackbarHostState = snackbarHostState,
                     drafts = drafts,
                     onConfirmDownload = { showDownloadConfirm = true },
@@ -205,49 +202,129 @@ internal fun NotesScreen(
                 onDismiss = { showDownloadConfirm = false },
                 onConfirm = {
                     showDownloadConfirm = false
-                    onIntent(NotesIntent.StartModelDownload)
+                    intents.settings(SettingsIntent.StartModelDownload)
                 },
             )
         }
     }
 }
 
+/**
+ * 스낵바는 여기 한 곳이 호스트 하나로 받는다(FM-16) — 시작 분기 · 창 등급 분기 위라 설정에 있을 때 난 실패도 바로 뜨고,
+ * 접기 · 펴기에도 보여 주던 것을 다시 띄우지 않는다. 다 보이면 신호를 낸 ViewModel 에 본 것을 알린다.
+ */
+@Composable
+private fun RootSnackbars(
+    states: FeatureStates,
+    intents: FeatureIntents,
+    host: SnackbarHostState,
+) {
+    val undoLabel = stringResource(DsR.string.ds_action_undo)
+    val current by rememberUpdatedState(intents)
+    val notes = states.notes
+    LaunchedEffect(notes.errorId) {
+        val id = notes.errorId
+        if (id > 0) {
+            notes.errorMessage?.let { host.showSnackbar(it) }
+            current.notes(NotesIntent.SignalShown(NotesSignal.Error, id))
+        }
+    }
+    LaunchedEffect(notes.infoId) {
+        val id = notes.infoId
+        if (id > 0) {
+            notes.infoMessage?.let { host.showSnackbar(it) }
+            current.notes(NotesIntent.SignalShown(NotesSignal.Info, id))
+        }
+    }
+    val quiz = states.quiz
+    LaunchedEffect(quiz.quizUndoId) {
+        val id = quiz.quizUndoId
+        val message = quiz.quizUndoMessage
+        if (id > 0 && message != null) {
+            val result =
+                host.showSnackbar(
+                    message = message,
+                    actionLabel = undoLabel,
+                    duration = SnackbarDuration.Short,
+                )
+            if (result == SnackbarResult.ActionPerformed) current.quiz(QuizIntent.UndoExit)
+            current.quiz(QuizIntent.SignalShown(NotesSignal.QuizUndo, id))
+        }
+    }
+    NoticeSnackbar(notes.notice, host, undoLabel, onUndo = { current.notes(it) }) { id ->
+        current.notes(NotesIntent.SignalShown(NotesSignal.Notice, id))
+    }
+    NoticeSnackbar(states.settings.notice, host, undoLabel, onUndo = { current.settings(it) }) { id ->
+        current.settings(SettingsIntent.SignalShown(NotesSignal.Notice, id))
+    }
+}
+
+@Composable
+private fun <E> NoticeSnackbar(
+    notice: NoticeUi<E>?,
+    host: SnackbarHostState,
+    undoLabel: String,
+    onUndo: (E) -> Unit,
+    onFinish: (Int) -> Unit,
+) {
+    val currentUndo by rememberUpdatedState(onUndo)
+    val currentFinish by rememberUpdatedState(onFinish)
+    LaunchedEffect(notice?.id) {
+        if (notice != null) {
+            val result =
+                host.showSnackbar(
+                    message = notice.message,
+                    actionLabel = if (notice.undo != null) undoLabel else null,
+                    duration = SnackbarDuration.Short,
+                )
+            if (result == SnackbarResult.ActionPerformed) notice.undo?.let(currentUndo)
+            currentFinish(notice.id)
+        }
+    }
+}
+
 private val previewRepo = RepoConnection("octo-learner", "android-notes", "main", "notes/index.json", isPublic = true)
 
-private val previewUiState: NotesUiState =
+private val previewStates: FeatureStates =
     run {
-        val notes =
+        val android =
             persistentListOf(
                 NoteUi("compose-state", "Compose 상태 관리 정리", "2026.06.12"),
                 NoteUi("nav3", "Navigation 3 첫인상", "2026.06.18"),
             )
         val categories =
             persistentListOf(
-                CategoryUi("Android", notes),
+                CategoryUi("Android", android),
                 CategoryUi("Kotlin", persistentListOf(NoteUi("coroutines", "코루틴 디스패처 메모", "2026.05.30"))),
             )
-        NotesUiState(
-            categories = categories,
-            visibleCategories = categories,
-            recentNotes =
-                persistentListOf(
-                    RecentNoteUi(notes[1], "Android"),
-                    RecentNoteUi(notes[0], "Android"),
-                ),
-            expanded = persistentMapOf("Android" to true),
-            isLoading = false,
-            connection = ConnectionState.Connected(SourceId("s1"), previewRepo),
-            notesLoaded = true,
-            seedPending = false,
+        val notes =
+            NotesUiState(
+                categories = categories,
+                visibleCategories = categories,
+                recentNotes =
+                    persistentListOf(
+                        RecentNoteUi(android[1], "Android"),
+                        RecentNoteUi(android[0], "Android"),
+                    ),
+                expanded = persistentMapOf("Android" to true),
+                isLoading = false,
+                connection = ConnectionState.Connected(SourceId("s1"), previewRepo),
+                notesLoaded = true,
+            )
+        FeatureStates(
+            shell = ShellUiState(connection = notes.connection, seedPending = false),
+            notes = notes,
         )
     }
+
+private val previewIntents = FeatureIntents(shell = {}, notes = {}, settings = {}, quiz = {})
 
 @Preview(name = "Notes · Compact", showBackground = true, widthDp = 360, heightDp = 720)
 @Composable
 private fun NotesScreenCompactPreview() {
     NotesScreen(
-        uiState = previewUiState,
-        onIntent = {},
+        states = previewStates,
+        intents = previewIntents,
         onExit = {},
     )
 }
@@ -256,8 +333,8 @@ private fun NotesScreenCompactPreview() {
 @Composable
 private fun NotesScreenExpandedPreview() {
     NotesScreen(
-        uiState = previewUiState,
-        onIntent = {},
+        states = previewStates,
+        intents = previewIntents,
         onExit = {},
     )
 }
@@ -266,8 +343,8 @@ private fun NotesScreenExpandedPreview() {
 @Composable
 private fun NotesScreenShortPreview() {
     NotesScreen(
-        uiState = previewUiState,
-        onIntent = {},
+        states = previewStates,
+        intents = previewIntents,
         onExit = {},
     )
 }

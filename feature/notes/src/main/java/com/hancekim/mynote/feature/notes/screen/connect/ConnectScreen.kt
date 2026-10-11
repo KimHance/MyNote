@@ -70,7 +70,6 @@ import com.hancekim.mynote.feature.notes.element.ConnectPlace
 import com.hancekim.mynote.feature.notes.element.ConnectStep
 import com.hancekim.mynote.feature.notes.element.EntryEmphasis
 import com.hancekim.mynote.feature.notes.element.LinkCheck
-import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NoticeWays
 import com.hancekim.mynote.feature.notes.element.TokenDraft
 import com.hancekim.mynote.feature.notes.element.TokenFailureKind
@@ -96,7 +95,7 @@ internal fun ConnectRoute(
     hasConnection: Boolean,
     drafts: com.hancekim.mynote.feature.notes.element.NotesDrafts,
     snackbarHostState: SnackbarHostState,
-    onNotesIntent: (NotesIntent) -> Unit,
+    onShellBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ConnectViewModel = hiltViewModel(viewModelStoreOwner = LocalActivity.current as ComponentActivity),
 ) {
@@ -130,7 +129,7 @@ internal fun ConnectRoute(
     BackHandler(enabled = place == ConnectPlace.Root || backAction != ConnectBackAction.PopScreen) {
         when (backAction) {
             ConnectBackAction.CancelProbe -> viewModel.onIntent(ConnectIntent.CancelProbe)
-            ConnectBackAction.ShowExitHint -> onNotesIntent(NotesIntent.Back)
+            ConnectBackAction.ShowExitHint -> onShellBack()
             ConnectBackAction.Ignore, ConnectBackAction.PopScreen -> Unit
         }
     }
@@ -151,7 +150,7 @@ internal fun ConnectRoute(
                     when (backAction) {
                         ConnectBackAction.CancelProbe -> viewModel.onIntent(ConnectIntent.CancelProbe)
                         ConnectBackAction.Ignore -> Unit
-                        else -> onNotesIntent(NotesIntent.Back)
+                        else -> onShellBack()
                     }
                 },
                 onCreateToken = { openOrNotify(TOKEN_PAGE_URL) },

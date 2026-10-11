@@ -50,7 +50,7 @@ import com.hancekim.mynote.core.designsystem.motion.MyNoteEasing
 import com.hancekim.mynote.core.designsystem.motion.rememberReduceMotion
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.element.NotesIntent
+import com.hancekim.mynote.feature.notes.quiz.QuizIntent
 import com.hancekim.mynote.feature.notes.quiz.QuizUiState
 import com.hancekim.mynote.feature.notes.quiz.component.QuizPrimaryButton
 import kotlinx.collections.immutable.ImmutableList
@@ -59,7 +59,7 @@ import kotlinx.collections.immutable.persistentListOf
 @Composable
 internal fun QuizResultScreen(
     state: QuizUiState.Result,
-    onIntent: (NotesIntent) -> Unit,
+    onIntent: (QuizIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = MyNoteTheme.colors
@@ -142,7 +142,7 @@ internal fun QuizResultScreen(
 
             QuizPrimaryButton(
                 text = stringResource(R.string.notes_quiz_back_to_note),
-                onClick = { onIntent(NotesIntent.DismissQuiz) },
+                onClick = { onIntent(QuizIntent.Dismiss) },
                 height = 52.dp,
                 modifier = Modifier.padding(bottom = 12.dp),
             )

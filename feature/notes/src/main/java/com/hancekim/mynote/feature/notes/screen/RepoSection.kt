@@ -50,8 +50,6 @@ import com.hancekim.mynote.core.domain.model.SourceId
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.LastSync
 import com.hancekim.mynote.feature.notes.element.NotesDrafts
-import com.hancekim.mynote.feature.notes.element.NotesIntent
-import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.element.RepoCardUi
 import com.hancekim.mynote.feature.notes.element.RepoDot
 import com.hancekim.mynote.feature.notes.element.SyncFailureKind
@@ -72,21 +70,24 @@ import com.hancekim.mynote.feature.notes.screen.connect.TokenHowTo
 import com.hancekim.mynote.feature.notes.screen.connect.VerifyingLine
 import com.hancekim.mynote.feature.notes.screen.connect.monoAnnotated
 import com.hancekim.mynote.feature.notes.screen.connect.openExternal
+import com.hancekim.mynote.feature.notes.settings.SettingsIntent
+import com.hancekim.mynote.feature.notes.settings.SettingsUiState
 import kotlinx.coroutines.launch
 import com.hancekim.mynote.core.designsystem.R as DsR
 
 @Composable
 internal fun RepoSection(
-    uiState: NotesUiState,
-    onIntent: (NotesIntent) -> Unit,
+    uiState: SettingsUiState,
+    onIntent: (SettingsIntent) -> Unit,
     drafts: NotesDrafts,
+    snackbarHostState: SnackbarHostState,
 ) {
     val card = uiState.repoCard
     val edit = uiState.tokenEdit
     val connection = uiState.connectedRepo
     val colors = MyNoteTheme.colors
 
-    BackHandler(enabled = edit.editing) { onIntent(NotesIntent.CancelTokenEdit) }
+    BackHandler(enabled = edit.editing) { onIntent(SettingsIntent.CancelTokenEdit) }
     LaunchedEffect(edit.editing) { if (!edit.editing) drafts.settingsToken.clear() }
 
     SettingsCard(modifier = Modifier.animateContentSize()) {
@@ -94,8 +95,8 @@ internal fun RepoSection(
             DisconnectDialog(
                 notes = dialog.notes,
                 bookmarks = dialog.bookmarks,
-                onDismiss = { onIntent(NotesIntent.DismissDisconnect) },
-                onConfirm = { onIntent(NotesIntent.ConfirmDisconnect) },
+                onDismiss = { onIntent(SettingsIntent.DismissDisconnect) },
+                onConfirm = { onIntent(SettingsIntent.ConfirmDisconnect) },
             )
         }
         Row(
@@ -118,7 +119,7 @@ internal fun RepoSection(
             Box(Modifier.padding(start = ACTION_INDENT, end = 16.dp, bottom = 16.dp)) {
                 PrimaryButton(
                     text = stringResource(R.string.notes_repo_connect),
-                    onClick = { onIntent(NotesIntent.OpenConnect) },
+                    onClick = { onIntent(SettingsIntent.OpenConnect) },
                 )
             }
         } else {
@@ -132,6 +133,7 @@ internal fun RepoSection(
                 edit = edit,
                 drafts = drafts,
                 onIntent = onIntent,
+                snackbarHostState = snackbarHostState,
             )
         }
     }
@@ -140,7 +142,7 @@ internal fun RepoSection(
 @Composable
 private fun RepoStatusLine(
     card: RepoCardUi,
-    uiState: NotesUiState,
+    uiState: SettingsUiState,
 ) {
     val colors = MyNoteTheme.colors
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -273,7 +275,7 @@ private fun LastSyncLine(
 @Composable
 private fun RepoActions(
     locked: Boolean,
-    onIntent: (NotesIntent) -> Unit,
+    onIntent: (SettingsIntent) -> Unit,
 ) {
     FlowRow(
         modifier =
@@ -286,12 +288,12 @@ private fun RepoActions(
         SecondaryButton(
             text = stringResource(R.string.notes_repo_change),
             enabled = !locked,
-            onClick = { onIntent(NotesIntent.OpenConnect) },
+            onClick = { onIntent(SettingsIntent.OpenConnect) },
         )
         DestructiveButton(
             text = stringResource(R.string.notes_repo_disconnect),
             enabled = !locked,
-            onClick = { onIntent(NotesIntent.RequestDisconnect) },
+            onClick = { onIntent(SettingsIntent.RequestDisconnect) },
         )
     }
 }
@@ -299,11 +301,12 @@ private fun RepoActions(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TokenBlock(
-    uiState: NotesUiState,
+    uiState: SettingsUiState,
     card: RepoCardUi,
     edit: TokenEditState,
     drafts: NotesDrafts,
-    onIntent: (NotesIntent) -> Unit,
+    onIntent: (SettingsIntent) -> Unit,
+    snackbarHostState: SnackbarHostState,
 ) {
     val colors = MyNoteTheme.colors
     Column(
@@ -340,6 +343,7 @@ private fun TokenBlock(
                 edit = edit,
                 draft = drafts.settingsToken,
                 onIntent = onIntent,
+                snackbar = snackbarHostState,
             )
         } else {
             FlowRow(
@@ -352,24 +356,24 @@ private fun TokenBlock(
                     if (card.showBadge) {
                         PrimaryButton(
                             text = stringResource(R.string.notes_settings_token_change),
-                            onClick = { onIntent(NotesIntent.StartTokenEdit) },
+                            onClick = { onIntent(SettingsIntent.StartTokenEdit) },
                             modifier = changeModifier,
                         )
                     } else {
                         SecondaryButton(
                             text = stringResource(R.string.notes_settings_token_change),
-                            onClick = { onIntent(NotesIntent.StartTokenEdit) },
+                            onClick = { onIntent(SettingsIntent.StartTokenEdit) },
                             modifier = changeModifier,
                         )
                     }
                     DestructiveButton(
                         text = stringResource(R.string.notes_settings_token_clear),
-                        onClick = { onIntent(NotesIntent.ClearToken) },
+                        onClick = { onIntent(SettingsIntent.ClearToken) },
                     )
                 } else {
                     PrimaryButton(
                         text = stringResource(R.string.notes_settings_token_enter),
-                        onClick = { onIntent(NotesIntent.StartTokenEdit) },
+                        onClick = { onIntent(SettingsIntent.StartTokenEdit) },
                     )
                 }
             }
@@ -380,15 +384,15 @@ private fun TokenBlock(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TokenEditor(
-    uiState: NotesUiState,
+    uiState: SettingsUiState,
     edit: TokenEditState,
     draft: TokenDraft,
-    onIntent: (NotesIntent) -> Unit,
+    onIntent: (SettingsIntent) -> Unit,
+    snackbar: SnackbarHostState,
 ) {
     val colors = MyNoteTheme.colors
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val snackbar: SnackbarHostState = uiState.snackbarHostState
     val browserMissing = stringResource(R.string.notes_token_browser_missing)
     val focusRequester = remember { FocusRequester() }
     val fieldInView = remember { BringIntoViewRequester() }
@@ -410,7 +414,7 @@ private fun TokenEditor(
         if (!draft.isBlank && !edit.verifying) {
             focusManager.clearFocus(force = true)
             keyboard?.hide()
-            onIntent(NotesIntent.SaveToken(draft.secret()))
+            onIntent(SettingsIntent.SaveToken(draft.secret()))
         }
     }
 
@@ -460,13 +464,13 @@ private fun TokenEditor(
                 Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
                     DestructiveButton(
                         text = stringResource(R.string.notes_settings_token_clear),
-                        onClick = { onIntent(NotesIntent.ClearToken) },
+                        onClick = { onIntent(SettingsIntent.ClearToken) },
                     )
                 }
             }
             QuietButton(
                 text = stringResource(DsR.string.ds_action_cancel),
-                onClick = { onIntent(NotesIntent.CancelTokenEdit) },
+                onClick = { onIntent(SettingsIntent.CancelTokenEdit) },
             )
             PrimaryButton(
                 text =
@@ -490,25 +494,29 @@ private fun previewState(
     hasToken: Boolean = false,
     last: LastSync = LastSync.Succeeded,
     edit: TokenEditState = TokenEditState.Viewing,
-) = NotesUiState(
+) = SettingsUiState(
     connection = connection,
     hasToken = hasToken,
     maskedToken = if (hasToken) "github_pat_••••••••a1b2" else null,
     lastSync = last,
     tokenEdit = edit,
-    isLoading = false,
 )
 
 @Composable
 private fun SectionPreview(
-    state: NotesUiState,
+    state: SettingsUiState,
     drafts: NotesDrafts = remember { NotesDrafts() },
     windowClass: MyNoteWindowClass = MyNoteWindowClass.Compact,
     fontScale: MyNoteFontScale = MyNoteFontScale.Normal,
 ) {
     MyNoteTheme(windowClass = windowClass, fontScale = fontScale) {
         Column(Modifier.background(MyNoteTheme.colors.bg).padding(16.dp)) {
-            RepoSection(uiState = state, onIntent = {}, drafts = drafts)
+            RepoSection(
+                uiState = state,
+                onIntent = {},
+                drafts = drafts,
+                snackbarHostState = remember { SnackbarHostState() },
+            )
         }
     }
 }

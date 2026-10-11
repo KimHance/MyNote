@@ -53,7 +53,7 @@ import com.hancekim.mynote.core.designsystem.component.MyNoteIcons
 import com.hancekim.mynote.core.designsystem.motion.rememberReduceMotion
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.element.NotesIntent
+import com.hancekim.mynote.feature.notes.quiz.QuizIntent
 import com.hancekim.mynote.feature.notes.quiz.QuizUiState
 import com.hancekim.mynote.feature.notes.quiz.component.QuizCloseButton
 import com.hancekim.mynote.feature.notes.quiz.component.QuizOrb
@@ -64,7 +64,7 @@ import kotlin.time.Duration.Companion.milliseconds
 @Composable
 internal fun QuizGeneratingScreen(
     state: QuizUiState.Loading,
-    onIntent: (NotesIntent) -> Unit,
+    onIntent: (QuizIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val short = MyNoteTheme.adaptive.heightClass == MyNoteHeightClass.Compact
@@ -90,7 +90,7 @@ internal fun QuizGeneratingScreen(
         Column {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 QuizCloseButton(
-                    onClick = { onIntent(NotesIntent.DismissQuiz) },
+                    onClick = { onIntent(QuizIntent.Dismiss) },
                     modifier = Modifier.padding(top = 4.dp),
                 )
             }
@@ -160,12 +160,12 @@ private fun GeneratingTitle(
 
 @Composable
 private fun QuitButton(
-    onIntent: (NotesIntent) -> Unit,
+    onIntent: (QuizIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     QuizOutlineButton(
         text = stringResource(R.string.notes_quiz_generating_stop),
-        onClick = { onIntent(NotesIntent.DismissQuiz) },
+        onClick = { onIntent(QuizIntent.Dismiss) },
         modifier = modifier,
     )
 }

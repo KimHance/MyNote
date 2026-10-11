@@ -3,6 +3,8 @@ package com.hancekim.mynote.feature.notes.element
 import com.hancekim.mynote.core.domain.model.ConnectionState
 import com.hancekim.mynote.core.domain.model.RepoConnection
 import com.hancekim.mynote.core.domain.model.SourceId
+import com.hancekim.mynote.feature.notes.shell.ShellUiState
+import com.hancekim.mynote.feature.notes.shell.startOf
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -35,7 +37,6 @@ class HomeBodyTest {
             NotesUiState(
                 connection = ConnectionState.Connected(SourceId("s1"), repo),
                 notesLoaded = true,
-                seedPending = false,
                 isLoading = false,
             )
 
@@ -50,11 +51,11 @@ class HomeBodyTest {
             NotesUiState(
                 connection = ConnectionState.Connected(SourceId("s1"), repo),
                 notesLoaded = true,
-                seedPending = false,
                 awaitingNotes = true,
             )
+        val shell = ShellUiState(connection = connected.connection, seedPending = false)
 
-        assertEquals(StartDestination.Shell, connected.start)
+        assertEquals(StartDestination.Shell, startOf(shell, connected))
     }
 
     private val repo = RepoConnection("octo-learner", "android-notes", "main", "notes/index.json", isPublic = true)

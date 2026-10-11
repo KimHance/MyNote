@@ -42,10 +42,13 @@ import com.hancekim.mynote.feature.notes.NoteUi
 import com.hancekim.mynote.feature.notes.QuizQuestionUi
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.NotesDrafts
-import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.element.TokenEditState
+import com.hancekim.mynote.feature.notes.quiz.QuizIntent
+import com.hancekim.mynote.feature.notes.quiz.QuizOverlayState
 import com.hancekim.mynote.feature.notes.quiz.QuizUiState
+import com.hancekim.mynote.feature.notes.settings.SettingsIntent
+import com.hancekim.mynote.feature.notes.settings.SettingsUiState
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import org.junit.Assert.assertEquals
@@ -365,27 +368,26 @@ internal class ShellHarness(
         val drafts = remember { NotesDrafts() }
         val host = remember { SnackbarHostState() }
         val current = scene
-        val uiState = remember(current, exitRequestId) { current.toUiState(exitRequestId, host) }
-        val onIntent = remember { { intent: NotesIntent -> record(intent) } }
+        val states = remember(current, exitRequestId) { current.toStates(exitRequestId) }
+        val intents =
+            remember {
+                FeatureIntents(
+                    shell = { if (it == ShellIntent.Back) calls += Recorded.Back },
+                    notes = {},
+                    settings = { if (it == SettingsIntent.CancelTokenEdit) calls += Recorded.CancelTokenEdit },
+                    quiz = { if (it == QuizIntent.Dismiss) calls += Recorded.DismissQuiz },
+                )
+            }
         MyNoteTheme(windowClass = current.window.windowClass, heightClass = MyNoteHeightClass.Medium) {
-            NotesExitEffects(uiState, host, onIntent, onExit = { calls += Recorded.Exit })
+            NotesExitEffects(states.shell, host, intents.shell, onExit = { calls += Recorded.Exit })
             NotesShell(
-                uiState = uiState,
-                onIntent = onIntent,
+                states = states,
+                intents = intents,
                 snackbarHostState = host,
                 drafts = drafts,
                 onConfirmDownload = {},
                 onEnableNotifications = {},
             )
-        }
-    }
-
-    private fun record(intent: NotesIntent) {
-        when (intent) {
-            NotesIntent.Back -> calls += Recorded.Back
-            NotesIntent.DismissQuiz -> calls += Recorded.DismissQuiz
-            NotesIntent.CancelTokenEdit -> calls += Recorded.CancelTokenEdit
-            else -> Unit
         }
     }
 }
@@ -397,32 +399,44 @@ private val ShellWindow.windowClass: MyNoteWindowClass
             ShellWindow.Wide -> MyNoteWindowClass.Medium
         }
 
-private fun ShellScene.toUiState(
-    exitRequestId: Int,
-    host: SnackbarHostState,
-): NotesUiState =
-    NotesUiState(
-        categories = CATEGORIES,
-        visibleCategories = CATEGORIES,
-        backStack = stack.toPersistentList(),
-        activeNoteId = stack.activeNoteId(),
-        isNavSettled = settled,
-        exitRequestId = exitRequestId,
-        isLoading = false,
-        hasToken = true,
-        maskedToken = MASKED_TOKEN,
-        tokenEdit = if (tokenEditing) TokenEditState(editing = true) else TokenEditState.Viewing,
-        connection = ConnectionState.Connected(SourceId("back-order"), REPO),
-        notesLoaded = true,
-        seedPending = false,
+private fun ShellScene.toStates(exitRequestId: Int): FeatureStates {
+    val connection = ConnectionState.Connected(SourceId("back-order"), REPO)
+    return FeatureStates(
+        shell =
+            ShellUiState(
+                backStack = stack.toPersistentList(),
+                activeNoteId = stack.activeNoteId(),
+                isNavSettled = settled,
+                exitRequestId = exitRequestId,
+                connection = connection,
+                seedPending = false,
+            ),
+        notes =
+            NotesUiState(
+                categories = CATEGORIES,
+                visibleCategories = CATEGORIES,
+                isLoading = false,
+                connection = connection,
+                notesLoaded = true,
+            ),
+        settings =
+            SettingsUiState(
+                hasToken = true,
+                maskedToken = MASKED_TOKEN,
+                tokenEdit = if (tokenEditing) TokenEditState(editing = true) else TokenEditState.Viewing,
+                connection = connection,
+            ),
         quiz =
-            when (quiz) {
-                ShellQuiz.None -> QuizUiState.Idle
-                ShellQuiz.Setup -> QuizUiState.Setup(LONG_NOTE_ID)
-                ShellQuiz.Solving -> QuizUiState.Solving(questions = QUESTIONS)
-            },
-        snackbarHostState = host,
+            QuizOverlayState(
+                quiz =
+                    when (quiz) {
+                        ShellQuiz.None -> QuizUiState.Idle
+                        ShellQuiz.Setup -> QuizUiState.Setup(LONG_NOTE_ID)
+                        ShellQuiz.Solving -> QuizUiState.Solving(questions = QUESTIONS)
+                    },
+            ),
     )
+}
 
 private fun backEvent(progress: Float) = BackEventCompat(0f, 0f, progress, BackEventCompat.EDGE_LEFT)
 

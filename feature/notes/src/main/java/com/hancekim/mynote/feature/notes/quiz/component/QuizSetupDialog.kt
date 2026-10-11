@@ -39,7 +39,7 @@ import com.hancekim.mynote.core.designsystem.component.PressIndication
 import com.hancekim.mynote.core.designsystem.component.throttledProcess
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.element.NotesIntent
+import com.hancekim.mynote.feature.notes.quiz.QuizIntent
 import com.hancekim.mynote.feature.notes.quiz.QuizUiState
 import com.kyant.backdrop.Backdrop
 import com.hancekim.mynote.core.designsystem.R as DsR
@@ -48,7 +48,7 @@ import com.hancekim.mynote.core.designsystem.R as DsR
 internal fun QuizSetupDialog(
     state: QuizUiState.Setup,
     noteTitle: String,
-    onIntent: (NotesIntent) -> Unit,
+    onIntent: (QuizIntent) -> Unit,
     modifier: Modifier = Modifier,
     bodyModifier: Modifier = Modifier,
     backdrop: Backdrop? = null,
@@ -130,7 +130,7 @@ internal fun QuizSetupDialog(
                             CountSegment(
                                 count = count,
                                 selected = count == state.maxCount,
-                                onSelect = { onIntent(NotesIntent.SetQuizCount(count)) },
+                                onSelect = { onIntent(QuizIntent.SetCount(count)) },
                                 modifier = Modifier.weight(1f),
                             )
                         }
@@ -149,11 +149,11 @@ internal fun QuizSetupDialog(
                 ) {
                     DialogQuietButton(
                         text = stringResource(DsR.string.ds_action_cancel),
-                        onClick = { onIntent(NotesIntent.DismissQuiz) },
+                        onClick = { onIntent(QuizIntent.Dismiss) },
                     )
                     DialogPrimaryButton(
                         text = stringResource(R.string.notes_quiz_create),
-                        onClick = throttledProcess { onIntent(NotesIntent.GenerateQuiz(state.noteId, state.maxCount)) },
+                        onClick = throttledProcess { onIntent(QuizIntent.Generate(state.noteId, state.maxCount)) },
                     )
                 }
             }

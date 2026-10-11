@@ -34,6 +34,7 @@ import com.hancekim.mynote.core.domain.repository.StudyLogRepository
 import com.hancekim.mynote.core.domain.stats.StatsPeriod
 import com.hancekim.mynote.core.navigation.Navigator
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
+import com.hancekim.mynote.feature.notes.signal.FeatureSignals
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -79,6 +80,8 @@ class StatsViewModelTest {
                     observeHistory = ObserveWeeklyHistoryUseCase(FakeStudyLog, FakeInsights, FakeScheduler),
                     observeModelStatus = ObserveModelStatusUseCase(FakeModels),
                     navigator = Navigator(backgroundScope, NotesNavKey.Stats, clock = Clock { 0L }),
+                    signals = FeatureSignals(),
+                    work = UnconfinedTestDispatcher(testScheduler),
                     trace = trace,
                     clock = Clock { ticks.getAndAdd(STEP) },
                     wallClock =

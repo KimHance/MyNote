@@ -16,16 +16,15 @@ import com.hancekim.mynote.core.navigation.key.MyNoteNavKey
 import com.hancekim.mynote.core.navigation.scene.ListDetailSceneStrategy
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.NotesIntent
-import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.screen.ListPanelScreen
 
 @Composable
 internal fun rememberNotesPanelSlot(
-    uiState: NotesUiState,
-    onIntent: (NotesIntent) -> Unit,
+    states: FeatureStates,
+    intents: FeatureIntents,
 ): @Composable () -> Unit {
-    val currentState = rememberUpdatedState(uiState)
-    val currentIntent = rememberUpdatedState(onIntent)
+    val currentStates = rememberUpdatedState(states)
+    val currentIntents = rememberUpdatedState(intents)
     return remember {
         @Composable {
             Row {
@@ -35,8 +34,9 @@ internal fun rememberNotesPanelSlot(
                         .fillMaxHeight(),
                 ) {
                     ListPanelScreen(
-                        uiState = currentState.value,
-                        onIntent = currentIntent.value,
+                        uiState = currentStates.value.notes,
+                        chrome = currentStates.value.listPanel,
+                        onIntent = currentIntents.value.notes,
                         inFixedPanel = true,
                     )
                 }
@@ -48,12 +48,12 @@ internal fun rememberNotesPanelSlot(
 
 @Composable
 internal fun rememberNotesHeaderSlot(
-    uiState: NotesUiState,
-    onIntent: (NotesIntent) -> Unit,
+    states: FeatureStates,
+    intents: FeatureIntents,
     onMenu: () -> Unit,
 ): @Composable () -> Unit {
-    val currentState = rememberUpdatedState(uiState)
-    val currentIntent = rememberUpdatedState(onIntent)
+    val currentStates = rememberUpdatedState(states)
+    val currentIntents = rememberUpdatedState(intents)
     val currentMenu = rememberUpdatedState(onMenu)
     val homeTitle = stringResource(R.string.notes_app_title)
     val settingsTitle = stringResource(R.string.notes_settings)
@@ -63,23 +63,24 @@ internal fun rememberNotesHeaderSlot(
 
     return remember(homeTitle, settingsTitle, bookmarksTitle, statsTitle, historyTitle) {
         @Composable {
-            val state = currentState.value
+            val states = currentStates.value
+            val shell = states.shell
             NotesTopBar(
                 title =
                     when {
-                        state.isSettingsOpen -> settingsTitle
-                        state.isBookmarksTop -> bookmarksTitle
-                        state.isStatsTop -> statsTitle
-                        state.isStatsHistoryTop -> historyTitle
-                        else -> state.activeNote?.title ?: homeTitle
+                        shell.isSettingsOpen -> settingsTitle
+                        shell.isBookmarksTop -> bookmarksTitle
+                        shell.isStatsTop -> statsTitle
+                        shell.isStatsHistoryTop -> historyTitle
+                        else -> states.activeNote?.title ?: homeTitle
                     },
-                showBack = state.isSettingsOpen || state.isStatsHistoryTop,
-                showRefresh = !state.isStatsHistoryTop,
-                bookmarked = if (state.activeNoteId != null) state.isActiveNoteBookmarked else null,
+                showBack = shell.isSettingsOpen || shell.isStatsHistoryTop,
+                showRefresh = !shell.isStatsHistoryTop,
+                bookmarked = if (shell.activeNoteId != null) states.notes.isBookmarked(shell.activeNoteId) else null,
                 onMenu = { currentMenu.value() },
-                onBack = { currentIntent.value(NotesIntent.Back) },
-                onRefresh = { currentIntent.value(NotesIntent.Refresh) },
-                onToggleBookmark = { currentIntent.value(NotesIntent.ToggleBookmark) },
+                onBack = { currentIntents.value.shell(ShellIntent.Back) },
+                onRefresh = { currentIntents.value.notes(NotesIntent.Refresh) },
+                onToggleBookmark = { currentIntents.value.notes(NotesIntent.ToggleBookmark) },
             )
         }
     }

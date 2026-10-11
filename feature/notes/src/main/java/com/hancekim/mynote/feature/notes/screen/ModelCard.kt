@@ -44,16 +44,16 @@ import com.hancekim.mynote.feature.notes.element.ModelAction
 import com.hancekim.mynote.feature.notes.element.ModelCardUi
 import com.hancekim.mynote.feature.notes.element.ModelProgressUi
 import com.hancekim.mynote.feature.notes.element.ModelTone
-import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.gigabytes
 import com.hancekim.mynote.feature.notes.element.modelCardUi
 import com.hancekim.mynote.feature.notes.screen.connect.KeepWordsText
+import com.hancekim.mynote.feature.notes.settings.SettingsIntent
 
 @Composable
 internal fun ModelSection(
     card: ModelCardUi,
     notificationsEnabled: Boolean,
-    onIntent: (NotesIntent) -> Unit,
+    onIntent: (SettingsIntent) -> Unit,
     onEnableNotifications: () -> Unit,
 ) {
     val colors = MyNoteTheme.colors
@@ -226,7 +226,7 @@ private fun NotificationHint(onEnable: () -> Unit) {
 @Composable
 private fun ModelActions(
     actions: List<ModelAction>,
-    onIntent: (NotesIntent) -> Unit,
+    onIntent: (SettingsIntent) -> Unit,
 ) {
     FlowRow(
         modifier =
@@ -241,42 +241,42 @@ private fun ModelActions(
                 ModelAction.Download -> {
                     PrimaryButton(
                         text = stringResource(R.string.notes_model_download),
-                        onClick = { onIntent(NotesIntent.StartModelDownload) },
+                        onClick = { onIntent(SettingsIntent.StartModelDownload) },
                     )
                 }
 
                 ModelAction.Resume -> {
                     PrimaryButton(
                         text = stringResource(R.string.notes_model_resume),
-                        onClick = { onIntent(NotesIntent.StartModelDownload) },
+                        onClick = { onIntent(SettingsIntent.StartModelDownload) },
                     )
                 }
 
                 ModelAction.Retry -> {
                     PrimaryButton(
                         text = stringResource(R.string.notes_model_retry),
-                        onClick = { onIntent(NotesIntent.StartModelDownload) },
+                        onClick = { onIntent(SettingsIntent.StartModelDownload) },
                     )
                 }
 
                 ModelAction.Cancel -> {
                     SecondaryButton(
                         text = stringResource(R.string.notes_model_cancel),
-                        onClick = { onIntent(NotesIntent.CancelModelDownload) },
+                        onClick = { onIntent(SettingsIntent.CancelModelDownload) },
                     )
                 }
 
                 ModelAction.DiscardPartial -> {
                     DestructiveButton(
                         text = stringResource(R.string.notes_model_discard_partial),
-                        onClick = { onIntent(NotesIntent.DiscardPartialModel) },
+                        onClick = { onIntent(SettingsIntent.DiscardPartialModel) },
                     )
                 }
 
                 ModelAction.Delete -> {
                     DestructiveButton(
                         text = stringResource(R.string.notes_model_delete),
-                        onClick = { onIntent(NotesIntent.DeleteModel) },
+                        onClick = { onIntent(SettingsIntent.DeleteModel) },
                     )
                 }
             }

@@ -29,7 +29,7 @@ import com.hancekim.mynote.core.designsystem.component.riseIn
 import com.hancekim.mynote.core.designsystem.component.throttledProcess
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.element.NotesIntent
+import com.hancekim.mynote.feature.notes.quiz.QuizIntent
 import com.hancekim.mynote.feature.notes.quiz.QuizUiState
 import com.hancekim.mynote.feature.notes.quiz.component.QuizCloseButton
 import com.hancekim.mynote.feature.notes.quiz.component.QuizOutlineButton
@@ -39,7 +39,7 @@ import com.hancekim.mynote.feature.notes.quiz.component.QuizQuietButton
 @Composable
 internal fun QuizFailedScreen(
     state: QuizUiState.Failed,
-    onIntent: (NotesIntent) -> Unit,
+    onIntent: (QuizIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = MyNoteTheme.colors
@@ -49,7 +49,7 @@ internal fun QuizFailedScreen(
         Column {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 QuizCloseButton(
-                    onClick = { onIntent(NotesIntent.DismissQuiz) },
+                    onClick = { onIntent(QuizIntent.Dismiss) },
                     modifier = Modifier.padding(top = 4.dp),
                 )
             }
@@ -85,12 +85,12 @@ internal fun QuizFailedScreen(
                 ) {
                     QuizPrimaryButton(
                         text = stringResource(R.string.notes_quiz_retry),
-                        onClick = throttledProcess { onIntent(NotesIntent.RetryQuiz) },
+                        onClick = throttledProcess { onIntent(QuizIntent.Retry) },
                     )
                     if (state.canRetryWithFewer) {
                         QuizOutlineButton(
                             text = stringResource(R.string.notes_quiz_retry_fewer, QuizUiState.MIN_COUNT),
-                            onClick = { onIntent(NotesIntent.RetryQuizWithFewer(QuizUiState.MIN_COUNT)) },
+                            onClick = { onIntent(QuizIntent.RetryWithFewer(QuizUiState.MIN_COUNT)) },
                         )
                     }
                 }
@@ -98,7 +98,7 @@ internal fun QuizFailedScreen(
 
             QuizQuietButton(
                 text = stringResource(R.string.notes_quiz_back_to_note),
-                onClick = { onIntent(NotesIntent.DismissQuiz) },
+                onClick = { onIntent(QuizIntent.Dismiss) },
                 modifier = Modifier.padding(horizontal = 30.dp, vertical = 12.dp),
             )
         }

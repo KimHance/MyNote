@@ -1,6 +1,7 @@
 package com.hancekim.mynote.feature.notes.shell
 
 import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.rememberUpdatedState
@@ -22,8 +23,6 @@ import com.hancekim.mynote.core.navigation.shared.ProvideNavAnimatedScope
 import com.hancekim.mynote.feature.notes.element.ConnectPlace
 import com.hancekim.mynote.feature.notes.element.CtaAction
 import com.hancekim.mynote.feature.notes.element.NotesDrafts
-import com.hancekim.mynote.feature.notes.element.NotesIntent
-import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.screen.HomeScreen
 import com.hancekim.mynote.feature.notes.screen.NoteReaderScreen
 import com.hancekim.mynote.feature.notes.screen.SettingsScreen
@@ -34,8 +33,9 @@ import com.hancekim.mynote.feature.notes.screen.stats.StatsRoute
 
 @Composable
 internal fun NotesNavDisplay(
-    uiState: NotesUiState,
-    onIntent: (NotesIntent) -> Unit,
+    states: FeatureStates,
+    intents: FeatureIntents,
+    snackbarHostState: SnackbarHostState,
     sceneStrategies: List<SceneStrategy<MyNoteNavKey>>,
     stackedScenes: Boolean,
     contentBottomPadding: Dp,
@@ -47,16 +47,17 @@ internal fun NotesNavDisplay(
     onQuizAction: (String, CtaAction) -> Unit,
     onEnableNotifications: () -> Unit,
 ) {
-    val currentState = rememberUpdatedState(uiState)
-    val currentIntent = rememberUpdatedState(onIntent)
+    val currentStates = rememberUpdatedState(states)
+    val currentIntents = rememberUpdatedState(intents)
+    val notes = states.notes
     val currentQuizAction = rememberUpdatedState(onQuizAction)
     val currentEnableNotifications = rememberUpdatedState(onEnableNotifications)
 
     SharedTransitionLayout {
         CompositionLocalProvider(LocalSharedTransitionScope provides this) {
             NavDisplay(
-                backStack = uiState.backStack,
-                onBack = { currentIntent.value(NotesIntent.Back) },
+                backStack = states.shell.backStack,
+                onBack = { currentIntents.value.shell(ShellIntent.Back) },
                 sceneStrategies = sceneStrategies,
                 sharedTransitionScope = this@SharedTransitionLayout,
                 transitionSpec = sceneTransitionSpec(),
@@ -67,16 +68,16 @@ internal fun NotesNavDisplay(
                         entry<NotesNavKey.Home> {
                             ProvideNavAnimatedScope {
                                 HomeScreen(
-                                    recentNotes = uiState.recentNotes,
-                                    body = uiState.homeBody,
-                                    repoName = uiState.heroRepoName,
-                                    showConnectBand = uiState.showConnectBand && MyNoteTheme.adaptive.useModalDrawer,
-                                    onIntent = onIntent,
+                                    recentNotes = notes.recentNotes,
+                                    body = notes.homeBody,
+                                    repoName = notes.heroRepoName,
+                                    showConnectBand = notes.showConnectBand && MyNoteTheme.adaptive.useModalDrawer,
+                                    onIntent = intents.notes,
                                     contentBottomPadding = contentBottomPadding,
                                     contentEndPadding = contentEndPadding,
                                     contentTopPadding = contentTopPadding,
                                     gridState = scroll.homeGrid,
-                                    bookmarkedIds = uiState.bookmarkedIds,
+                                    bookmarkedIds = notes.bookmarkedIds,
                                 )
                             }
                         }
@@ -84,10 +85,10 @@ internal fun NotesNavDisplay(
                             ProvideNavAnimatedScope {
                                 val edgeProgress = rememberSceneEdgeProgress()
                                 BookmarksScreen(
-                                    bookmarks = uiState.bookmarks,
-                                    isLoading = uiState.isLoading && uiState.categories.isEmpty(),
+                                    bookmarks = notes.bookmarks,
+                                    isLoading = notes.isLoading && notes.categories.isEmpty(),
                                     twoPane = twoPane,
-                                    onIntent = onIntent,
+                                    onIntent = intents.notes,
                                     modifier = if (stackedScenes) Modifier.sceneEdge(edgeProgress) else Modifier,
                                     contentBottomPadding = contentBottomPadding,
                                     contentEndPadding = contentEndPadding,
@@ -101,7 +102,6 @@ internal fun NotesNavDisplay(
                                 val edgeProgress = rememberSceneEdgeProgress()
                                 StatsRoute(
                                     twoPane = twoPane,
-                                    onNotesIntent = { currentIntent.value(it) },
                                     listState = scroll.statsList,
                                     sideState = scroll.statsSide,
                                     modifier = if (stackedScenes) Modifier.sceneEdge(edgeProgress) else Modifier,
@@ -127,10 +127,11 @@ internal fun NotesNavDisplay(
                             ProvideNavAnimatedScope {
                                 val edgeProgress = rememberSceneEdgeProgress()
                                 SettingsScreen(
-                                    uiState = currentState.value,
-                                    onIntent = currentIntent.value,
+                                    uiState = currentStates.value.settings,
+                                    onIntent = currentIntents.value.settings,
                                     onEnableNotifications = currentEnableNotifications.value,
                                     drafts = drafts,
+                                    snackbarHostState = snackbarHostState,
                                     modifier =
                                         if (stackedScenes) Modifier.sceneEdge(edgeProgress) else Modifier,
                                 )
@@ -141,22 +142,22 @@ internal fun NotesNavDisplay(
                                 val edgeProgress = rememberSceneEdgeProgress()
                                 ConnectRoute(
                                     place = ConnectPlace.Stacked,
-                                    hasConnection = currentState.value.connectedRepo != null,
+                                    hasConnection = currentStates.value.shell.connectedRepo != null,
                                     drafts = drafts,
-                                    snackbarHostState = currentState.value.snackbarHostState,
-                                    onNotesIntent = currentIntent.value,
+                                    snackbarHostState = snackbarHostState,
+                                    onShellBack = { currentIntents.value.shell(ShellIntent.Back) },
                                     modifier = if (stackedScenes) Modifier.sceneEdge(edgeProgress) else Modifier,
                                 )
                             }
                         }
                         entry<NotesNavKey.Reader> { key ->
                             ProvideNavAnimatedScope {
-                                val note = uiState.noteById(key.noteId)
+                                val note = notes.noteById(key.noteId)
                                 if (note != null) {
                                     val edgeProgress = rememberSceneEdgeProgress()
                                     NoteReaderScreen(
                                         note = note,
-                                        categoryName = uiState.categoryNameOf(note.id).orEmpty(),
+                                        categoryName = notes.categoryNameOf(note.id).orEmpty(),
                                         modifier = if (stackedScenes) Modifier.sceneEdge(edgeProgress) else Modifier,
                                         contentBottomPadding = contentBottomPadding,
                                         contentTopPadding = contentTopPadding,
@@ -164,7 +165,7 @@ internal fun NotesNavDisplay(
                                         scrollState = scroll.reader,
                                         contentState = scroll.readerContent,
                                         onQuizAction = { action -> currentQuizAction.value(note.id, action) },
-                                        modelStatus = currentState.value.modelStatus,
+                                        modelStatus = currentStates.value.quiz.modelStatus,
                                     )
                                 }
                             }
