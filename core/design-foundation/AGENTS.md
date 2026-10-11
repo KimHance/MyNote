@@ -50,14 +50,14 @@
 | **높이** (Compact/Medium/Expanded — 480·900dp) | 세로 리듬 | `headerHeight` `padY` `fadeHeight` `heroLogoSize` `heroTitleSize` |
 
 - 경계값은 Material3 의 창 크기 클래스와 같다 — 임의로 고른 수가 아니니 옮기기 전에 그걸 감안한다.
-- `fromWidth`/`fromHeight` 는 여기 있지만 **부르는 곳은 한 군데**다. `NotesRoute` 가
+- `fromWidth`/`fromHeight` 는 여기 있지만 **부르는 곳은 한 군데**다. `:app` 셸 `shell/NotesRoute.kt` 의 `NotesScreen` 이
   `LocalWindowInfo.current.containerDpSize` 로 한 번 판정해 `MyNoteTheme` 에 넘기고, 그 아래는 전부
   테마에서 토큰을 읽는다. 화면에서 `BoxWithConstraints` 로 다시 재지 말 것(그건 창이 아니라 부모 제약이다).
 - **`null` = "없음"이다.** `readingMaxWidth == null`(너비 Compact/Medium) = 본문 폭 제한 없음,
   `heroLogoSize == null`(높이 Compact) = 히어로 로고를 **그리지 않음**. 소비자가 null 분기를 하게 만든
   설계라 `0.dp` 로 바꾸면 "0 크기로 그리기"가 되어 의미가 사라진다.
 - `:core:navigation` 은 이 모듈을 **의존하지 않는다.** 그래서 씬 전략이 `paneWidth` 를 직접 읽을 수 없고
-  패널 폭은 feature 가 `panel` 슬롯 안에서 그린다. 여기에 내비용 값을 더 넣어도 nav 모듈은 못 본다.
+  패널 폭은 `:app` 셸이 `panel` 슬롯 안에서 그린다. 여기에 내비용 값을 더 넣어도 nav 모듈은 못 본다.
 
 ### 파생값(레일/바 판정 등)이 화면이 아니라 여기 있는 이유
 

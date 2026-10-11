@@ -8,8 +8,8 @@
 
 | 패키지 | 내용 | 쓰는 곳 |
 |---|---|---|
-| `mvi/` | `MviViewModel<S, E>` · 마커 `MviState` / `MviEvent` | `:feature:notes` 의 `NotesViewModel` |
-| `throttle/` | `Throttler` · `Clock.kt`(단조 `fun interface Clock` · `SystemClockSource`, 벽시계 `fun interface WallClock` · `SystemWallClockSource`) | `:core:navigation` 의 `Navigator`, `:core:design-system` 의 `throttledProcess`, `:feature:notes` 의 ViewModel(주입받음 · `:app` 의 `AppModule` 이 묶음) |
+| `mvi/` | `MviViewModel<S, E>` · 마커 `MviState` / `MviEvent` | 기능 ViewModel 전부(`:feature:*`) · `:app` 의 `ShellViewModel` |
+| `throttle/` | `Throttler` · `Clock.kt`(단조 `fun interface Clock` · `SystemClockSource`, 벽시계 `fun interface WallClock` · `SystemWallClockSource`) | `:core:navigation` 의 `Navigator`, `:core:design-system` 의 `throttledProcess`, 기능 · 셸 ViewModel(주입받음 · `:app` 의 `AppModule` 이 묶음) |
 | `result/` | `runCatchingCancellable` | `:core:data` 의 `NotesRepositoryImpl`, `:core:ai` 의 `LiteRtLmQuizGenerator` |
 
 **leaf 다.** `build.gradle.kts` 의 구현 의존은 `androidx.lifecycle.viewmodel` 과
@@ -100,7 +100,7 @@ class NotesViewModel @Inject constructor(
 ```
 
 화면 쪽 배선은 `XxxRoute` 가 `hiltViewModel()` 과 `collectAsStateWithLifecycle()` 로 상태를 모아
-`XxxScreen(uiState, onIntent)`(ViewModel 없이 프리뷰되는 stateless)을 부르는 모양이다. 화면별 규칙은 `feature/notes/AGENTS.md`.
+`XxxScreen(uiState, onIntent)`(ViewModel 없이 프리뷰되는 stateless)을 부르는 모양이다. 화면별 규칙은 각 기능 모듈의 `feature/*/AGENTS.md`.
 
 ---
 
@@ -192,7 +192,7 @@ Room/DataStore 처럼 변경 시에만 방출하는 옵저버는 살려두는 �
 채널을 새로 만들기 전에 이 패턴을 먼저 고려하라.
 
 id 만 두면 Activity 가 다시 만들어질 때 새 컴포지션의 `LaunchedEffect` 가 같은 id 로 다시 발동한다.
-화면이 효과를 끝낸 뒤 "봤음" 인텐트를 보내고 VM 이 그 id 를 지우게 한다(`:feature:notes` 의 `SignalShown`).
+화면이 효과를 끝낸 뒤 "봤음" 인텐트를 보내고 VM 이 그 id 를 지우게 한다(노트 · 설정 · 퀴즈 · 셸 VM 의 `SignalShown`).
 
 ---
 

@@ -199,6 +199,7 @@ secrets.properties
 /docs/*
 !/docs/spec/
 !/docs/design/
+!/docs/images/
 
 ### AndroidStudio Patch ###
 !/gradle/wrapper/gradle-wrapper.jar

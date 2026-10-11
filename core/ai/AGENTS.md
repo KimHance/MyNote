@@ -143,10 +143,12 @@ NPU 는 예전 실측에서 `Backend.NPU` 가 예외 없이 CPU 로 폴백했다
 - `gemma-4-E2B-it.litertlm`(2.59GB)을 `getExternalFilesDir(null)` 에서 찾는다 →
   `/sdcard/Android/data/com.hancekim.mynote/files/`. `.gitignore` 에 `*.litertlm` 이 등록돼 있다.
 - `applicationIdSuffix` 가 없어 debug/release 가 **같은 경로**를 쓴다. `adb push` 한 번으로 둘 다 된다.
-- **파일이 없으면 예외가 아니라 조용한 비활성이다.** `isAvailable()` = 파일 존재 여부 →
-  `NotesViewModel` 의 `quizAvailable` 이 false → 퀴즈 진입점이 화면에서 사라진다.
-  "퀴즈 버튼이 안 보인다"는 대부분 버그가 아니라 파일이 없는 것이다.
-- `isAvailable()` 은 **존재만** 본다. 깨진 파일이나 다른 모델이면 첫 `use` 에서 `QuizFailure.Engine` 으로 터진다.
+- **파일이 없으면 예외가 아니라 `ModelStatus.Missing` 이다.** 화면은 `isAvailable()` 을 부르지 않고 `ModelDownloads` 가
+  흘리는 `ModelStatus` 를 본다 — 설치 파일이 있으면 `Ready`(`download/decision/DownloadFacts.kt`). `Missing` 이면 리더 끝 퀴즈 CTA 가
+  숨지 않고 흐리게 남아 모델이 필요하다는 부제와 `받기` 칩을 띄우고, 누르면 받기 확인 대화상자로 간다(`:core:ui` 의 `quizCtaUi`).
+  "모델을 넣었는데 CTA 가 `받기` 로 남는다"는 대부분 버그가 아니라 파일 이름 · 위치가 다른 것이다.
+- `isAvailable()`(`ModelEngine` · `QuizGenerator`)도 **존재만** 본다 — 지금 앱 코드에서 부르는 곳은 없고 `:app` 계측 평가 하네스가
+  모델 없는 기기를 건너뛸 때 쓴다. 깨진 파일이나 다른 모델이면 첫 `use` 에서 `QuizFailure.Engine` 으로 터진다.
 
 ## 내려받기 알림 — `download/work/`
 

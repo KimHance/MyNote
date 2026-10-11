@@ -18,7 +18,7 @@ feature 마다 자기 키를 들면 feature 끼리 서로의 목적지를 몰라
 
 `src` 전체에 design-system/design-foundation/domain/data/material3/Hilt import 가 **0건**이다.
 씬은 폭·색·구분선을 스스로 정하지 않고 `panel`/`header` 슬롯에 맡긴다 — 실제로 `paneWidth`·
-`colors.border` 는 feature 쪽 슬롯이 그린다. 여기서 `MyNoteTheme` 를 import 하게 되면 설계가 틀어진 것이다.
+`colors.border` 는 `:app` 셸의 슬롯(`shell/NotesShell.kt`)이 그린다. 여기서 `MyNoteTheme` 를 import 하게 되면 설계가 틀어진 것이다.
 
 의존은 nav3(`api` 로 전파) + compose foundation + kotlinx-serialization + coroutines,
 그리고 **`implementation(projects.core.common)`** — 쓰로틀 판정을 `:core:common` 의 `Throttler`/`Clock` 이
@@ -123,8 +123,8 @@ dispatch: throttle.isIdle() 로 게이트  →  reduce(현재 스택, 명령)  �
   거기서 이동을 버리면 화면은 닫혔는데 스택은 그대로라 어긋난다. 그래서 전환 중 뒤로가기를 삼키는
   핸들러는 `NavDisplay` **호출 뒤**에 놓아야 한다(LIFO — 나중에 컴포즈된 핸들러가 이긴다).
   `activity-compose` 의 `BackHandler` 도 `NavigationEventDispatcher` 가 있으면 그쪽에 등록되므로
-  nav3 의 핸들러와 같은 LIFO 를 탄다(activity-compose 1.13.0 소스 확인). 실제 배선은 feature 쪽
-  셸에서 `NotesNavDisplay(...)` 호출(`layerBackdrop` 상자) 바로 뒤의 `BackHandler(enabled = !isNavSettled …)` 다.
+  nav3 의 핸들러와 같은 LIFO 를 탄다(activity-compose 1.13.0 소스 확인). 실제 배선은 `:app` 셸
+  `shell/NotesShell.kt` 의 `NotesNavDisplay(...)` 호출(`layerBackdrop` 상자) 바로 뒤의 `BackHandler(enabled = !isNavSettled …)` 다.
 
 ---
 
@@ -163,7 +163,7 @@ nav3 의 `LocalNavAnimatedContentScope` 는 미설정 시 **예외를 던진다*
   넓은 창에서는 본문 크로스페이드가, Compact 에서는 `NavDisplay` 의 씬 전환이 공유 요소의 기준이 된다.
 - 그 fallback 때문에 **`ProvideNavAnimatedScope` 자체는 엔트리 블록 안에서만 부른다.** 프리뷰에서 부르면 던진다.
 - `LocalSharedTransitionScope` 는 공개다 — `SharedTransitionLayout` 이 `NavDisplay` 를 감싸고 그 scope 를
-  내려 주는 건 feature 의 일이다.
+  내려 주는 건 `:app` 셸(`shell/NotesNavDisplay.kt`)의 일이다.
 - 키 문자열의 도메인 의미(`chip-`/`date-`/`title-{noteId}`)는 feature 가 정한다. 여기는 배선만.
 
 ---

@@ -8,14 +8,14 @@
 새 모듈이 아니라 이 구조 안에 끼우는 일이다.
 
 의존은 컨벤션(`hancenote.android.feature`)이 `:core:common` · `:core:design-system` ·
-`:core:domain` · `:core:navigation` + Hilt + lifecycle + coroutines 를 자동으로 넣는다.
-`build.gradle.kts` 에 직접 적은 건 `hilt-navigation-compose` 와 `material-icons-core` 둘뿐이다.
-`:core:data`/`:core:network`/`:core:database` 는 의존하지 않는다 — 데이터는 `:core:domain` 의
-UseCase 로만 들어온다.
+`:core:domain` · `:core:navigation` · `:core:ui` + Hilt + lifecycle + coroutines + `hilt-navigation-compose` ·
+`material-icons-core` 를 자동으로 넣는다. `build.gradle.kts` 는 컨벤션 한 줄과 `namespace` 뿐이다.
+`:core:data`/`:core:network`/`:core:database` · `:core:ai` · 다른 기능 모듈은 의존하지 않는다 — 데이터는 `:core:domain` 의
+UseCase 로만 들어오고, 둘 이상의 기능이 쓰는 조각은 `:core:ui` 에 있다(FM-2 · FM-3).
 
 ---
 
-## 상태가 사는 곳이 셋이다 — 이 경계가 이 모듈의 골격이다
+## 상태가 사는 곳 — 이 경계가 이 모듈의 골격이다
 
 | 어디 | 무엇 | 왜 거기 |
 |---|---|---|
@@ -37,7 +37,7 @@ UseCase 로만 들어온다.
 
 통계 ViewModel 의 집계 게이트 · `@StatsWork` · 리더 · 퀴즈 진입(FM-6 ① ②)은 `feature/stats/AGENTS.md` 에 있다.
 
-세 번째를 ViewModel 로 올리려는 충동을 참아라. 드로어/패널은 창 크기에 따라 존재 자체가
+컴포지션 로컬에 둔 것(드로어 · 패널)을 ViewModel 로 올리려는 충동을 참아라. 드로어/패널은 창 크기에 따라 존재 자체가
 사라지는 값이라 상태로 올리면 폼팩터 전환 때 의미가 없어진다. 대신 **뒤로가기는 먹는다**
 (아래 참조).
 
@@ -248,7 +248,7 @@ ViewModel 하나 — 만 공개로 내놓고 셸을 import 하지 않는다. 연
 ### `ModelStatus` 는 `:core:domain` 에 있다 — `:core:ai` 가 아니다
 
 받는 쪽 구현은 `:core:ai` 인데 **feature 는 `:core:ai` 를 의존하지 않는다**(feature 컨벤션이
-넣어 주는 건 core/{common, design-system, domain, navigation} 뿐). 그래서 상태 타입과
+넣어 주는 건 core/{common, design-system, domain, navigation, ui} 뿐). 그래서 상태 타입과
 `QuizModelSource` 계약은 `:core:domain` 이 소유하고 `:core:ai` 의 `ModelDownloads` 가 구현한다.
 `QuizGenerator` 와 같은 DIP 다. **`:core:ai` 에 public 을 만들어도 여기서는 영원히 안 보인다.**
 
@@ -262,11 +262,13 @@ ViewModel 하나 — 만 공개로 내놓고 셸을 import 하지 않는다. 연
 UI 에 `"no-space"` 를 다시 적으면 값이 어긋나는 순간 **공간 부족인데 "잠시 뒤 다시 시도하세요"
 로 조용히 떨어진다.** 실제로 한 번 그렇게 만들었다가 고쳤다.
 
-### `isQuizAvailable` 은 더 이상 한 번 읽고 마는 값이 아니다
+### 퀴즈를 쓸 수 있는지는 모델 상태 하나에서 파생된다
 
 예전엔 `flow { emit(quizGenerator.isAvailable()) }` 로 앱 시작에 한 번만 읽었다. 그래서 다 받아도
-앱을 다시 켜야 퀴즈가 켜졌다. 지금은 `modelStatus == Ready` 에서 파생되고, `ModelDownloads.status()`
-가 WorkManager 를 계속 흘린다.
+앱을 다시 켜야 퀴즈가 켜졌다. 지금은 어느 기능도 `QuizGenerator.isAvailable()` 을 부르지 않는다 —
+읽는 곳마다 `ObserveModelStatusUseCase` 로 `ModelStatus` 를 받고, `ModelDownloads.status()` 가 WorkManager 와 설치 파일을
+계속 흘린다(`Ready` = 설치된 파일이 있음). 리더 끝 CTA 는 `Ready` 가 아니어도 숨지 않고 상태에 맞는 부제 · 동작으로
+남는다(`quizCtaUi`, 아래). 이 모듈에서는 목록 패널의 설정 배지 · 진행 막대가 모델 상태를 읽는다.
 
 ### 상태 → 화면 매핑은 순수 함수다
 

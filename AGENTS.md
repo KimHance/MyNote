@@ -32,8 +32,8 @@ GitHub 의 마크다운 노트(옛 JSON 도)를 받아 읽는 **읽기 전용** 
 python3 -I -m unittest discover notes-tests && python3 -I -m unittest discover public-repos/tests && python3 -I -m unittest discover public-repos/notes-kit/tests
 # 계측 시험 — 모듈마다 차례로 돌린다(`test` 에 안 든다 · 한 호출에 묶으면 병렬로 겹쳐 서로 죽는다). ANDROID_SERIAL 이 비면 붙은 기기 전부에 설치한다
 # 라이브러리 셋은 앱을 건드리지 않고, :app 은 앱을 덮어 설치하지만 gradle.properties 의 leaveApksInstalledAfterRun 이 지우지 않게 막는다
+# 기능 모듈 다섯 · :core:ui 에는 계측이 없다 — 셸과 기능 화면을 같이 그리는 계측(뒤로가기 7단 · 브랜드)은 :app 에 있다
 ANDROID_SERIAL=<기기 serial> ./gradlew :core:design-system:connectedDebugAndroidTest && ANDROID_SERIAL=<기기 serial> ./gradlew :core:database:connectedDebugAndroidTest
-ANDROID_SERIAL=<기기 serial> ./gradlew :feature:notes:connectedDebugAndroidTest
 ANDROID_SERIAL=<기기 serial> ./gradlew :app:connectedDebugAndroidTest
 ```
 
@@ -54,11 +54,16 @@ ANDROID_SERIAL=<기기 serial> ./gradlew :app:connectedDebugAndroidTest
 ## 모듈 지도와 의존 방향
 
 ```
-app  ─────────────────────────────  composition root. 구현체를 전부 알고 Hilt 로 묶는다
+app  ─────────────────────────────  composition root + 셸(shell/). 구현체를 전부 알고 Hilt 로 묶는다
  │
- ├─ feature/notes  ───────────────  화면 · ViewModel · 퀴즈
- │    └→ core/{common, design-system, domain, navigation}   (feature convention 이 자동 주입)
+ ├─ feature/notes     ────────────  홈 · 북마크 · 목록 패널 · 리더 · 연결 띠
+ ├─ feature/connect   ────────────  저장소 연결 화면 · 바꾸기 · 받아들이기 대화상자
+ ├─ feature/settings  ────────────  설정 · 저장소 칸 · 모델 카드 · 끊기 대화상자
+ ├─ feature/quiz      ────────────  퀴즈 오버레이 · 리더 끝 CTA 카드 (목적지 키 없음)
+ ├─ feature/stats     ────────────  통계 · 지난 요약
+ │    └→ core/{common, design-system, domain, navigation, ui}   (feature convention 이 자동 주입 · 기능끼리는 모른다)
  │
+ ├─ core/ui        ──→ core/{common, design-system, domain, navigation}  두 기능 이상이 쓰는 화면 조각 · 셸 틀 계약 · 기능 사이 신호
  ├─ core/ai        ──→ core/domain  LiteRT-LM 으로 QuizGenerator · 통계 워커(InsightScheduler) 구현
  ├─ core/network   ──→ core/data    GitHub Contents API
  ├─ core/database  ──→ core/data    Room3 캐시·학습 기록·요약 캐시 + DataStore
@@ -81,7 +86,12 @@ app  ─────────────────────────
 - **`:core:format` 을 의존하는 것은 `:core:data` 하나다**(`implementation`). `:core:format` 은 `:core:domain` 만 안다.
   feature · network · database 는 형식 해석 자리를 모르고, 블록 DTO 는 그 모듈 밖으로 새지 않는다(`internal`).
 - Room `@Entity`·Retrofit·DataStore 타입은 각 모듈 밖으로 새지 않는다.
-- `:core:design-foundation` 은 `:core:design-system` 을 의존하지 않는다. feature ↔ feature 직접 의존 금지.
+- `:core:design-foundation` 은 `:core:design-system` 을 의존하지 않는다.
+- **feature ↔ feature 직접 의존 금지.** 둘 이상의 기능이 쓰는 것은 `:core:ui`, 다른 기능 화면으로는 `:core:navigation` 의
+  목적지 키로 간다. 기능 모듈 · `:core:ui` 는 데이터 층 · `:core:ai` 도 모른다. 컨벤션이 넣는 의존까지 따라가
+  `notes-tests/test_feature_modules.py` 의 FM-2 · FM-3 이 본다.
+- 여러 기능을 한 화면에 묶는 셸(시작 분기 · Scaffold · `NavDisplay` · 오버레이 자리 · 뒤로가기 순서)은 `:app` 에만 있다.
+  기능 모듈은 셸을 모르고 등록 파일 · 셸이 부르는 조각만 공개로 내놓는다. (`app/AGENTS.md`)
 - **버전·좌표는 `gradle/libs.versions.toml` 에만.** 모듈 `build.gradle.kts` 에 하드코딩 금지
   (현재 위반 0건).
 
@@ -129,7 +139,8 @@ app  ─────────────────────────
 feature 에서는 안 보인다. (`feature/notes/AGENTS.md`)
 
 **뒤로가기 우선순위는 컴포즈 순서다.**
-`feature/notes/shell/` 의 파일을 옮기거나 쪼개면 조용히 깨진다. (`feature/notes/AGENTS.md`)
+`:app` 의 `shell/NotesShell.kt` 한 파일이 그 순서를 고정한다. 호출 순서를 바꾸거나 오버레이 · 핸들러를 다른 파일 · 멀티바인딩
+(`@IntoSet`)으로 옮기면 조용히 깨진다. `:app` 계측 `BackOrderTest`(FM-10)가 지킨다. (`app/AGENTS.md`)
 
 **`layerBackdrop` Box 안에는 `NavDisplay` 만.** 오버레이가 들어가면 유리가 자기를 샘플링한다.
 (`core/design-system/AGENTS.md`)
@@ -143,7 +154,9 @@ feature 에서는 안 보인다. (`feature/notes/AGENTS.md`)
 **문서 위생** — 레포 문서(AGENTS.md · 기능 문서 · 디자인 문서 · DECISIONS · README · labs README)와 커밋 본문에 로컬 절대 경로 · 개인 경로 · 대화 인용 · 시크릿 · 이메일을 넣지 않고, 근거는 `사용자 결정` · 결정 번호로 적는다. 꼴을 설명할 때도 글자 대신 말로 적는다. 문서는 `notes-tests/test_hygiene.py`(BR-9)가 보고, 커밋 본문은 `git log -1 --format=%B | python3 notes-tests/test_hygiene.py -` 로 본다.
 
 **화면 문구는 `strings.xml`.** 코드에 한글 리터럴을 두지 않는다(프리뷰 더미와 개발자용 `error()`·예외
-메시지는 예외). 모듈별 `resourcePrefix` 가 걸려 있다 — design-system `ds_`, feature:notes `notes_`.
+메시지는 예외). 모듈별 `resourcePrefix` 가 걸려 있다 — design-system `ds_` · `:core:ui` `ui_` · `:core:ai` `ai_` ·
+기능 모듈은 모듈 이름 그대로(`notes_` · `connect_` · `settings_` · `quiz_` · `stats_`, 기능 컨벤션이 건다). `:app` 은 접두사를
+걸지 않고 셸 문구를 `shell_` 로 시작한다. 문구는 그것을 참조하는 모듈이 하나면 그 모듈, 둘 이상이면 `:core:ui` 에 둔다.
 공통 문구(확인·취소·저장·닫기·되돌리기)는 design-system 의 `ds_*` 를 쓴다.
 말투는 **합니다체** — 서술 `~합니다`/`~습니다`, 권유 `~하세요`.
 
