@@ -40,6 +40,7 @@ import com.hancekim.mynote.core.domain.model.SourceId
 import com.hancekim.mynote.feature.notes.element.ConnectPlace
 import com.hancekim.mynote.feature.notes.element.NotesDrafts
 import com.hancekim.mynote.feature.notes.element.NotesIntent
+import com.hancekim.mynote.feature.notes.element.NotesSignal
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.element.StartDestination
 import com.hancekim.mynote.feature.notes.screen.ModelConfirmDialog
@@ -119,16 +120,25 @@ internal fun NotesScreen(
 
     val snackbarHostState = uiState.snackbarHostState
     val undoLabel = stringResource(DsR.string.ds_action_undo)
+    val undoIntent by rememberUpdatedState(onIntent)
     LaunchedEffect(uiState.errorId) {
-        if (uiState.errorId > 0) uiState.errorMessage?.let { snackbarHostState.showSnackbar(it) }
+        val id = uiState.errorId
+        if (id > 0) {
+            uiState.errorMessage?.let { snackbarHostState.showSnackbar(it) }
+            undoIntent(NotesIntent.SignalShown(NotesSignal.Error, id))
+        }
     }
     LaunchedEffect(uiState.infoId) {
-        if (uiState.infoId > 0) uiState.infoMessage?.let { snackbarHostState.showSnackbar(it) }
+        val id = uiState.infoId
+        if (id > 0) {
+            uiState.infoMessage?.let { snackbarHostState.showSnackbar(it) }
+            undoIntent(NotesIntent.SignalShown(NotesSignal.Info, id))
+        }
     }
-    val undoIntent by rememberUpdatedState(onIntent)
     LaunchedEffect(uiState.quizUndoId) {
+        val id = uiState.quizUndoId
         val message = uiState.quizUndoMessage
-        if (uiState.quizUndoId > 0 && message != null) {
+        if (id > 0 && message != null) {
             val result =
                 snackbarHostState.showSnackbar(
                     message = message,
@@ -136,6 +146,7 @@ internal fun NotesScreen(
                     duration = SnackbarDuration.Short,
                 )
             if (result == SnackbarResult.ActionPerformed) undoIntent(NotesIntent.UndoQuizExit)
+            undoIntent(NotesIntent.SignalShown(NotesSignal.QuizUndo, id))
         }
     }
 
@@ -151,12 +162,14 @@ internal fun NotesScreen(
                     duration = SnackbarDuration.Short,
                 )
             if (result == SnackbarResult.ActionPerformed) notice.undo?.let(undoIntent)
+            undoIntent(NotesIntent.SignalShown(NotesSignal.Notice, notice.id))
         }
     }
 
     val drafts = remember { NotesDrafts() }
 
     MyNoteTheme(windowClass = windowClass, heightClass = heightClass, fontScale = uiState.fontScale) {
+        NotesExitEffects(uiState, snackbarHostState, onIntent)
         when (uiState.start) {
             StartDestination.Reading -> {
                 ConnectReadingScreen()
@@ -170,7 +183,6 @@ internal fun NotesScreen(
                     snackbarHostState = snackbarHostState,
                     onNotesIntent = onIntent,
                 )
-                NotesExitEffects(uiState, snackbarHostState)
             }
 
             StartDestination.Shell -> {

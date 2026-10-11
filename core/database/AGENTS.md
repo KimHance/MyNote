@@ -37,7 +37,10 @@ Room 에서 나온다(`observeCategories()` → `LocalNotesDataSource.observeNot
 - **`applySourceSync` 는 한 트랜잭션이어야 한다.** `@Transaction suspend fun applySourceSync(sourceId, upserts, deleteDocIds)` 가
   upsert 와 delete 를 묶는다. 쪼개면 Room Flow 가 **두 번** 방출되면서 "추가는 됐는데 삭제는 안 된"
   중간 목록이 UI 에 한 프레임 뜬다. `:core:data` 의 "전송 실패는 무반영" 계약이 여기서 물리적으로 완성된다.
-  관찰은 `Flow`, 변경은 `suspend` 를 유지한다.
+  관찰은 `Flow`, 변경은 `suspend` 를 유지한다. 같은 트랜잭션 안에서 **소스 행이 아직 있는지 먼저 보고** 없으면 쓰지 않고
+  `false` 를 낸다. `source_notes` 에서 `sources` 로 가는 외래 키가 없어서 끊기와 동기화의 경합은 이 확인이 막는다.
+- **연결 시도 전 토큰은 `connection_state` 가 아니라 `connection_attempt_token` DataStore 에 둔다.** 토큰 DataStore 둘은
+  백업 규칙에서 빠지고 `connection_state`(쓴 연결 id · 끊기 표식)는 백업된다. 파일 이름을 바꾸면 `:app` 의 백업 규칙도 같이 고친다.
 - **삭제는 `WHERE source_id = :sourceId AND doc_id IN (:docIds)` 이고 900개씩 나눠 부른다**(SQLite 바인드 한도 999).
   `source_id` 조건이 "소스는 자기 소유 노트만 지운다" 의 마지막 방어선이다. 계측 `NoteDaoTest` 가 지킨다.
 - **`replaceDerived` 는 `blocks_json`·`excerpt`·`parser_version` 만 바꾼다**(재변환). 원문·리비전·처음 본 시각은 건드리지 않는다.

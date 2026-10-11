@@ -11,11 +11,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
+import com.hancekim.mynote.core.designsystem.R
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 
 @Composable
@@ -28,11 +33,13 @@ fun CategoryRow(
 ) {
     val colors = MyNoteTheme.colors
     val caretRotation by animateFloatAsState(if (expanded) 90f else 0f, label = "caret")
+    val state = stringResource(if (expanded) R.string.ds_state_expanded else R.string.ds_state_collapsed)
     Row(
         modifier =
             modifier
                 .fillMaxWidth()
                 .clickable(onClick = onClick, role = Role.Button)
+                .semantics { stateDescription = state }
                 .padding(horizontal = 8.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -40,7 +47,10 @@ fun CategoryRow(
             text = "▸",
             style = MyNoteTheme.textStyles.treeLabel,
             color = colors.text3,
-            modifier = Modifier.graphicsLayer { rotationZ = caretRotation },
+            modifier =
+                Modifier
+                    .graphicsLayer { rotationZ = caretRotation }
+                    .clearAndSetSemantics {},
         )
         Text(
             text = name,

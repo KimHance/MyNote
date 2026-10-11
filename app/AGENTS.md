@@ -130,9 +130,10 @@ DataStore(DataStoreTokenStore) → TokenRepository → ObserveTokenUseCase
 - **`<uses-native-library>` 두 줄(`libvndksupport.so`·`libOpenCL.so`, `required="false"`)은 LiteRT-LM 의
   GPU 백엔드용이다.** 없으면 예외도 로그도 없이 CPU 로 떨어지고, 판정은 TTFT 로만 가능하다(커밋 `c522d30`).
   매니페스트 정리하다 지우기 쉬운 자리다.
-- **백업 규칙(`res/xml/data_extraction_rules.xml`)은 토큰 DataStore(`datastore/github_token.preferences_pb`)와 모델
-  (`external` 전체 + 외부 저장소가 없을 때 `filesDir` 에 생기는 `gemma-4-E2B-it.litertlm`·`.part`·`.plan`)을 클라우드 백업과
-  기기 이전 **둘 다**에서 뺀다.** `minSdk` 32 라 이 파일만 읽히고 `backup_rules.xml` 은 같은 규칙의 사본이다.
+- **백업 규칙(`res/xml/data_extraction_rules.xml`)은 토큰이 든 DataStore 둘과 모델을 클라우드 백업과 기기 이전 둘 다에서
+  뺀다.** DataStore 는 `datastore/github_token.preferences_pb` 와, 연결 시도 전 토큰을 담는
+  `datastore/connection_attempt_token.preferences_pb` 다. 모델은 `external` 전체와, 외부 저장소가 없을 때 `filesDir` 에
+  생기는 `gemma-4-E2B-it.litertlm`·`.part`·`.plan` 이다. `minSdk` 32 라 이 파일만 읽히고 `backup_rules.xml` 은 같은 규칙의 사본이다.
   `<device-transfer>` 구역이 없으면 그 모드는 전부 옮긴다. 모델이 한 번이라도 클라우드 백업 대상에 들어가면 앱별 한도
   25MB 를 넘어 **그 앱의 백업 전체가 조용히 멈춘다** — 북마크·학습 기록도 같이 안 올라간다(기기 이전 한도는 2GB 라
   모델이 넘는다). `include` 를 하나라도 쓰면 나머지가 전부 빠지므로 `exclude` 만 쓴다. DataStore 이름이나 모델 파일

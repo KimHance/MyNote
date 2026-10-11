@@ -7,6 +7,11 @@ import com.hancekim.mynote.core.ai.download.decision.Verdict
 import com.hancekim.mynote.core.ai.download.decision.enoughSpace
 import com.hancekim.mynote.core.ai.download.decision.nextStep
 import com.hancekim.mynote.core.domain.model.ModelFailure
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.withContext
+import java.io.File
 
 internal sealed interface InstallResult {
     data object Installed : InstallResult
@@ -35,13 +40,14 @@ internal class ModelInstaller(
             when (val step = nextStep(localState(), expected.totalBytes)) {
                 DownloadStep.VerifyInstalled -> {
                     onVerifying()
-                    if (files.matches(files.target, expected)) return InstallResult.Installed
+                    if (verified(files.target)) return InstallResult.Installed
                     files.target.delete()
                 }
 
                 DownloadStep.VerifyPart -> {
                     onVerifying()
-                    if (files.matches(files.part, expected)) {
+                    if (verified(files.part)) {
+                        currentCoroutineContext().ensureActive()
                         files.promote()
                         return InstallResult.Installed
                     }
@@ -81,6 +87,11 @@ internal class ModelInstaller(
         }
         return InstallResult.Failed(REASON_TOO_MANY_ROUNDS)
     }
+
+    private suspend fun verified(file: File): Boolean =
+        withContext(Dispatchers.IO) {
+            files.matches(file, expected) { ensureActive() }
+        }
 
     private fun localState(): LocalState =
         LocalState(

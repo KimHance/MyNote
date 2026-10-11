@@ -49,7 +49,7 @@ internal fun containerDepthExceeds(
     while (true) {
         var end = start
         while (end < raw.length && raw[end] != '\n' && raw[end] != '\r') end++
-        if (prefixCapacity(LineCursor(raw, start, end)) > limit * 2) return true
+        if (prefixCapacityExceeds(LineCursor(raw, start, end), limit * 2)) return true
         if (scanLine(LineCursor(raw, start, end), open, limit)) return true
         if (end >= raw.length) return false
         start = if (raw[end] == '\r' && raw.getOrNull(end + 1) == '\n') end + 2 else end + 1
@@ -114,23 +114,26 @@ private fun scanLine(
     return false
 }
 
-private fun prefixCapacity(line: LineCursor): Int {
+private fun prefixCapacityExceeds(
+    line: LineCursor,
+    cap: Int,
+): Boolean {
     var markers = 0
     var indent = 0
     while (true) {
         val col = line.col
         line.skipIndent()
         indent += line.col - col
+        if (markers + indent / 2 > cap) return true
         if (line.consumeQuote()) {
             markers++
             continue
         }
         val marker = line.listMarkerWidth()
-        if (marker == 0) break
+        if (marker == 0) return false
         line.advanceMarker(marker)
         markers++
     }
-    return markers + indent / 2
 }
 
 private class LineCursor(
@@ -140,6 +143,21 @@ private class LineCursor(
 ) {
     var col = 0
         private set
+
+    private val breakStart: Int =
+        run {
+            var p = end
+            var mark = ' '
+            while (p > pos) {
+                val ch = text[p - 1]
+                if (!ch.isIndent()) {
+                    if (ch !in BREAK_MARKS || (mark != ' ' && ch != mark)) break
+                    mark = ch
+                }
+                p--
+            }
+            p
+        }
 
     fun reset(
         pos: Int,
@@ -209,16 +227,12 @@ private class LineCursor(
     }
 
     private fun restIsThematicBreak(): Boolean {
-        var mark = ' '
+        if (pos < breakStart) return false
         var marks = 0
         for (p in pos until end) {
-            val ch = text[p]
-            if (ch.isIndent()) continue
-            if (ch !in BREAK_MARKS || (marks > 0 && ch != mark)) return false
-            mark = ch
-            marks++
+            if (!text[p].isIndent() && ++marks >= MIN_BREAK_MARKS) return true
         }
-        return marks >= MIN_BREAK_MARKS
+        return false
     }
 
     fun advanceMarker(width: Int) {

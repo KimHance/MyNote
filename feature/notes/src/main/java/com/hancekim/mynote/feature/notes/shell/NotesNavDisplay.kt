@@ -160,6 +160,7 @@ internal fun NotesNavDisplay(
                                         modifier = if (stackedScenes) Modifier.sceneEdge(edgeProgress) else Modifier,
                                         contentBottomPadding = contentBottomPadding,
                                         contentTopPadding = contentTopPadding,
+                                        contentEndPadding = contentEndPadding,
                                         scrollState = scroll.reader,
                                         contentState = scroll.readerContent,
                                         onQuizAction = { action -> currentQuizAction.value(note.id, action) },

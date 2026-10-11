@@ -29,8 +29,11 @@ internal class ModelFiles(dir: File, fileName: String) {
         return target
     }
 
-    fun matches(file: File, expected: ExpectedModel): Boolean =
-        file.isFile && file.length() == expected.totalBytes && sha256Of(file) == expected.sha256
+    fun matches(
+        file: File,
+        expected: ExpectedModel,
+        beforeChunk: () -> Unit = {},
+    ): Boolean = file.isFile && file.length() == expected.totalBytes && sha256Of(file, beforeChunk) == expected.sha256
 
     internal companion object {
         const val PART_SUFFIX = ".part"
@@ -38,11 +41,15 @@ internal class ModelFiles(dir: File, fileName: String) {
 
         private const val HASH_BUFFER_BYTES = 64 * 1024
 
-        fun sha256Of(file: File): String {
+        fun sha256Of(
+            file: File,
+            beforeChunk: () -> Unit = {},
+        ): String {
             val digest = MessageDigest.getInstance("SHA-256")
             file.inputStream().buffered().use { input ->
                 val buffer = ByteArray(HASH_BUFFER_BYTES)
                 while (true) {
+                    beforeChunk()
                     val read = input.read(buffer)
                     if (read < 0) break
                     digest.update(buffer, 0, read)

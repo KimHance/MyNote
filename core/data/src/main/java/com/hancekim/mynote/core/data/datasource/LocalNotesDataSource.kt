@@ -39,11 +39,15 @@ interface LocalNotesDataSource {
 
     suspend fun loadSourceState(source: SourceId): Map<String, CachedNoteState>
 
+    /** 소스 행이 아직 있을 때만 한 트랜잭션으로 반영한다. 반영했으면 true. */
     suspend fun applySourceSync(
         source: SourceId,
         upserts: List<CachedNote>,
         deleteDocIds: List<String>,
-    )
+    ): Boolean
+
+    /** 소스 행이 없는 노트를 지운다. */
+    suspend fun deleteOrphanNotes()
 
     /**
      * 판 번호가 낮고 원문이 있는 행을 읽는다.

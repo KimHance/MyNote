@@ -170,6 +170,11 @@ NPU 는 예전 실측에서 `Backend.NPU` 가 예외 없이 CPU 로 폴백했다
   `statusOf` 가 준 값이라 같은 비율에서 멈춘다. `InstallResult.Retry` 에 바이트 칸을 다시 넣지 않는다.
 - 워커의 `catch (CancellationException)` 에서 부르는 알림판 호출은 suspend 가 아니다 — 취소된 코루틴에서 suspend 를
   부르면 바로 던진다.
+- **`setForeground` 는 감싼다.** 앱이 뒤에 있을 때 다시 시작된 실행(Wi-Fi 복귀 · 재시도 백오프 · dataSync 시간 소진)에서는
+  포그라운드 서비스를 못 띄워 `IllegalStateException` 이 난다. 잡아서 일반 작업으로 이어 받고, 끊기면 다음 실행이 받은
+  자리부터 잇는다. `CancellationException` 도 `IllegalStateException` 이라 그것만은 다시 던진다.
+- **해시 검증은 IO 에서 덩어리마다 취소를 확인한다**(`ModelInstaller.verified`). 확인 중에 취소해도 검증이 끝까지 돌아 파일을
+  자리에 넣고 `받았습니다` 를 올리면 MD-10 ② 와 어긋난다(`MD-10 파일 확인 중 취소하면 자리에 넣지 않고 조각을 남긴다`).
 - 재시도 작은 아이콘 `res/drawable/ai_stat_download_retrying.xml` 은 **움직이지 않는** 그림이다(기능 문서 결정 12 — 멈춘 막대와 같은
   말). 받는 중 · 대기의 플랫폼 `stat_sys_download` 는 움직인다. 출처: Android Studio Vector Asset 의 Material Icons
   `downloading`(Filled, 24 뷰박스) — Apache License 2.0. `tint` 를 지우고 `fillColor` 를 흰색으로 박았다. Material Symbols

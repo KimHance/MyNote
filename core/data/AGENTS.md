@@ -37,6 +37,9 @@
 4. 받을 본문을 `flatMapMerge` 로 **동시** 수신한다. 순차 루프로 되돌리면 테스트 `변경된 노트를 동시에 받는다` 가 타임아웃으로 죽는다(고의적 변이 감지 장치).
 5. 받은 원문마다 `NoteFormat.derive(entry.path, raw)` → `blocks_json`(파생 캐시)·`excerpt`. **형식 해석은 던지지 않는다.**
 6. 지울 것 = **그 소스의** 로컬 docId − 목록 docId. 둘 다 비면 쓰기를 부르지 않고, 아니면 `applySourceSync(source, upserts, deleteDocIds)` 한 번.
+   그 사이 소스 행이 지워졌으면(끊기 · 교체) 아무것도 쓰지 않고 빈 `SyncOutcome` 을 낸다. 그래서 돌던 동기화가 지운 소스의
+   노트를 되살리지 않는다(RC-17 `끊는 동안 돌던 동기화는 지운 소스의 노트를 되살리지 않는다`). 시작 복구(`ConnectionRecovery.run`)는
+   소스 행이 없는 노트를 지운다.
 7. `SyncOutcome`: `added`(로컬에 없던 것)·`updated`(리비전이 바뀐 것)·`deleted`(`NoteKey` 문자열). **원문 채우기 재수신(리비전 같음 + `raw` 없음)은 세지 않는다** — 업데이트 직후 "갱신 22개" 스낵바가 뜨지 않게.
 
 ### 실패 두 층

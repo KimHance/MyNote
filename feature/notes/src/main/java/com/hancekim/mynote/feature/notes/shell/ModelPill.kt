@@ -38,6 +38,12 @@ import kotlin.time.Duration.Companion.milliseconds
 
 internal const val MODEL_PILL_RESERVE_DP = 54
 
+/** 받는 중이던 모델이 방금 사용 가능해졌는가. 처음 본 상태가 Ready 면 아니다. */
+internal fun readyJustArrived(
+    previous: ModelStatus?,
+    current: ModelStatus,
+): Boolean = current == ModelStatus.Ready && previous?.isBusy == true
+
 @Composable
 internal fun rememberModelPillVisible(
     status: ModelStatus,
@@ -45,9 +51,12 @@ internal fun rememberModelPillVisible(
 ): Boolean {
     var readyRecently by remember { mutableStateOf(false) }
     var failureSeen by remember { mutableStateOf(false) }
+    val previous = remember { mutableStateOf<ModelStatus?>(null) }
 
     LaunchedEffect(status) {
-        if (status == ModelStatus.Ready) {
+        val arrived = readyJustArrived(previous.value, status)
+        previous.value = status
+        if (arrived) {
             readyRecently = true
             delay(READY_VISIBLE_MILLIS.milliseconds)
             readyRecently = false

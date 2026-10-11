@@ -19,6 +19,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -92,17 +93,38 @@ class NoteDaoTest {
     @Test
     fun `applySourceSync 는 upsert 와 delete 를 한 번에 반영한다`() =
         runTest {
+            dao.ensureSource(source("s0", confirmedConfig))
             dao.upsertAll(listOf(row("s0", "old")))
 
-            dao.applySourceSync("s0", listOf(row("s0", "new")), listOf("old"))
+            assertTrue(dao.applySourceSync("s0", listOf(row("s0", "new")), listOf("old")))
 
             assertEquals(listOf("s0/new"), keys())
+        }
+
+    @Test
+    fun `RC-17 소스 행이 없으면 applySourceSync 는 쓰지 않는다`() =
+        runTest {
+            assertFalse(dao.applySourceSync("s0", listOf(row("s0", "new")), emptyList()))
+
+            assertEquals(emptyList<String>(), keys())
+        }
+
+    @Test
+    fun `RC-17 소스 행이 없는 노트를 지운다`() =
+        runTest {
+            dao.ensureSource(source("s0", confirmedConfig))
+            dao.upsertAll(listOf(row("s0", "a"), row("gone", "x")))
+
+            dao.deleteOrphanNotes()
+
+            assertEquals(listOf("s0/a"), keys())
         }
 
     @Test
     fun `삭제할 키가 900개를 넘어도 나눠서 지운다`() =
         runTest {
             val ids = (1..1_200).map { "n$it" }
+            dao.ensureSource(source("s0", confirmedConfig))
             dao.upsertAll(ids.map { row("s0", it) } + row("s0", "keep"))
 
             dao.applySourceSync("s0", emptyList(), ids)
@@ -113,6 +135,7 @@ class NoteDaoTest {
     @Test
     fun `다른 소스의 같은 docId 는 지우지 않는다`() =
         runTest {
+            dao.ensureSource(source("s0", confirmedConfig))
             dao.upsertAll(listOf(row("s0", "a"), row("s1", "a")))
 
             dao.applySourceSync("s0", emptyList(), listOf("a"))

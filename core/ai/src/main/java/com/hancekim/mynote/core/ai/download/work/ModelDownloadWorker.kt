@@ -59,7 +59,12 @@ internal class ModelDownloadWorker
         override suspend fun doWork(): Result {
             notifications.createChannel()
             notifications.on(NoticeEvent.Launched)
-            setForeground(foregroundInfo())
+            try {
+                setForeground(foregroundInfo())
+            } catch (cause: IllegalStateException) {
+                if (cause is CancellationException) throw cause
+                Log.w(TAG, "포그라운드로 올리지 못해 이번 실행은 일반 작업으로 받음", cause)
+            }
 
             val files = modelFilesOf(context)
             val expected = ModelSource.expected

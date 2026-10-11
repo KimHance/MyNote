@@ -41,7 +41,7 @@ internal class SourceReconciler(
         val deleteDocIds = state.keys.filterNot { it in listed }
 
         if (upserts.isNotEmpty() || deleteDocIds.isNotEmpty()) {
-            local.applySourceSync(source.id, upserts, deleteDocIds)
+            if (!local.applySourceSync(source.id, upserts, deleteDocIds)) return SyncOutcome()
         }
 
         val added = targets.count { state[it.docId] == null }

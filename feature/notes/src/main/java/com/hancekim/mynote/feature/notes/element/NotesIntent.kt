@@ -44,6 +44,11 @@ sealed interface NotesIntent : MviEvent {
 
     data object Back : NotesIntent
 
+    data class SignalShown(
+        val signal: NotesSignal,
+        val id: Int,
+    ) : NotesIntent
+
     data class SwitchTab(
         val tab: NotesTab,
     ) : NotesIntent

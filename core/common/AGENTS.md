@@ -190,6 +190,9 @@ Room/DataStore 처럼 변경 시에만 방출하는 옵저버는 살려두는 �
 `exitHintId` / `quizUndoId` 를 `LaunchedEffect(uiState.errorId)` 가 받는다. base 에 이벤트
 채널을 새로 만들기 전에 이 패턴을 먼저 고려하라.
 
+id 만 두면 Activity 가 다시 만들어질 때 새 컴포지션의 `LaunchedEffect` 가 같은 id 로 다시 발동한다.
+화면이 효과를 끝낸 뒤 "봤음" 인텐트를 보내고 VM 이 그 id 를 지우게 한다(`:feature:notes` 의 `SignalShown`).
+
 ---
 
 ## Throttler

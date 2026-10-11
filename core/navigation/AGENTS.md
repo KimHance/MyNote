@@ -59,8 +59,12 @@ dispatch: throttle.isIdle() 로 게이트  →  reduce(현재 스택, 명령)  �
 
 ### `dispatchImmediately`
 
-게이트를 우회한다. **사용자 입력이 아닌 이동 전용**(정정·딥링크). 현재 유일한 호출부는 동기화 결과
-삭제된 노트가 열려 있을 때의 `Pop` 이다 — 연타가 아니라 정정이라 막으면 없는 노트 화면이 남는다.
+게이트를 우회한다. **사용자 입력이 아닌 이동 전용**(정정·딥링크). 호출부는 동기화로 지워진 노트가 열려 있을 때의
+`Pop`, 연결이 바뀔 때 스택을 `[Home]` 으로 되돌리는 `ReplaceAll`, 알림이 여는 설정 `Push` 셋이다. 연타가 아니라
+정정이라서, 막으면 지워진 노트의 화면이 남는다.
+
+사용자 입력 하나를 `dispatchImmediately` 와 `dispatch` 로 나눠 부르지 않는다. 앞의 `apply()` 가 창을 열어 뒤의
+`dispatch` 가 `Throttled` 로 버려진다. 바뀔 스택은 한 번에 계산해 `dispatch` 하나로 보낸다.
 
 관찰해 둘 어긋남: `dispatchImmediately` 도 `apply()` 를 공유하므로 `tryAccept()` 를 부르지만, 창이
 열려 있으면 `tryAccept()` 는 `false` 를 돌려주고 기준 시점을 밀지 않는다. 반면 `settleJob` 은 취소·재시작해

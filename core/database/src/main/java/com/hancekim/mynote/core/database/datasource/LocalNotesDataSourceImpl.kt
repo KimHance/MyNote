@@ -70,7 +70,9 @@ class LocalNotesDataSourceImpl @Inject internal constructor(
         source: SourceId,
         upserts: List<CachedNote>,
         deleteDocIds: List<String>,
-    ) = dao.applySourceSync(source.value, upserts.map { it.toEntity() }, deleteDocIds)
+    ): Boolean = dao.applySourceSync(source.value, upserts.map { it.toEntity() }, deleteDocIds)
+
+    override suspend fun deleteOrphanNotes() = dao.deleteOrphanNotes()
 
     override suspend fun loadStale(
         parserVersion: Int,

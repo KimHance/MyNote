@@ -84,15 +84,23 @@ internal interface NoteDao {
         docIds: List<String>,
     )
 
+    @Query("SELECT COUNT(*) FROM sources WHERE id = :sourceId")
+    suspend fun sourceRowCount(sourceId: String): Int
+
     @Transaction
     suspend fun applySourceSync(
         sourceId: String,
         upserts: List<SourceNoteEntity>,
         deleteDocIds: List<String>,
-    ) {
+    ): Boolean {
+        if (sourceRowCount(sourceId) == 0) return false
         if (upserts.isNotEmpty()) upsertAll(upserts)
         deleteDocIds.chunked(DELETE_CHUNK).forEach { deleteDocs(sourceId, it) }
+        return true
     }
+
+    @Query("DELETE FROM source_notes WHERE source_id NOT IN (SELECT id FROM sources)")
+    suspend fun deleteOrphanNotes()
 
     @Query(
         "SELECT note_key, path, raw FROM source_notes " +

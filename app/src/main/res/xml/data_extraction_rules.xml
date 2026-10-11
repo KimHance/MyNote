@@ -2,6 +2,7 @@
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="file" path="datastore/github_token.preferences_pb" />
+        <exclude domain="file" path="datastore/connection_attempt_token.preferences_pb" />
         <exclude domain="file" path="gemma-4-E2B-it.litertlm" />
         <exclude domain="file" path="gemma-4-E2B-it.litertlm.part" />
         <exclude domain="file" path="gemma-4-E2B-it.litertlm.plan" />
@@ -9,6 +10,7 @@
     </cloud-backup>
     <device-transfer>
         <exclude domain="file" path="datastore/github_token.preferences_pb" />
+        <exclude domain="file" path="datastore/connection_attempt_token.preferences_pb" />
         <exclude domain="file" path="gemma-4-E2B-it.litertlm" />
         <exclude domain="file" path="gemma-4-E2B-it.litertlm.part" />
         <exclude domain="file" path="gemma-4-E2B-it.litertlm.plan" />

@@ -23,6 +23,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -40,6 +41,7 @@ import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.CtaAction
 import com.hancekim.mynote.feature.notes.element.NotesDrafts
 import com.hancekim.mynote.feature.notes.element.NotesIntent
+import com.hancekim.mynote.feature.notes.element.NotesSignal
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.screen.ListPanelScreen
 import com.kyant.backdrop.backdrops.layerBackdrop
@@ -93,8 +95,6 @@ internal fun NotesShell(
     BackHandler(enabled = collapsiblePanelOpen && !drawerEngaged) { panelExpanded = false }
 
     BackHandler(enabled = drawerOpening) { scope.launch { drawerState.close() } }
-
-    NotesExitEffects(uiState, snackbarHostState)
 
     val pillVisible = rememberModelPillVisible(uiState.modelStatus, uiState.isSettingsOpen || uiState.isConnectOpen)
     val contentTopPadding by animateDpAsState(
@@ -225,13 +225,17 @@ internal fun NotesShell(
 internal fun NotesExitEffects(
     uiState: NotesUiState,
     snackbarHostState: SnackbarHostState,
+    onIntent: (NotesIntent) -> Unit,
 ) {
     val context = LocalContext.current
     val exitHint = stringResource(R.string.notes_exit_hint)
+    val currentOnIntent by rememberUpdatedState(onIntent)
     LaunchedEffect(uiState.exitHintId) {
-        if (uiState.exitHintId > 0) {
+        val id = uiState.exitHintId
+        if (id > 0) {
             snackbarHostState.currentSnackbarData?.dismiss()
             snackbarHostState.showSnackbar(exitHint, duration = SnackbarDuration.Short)
+            currentOnIntent(NotesIntent.SignalShown(NotesSignal.ExitHint, id))
         }
     }
     LaunchedEffect(uiState.exitRequestId) {

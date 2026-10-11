@@ -54,6 +54,10 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
   `exitRequestId`/`quizUndoId`. `StateFlow` 는 conflate 하므로 "횟수"나 "이벤트"를 상태로
   흘리면 한 프레임에 묶여 조용히 씹힌다(0→1→2 가 2 만 보인다). 화면은 `LaunchedEffect(id)`
   로 받아 실행만 한다.
+- **화면은 스낵바를 다 보여 준 뒤 `NotesIntent.SignalShown(signal, id)` 를 보낸다.** VM 은 본 id 를 `build()` 에서 0 으로
+  (`notice` 는 null 로) 낸다. 판정은 `element/NotesSignal.kt` 의 `unseen` 이 한다. 그래서 `configChanges` 밖의 재생성
+  (글꼴 · 다크 · 언어)에서 새 컴포지션의 `LaunchedEffect` 가 지난 스낵바와 오래된 `되돌리기` 를 다시 띄우지 않는다.
+  `exitRequestId` 는 소비하지 않는다. 종료하면 다시 그릴 화면이 없다.
 - `SnackbarHostState` 인스턴스는 ViewModel 이 들고 `build()` 는 넘기기만 한다.
 - 문구는 ViewModel 이 `getString` 을 직접 부르지 않는다. `NotesMessages`(`@ApplicationContext`)
   가 만들고 VM 은 호출한다. 접근성 판정도 같은 패턴 — `QuizAutoAdvancePolicy`.
@@ -76,6 +80,8 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
   `exitHintId`/`exitRequestId` 뿐이고 `finish()` 는 화면이 부른다.
 - 사용자 입력이 아닌 정정은 게이트를 우회한다 — 동기화 중 열린 노트가 삭제되면
   `dispatchImmediately(NavCommand.Pop)`.
+- **설정이 맨 위일 때 노트 · 퀴즈 열기는 스택을 한 번에 바꾼다**(`navigation/OpenReader.kt` 의 `openReaderCommand`).
+  설정을 걷고 그 자리에 리더를 둔다. pop 과 push 를 나눠 부르면 앞의 변경이 쓰로틀 창을 열어 push 가 버려진다.
 
 ---
 
@@ -157,8 +163,9 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
   `NotesLayout.headerOffset`(= `headerHeight + statusBar`)을 직접 뺀다. Compact 는 0 이다.
 - `Scaffold(contentWindowInsets = WindowInsets(0))` 이므로 하단 여백은 `contentBottomPadding` 으로
   명시 전달한다(하단 바가 뜨는 형태면 `FLOATING_BAR_RESERVE` 를 더한다). 레일이 뜨는 형태면 오른쪽도
-  `contentEndPadding`(`FloatingNavDefaults.RailWidth` + 간격 − `page`)으로 예약해 홈 그리드와 북마크 화면이
-  레일 왼쪽에서 끝나게 한다 — 북마크 행의 해제 버튼이 레일 아래 깔리면 누를 수 없다.
+  `contentEndPadding`(`FloatingNavDefaults.RailWidth` + 간격 − `page`)으로 예약해 홈 그리드 · 북마크 · 통계 · 리더가
+  레일 왼쪽에서 끝나게 한다. 북마크 행의 해제 버튼이 레일 아래 깔리면 누를 수 없기 때문이다. 리더는 가운데 정렬한 본문 칸 바깥에서
+  예약하므로 넓은 창에서는 본문 폭이 그대로다.
 - 홈 그리드는 `GridCells.Adaptive(minSize = adaptive.cardMinWidth)`. 고정 열 수 금지.
 - 북마크 화면의 2단 여부(`twoPane`)는 화면이 `BoxWithConstraints` 로 재지 않고 **셸 `NotesLayout` 이
   계산**한다 — `창 폭 − 펴진 고정 패널 − page − contentEndPadding − page ≥ 640dp`(`bookmarksTwoPane`).
@@ -358,12 +365,16 @@ Column(fillMaxSize) {
 `NotesShell` 이 `rememberModelPillVisible()` 을 한 번 계산해 **오버레이와 패딩 양쪽에 같은 값**을
 넘긴다. 두 군데서 따로 계산하면 알약이 뜨는데 패딩이 안 밀리는 순간이 생긴다.
 
+`퀴즈 모델 준비됨`(Ready)은 받는 중이던 상태에서 Ready 로 바뀔 때만 3.2초 뜬다(`readyJustArrived`). 처음 본 상태가
+Ready 면(앱을 켬 · 재생성) 띄우지 않는다. VM 의 모델 상태 초깃값은 `Missing` 이다.
+
 ---
 
 ## 저장소 연결 — 시작 분기 · 연결 화면 · 설정 카드
 
 - **시작 분기는 `NotesScreen` 이 한다.** `NotesUiState.start`(순수 함수 `element/ConnectStart.kt:startDestination`)가 읽는 중 / 연결 루트 / `NotesShell` 을 가른다.
-  연결 루트는 셸 밖이라 `NotesExitEffects`(셸 파일의 `internal`)와 스낵바 · 인셋을 직접 갖는다. 연결을 읽기 전(`connection == null`) · 노트를 읽기 전(`notesLoaded`) · 시드 소비 전(`seedPending`)에는 연결 화면도 홈도 그리지 않는다.
+  연결 루트는 셸 밖이라 스낵바 · 인셋을 직접 갖는다. `NotesExitEffects`(셸 파일의 `internal`)는 `NotesRoute` 가 분기 위에서
+  한 번 부른다. 분기마다 두면 연결 루트와 셸을 오갈 때 종료 안내가 다시 뜬다. 연결을 읽기 전(`connection == null`) · 노트를 읽기 전(`notesLoaded`) · 시드 소비 전(`seedPending`)에는 연결 화면도 홈도 그리지 않는다.
 - **화면 정리는 연결 상태 전이가 한다.** `NotesViewModel.onConnectionChanged` 가 (이전 → 다음 연결) 을 `element/ScreenCleanup.kt:screenCleanupOf` 에 넘겨 스택 `[Home]` · 퀴즈 닫기를 정한다. 시드 · 확정 · 끊기 어느 길이든 한 곳이고, 화면이 따로 discard 를 부르지 않는다.
 - **연결 화면 자리는 둘**: 첫 실행 루트(`ConnectPlace.Root`) · 쌓은 화면(`ConnectPlace.Stacked`, `NotesNavKey.Connect` entry + 자체 `NotesTopBar`). 셸은 `Connect` 가 top 이면 topBar · 플로팅 내비 · 알약 · 맨 위로 · 드로어 제스처를 숨긴다.
   뒤로가기는 엔트리 안 `BackHandler`(NavDisplay 뒤에 컴포즈되어 이긴다) — 판정은 순수 함수 `connectBackAction`.
@@ -375,3 +386,6 @@ Column(fillMaxSize) {
   대상(확인 · 첫 동기화)은 `ConnectViewModel` 에만 있어 홈에 안 보이고, 확정되면 `observeConnection` 이 새 이름을 흘린다. 연결이 없으면 줄이 없다.
   히어로 그림 · 배치는 design-system `MyNoteHero` 이고 제목 이름은 `notes_app_title`(MyNote — 상단 바 · 읽는 중 화면과 같은 문자열)이다.
 - 동기화 트리거는 `ObserveSyncRunsUseCase` 다. 연결 직후 동기화는 `announce` 가 꺼져 스낵바가 없고(SY-6), 새로고침에만 반영 알림이 뜬다.
+  VM 의 `sync` 는 `triggerIn(…, started = SharingStarted.Lazily)` 다. 기본값(`WhileSubscribed(0)`)이면 `state` 구독이 5초 넘게
+  끊겼다 돌아올 때 상류가 새로 시작해 동기화가 다시 돈다. SY-1 위반이고, 오프라인이면 돌아올 때마다 실패 스낵바가 뜬다.
+  `Lazily` 라서 동기화 중에 화면을 떠나도 동기화는 마저 돌고 뒤처리(`afterSyncRun`)도 한다.

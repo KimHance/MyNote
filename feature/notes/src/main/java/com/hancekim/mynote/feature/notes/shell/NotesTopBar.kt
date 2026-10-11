@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -83,8 +84,14 @@ internal fun NotesTopBar(
                     )
                 }
             } else {
-                IconButton(onClick = onMenu) {
-                    Text(text = "☰", style = MyNoteTheme.textStyles.sectionTitle, color = colors.text)
+                val menuLabel = stringResource(R.string.notes_action_note_list)
+                IconButton(onClick = onMenu, modifier = Modifier.semantics { contentDescription = menuLabel }) {
+                    Text(
+                        text = "☰",
+                        style = MyNoteTheme.textStyles.sectionTitle,
+                        color = colors.text,
+                        modifier = Modifier.clearAndSetSemantics {},
+                    )
                 }
             }
         },

@@ -14,6 +14,9 @@ val localProps =
 
 fun prop(key: String): String = localProps.getProperty(key, "")
 
+// 시드(owner · repo)가 없으면 토큰을 쓸 곳이 없으니 debug APK 에 넣지 않는다.
+val seedToken = if (prop("github.owner").isBlank() || prop("github.repo").isBlank()) "" else prop("github.token")
+
 val templateRepo =
     providers
         .gradleProperty("template.repo")
@@ -64,7 +67,7 @@ android {
             buildConfigField("String", "GITHUB_OWNER", "\"${prop("github.owner")}\"")
             buildConfigField("String", "GITHUB_REPO", "\"${prop("github.repo")}\"")
             buildConfigField("String", "GITHUB_BRANCH", "\"${prop("github.branch")}\"")
-            buildConfigField("String", "GITHUB_TOKEN", "\"${prop("github.token")}\"")
+            buildConfigField("String", "GITHUB_TOKEN", "\"$seedToken\"")
             buildConfigField("String", "TITLE_FONT_NAME", "\"$titleFontName\"")
         }
         release {

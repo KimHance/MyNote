@@ -51,6 +51,7 @@ internal fun NoteReaderScreen(
     modifier: Modifier = Modifier,
     contentBottomPadding: Dp = 0.dp,
     contentTopPadding: Dp = 0.dp,
+    contentEndPadding: Dp = 0.dp,
     scrollState: ScrollState = rememberScrollState(),
     contentState: NoteContentState = rememberNoteContentState(),
     onQuizAction: ((CtaAction) -> Unit)? = null,
@@ -60,7 +61,7 @@ internal fun NoteReaderScreen(
     val adaptive = MyNoteTheme.adaptive
     val reading = adaptive.readingMaxWidth
     Surface(modifier = modifier.fillMaxSize(), color = MyNoteTheme.colors.bg) {
-        Box(contentAlignment = Alignment.TopCenter) {
+        Box(modifier = Modifier.padding(end = contentEndPadding), contentAlignment = Alignment.TopCenter) {
             Column(
                 modifier =
                     (if (reading != null) Modifier.widthIn(max = reading) else Modifier.fillMaxWidth())

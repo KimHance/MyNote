@@ -53,6 +53,7 @@ import com.hancekim.mynote.feature.notes.element.CategoryLoad
 import com.hancekim.mynote.feature.notes.element.DisconnectDialogUi
 import com.hancekim.mynote.feature.notes.element.LastSync
 import com.hancekim.mynote.feature.notes.element.NotesIntent
+import com.hancekim.mynote.feature.notes.element.NotesSignal
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.element.NoticeUi
 import com.hancekim.mynote.feature.notes.element.ReaderScrollRequest
@@ -67,8 +68,10 @@ import com.hancekim.mynote.feature.notes.element.reduceTokenEdit
 import com.hancekim.mynote.feature.notes.element.screenCleanupOf
 import com.hancekim.mynote.feature.notes.element.settledCategories
 import com.hancekim.mynote.feature.notes.element.tokenFailureOfProbe
+import com.hancekim.mynote.feature.notes.element.unseen
 import com.hancekim.mynote.feature.notes.mapper.bookmarkedNotes
 import com.hancekim.mynote.feature.notes.mapper.toUi
+import com.hancekim.mynote.feature.notes.navigation.openReaderCommand
 import com.hancekim.mynote.feature.notes.navigation.switchTabCommand
 import com.hancekim.mynote.feature.notes.quiz.QuizAutoAdvancePolicy
 import com.hancekim.mynote.feature.notes.quiz.QuizMeta
@@ -167,6 +170,7 @@ class NotesViewModel @Inject constructor(
     private var abandonedSolving: QuizUiState.Solving? = null
     private var undoSeq = 0
     private val exitHints = trigger(0)
+    private val shownSignals = trigger(persistentMapOf<NotesSignal, Int>())
     private val exitRequests = trigger(0)
     private var lastRootBackMillis = 0L
     private val query = trigger("")
@@ -268,7 +272,7 @@ class NotesViewModel @Inject constructor(
             .onEach { run -> afterSyncRun(run) }
             .map { run -> run.toSyncState() }
             .catch { emit(SyncState(isLoading = false, errorMessage = messages.syncFailed(), errorId = ++errorSeq)) }
-            .triggerIn(SyncState())
+            .triggerIn(SyncState(), started = SharingStarted.Lazily)
 
     private val snackbarHostState = SnackbarHostState()
 
@@ -307,14 +311,14 @@ class NotesViewModel @Inject constructor(
             backStack = navStack.value.toImmutableList(),
             activeNoteId = navStack.value.activeNoteId(),
             isNavSettled = navSettled.value,
-            exitHintId = exitHints.value,
+            exitHintId = shownSignals.value.unseen(NotesSignal.ExitHint, exitHints.value),
             exitRequestId = exitRequests.value,
             query = query.value,
             expanded = expanded.value,
             fontScale = fontScale.value,
             isLoading = sync.value.isLoading,
             errorMessage = sync.value.errorMessage,
-            errorId = sync.value.errorId,
+            errorId = shownSignals.value.unseen(NotesSignal.Error, sync.value.errorId),
             hasToken = !appliedToken.value.isNullOrBlank(),
             maskedToken = maskToken(appliedToken.value),
             tokenEdit = tokenEdit.value,
@@ -324,13 +328,13 @@ class NotesViewModel @Inject constructor(
             lastSync = lastSync.value,
             disconnectDialog = disconnectDialog.value,
             awaitingNotes = categoryLoad.value.settling,
-            notice = notice.value,
+            notice = notice.value?.takeIf { shownSignals.value.unseen(NotesSignal.Notice, it.id) != 0 },
             infoMessage = sync.value.infoMessage,
-            infoId = sync.value.infoId,
+            infoId = shownSignals.value.unseen(NotesSignal.Info, sync.value.infoId),
             modelStatus = modelStatus.value,
             quiz = quiz.value,
             quizUndoMessage = quizUndo.value?.message,
-            quizUndoId = quizUndo.value?.id ?: 0,
+            quizUndoId = shownSignals.value.unseen(NotesSignal.QuizUndo, quizUndo.value?.id ?: 0),
             studyLogEnabled = studyLogEnabled.value,
             readerScrollRequest = readerScrollRequest.value,
             snackbarHostState = snackbarHostState,
@@ -343,10 +347,7 @@ class NotesViewModel @Inject constructor(
     override fun handleIntent(event: NotesIntent) {
         when (event) {
             is NotesIntent.SelectNote -> {
-                if (navigator.stack.value.lastOrNull() is NotesNavKey.Settings) {
-                    navigator.dispatchImmediately(NavCommand.Pop)
-                }
-                val result = navigator.push(NotesNavKey.Reader(event.id))
+                val result = navigator.dispatch(navigator.stack.value.openReaderCommand(event.id))
                 val resumeAt = event.resumeAt
                 if (resumeAt != null && result != NavResult.Throttled) {
                     readerScrollRequest.value = ReaderScrollRequest(event.id, resumeAt, ++scrollRequestSeq)
@@ -354,10 +355,11 @@ class NotesViewModel @Inject constructor(
             }
 
             is NotesIntent.OpenQuizFor -> {
-                if (navigator.stack.value.lastOrNull() is NotesNavKey.Settings) {
-                    navigator.dispatchImmediately(NavCommand.Pop)
+                if (navigator.dispatch(navigator.stack.value.openReaderCommand(event.noteId)) ==
+                    NavResult.Throttled
+                ) {
+                    return
                 }
-                if (navigator.push(NotesNavKey.Reader(event.noteId)) == NavResult.Throttled) return
                 if (modelStatus.value == ModelStatus.Ready && isReadable(event.noteId)) {
                     cancelQuizWork()
                     clearUndo()
@@ -448,6 +450,10 @@ class NotesViewModel @Inject constructor(
                     deleteModel()
                     announce(messages.modelDeleted())
                 }
+            }
+
+            is NotesIntent.SignalShown -> {
+                shownSignals.update { it.put(event.signal, event.id) }
             }
 
             NotesIntent.Back -> {
