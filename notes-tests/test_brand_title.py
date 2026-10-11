@@ -13,7 +13,7 @@ FEATURE_SOURCES = REPO_ROOT / "feature" / "notes" / "src" / "main" / "java" / "c
 APP_TITLE = "MyNote"
 TEMPORARY_NAME = "공부 기록"
 WORDMARK_SPELLING = re.compile(r"mynote")
-TITLE_USERS = ("shell/NotesScenes.kt", "screen/connect/ConnectReading.kt")
+TITLE_USERS = ("shell/NotesShell.kt", "screen/connect/ConnectReading.kt")
 OTHER_TITLES = {
     "notes_settings": "설정",
     "notes_nav_bookmark": "북마크",

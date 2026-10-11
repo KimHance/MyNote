@@ -6,7 +6,7 @@
 
 ## 이 모듈이 있는 이유
 
-**내비게이션 계약 모듈.** 목적지 키 · 씬/씬 전략 · 전환 모션 · 공유 요소 배선 · 백스택 소유자만 둔다.
+**내비게이션 계약 모듈.** 목적지 키 · 씬/씬 전략 · 전환 모션 · 공유 요소 배선 · 백스택 소유자 · 목적지 등록 틀만 둔다.
 
 feature 마다 자기 키를 들면 feature 끼리 서로의 목적지를 몰라 이동할 수 없고, feature ↔ feature
 직접 의존은 모듈 규칙 위반이다. 그래서 **키를 계약 모듈로 올려** 각 feature 가 서로를 모른 채 두고,
@@ -123,7 +123,7 @@ dispatch: throttle.isIdle() 로 게이트  →  reduce(현재 스택, 명령)  �
   핸들러는 `NavDisplay` **호출 뒤**에 놓아야 한다(LIFO — 나중에 컴포즈된 핸들러가 이긴다).
   `activity-compose` 의 `BackHandler` 도 `NavigationEventDispatcher` 가 있으면 그쪽에 등록되므로
   nav3 의 핸들러와 같은 LIFO 를 탄다(activity-compose 1.13.0 소스 확인). 실제 배선은 feature 쪽
-  셸에서 `NotesNavDisplay(...)` 바로 다음 줄의 `BackHandler(enabled = !isNavSettled)` 다.
+  셸에서 `NotesNavDisplay(...)` 호출(`layerBackdrop` 상자) 바로 뒤의 `BackHandler(enabled = !isNavSettled …)` 다.
 
 ---
 
@@ -153,7 +153,7 @@ nav3 의 `LocalNavAnimatedContentScope` 는 미설정 시 **예외를 던진다*
 화면에서 직접 읽으면 `NavDisplay` 밖(=프리뷰)에서 바로 깨진다.
 
 그래서 nullable 한 `LocalNavAnimatedScope` 를 하나 두는데, **그 CompositionLocal 은 `internal`** 이다.
-화면이 손댈 수 있는 건 `ProvideNavAnimatedScope`(엔트리 래퍼)와 `navSharedElement`/`navSharedBounds` 뿐이고,
+화면이 손댈 수 있는 건 `ProvideNavAnimatedScope`(엔트리 래퍼 — 등록 틀이 모든 목적지에 이미 두른다)와 `navSharedElement`/`navSharedBounds` 뿐이고,
 스코프가 없으면 헬퍼가 받은 `Modifier` 를 그대로 돌려준다. 규율이 아니라 가시성으로 막혀 있으니
 이걸 `public` 으로 열지 말 것.
 
@@ -186,6 +186,23 @@ nav3 의 `LocalNavAnimatedContentScope` 는 미설정 시 **예외를 던진다*
 
 ---
 
+## 등록 틀 — `registry/Destinations.kt`
+
+기능 모듈은 자기 목적지 화면을 `DestinationRegistration<F>`(= `DestinationScope.(F) -> Unit`)로 내놓고, 셸이 그 묶음을
+`destinationProvider(frame, registrations)` 로 `NavDisplay` 의 entryProvider 로 만든다. `F` 는 셸이 모든 목적지에 똑같이 넘기는
+틀 값(셸 틀 계약)이다 — 이 모듈은 그 모양을 모른다(제네릭). 기능 이름 · 디자인 시스템 타입이 여기 들어오지 않는다.
+
+- **nav3 `EntryProviderScope` 를 기능에 그대로 열지 않는다.** `DestinationScope.destination<K> { }` 하나만 연다.
+  모든 화면을 `ProvideNavAnimatedScope` 로 감싸고(기능이 빠뜨려도 공유 전환이 꺼지지 않는다), 내용 키 · 메타데이터를 고르지
+  못하게 한다 — 넓은 창 판정이 `Connect` 를 기본 내용 키로 알아본다(RC-14, 위 씬 절).
+- **감싸기는 등록할 때 한 번이다.** provider 가 `NavEntry` 를 만들 때마다 감싸면 매번 새 람다라 `NavEntry` 같음이 깨진다.
+- **같은 목적지를 두 번 등록하면 묶음을 만들 때 멈추고**(nav3 `require`), 아무도 등록하지 않은 목적지는 `fallback` 으로 간다.
+- **멀티바인딩 집합으로 모으지 않는다.** 레시피(modular-hilt)는 Hilt `@IntoSet` 으로 등록을 모으지만, 여기 등록은 셸의 컴포지션 값
+  (기능 상태 · 틀)을 받고 뒤로가기 계측 하네스는 Hilt 없이 셸을 그린다. 순서가 뜻을 갖는 호출(오버레이 · 패널 · 핸들러)은
+  애초에 등록이 아니라 셸 파일의 직접 호출이다(기능 문서 feature-modules 결정 12).
+- **ViewModel 데코레이터를 넣지 않는다.** `entryDecorators` 를 넘기지 않는다 — 넣으면 창 등급이 바뀔 때 목적지 스코프 ViewModel 이
+  새로 생긴다(결정 7). 시험: `DestinationsTest`(`FM-4 …`).
+
 ## 새 목적지를 붙일 때
 
 1. 키를 `MyNoteNavKey` 하위에 추가한다(sealed 이므로 다른 모듈에서 못 만든다).
@@ -193,3 +210,4 @@ nav3 의 `LocalNavAnimatedContentScope` 는 미설정 시 **예외를 던진다*
    그건 계약 자체라 여기 있는 게 맞다. 씬·모션·공유요소 헬퍼는 feature 를 타지 않게 유지한다.
 3. Compose 의존은 foundation 까지. material3 를 끌어오지 않는다.
 4. 화면 조립·슬롯·테마는 feature 가 한다. 이 모듈은 "어디로 갈 수 있는가"와 "어떻게 전환되는가"만 안다.
+5. 화면은 그 기능의 등록 파일에서 `destination<키> { }` 로 등록한다(위 등록 틀).
