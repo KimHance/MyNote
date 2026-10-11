@@ -15,8 +15,8 @@ PRIVATE_PATTERNS = {
     "이메일": re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+"),
 }
 OUTSIDE_PATH = re.compile(r"\.\./")
-PLACEHOLDER = re.compile(r"<[A-Z][A-Z0-9_]*>")
-TABLE_PLACEHOLDER = re.compile(r"^\|\s*`(<[A-Z][A-Z0-9_]*>)`\s*\|", re.MULTILINE)
+PLACEHOLDER = re.compile(r"<[A-Z][A-Z0-9_]+>")
+TABLE_PLACEHOLDER = re.compile(r"^\|\s*`(<[A-Z][A-Z0-9_]+>)`\s*\|", re.MULTILINE)
 
 
 def hits(pattern):
@@ -53,6 +53,18 @@ class PublicRulesTest(support.TempCase):
                 used |= set(PLACEHOLDER.findall(text))
         self.assertEqual(used, table)
         self.assertEqual(set(PLACEHOLDER.findall(table_text)) - table, set())
+        spec = support.KIT_SPEC.read_text(encoding="utf-8")
+        self.assertIn("`<T>`", spec)
+        self.assertNotIn("<T>", PLACEHOLDER.findall(spec))
+
+    def test_NT_7_공개_순서가_앱_판_배포를_먼저_말한다(self):
+        """NT-7 공개 순서가 앱 판 배포를 먼저 말한다"""
+        text = (support.PUBLIC / "README.md").read_text(encoding="utf-8")
+        steps = [line for line in support.section(text, "## 공개하는 사람이 할 일") if re.match(r"^\d+\. ", line)]
+        self.assertTrue(steps[0].startswith("1. "))
+        for word in ("마크다운을 읽는 앱 판", "배포된 뒤", "공개"):
+            self.assertIn(word, steps[0])
+        self.assertTrue(all("마크다운을 읽는 앱 판" not in step for step in steps[1:]))
 
     def test_NT_7_notes_kit_을_떼어_내도_시험이_돈다(self):
         """NT-7 notes-kit 을 떼어 내도 시험이 돈다"""
