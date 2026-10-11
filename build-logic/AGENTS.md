@@ -77,7 +77,7 @@ alias(`billboard-*`)·id(`hance.*`)·group·패키지가 네 갈래로 갈려 �
 | `hancenote.android.application.compose` | `:app` | ↑ **+** `org.jetbrains.kotlin.plugin.compose` · 공통 Compose 설정 |
 | `hancenote.android.library` | core 라이브러리 | `com.android.library` · **`hancenote.ktlint`** · 공통 Kotlin/Android · 계측 러너 |
 | `hancenote.android.library.compose` | Compose 쓰는 라이브러리 | ↑ **+** Compose 컴파일러 · 공통 Compose 설정 |
-| `hancenote.android.feature` | `:feature:*` | `library.compose` **+ `android.hilt`** · `:core:{common,design-system,domain,navigation}` · lifecycle(runtime/runtimeCompose/viewModelCompose) · `kotlinx-coroutines-android` |
+| `hancenote.android.feature` | `:feature:*` | `library.compose` **+ `android.hilt`** · `:core:{common,design-system,domain,navigation,ui}` · lifecycle(runtime/runtimeCompose/viewModelCompose) · `kotlinx-coroutines-android` · `hilt-navigation-compose` · `material-icons-core` · `testImplementation`(junit · coroutines-test) · **`resourcePrefix = "<모듈 이름>_"`** |
 | `hancenote.android.hilt` | Hilt 쓰는 모듈 | `com.google.devtools.ksp` · `com.google.dagger.hilt.android` · `hilt-android` + `ksp(hilt-android-compiler)` |
 | `hancenote.android.room` | `:core:database` | `androidx.room3` · KSP · `schemaDirectory("$projectDir/schemas")` · room3 runtime + compiler |
 | `hancenote.jvm.library` | `:core:domain` · `:core:format` | `org.jetbrains.kotlin.jvm` · **`hancenote.ktlint`** · Java 17 · `useJUnit()` |
@@ -97,16 +97,17 @@ alias(`billboard-*`)·id(`hance.*`)·group·패키지가 네 갈래로 갈려 �
 |---|---|---|
 | `:app` | `android.application` + `.compose` + `android.hilt` | `buildConfig = true`, `ndk.abiFilters = arm64-v8a`, release R8/shrink |
 | `:core:common` | `android.library` | — |
-| `:core:ai` | `android.library` + `android.hilt` + `kotlin-serialization` | — |
+| `:core:ai` | `android.library` + `android.hilt` + `kotlin-serialization` | `resourcePrefix = "ai_"` |
 | `:core:data` | `android.library` + `android.hilt` + `kotlin-serialization` | `extra["notesTemplateInput"]` |
 | `:core:database` | `android.library` + `android.room` + `android.hilt` | — |
 | `:core:network` | `android.library` + `android.hilt` + `kotlin-serialization` | — |
 | `:core:design-foundation` | `android.library.compose` | — |
 | `:core:design-system` | `android.library.compose` | `resourcePrefix = "ds_"` |
 | `:core:navigation` | `android.library.compose` + `kotlin-serialization` | — |
+| `:core:ui` | `android.library.compose` | `resourcePrefix = "ui_"` · core 넷 직접 의존(기능 컨벤션을 쓰면 자기를 의존한다) |
 | `:core:domain` | **`jvm.library`** | — |
 | `:core:format` | **`jvm.library`** + `kotlin-serialization` | `java-test-fixtures`(아래 예외) · `extra["notesInput"]` · `extra["catalogInput"]` |
-| `:feature:notes` | **`android.feature`** (Compose·Hilt 포함) | `resourcePrefix = "notes_"` |
+| `:feature:{notes, connect, settings, quiz, stats}` | **`android.feature`** (Compose·Hilt 포함) | — (접두사 · 공통 의존 모두 컨벤션) |
 
 > **컨벤션 규칙의 예외 하나** — `:core:format` 만 Gradle 핵심 플러그인 `java-test-fixtures` 를 직접 적용한다(컨벤션 · 카탈로그 alias 없음).
 > 파리티 고정 사본을 `:core:format` 과 `:core:data` 두 모듈 시험이 클래스패스로 읽는 가장 작은 길이라서다. 한 모듈만 쓰는 일에
@@ -231,9 +232,11 @@ APK 로는 확인할 수 없다: debug 빌드는 원래 이 블록을 만들지 
 
 ## `resourcePrefix` — 무엇이 강제하는가
 
-`:core:design-system`(`ds_`)과 `:feature:notes`(`notes_`)에만 걸려 있다. 리소스가 있는
-라이브러리 모듈이 그 둘뿐이다(각각 `res/values/strings.xml`). 컨벤션이 자동으로 걸지 않는다 —
-**리소스를 갖는 라이브러리 모듈을 새로 만들면 직접 적어 준다.**
+기능 모듈은 **기능 컨벤션이 모듈 이름 그대로 건다**(`:feature:quiz` → `quiz_`). 그 밖은 모듈 파일에 직접 적는다 —
+`:core:design-system`(`ds_`) · `:core:ai`(`ai_`) · `:core:ui`(`ui_`). `:app` 에는 걸지 않는다(기능 문서 `feature-modules`
+결정 16 — 걸면 앱 이름 · 테마 · 런처 등 기존 리소스 17개의 이름을 바꿔야 한다).
+**리소스를 갖는 라이브러리 모듈을 새로 만들면 직접 적어 준다.** 빼먹으면 lint 는 조용하다(접두사를 적은 모듈만 본다) —
+`notes-tests/test_feature_modules.py` 의 FM-11 시험이 `res/` 가 있는데 접두사가 없는 라이브러리 모듈을 막는다.
 
 이유: 라이브러리 리소스는 이름이 겹치면 조용히 덮인다(`android.nonTransitiveRClass=true` 로
 R 클래스는 분리돼 있지만 병합된 리소스 이름 공간은 하나다). 접두사를 걸면 어느 모듈이 준
@@ -370,9 +373,11 @@ e: .../ZzAndroidProbe.kt:3:8 Unresolved reference 'android'.
 
 - AGP 9.4.1 · Gradle 9.8.0(wrapper) · Kotlin 2.4.20 · KSP 2.3.12 · Hilt 2.60.1 · Room3 3.0.3
 - `compileSdk` 37 · `targetSdk` 37 · `minSdk` 32 · Java/JVM 타깃 17(build-logic 자신도 17)
-- 모듈 12개 = `:app` + core 10(`common`, `ai`, `data`, `database`, `design-foundation`,
-  `design-system`, `domain`, `format`, `navigation`, `network`) + feature 1(`notes`)
-- 테스트가 있는 모듈: `app` 을 뺀 전부(core 10 · `feature/notes`).
+- 모듈 17개 = `:app` + core 11(`common`, `ai`, `data`, `database`, `design-foundation`,
+  `design-system`, `domain`, `format`, `navigation`, `network`, `ui`) + feature 5(`notes`, `connect`, `settings`, `quiz`, `stats`)
+- 테스트가 있는 모듈: `app` · 빈 뼈대(`core/ui` · `feature/{connect,settings,quiz,stats}`)를 뺀 전부(core 10 · `feature/notes`).
+- 모듈 경계(기능끼리 의존 0 · 데이터 층 의존 0)는 빌드가 아니라 `notes-tests/test_feature_modules.py` 의 FM-2 · FM-3 이 본다 —
+  settings · 모듈 build 파일 · 이 컨벤션 소스를 읽어 닫힘을 구하므로 컨벤션이 넣는 의존도 센다.
 - 없는 것(과거에 있었으나 제거됨): Circuit convention · android test(benchmark) convention ·
   product flavor(prod/demo). 되살릴 땐 카탈로그 alias 부터 다시 추가해야 한다.
 
