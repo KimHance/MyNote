@@ -128,7 +128,7 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
 | 순위 | 핸들러 | 어디서 컴포즈되나 |
 |---|---|---|
 | 1 | 드로어 닫기 (Material3) | `ModalDrawerSheet(drawerState = …)` 의 예측 뒤로가기 핸들러. 드로어가 열려 있는 동안 `NotesShell` 이 Scaffold 내용의 자식 디스패처를 꺼서 이 핸들러가 받는다 |
-| 2 | 퀴즈 오버레이 닫기 | `QuizOverlay` (= `NotesOverlays`, NavDisplay 뒤) |
+| 2 | 퀴즈 오버레이 닫기 | `NotesShell` 의 `QuizOverlay` (`NotesOverlays` 뒤 · Scaffold 내용의 맨 끝) |
 | 3 | 전환 중 삼킴 | `NotesShell` 의 `BackHandler(enabled = !isNavSettled && !drawerEngaged) {}` |
 | 4 | `NavDisplay` 의 pop | `NotesNavDisplay` |
 | 5 | 여는 중인 드로어 닫기 | `NotesShell` 본문 |
@@ -162,20 +162,41 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
 
 ## `shell/` — 호스트를 일 단위로 쪼갠 것
 
-`NotesScreen` → `NotesShell` 하나만 부르고 그 안에서 조립된다. 한 파일이 한 가지만 한다:
-드로어·패널 상태와 뒤로가기 순서(`NotesShell`) / 인셋 산수(`NotesLayout`) / 스크롤과 "맨 위로"
-판정(`NotesScrollState`) / 씬 슬롯과 전략(`NotesScenes`) / `NavDisplay`(`NotesNavDisplay`) /
-플로팅 내비·맨 위로·퀴즈·모델 알약(`NotesOverlays`·`ModelPill`) / 크롬(`NotesTopBar`).
+`NotesScreen` → `NotesStart`(시작 분기) → `NotesShell` 이고 그 안에서 조립된다. 한 파일이 한 가지만 한다:
+순서가 뜻을 갖는 호출 전부(`NotesShell` — 아래) / 인셋 산수(`NotesLayout`) / 스크롤과 "맨 위로"
+판정(`NotesScrollState`) / 씬 전략(`NotesScenes`) / 등록 묶음과 `NavDisplay`(`NotesNavDisplay`) /
+플로팅 내비·맨 위로·모델 알약(`NotesOverlays`·`ModelPill`) / 크롬(`NotesTopBar`).
+
+**`NotesShell.kt` 한 파일이 순서를 고정한다(결정 12 · FM-5).** 시작 분기의 읽는 중 · 연결 루트(`NotesStart`), 모델 확인
+대화상자, 뒤로가기 핸들러, 드로어 · 고정 패널의 목록 패널, 퀴즈 오버레이, 상단 바와 그 행동(헤더 슬롯)을 이 파일에서 컴포즈
+순서대로 직접 부른다. 순서 없는 집합(Hilt `@IntoSet` 같은 멀티바인딩)으로 받지 않는다 — 받으면 퀴즈 오버레이(②)가 삼킴(③)보다
+먼저 컴포즈될 수 있다.
+
+**목적지 키 7개의 화면은 기능별 등록 파일이 등록한다(FM-4).** `NotesDestinations.kt`(홈 · 북마크 · 리더) ·
+`screen/stats/StatsDestinations.kt`(통계 · 지난 요약) · `settings/SettingsDestinations.kt`(설정) ·
+`screen/connect/ConnectDestinations.kt`(쌓은 연결 화면). 셸 파일은 목적지 화면을 부르지 않고, `shellDestinations` 가 기능마다
+자기 상태 · 입구만 넘겨 묶는다. 화면이 셸에게서 받는 값은 셸 틀 계약 `frame/ShellFrame`(위 · 아래 · 끝 여백 · 두 단 · 쌓이는 씬 ·
+스크롤 홀더 · draft · 스낵바 호스트)뿐이다. 등록 틀(`:core:navigation` 의 `registry/`)이 모든 화면을 공유 전환 스코프로 감싸고
+내용 키는 건드리지 않는다. 새 목적지를 더하면 키는 `:core:navigation`, 화면은 그 기능의 등록 파일, 시험은
+`ShellDestinationsTest`(`FM-4 모든 목적지 키에 화면이 하나씩 등록된다`)의 키 목록이다.
+
+- **등록 화면 · 슬롯은 자기 기능 상태만 읽는다.** 셸이 기능 상태마다 `rememberUpdatedState` 로 State 를 만들어 람다로 넘기고,
+  화면은 그 안에서 읽는다. 다른 기능 상태(예: 모델 받기 진행)가 바뀌어도 그 엔트리 · 슬롯은 다시 그리지 않는다.
+  entryProvider 는 `remember` 로 한 번 만든다 — 매 컴포지션 새로 만들면 엔트리가 셸 상태를 통째로 캡처하던 옛 꼴로 돌아간다.
+- **틀 값은 화면 안에서 읽는다.** 등록 함수 본문(묶음을 만들 때 한 번 돈다)에서 읽으면 그때 값에 묶인다.
+  알약 예약 여백은 `animateDpAsState` 의 State 를 틀이 들고 있어 300ms 동안 셸 본문이 아니라 여백을 읽는 화면만 다시 그린다.
+- **목적지별 ViewModel 데코레이터를 넣지 않는다.** `NavDisplay` 에 `entryDecorators` 를 넘기지 않는다(기본값). 모든
+  `hiltViewModel` 은 Activity owner 다(결정 7) — 창 등급이 바뀌어 `NavDisplay` 가 다시 만들어져도 산다.
 
 쪼개거나 옮길 때 깨지는 것:
 
 - **`layerBackdrop` Box 안에는 `NotesNavDisplay` 만.** 그 Box 가 유리의 샘플링 대상이므로
-  오버레이(내비·맨 위로·퀴즈)가 안에 들어가면 유리가 자기를 샘플링한다. 그래서 `NotesOverlays` 는
+  오버레이(내비·맨 위로·퀴즈)가 안에 들어가면 유리가 자기를 샘플링한다. 그래서 `NotesOverlays` 와 `QuizOverlay` 는
   그 Box 의 **형제**다. 반대로 `layerBackdrop` 을 `SharedTransitionLayout` 에 직접 걸면 레이어가
   비어 효과가 통째로 사라진다.
 - **씬 슬롯(`panel`/`header`/`panelExpanded`)은 `remember` 로 정체성을 고정한다.** 매 컴포지션
   새 람다가 들어가면 `sceneStrategies` 가 달라진 것으로 보여 씬이 통째로 재생성된다. 안의 값은
-  `rememberUpdatedState` 로 읽는다(`rememberNotesPanelSlot`/`rememberNotesHeaderSlot` 참조).
+  `rememberUpdatedState` 로 읽는다(`NotesShell.kt` 의 `rememberNotesPanelSlot`/`rememberNotesHeaderSlot` 참조).
   manifest 에 `configChanges` 가 켜져 있어 Activity 가 재생성되지 않으므로 낡은 캡처는 실제 버그다.
 - `nestedScroll(navScroll.nestedScrollConnection)` 은 `layerBackdrop` Box **바깥**의 Box 에 걸려 있다 —
   홈 그리드든 리더든 스크롤이 플로팅 내비 숨김 판정으로 올라와야 한다. 노트가 바뀌면
@@ -417,7 +438,7 @@ Ready 면(앱을 켬 · 재생성) 띄우지 않는다. VM 의 모델 상태 초
 
 ## 저장소 연결 — 시작 분기 · 연결 화면 · 설정 카드
 
-- **시작 분기는 `NotesScreen` 이 한다.** `shell/ShellUiState.kt:startOf(셸, 노트)`(순수 함수 `element/ConnectStart.kt:startDestination`)가 셸의 연결 · 시드와 노트의 읽음 · 노트 수를 같은 프레임에 묶어 읽는 중 / 연결 루트 / `NotesShell` 을 가른다.
+- **시작 분기는 `NotesStart`(`shell/NotesShell.kt`)가 한다.** `shell/ShellUiState.kt:startOf(셸, 노트)`(순수 함수 `element/ConnectStart.kt:startDestination`)가 셸의 연결 · 시드와 노트의 읽음 · 노트 수를 같은 프레임에 묶어 읽는 중 / 연결 루트 / `NotesShell` 을 가른다.
   연결 루트는 셸 밖이라 인셋을 직접 갖고 스낵바는 루트 호스트를 받는다. 루트의 뒤로가기는 콜백(`onShellBack`)으로 셸 VM 에 간다. `NotesExitEffects`(셸 파일의 `internal`)는 `NotesRoute` 가 분기 위에서
   한 번 부른다. 분기마다 두면 연결 루트와 셸을 오갈 때 종료 안내가 다시 뜬다. 연결을 읽기 전(`connection == null`) · 노트를 읽기 전(`notesLoaded`) · 시드 소비 전(`seedPending`)에는 연결 화면도 홈도 그리지 않는다.
 - **화면 정리는 연결 상태 전이가 한다.** `ShellViewModel.onConnectionChanged` 가 (이전 → 다음 연결) 을 `element/ScreenCleanup.kt:screenCleanupOf` 에 넘겨 스택 `[Home]` · 퀴즈 닫기 · 마지막 동기화를 같은 틱에 정한다(FM-6 ⑨). 시드 · 확정 · 끊기 어느 길이든 한 곳이고, 화면이 따로 discard 를 부르지 않는다.

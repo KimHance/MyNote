@@ -8,7 +8,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.Dp
 import com.hancekim.mynote.core.designsystem.component.FloatingNavBar
 import com.hancekim.mynote.core.designsystem.component.FloatingNavItem
 import com.hancekim.mynote.core.designsystem.component.FloatingNavRail
@@ -18,7 +17,6 @@ import com.hancekim.mynote.core.designsystem.component.ScrollToTopButton
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.NotesTab
-import com.hancekim.mynote.feature.notes.quiz.QuizOverlay
 import com.hancekim.mynote.feature.notes.quiz.QuizUiState
 import com.kyant.backdrop.Backdrop
 import kotlinx.collections.immutable.ImmutableList
@@ -38,13 +36,11 @@ internal fun BoxScope.NotesOverlays(
     navScroll: FloatingNavScrollState,
     backdrop: Backdrop,
     pillVisible: Boolean,
-    quizStartInset: Dp,
 ) {
     val adaptive = MyNoteTheme.adaptive
     val scope = rememberCoroutineScope()
     val shell = states.shell
-    val quiz = states.quiz.quiz
-    val quizOpen = quiz != QuizUiState.Idle
+    val quizOpen = states.quiz.quiz != QuizUiState.Idle
 
     ModelPill(
         status = shell.modelStatus,
@@ -94,14 +90,6 @@ internal fun BoxScope.NotesOverlays(
                     end = adaptive.railRightMargin + layout.endInset,
                     bottom = layout.scrollToTopBottom,
                 ),
-    )
-
-    QuizOverlay(
-        state = quiz,
-        noteTitle = states.activeNote?.title.orEmpty(),
-        onIntent = intents.quiz,
-        startInset = quizStartInset,
-        backdrop = backdrop,
     )
 }
 

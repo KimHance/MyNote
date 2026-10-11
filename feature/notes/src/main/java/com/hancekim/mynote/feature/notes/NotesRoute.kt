@@ -21,7 +21,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
@@ -40,28 +39,21 @@ import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.domain.model.ConnectionState
 import com.hancekim.mynote.core.domain.model.RepoConnection
 import com.hancekim.mynote.core.domain.model.SourceId
-import com.hancekim.mynote.feature.notes.element.ConnectPlace
 import com.hancekim.mynote.feature.notes.element.NotesDrafts
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesSignal
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.element.NoticeUi
-import com.hancekim.mynote.feature.notes.element.StartDestination
 import com.hancekim.mynote.feature.notes.quiz.QuizIntent
 import com.hancekim.mynote.feature.notes.quiz.QuizViewModel
-import com.hancekim.mynote.feature.notes.screen.ModelConfirmDialog
-import com.hancekim.mynote.feature.notes.screen.connect.ConnectReadingScreen
-import com.hancekim.mynote.feature.notes.screen.connect.ConnectRoute
 import com.hancekim.mynote.feature.notes.settings.SettingsIntent
 import com.hancekim.mynote.feature.notes.settings.SettingsViewModel
 import com.hancekim.mynote.feature.notes.shell.FeatureIntents
 import com.hancekim.mynote.feature.notes.shell.FeatureStates
 import com.hancekim.mynote.feature.notes.shell.NotesExitEffects
-import com.hancekim.mynote.feature.notes.shell.NotesShell
-import com.hancekim.mynote.feature.notes.shell.ShellIntent
+import com.hancekim.mynote.feature.notes.shell.NotesStart
 import com.hancekim.mynote.feature.notes.shell.ShellUiState
 import com.hancekim.mynote.feature.notes.shell.ShellViewModel
-import com.hancekim.mynote.feature.notes.shell.startOf
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import com.hancekim.mynote.core.designsystem.R as DsR
@@ -165,47 +157,17 @@ internal fun NotesScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     RootSnackbars(states, intents, snackbarHostState)
 
-    var showDownloadConfirm by rememberSaveable { mutableStateOf(false) }
     val drafts = remember { NotesDrafts() }
 
     MyNoteTheme(windowClass = windowClass, heightClass = heightClass, fontScale = states.shell.fontScale) {
         NotesExitEffects(states.shell, snackbarHostState, intents.shell, onExit)
-        when (startOf(states.shell, states.notes)) {
-            StartDestination.Reading -> {
-                ConnectReadingScreen()
-            }
-
-            StartDestination.ConnectRoot -> {
-                ConnectRoute(
-                    place = ConnectPlace.Root,
-                    hasConnection = false,
-                    drafts = drafts,
-                    snackbarHostState = snackbarHostState,
-                    onShellBack = { intents.shell(ShellIntent.Back) },
-                )
-            }
-
-            StartDestination.Shell -> {
-                NotesShell(
-                    states = states,
-                    intents = intents,
-                    snackbarHostState = snackbarHostState,
-                    drafts = drafts,
-                    onConfirmDownload = { showDownloadConfirm = true },
-                    onEnableNotifications = onEnableNotifications,
-                )
-            }
-        }
-
-        if (showDownloadConfirm) {
-            ModelConfirmDialog(
-                onDismiss = { showDownloadConfirm = false },
-                onConfirm = {
-                    showDownloadConfirm = false
-                    intents.settings(SettingsIntent.StartModelDownload)
-                },
-            )
-        }
+        NotesStart(
+            states = states,
+            intents = intents,
+            snackbarHostState = snackbarHostState,
+            drafts = drafts,
+            onEnableNotifications = onEnableNotifications,
+        )
     }
 }
 
