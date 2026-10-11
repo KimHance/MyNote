@@ -59,8 +59,11 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
   (글꼴 · 다크 · 언어)에서 새 컴포지션의 `LaunchedEffect` 가 지난 스낵바와 오래된 `되돌리기` 를 다시 띄우지 않는다.
   `exitRequestId` 는 소비하지 않는다. 종료하면 다시 그릴 화면이 없다.
 - `SnackbarHostState` 인스턴스는 ViewModel 이 들고 `build()` 는 넘기기만 한다.
-- 문구는 ViewModel 이 `getString` 을 직접 부르지 않는다. `NotesMessages`(`@ApplicationContext`)
-  가 만들고 VM 은 호출한다. 접근성 판정도 같은 패턴 — `QuizAutoAdvancePolicy`.
+- 문구는 ViewModel 이 `getString` 을 직접 부르지 않는다. 인터페이스 `NotesMessages` 를 주입받아 부르고,
+  `getString` 은 구현 `AndroidNotesMessages`(`@ApplicationContext`)에만 있다. 접근성 판정(`QuizAutoAdvancePolicy`) ·
+  통계 기록(`StatsTrace`) · 실패 로그(`FailureLog`)도 같은 패턴이고 구현은 `:app` 의 `NotesModule` 이 묶는다.
+  시각은 `:core:common` 의 `Clock`(간격) · `WallClock`(기록 시각)을 주입받는다 — ViewModel 이 JVM 시험에서
+  가상 시간으로 만들어지게 하려는 것이다(FM-8 · `NotesViewModelTest`).
 
 ---
 
@@ -76,7 +79,7 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
   이어진다. 플로팅 내비의 `SwitchTab(Home)` 은 `ReplaceAll([Home])`, `SwitchTab(Bookmarks)` 는
   `[Home]` 에서 `Push(Bookmarks)` / 그 외 `ReplaceAll([Home, Bookmarks])` 이고(`navigation/TabSwitch.kt`),
   이미 그 자리면 `Ignored` 로 아무 일도 없어야 한다. 종료 판단은 화면이 아니라 `pop() == NavResult.Ignored` 가 내린다.
-- 두 번 누르기(`EXIT_WINDOW_MILLIS`)는 ViewModel 이 `SystemClock` 으로 센다. 상태로 나가는 건
+- 두 번 누르기(`EXIT_WINDOW_MILLIS`)는 ViewModel 이 주입받은 `Clock`(단조 시계)으로 센다. 상태로 나가는 건
   `exitHintId`/`exitRequestId` 뿐이고 `finish()` 는 화면이 부른다.
 - 사용자 입력이 아닌 정정은 게이트를 우회한다 — 동기화 중 열린 노트가 삭제되면
   `dispatchImmediately(NavCommand.Pop)`.

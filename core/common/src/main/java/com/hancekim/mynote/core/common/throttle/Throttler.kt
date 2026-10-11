@@ -1,13 +1,5 @@
 package com.hancekim.mynote.core.common.throttle
 
-import android.os.SystemClock
-
-fun interface Clock {
-    fun elapsedMillis(): Long
-}
-
-val SystemClockSource: Clock = Clock { SystemClock.elapsedRealtime() }
-
 class Throttler(
     private val minIntervalMillis: Long = DEFAULT_MIN_INTERVAL_MILLIS,
     private val clock: Clock = SystemClockSource,
