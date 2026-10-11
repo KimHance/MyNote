@@ -1,6 +1,5 @@
 package com.hancekim.mynote.feature.notes.shell
 
-import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -28,7 +27,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -189,6 +187,8 @@ internal fun NotesShell(
                         pillVisible = pillVisible,
                         quizStartInset = if (collapsiblePanelOpen) adaptive.paneWidth + 1.dp else 0.dp,
                     )
+
+                    BackHandler(enabled = drawerState.isOpen) { scope.launch { drawerState.close() } }
                 }
             }
         }
@@ -226,10 +226,11 @@ internal fun NotesExitEffects(
     uiState: NotesUiState,
     snackbarHostState: SnackbarHostState,
     onIntent: (NotesIntent) -> Unit,
+    onExit: () -> Unit,
 ) {
-    val context = LocalContext.current
     val exitHint = stringResource(R.string.notes_exit_hint)
     val currentOnIntent by rememberUpdatedState(onIntent)
+    val currentOnExit by rememberUpdatedState(onExit)
     LaunchedEffect(uiState.exitHintId) {
         val id = uiState.exitHintId
         if (id > 0) {
@@ -239,7 +240,7 @@ internal fun NotesExitEffects(
         }
     }
     LaunchedEffect(uiState.exitRequestId) {
-        if (uiState.exitRequestId > 0) (context as? Activity)?.finish()
+        if (uiState.exitRequestId > 0) currentOnExit()
     }
 }
 
