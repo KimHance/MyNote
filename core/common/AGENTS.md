@@ -9,7 +9,7 @@
 | 패키지 | 내용 | 쓰는 곳 |
 |---|---|---|
 | `mvi/` | `MviViewModel<S, E>` · 마커 `MviState` / `MviEvent` | `:feature:notes` 의 `NotesViewModel` |
-| `throttle/` | `Throttler` · `fun interface Clock` · `SystemClockSource` | `:core:navigation` 의 `Navigator`, `:core:design-system` 의 `throttledProcess` |
+| `throttle/` | `Throttler` · `Clock.kt`(단조 `fun interface Clock` · `SystemClockSource`, 벽시계 `fun interface WallClock` · `SystemWallClockSource`) | `:core:navigation` 의 `Navigator`, `:core:design-system` 의 `throttledProcess`, `:feature:notes` 의 ViewModel(주입받음 · `:app` 의 `AppModule` 이 묶음) |
 | `result/` | `runCatchingCancellable` | `:core:data` 의 `NotesRepositoryImpl`, `:core:ai` 의 `LiteRtLmQuizGenerator` |
 
 **leaf 다.** `build.gradle.kts` 의 구현 의존은 `androidx.lifecycle.viewmodel` 과
@@ -18,10 +18,11 @@
 `:core:design-system` 으로 보낸다.**
 
 `:core:common` 을 가져다 쓰는 쪽은 `projects.core.common` 을 직접 선언하고
-(`:core:navigation` · `:core:design-system` · `:core:data` · `:core:ai`),
+(`:core:navigation` · `:core:design-system` · `:core:data` · `:core:ai` · `:app`),
 `:feature:*` 는 `AndroidFeatureConventionPlugin` 이 자동으로 넣는다.
 
-> **경계의 유일한 예외:** `Throttler.kt` 가 `android.os.SystemClock.elapsedRealtime()` 을 쓴다.
+> **경계의 유일한 예외:** `Clock.kt` 의 `SystemClockSource` 가 `android.os.SystemClock.elapsedRealtime()` 을 쓴다
+> (옆의 `SystemWallClockSource` 는 `System.currentTimeMillis()`).
 > UI 는 아니지만 안드로이드 SDK 다 — 그래서 이 모듈은 순수 JVM 모듈이 아니라 안드로이드
 > 라이브러리이고, 아래 "Throttler" 절의 테스트 제약이 여기서 나온다.
 
@@ -228,6 +229,8 @@ apply(next)                                             // 여기서 throttle.tr
 
 `currentTimeMillis` 가 아니라 `elapsedRealtime` 인 것도 의도다 — 단조 증가라 사용자가
 시계를 돌려도 창이 뒤틀리지 않는다.
+저장에 남는 시각(에포크 밀리초 — 읽기 세션 · 퀴즈 결과 · 북마크 이벤트)은 따로 `WallClock` 으로 받는다.
+`WallClock` 으로 간격을 재지 않는다.
 
 ---
 
