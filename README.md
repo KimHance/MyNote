@@ -1,80 +1,60 @@
+<p align="center">
+  <img src="docs/images/readme/banner.png" alt="MyNote" width="720">
+</p>
+
 # MyNote
 
-> GitHub 저장소의 마크다운 노트를 받아 "블로그 글처럼" 보는 **읽기 전용** 안드로이드 학습 노트 앱.
-> 노트로 온디바이스 LLM 퀴즈를 풀고, 공부 기록을 통계로 본다.
+GitHub 저장소에 올려 둔 마크다운 학습 노트를 받아 읽는 안드로이드 앱입니다.
+읽은 노트로 기기 안에서 4지선다 퀴즈를 만들어 풀고, 무엇을 얼마나 공부했는지 통계로 봅니다.
+노트는 저장소에서 쓰고 앱은 읽기만 합니다.
 
-다크 단일 테마 · 멀티 폼팩터(반응형 · 폴더블) · 앱 내 쓰기 없음.
+## 주요 기능
 
-콘텐츠는 **서버드리븐**이다. 앱 안에서 GitHub 저장소 링크를 붙여 연결하고(공개는 바로 · 비공개는 읽기 전용 토큰),
-`notes/index.json`(그룹 → 노트 + 해시)과 노트 파일을 **GitHub Contents API** 로 받아 **Room 에 캐싱**한다.
-해시를 비교해 변경분만 동기화한다(없으면 받고 · 해시가 다르면 갱신 · index 에 없으면 삭제).
-노트는 앞머리(제목 · 날짜) + GFM 마크다운 본문이고, 앱이 블록(제목 · 문단 · 코드 · 인용 · 목록 · 표 · 구분선)으로 그린다.
-형식은 [`notes/SCHEMA.md`](notes/SCHEMA.md) 에 있다. 옛 JSON 노트도 읽는다.
+- **노트 저장소 연결** — GitHub 저장소 주소를 붙여 넣으면 노트를 불러옵니다. 비공개 저장소는 읽기 전용 토큰으로 연결합니다. 저장소에서 바뀐 노트만 다시 받습니다.
+- **마크다운 노트 읽기** — 제목 · 문단 · 목록 · 코드 · 인용 · 표 같은 GFM 문법을 읽기 좋은 화면으로 그립니다. 받은 노트는 기기에 남아 오프라인에서도 읽힙니다.
+- **북마크** — 다시 볼 노트를 모아 두고, 가장 최근에 모은 노트를 크게 보여 줍니다.
+- **온디바이스 퀴즈** — 노트 본문으로 4지선다 문제를 만듭니다. 모델(Gemma 4 E2B)이 기기에서 돌아 노트가 밖으로 나가지 않습니다.
+- **학습 통계** — 읽은 노트 · 읽은 시간 · 퀴즈 정답률을 주 · 달 단위로 보여 주고, 한 주의 공부를 한 줄로 요약합니다.
+- **폴더블 · 큰 화면** — 넓은 창에서는 목록과 본문을 나란히 놓고, 접고 펴도 읽던 자리가 남습니다.
 
-## 기능 (`feature:notes`)
+## 화면
 
-| 기능 | 내용 |
-|---|---|
-| 홈 · 목록 · 리더 | 카테고리 · 최근 노트, 목록-상세(2-pane), 서버드리븐 블록 렌더 |
-| 북마크 | 노트 북마크 화면 |
-| 통계 | 읽은 시간 · 퀴즈 결과 대시보드, 온디바이스 요약 카드 |
-| 퀴즈 | 노트에서 4지선다 퀴즈를 온디바이스 LLM(LiteRT-LM · Gemma 4 E2B)으로 생성 |
-| 퀴즈 모델 | 2.6GB 모델을 앱에서 받는다(WorkManager · 포그라운드 알림 · 이어 받기 · sha256 검증) |
-| 저장소 연결 | 링크로 연결 · 바꾸기 · 끊기, 템플릿으로 새 저장소 만들기 입구 |
-| 설정 | 글자 크기 · 학습 기록 · 모델 · 저장소 · 토큰 |
+<p align="center">
+  <img src="docs/images/readme/app-home-normal.png" alt="홈" width="200">
+  <img src="docs/images/readme/app-reader-normal.png" alt="노트 읽기" width="200">
+  <img src="docs/images/readme/app-quiz-result.png" alt="퀴즈 결과" width="200">
+  <img src="docs/images/readme/app-stats-week-summary.png" alt="통계" width="200">
+</p>
+<p align="center">
+  <img src="docs/images/readme/app-home-fold.png" alt="펼친 폴더블의 홈 — 목록과 본문을 나란히" width="560">
+</p>
+
+## 시작하기
+
+1. **노트 저장소를 만듭니다.** 노트 하나는 `notes/<그룹>/<id>.md` 파일 하나이고, 앞머리(`title` · `date`)와 마크다운 본문으로 씁니다.
+   예시 노트와 노트 목록 작업이 들어 있는 템플릿 저장소의 원본이 이 레포의 [`public-repos/notes-template/`](public-repos/notes-template/) 에 있습니다(아직 템플릿 저장소로 공개하지 않았습니다).
+2. **앱에 주소를 붙입니다.** 처음 켜면 나오는 연결 화면의 `저장소 주소` 칸에 저장소 주소를 붙여 넣고 `연결` 을 누릅니다. 비공개 저장소라면 이어서 읽기 전용 토큰을 넣습니다.
+3. **퀴즈 모델은 앱 안에서 받습니다.** 모델(2.6GB)은 앱에 들어 있지 않습니다. 노트 끝의 퀴즈 카드나 설정에서 받기를 누르면 Wi-Fi 에 연결됐을 때 받기 시작하고, 받는 동안 앱을 계속 쓸 수 있습니다.
+
+Android 12L(API 32) 이상에서 돌아갑니다. 빌드는 `./gradlew :app:installDebug` 입니다.
+
+## 구조
+
+<p align="center">
+  <img src="docs/images/readme/diagram-modules.png" alt="모듈 구조 — 앱 · 기능, core, 도메인" width="720">
+</p>
+
+모듈은 바깥에서 안쪽으로만 의존합니다. `:app` 은 Hilt 로 구현을 묶고 여러 기능을 한 화면에 엮는 셸을 둡니다.
+화면은 기능마다 모듈 하나 — `:feature:notes`(홈 · 북마크 · 리더) · `:feature:connect`(저장소 연결) · `:feature:settings`(설정) ·
+`:feature:quiz`(퀴즈) · `:feature:stats`(통계) — 이고 기능끼리는 서로를 모릅니다. 둘 이상의 기능이 쓰는 화면 조각은 `:core:ui`,
+화면 이동 계약은 `:core:navigation`, 디자인은 `:core:design-system` 이 맡습니다. 데이터는 `:core:data` 가 원격(`:core:network`)과
+로컬(`:core:database`)을 맞추고, 노트 원문을 블록으로 바꾸는 일은 `:core:format`, 온디바이스 모델은 `:core:ai` 가 합니다.
+모델 · 유스케이스 · 인터페이스는 순수 Kotlin 모듈 `:core:domain` 이 소유합니다.
 
 ## 기술 스택
 
-| 영역 | 기술 |
-|---|---|
-| 언어 / UI | Kotlin · Jetpack Compose · Material3 |
-| 프레젠테이션 | MVI (`MviViewModel` · `UiState` + `Intent`) |
-| 내비게이션 | Navigation 3 1.2.0 + Scenes(목록-상세) |
-| DI | Hilt |
-| 네트워크 | Retrofit · OkHttp · GitHub Contents API |
-| 로컬 | Room 3 (노트 캐시 · 학습 기록 · SSOT) · DataStore |
-| 온디바이스 AI | LiteRT-LM (퀴즈 · 통계 요약) · WorkManager (모델 받기 · 요약 워커) |
-| 마크다운 | JetBrains markdown(GFM) |
-| 직렬화 | kotlinx.serialization |
-| 빌드 | Gradle 9.8 · AGP 9.4.1 · Kotlin 2.4.20 · KSP 2.3.12 · convention plugins(`:build-logic`) · version catalog |
+Kotlin · Jetpack Compose · Navigation 3 · Hilt · Room 3 · DataStore · Retrofit · OkHttp · WorkManager · LiteRT-LM · JetBrains Markdown · kotlinx.serialization · Gradle 컨벤션 플러그인과 버전 카탈로그.
 
-compileSdk 37 · targetSdk 37 · minSdk 32. 버전의 정본은 [`gradle/libs.versions.toml`](gradle/libs.versions.toml) 이고
-Gradle 은 `gradle/wrapper/gradle-wrapper.properties` 다.
+## 개발자용 문서
 
-## 모듈 구조
-
-```
-app                     composition root — Application(Hilt), MainActivity, 구현체 바인딩, 모델 받기 알림 조정
-feature/notes           화면 · ViewModel · 퀴즈 · 통계 · 저장소 연결
-core/
-  ai                    LiteRT-LM 퀴즈 생성 · 통계 요약 워커 · 모델 받기
-  network               GitHub Contents API · 저장소 확인 요청
-  database              Room 캐시 · 학습 기록 · DataStore
-  data                  DataSource 인터페이스 + reconcile(동기화)
-  format                순수 JVM — 노트 원문 → 블록(형식 고르기 · 한도 · 마크다운 변환 · 옛 JSON 형식 1)
-  domain                순수 JVM — 모델 + Repository 인터페이스(DIP 소유) + UseCase
-  navigation            Navigation 3 계약
-  design-system         MyNoteTheme · 공용 컴포넌트 · 본문 블록 렌더
-  design-foundation     디자인 토큰(색 · 타이포 · AdaptiveTokens)
-  common                MVI base · Throttler
-public-repos/           남에게 공개할 노트 규격 · 도구 · 템플릿 저장소 원본(아직 공개 전)
-```
-
-의존 방향은 항상 바깥 → 안쪽이다. 인터페이스는 안쪽이 소유하고 바깥이 구현하며, `:app` 만 구현체를 알고
-Hilt 로 묶는다(DIP). **SSOT 는 Room.** 에이전트용 안내는 [`AGENTS.md`](AGENTS.md)(모듈마다 따로),
-디자인 기준은 [`DESIGN.md`](DESIGN.md), 기능 문서는 [`docs/spec/`](docs/spec/) 에 있다.
-
-## 빌드 & 실행
-
-```bash
-./gradlew ktlintCheck :app:assembleDebug test lintDebug   # 한 번에 검증 (test — testDebugUnitTest 아님)
-python3 -I -m unittest discover notes-tests && python3 -I -m unittest discover public-repos/tests && python3 -I -m unittest discover public-repos/notes-kit/tests
-./gradlew :app:installDebug                               # 기기 설치 (uninstall 하면 기기의 모델 파일이 지워진다)
-git config core.hooksPath .githooks                       # 머신당 1회 — 노트를 커밋하면 index.json 을 다시 만든다
-```
-
-**저장소 · 토큰**: 노트 저장소는 앱 안에서 링크로 연결한다. 비공개 저장소는 읽기 전용 fine-grained 토큰이 필요하다.
-debug 빌드는 `local.properties` 의 `github.owner` · `github.repo` · `github.token` 이 있으면 첫 실행에 시드로 연결한다
-(git 에 올라가지 않는다 · release 에는 들어가지 않는다).
-
-**Package:** `com.hancekim.mynote`
+에이전트와 개발자를 위한 안내는 [`AGENTS.md`](AGENTS.md)(모듈마다 따로 있습니다), 디자인 기준은 [`DESIGN.md`](DESIGN.md), 기능 문서는 [`docs/`](docs/) 에 있습니다.

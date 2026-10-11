@@ -4,7 +4,7 @@
 
 ## 이 모듈의 역할
 
-루트에 `MyNoteApplication`·`MainActivity`·`SplashExit`·`TokenSync`, `di/` 에 모듈 넷, `download/` 에 모델 내려받기 배선 둘,
+루트에 `MyNoteApplication`·`MainActivity`·`SplashExit`·`TokenSync`·`InsightScheduleSync`·`StudyLogMaintenance`, `di/` 에 Hilt 모듈 다섯, `download/` 에 모델 내려받기 배선 둘,
 `shell/` 에 셸이 있고 하는 일은 다섯이다 — **Hilt 그래프 완성**, **`BuildConfig`(debug 시드)/토큰 배선**,
 **Activity 껍데기**(edge-to-edge + 스플래시 내리기 + 제목 글꼴 첫 프레임 문 + `NotesRoute` 호출),
 **시스템과 닿는 지점**(알림 `PendingIntent`·딥링크·프로세스 라이프사이클), **셸**(여러 기능을 한 화면에 묶는 것 — 아래 절).
@@ -17,7 +17,8 @@
 `MyNoteTheme` · 루트 스낵바 호스트(FM-16) · 알림 권한 요청 · Scaffold · 드로어/고정 패널 틀 · 플로팅 내비 · 모델 알약 · `NavDisplay` ·
 오버레이 자리 · 뒤로가기 7단 · 셸 ViewModel(`ShellViewModel` — 백스택 파생 · 종료 · 시작 분기 · 연결이 바뀔 때 화면 정리)이다.
 셸은 모든 기능 모듈을 알 수 있는 유일한 자리라 여기 산다 — 기능 모듈은 셸을 모르고, 셸이 부르는 것만 공개로 내놓는다.
-기능 ViewModel 과 화면 · 등록 파일은 그 기능 모듈에 있다(`feature/notes/AGENTS.md`).
+기능 ViewModel 과 화면 · 등록 파일은 그 기능 모듈에 있다 — `:feature:{notes, connect, settings, quiz, stats}`(각 `feature/*/AGENTS.md`).
+둘 이상의 기능 · 셸이 같이 쓰는 조각과 셸 틀 계약 · 기능 사이 신호는 `:core:ui`(`core/ui/AGENTS.md`)다.
 
 셸 문구는 `res/values/strings.xml` 의 `shell_*` 다. `:app` 에는 `resourcePrefix` 를 걸지 않는다(걸면 런처 · 테마 · 백업 규칙 리소스
 이름까지 바꿔야 한다 — 결정 16). 접두사는 파이썬 `FM-11 셸 문구는 shell_ 로 시작한다` 가 보고, 셸 파일 자리 · 순서 고정은
@@ -157,7 +158,7 @@ Ready 면(앱을 켬 · 재생성) 띄우지 않는다. VM 의 모델 상태 초
   `:core:network`·`:core:data` 가 `BuildConfig` 를 모르게 하는 것이 이 모듈의 존재 이유다.
 
 `:core:design-foundation`/`:core:design-system` 에는 `@Module` 이 없다. `:app` 코드가 참조하는 것은 스플래시 내려감의
-떠남 곡선(`MyNoteExitEasing`)과 제목 글꼴 문(`font/` · `ProvideTitleFontFamily`)이다 — 나머지는 `:feature:notes`(feature convention) → design-system →
+떠남 곡선(`MyNoteExitEasing`)과 제목 글꼴 문(`font/` · `ProvideTitleFontFamily`)이다 — 나머지는 기능 모듈(feature convention) → design-system →
 `api(design-foundation)` 로 이미 들어온다.
 
 ## 토큰 — 저장소에서 OkHttp 로 가는 유일한 길

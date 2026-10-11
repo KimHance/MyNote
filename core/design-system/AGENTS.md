@@ -20,7 +20,7 @@
 | `implementation(libs.androidx.compose.foundation)` | compose convention 은 `material3`·`ui`·`ui-tooling-preview` 만 넣는다. `foundation`(`clickable`/`BasicTextField`/`Canvas`/`drawBehind`)은 **이 모듈이 직접 선언**한다 |
 | `implementation(libs.androidx.compose.ui.text.google.fonts)` | 제목 글꼴(Gothic A1)을 GMS 글꼴 제공자에서 내려받는다(`font/` — `brand` BR-8). 버전은 BOM 이다 |
 
-`:feature:notes` 는 `:core:design-foundation` 을 자기 `build.gradle.kts` 에 적지 않는다 —
+기능 모듈 · `:core:ui` 는 `:core:design-foundation` 을 자기 `build.gradle.kts` 에 적지 않는다 —
 위의 `api` 로 받는다. 토큰이 필요해졌다고 feature 에 의존을 추가하지 말 것.
 
 **토큰의 소유자는 이 모듈이 아니다.** 색/타이포/radius/spacing/`AdaptiveTokens` 는 전부
@@ -73,8 +73,8 @@ ktlint compose-rules 는 `.editorconfig` 의 `ktlint_compose_compositionlocal-al
 
 `backdrop`(`com.kyant.backdrop`) 은 **두 지점이 같은 인스턴스를 봐야** 동작한다:
 
-- 굴절 **대상**에 `Modifier.layerBackdrop(backdrop)` — feature 가 건다.
-  현재 위치는 `NotesShell` 의 `NavDisplay` 를 감싼 전용 `Box` 하나다.
+- 굴절 **대상**에 `Modifier.layerBackdrop(backdrop)` — 셸이 건다.
+  현재 위치는 `:app` 셸 `shell/NotesShell.kt` 의 `NavDisplay` 를 감싼 전용 `Box` 하나다.
 - 유리 **표면**에 `drawBackdrop(...)` — 이 모듈의 `GlassSurface` 가 건다.
 
 하나라도 빠지면 **예외도 로그도 없이 그냥 아무것도 안 그려진다.** 내비·최상단 버튼은
@@ -82,7 +82,7 @@ ktlint compose-rules 는 `.editorconfig` 의 `ktlint_compose_compositionlocal-al
 
 `drawBackdrop` 을 직접 부르는 곳은 `GlassSurface.kt` **한 군데뿐**이다. 유리가 필요한 자리는
 feature 든 이 모듈이든 `GlassSurface` 를 쓴다(`FloatingNavBar`/`FloatingNavRail`/`ScrollToTopButton`,
-feature 의 `QuizSetupDialog`). 효과 체인(`blur → lens → highlight → shadow`)을 바깥에서 다시
+`:feature:quiz` 의 `QuizSetupDialog`). 효과 체인(`blur → lens → highlight → shadow`)을 바깥에서 다시
 조립하지 말 것.
 
 ### 파라미터가 무엇을 사는가
@@ -210,7 +210,7 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
   빈 `salvaged`·`raw` 는 feature 매퍼가 `null` 로 바꿔 넘긴다(`raw == null` 이면 원문 보기 버튼이 없다). 펼침·2단은
   `UnsupportedBlock` 안이 아니라 **`NoteContentState`**(블록 index 집합 둘, `Saver` 로 저장)에 있고 `NoteContent(state = …)` 로
   받는다 — 블록 안 `rememberSaveable` 은 창 등급이 바뀌어 `NavDisplay` 가 다시 만들어질 때 키를 명시해도 사라진다(관문 2 S1).
-  그래서 feature 셸이 리더 스크롤과 같은 자리·같은 키로 들고 내려 준다(`NotesScrollState.readerContent`, `NoteContentStateTest`).
+  그래서 `:app` 셸이 리더 스크롤과 같은 자리·같은 키로 들고 내려 준다(`:core:ui` 의 `NotesScrollState.readerContent`, `NoteContentStateTest`).
   기본값 `rememberNoteContentState()` 는 프리뷰·다른 호출부용이다. 원문 자르기(앞 40줄 → 최대 200줄·10,000자)는 순수 함수 `sliceRaw`
   (`RawSlice.kt`, `RawSliceTest`)다. 원문은 **줄마다 `Text` 하나**로 그린다 — 한 `Text` 에 줄마다 `ParagraphStyle` 을
   걸면 복사한 글자에서 줄바꿈이 사라진다(`SelectionContainer` 는 `Text` 사이를 `'\n'` 으로 잇는다). 대신 패널 `Column` 을
@@ -280,7 +280,7 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
 
 `FloatingNavScrollState` 의 실제 규칙 세 가지: `6.dp` 미만 이동은 떨림으로 무시, 상단 `48.dp`
 안전지대에서는 숨지 않음, 누적 오프셋은 0 아래로 안 내려감. 노트를 바꿀 때 `reset()` 을
-불러야 기준점까지 되돌아간다(`NotesShell` 의 `LaunchedEffect(uiState.activeNoteId)`).
+불러야 기준점까지 되돌아간다(`:app` 셸 `NotesShell` 의 `LaunchedEffect(shell.backStack.lastOrNull())`).
 
 ---
 

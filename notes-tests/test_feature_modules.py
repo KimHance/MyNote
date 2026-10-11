@@ -217,6 +217,10 @@ ORDERED_CALLS = (
     "NotesTopBar",
     "ModalNavigationDrawer",
 )
+# FM-15 — 모듈마다 AGENTS.md 가 있고, 루트 AGENTS.md 의 모듈 지도(그 절의 첫 코드 블록)가 그 모듈 폴더를 든다
+ROOT_AGENTS = REPO_ROOT / "AGENTS.md"
+MODULE_MAP_HEADING = "## 모듈 지도와 의존 방향"
+MIN_MODULES = 17
 MULTIBINDING = re.compile(r"@(?:IntoSet|IntoMap|ElementsIntoSet)\b")
 ROOT_ROUTE = "NotesRoute"
 # FM-11 — 결정 16. `:app` 은 resourcePrefix 를 걸지 않고 셸 문구만 `shell_` 로 시작한다. 셸 문구가 아닌 앱 리소스 이름
@@ -628,6 +632,24 @@ class FeatureModulesTest(unittest.TestCase):
         defined = string_definitions()
         self.assertGreaterEqual(len({home for homes in defined.values() for home in homes}), 4, "문구 파일을 다 찾지 못했습니다")
         self.assertEqual({name: homes for name, homes in defined.items() if len(homes) > 1}, {})
+
+    def test_FM_15_모듈마다_AGENTS_md_가_있다(self):
+        paths = INCLUDE.findall(SETTINGS.read_text(encoding="utf-8"))
+        # 헛통과 막이 — settings 의 include 를 못 읽으면 빈 목록이라 아래가 모두 통과한다
+        self.assertGreaterEqual(len(paths), MIN_MODULES, "settings.gradle.kts 의 include 를 다 읽지 못했습니다")
+        root = ROOT_AGENTS.read_text(encoding="utf-8")
+        section = root.split(MODULE_MAP_HEADING, 1)[1] if MODULE_MAP_HEADING in root else ""
+        blocks = section.split("```")
+        self.assertGreaterEqual(len(blocks), 3, "루트 AGENTS.md 의 모듈 지도 코드 블록을 찾지 못했습니다")
+        module_map = blocks[1]
+        missing_file = [path for path in paths if not (module_dir(path) / "AGENTS.md").is_file()]
+        missing_map = []
+        for path in paths:
+            folder = path.strip(":").replace(":", "/")
+            if not re.search(rf"(?<![\w/-]){re.escape(folder)}(?![\w-])", module_map):
+                missing_map.append(path)
+        self.assertEqual(missing_file, [], "AGENTS.md 가 없는 모듈")
+        self.assertEqual(missing_map, [], "루트 AGENTS.md 모듈 지도에 없는 모듈")
 
 if __name__ == "__main__":
     unittest.main()

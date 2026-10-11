@@ -28,7 +28,8 @@
 - 외부 브라우저 찾기는 이 모듈 `AndroidManifest.xml` 의 `<queries>` 가 필요하다 — 지우면 `openExternal` 이 조용히 일반 열기로 돌아간다.
 - `FeatureSignals` · `LastSyncHolder` · `AndroidNotesMessages` · `AndroidFailureLog` 는 `@Inject` 생성자만 있어 `javax.inject` 애너테이션만 의존한다.
   그래프는 `:app` 의 Hilt 가 만든다 — 그래서 문구 구현은 `@ApplicationContext` 대신 Hilt 가 기본으로 묶는 `Application` 을 받는다.
-- 문구는 이 모듈 코드가 쓰는 것과, 기능을 다 떼면 둘 이상이 쓰는 것이다. 후자 중 아직 노트 한 모듈만 쓰는 다섯은 파이썬 시험의 `PLACED_AHEAD` 목록에 있다.
+- 문구는 이 모듈 코드가 쓰는 것과 둘 이상의 모듈이 참조하는 것이다(결정 15). 앞당겨 옮겨 둔 문구 목록(파이썬 시험의 `PLACED_AHEAD`)은
+  기능 떼기가 끝나 지금 비어 있다 — 한 모듈만 쓰는 문구를 미리 여기 둘 때만 이름을 넣고, 둘 이상이 쓰게 되면 시험이 지우라고 알린다.
 - 탭 종류 · 리더 열기 · 탭 전환 명령은 여기가 아니라 `:core:navigation` 에 있다.
 
 ## 경계

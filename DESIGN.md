@@ -20,9 +20,16 @@ MyNote 디자인 시스템의 **단일 기준 문서**다. 사람과 AI 도구(C
 | `foundation/` | `core/design-foundation/src/main/java/com/hancekim/mynote/core/designfoundation/` |
 | `ds/` | `core/design-system/src/main/java/com/hancekim/mynote/core/designsystem/` |
 | `nav/` | `core/navigation/src/main/java/com/hancekim/mynote/core/navigation/` |
-| `feat/` | `feature/notes/src/main/java/com/hancekim/mynote/feature/notes/` |
+| `ui/` | `core/ui/src/main/java/com/hancekim/mynote/core/ui/` |
+| `app/` | `app/src/main/java/com/hancekim/mynote/` (셸은 `app/shell/`) |
+| `feat-notes/` | `feature/notes/src/main/java/com/hancekim/mynote/feature/notes/` |
+| `feat-connect/` | `feature/connect/src/main/java/com/hancekim/mynote/feature/connect/` |
+| `feat-settings/` | `feature/settings/src/main/java/com/hancekim/mynote/feature/settings/` |
+| `feat-quiz/` | `feature/quiz/src/main/java/com/hancekim/mynote/feature/quiz/` |
+| `feat-stats/` | `feature/stats/src/main/java/com/hancekim/mynote/feature/stats/` |
 
-`파일:줄` 표기는 이 문서를 쓴 시점(2026-10-02) 워킹트리 기준이다. 줄 번호는 흘러가지만 이름은 잘 안 바뀐다.
+`파일:줄` 표기는 이 문서를 쓴 시점(2026-10-02) 워킹트리 기준이다. 경로 약칭은 화면을 기능 모듈 다섯으로 나눈 뒤(2026-10-12)
+자리로 맞췄다. 줄 번호는 흘러가지만 이름은 잘 안 바뀐다.
 **이름으로 찾는다.**
 
 ### 0.2 모듈 두 개가 시스템을 나눠 갖는다
@@ -38,7 +45,7 @@ MyNote 디자인 시스템의 **단일 기준 문서**다. 사람과 AI 도구(C
 
 ### 0.3 표기
 
-- **[통계(진행 중)]** — 통계 2·3단계 작업이 같은 워킹트리에서 진행 중이라 바뀔 수 있는 항목이다(`ds/chart/`, `feat/screen/stats/`).
+- **[통계(진행 중)]** — 통계 2·3단계 작업이 같은 워킹트리에서 진행 중이라 바뀔 수 있는 항목이다(`ds/chart/`, `feat-stats/`).
 - 색 값은 코드 리터럴 `0xAARRGGBB` 그대로 적고, 옆에 `#RRGGBB · 불투명도` 를 함께 적는다.
 
 ### 0.4 근거 표기
@@ -480,7 +487,7 @@ APK 에 글꼴 파일은 없다.
 | 모델 다이얼로그 | 26dp | 8dp | ×2 | `glassPanel` |
 | 퀴즈 설정 세그먼트(물방울, 높이 46dp) | 13dp | 4dp | ×3.4 | `glass`, 선택 시 `accentSoft` 를 `glass` 위에 합성 + 1dp `accent` 테두리. 그림자 없음 |
 
-퀴즈 풀이 상단 바는 `GlassSurface` 를 쓰지 않고 `glassOpaque` 면 + 1dp `glassBorder` 를 직접 그린다(`feat/quiz/screen/QuizSolveScreen.kt` `SolveTopBar`).
+퀴즈 풀이 상단 바는 `GlassSurface` 를 쓰지 않고 `glassOpaque` 면 + 1dp `glassBorder` 를 직접 그린다(`feat-quiz/screen/QuizSolveScreen.kt` `SolveTopBar`).
 
 - **블러와 굴절은 맞바꾼다.** 블러가 굴절이 밀어낼 디테일을 먼저 지운다. 읽을 게 많은 면(내비)은 블러로 가독성을,
   작은 물방울은 블러를 죽이고 굴절을 산다.
@@ -565,7 +572,7 @@ APK 에 글꼴 파일은 없다.
 | `Medium` | 480 – 899 |
 | `Expanded` | ≥ 900 |
 
-**판정은 한 곳에서 한 번 한다.** `feat/NotesRoute.kt` 의 `NotesScreen` 이 `LocalWindowInfo.current.containerDpSize` 로
+**판정은 한 곳에서 한 번 한다.** `app/shell/NotesRoute.kt` 의 `NotesScreen` 이 `LocalWindowInfo.current.containerDpSize` 로
 `fromWidth`/`fromHeight` 를 부르고 `MyNoteTheme(windowClass, heightClass, fontScale)` 에 넘긴다. 그 아래는 전부
 `MyNoteTheme.adaptive` 를 읽는다. 화면에서 `BoxWithConstraints` 로 다시 재지 않는다(그건 창이 아니라 부모 제약이다).
 
@@ -620,7 +627,7 @@ APK 에 글꼴 파일은 없다.
 | 레일 `FloatingNavDefaults.RailWidth` | 62dp(항목 46 + 안쪽 8 × 2) |
 | 맨 위로 `ScrollToTopDefaults.Size` | 46dp |
 
-### 5.4 여백 예약 — `feat/shell/NotesLayout.kt`
+### 5.4 여백 예약 — `app/shell/NotesLayout.kt`
 
 플로팅 내비가 본문을 가리지 않게 셸이 여백을 계산해 화면에 넘긴다. `Scaffold(contentWindowInsets = WindowInsets(0))` 라서
 아무도 대신 밀어 주지 않는다.
@@ -630,7 +637,7 @@ APK 에 글꼴 파일은 없다.
 | `FLOATING_BAR_RESERVE` | 92dp — 바 형태일 때 하단에 더하는 여백 |
 | `FLOATING_RAIL_GAP` | 12dp — 레일과 본문 사이 |
 | `TWO_PANE_MIN_CONTENT` | 640dp — 2단 판정 최소 콘텐츠 폭 |
-| `MODEL_PILL_RESERVE_DP` | 54dp — 상단 모델 알약이 떠 있는 동안 위 여백(300ms 로 변한다, `feat/shell/ModelPill.kt`) |
+| `MODEL_PILL_RESERVE_DP` | 54dp — 상단 모델 알약이 떠 있는 동안 위 여백(300ms 로 변한다, `app/shell/ModelPill.kt`) |
 
 | 값 | 식 |
 |---|---|
@@ -721,10 +728,10 @@ APK 에 글꼴 파일은 없다.
 | `aiShine` | 테두리 빛 한 바퀴 3200ms 선형 반복, 선 1.5dp | `PERIOD_MILLIS` |
 | `StatusRing`(진행률 모름) | 1100ms 한 바퀴, 호 90° | `SPIN_MILLIS` |
 | 카테고리 캐럿 | 0° ↔ 90°(기본 spring) | `CategoryRow` |
-| 퀴즈 결과 점수 게이지 | 채움 900ms · 튀어나옴 420ms(0.86 → 1), 둘 다 `MyNoteEasing` | `feat/quiz/screen/QuizResultScreen.kt` |
-| 퀴즈 다이얼로그 본문 | 들어옴 190ms · 나감 150ms | `feat/quiz/QuizOverlay.kt` `BODY_MILLIS`/`BODY_EXIT_MILLIS` |
+| 퀴즈 결과 점수 게이지 | 채움 900ms · 튀어나옴 420ms(0.86 → 1), 둘 다 `MyNoteEasing` | `feat-quiz/screen/QuizResultScreen.kt` |
+| 퀴즈 다이얼로그 본문 | 들어옴 190ms · 나감 150ms | `feat-quiz/QuizOverlay.kt` `BODY_MILLIS`/`BODY_EXIT_MILLIS` |
 | 차트 등장 [통계(진행 중)] | 총 540ms = 칸 지연 최대 120(칸당 20) + 막대 300 + 라벨 120. 칸마다 `MyNoteEasing` | `ds/chart/ChartMotion.kt` |
-| 모델 알약 여백 | 0 ↔ 54dp, 300ms, `MyNoteEasing` | `feat/shell/NotesShell.kt` |
+| 모델 알약 여백 | 0 ↔ 54dp, 300ms, `MyNoteEasing` | `app/shell/NotesShell.kt` |
 | 목록 패널 페이드 | 위 0 ↔ 16dp · 아래 0 ↔ 52dp(`animateDpAsState`) | `fadingEdges` 사용처 |
 
 ### 6.4 애니메이션 값을 읽는 단계
@@ -938,13 +945,13 @@ UI 를 그리는 파일은 같은 파일에 `@Preview` 동반.
 | `PressIndication` | 눌림 표현 `IndicationNodeFactory` — 면·눌림색·스케일 | `shape`, `color`, `pressColor`, `scale` | 평상 · 눌림 | `ds/component/PressIndication.kt` |
 | `throttledProcess` | 연타 방지 콜백(기본 500ms, `:core:common` `Throttler`) | `minIntervalMillis`, `action` | — | `ds/component/ThrottledProcess.kt` |
 
-**버튼 컴포넌트는 design-system 에 없다.** 화면마다 따로 있다(전부 `PressIndication` 을 쓴다).
+**버튼 컴포넌트는 design-system 에 없다.** 여러 기능이 쓰는 넷은 `:core:ui`, 퀴즈는 자기 것을 쓴다(전부 `PressIndication` 을 쓴다).
 
 | 묶음 | 함수 | 파일 |
 |---|---|---|
-| 설정 | `PrimaryButton` · `SecondaryButton` · `DestructiveButton` · `QuietButton` | `feat/screen/SettingsScreen.kt` |
-| 퀴즈 | `QuizPrimaryButton` · `QuizOutlineButton`(높이 50dp, 반경 15dp) · `QuizQuietButton`(반경 12dp) · `QuizCloseButton`(40dp 원) | `feat/quiz/component/QuizParts.kt` |
-| 퀴즈 설정 다이얼로그 | `DialogPrimaryButton` · `DialogQuietButton` | `feat/quiz/component/QuizSetupDialog.kt` |
+| 공용(노트 · 연결 · 설정) | `PrimaryButton` · `SecondaryButton` · `DestructiveButton` · `QuietButton` | `ui/screen/Buttons.kt` |
+| 퀴즈 | `QuizPrimaryButton` · `QuizOutlineButton`(높이 50dp, 반경 15dp) · `QuizQuietButton`(반경 12dp) · `QuizCloseButton`(40dp 원) | `feat-quiz/component/QuizParts.kt` |
+| 퀴즈 설정 다이얼로그 | `DialogPrimaryButton` · `DialogQuietButton` | `feat-quiz/component/QuizSetupDialog.kt` |
 
 **`indication` 을 주지 않은 `clickable` 은 Compose 기본 눌림 표현이 그려진다.** `MaterialTheme` 도 `LocalIndication` 제공도 없어서
 foundation 기본값 `DefaultDebugIndication`(눌림 검정 30% 사각 덮개, 호버·포커스 검정 10%)이 뜬다. `NoteCard`·`NoteRow`·`CategoryRow`·
@@ -1011,7 +1018,7 @@ Canvas 로 그리는 통계 차트 5종. 전부 `progress: () -> Float`(`remembe
 | 컴포넌트 | 쓸 때 | 쓰지 말 때 |
 |---|---|---|
 | `NoteCard` | 홈 그리드의 노트 하나. 칩·날짜·제목이 리더 헤더로 이어진다 | 북마크 화면(모양이 달라 공유 요소를 안 쓴다 — BM3 §3.7) · 목록 패널 |
-| 북마크 큰 카드(`feat/screen/bookmarks/`) | 한 화면의 "가장 최근 하나" 를 크게 | 여러 개를 나란히 — 큰 카드는 화면당 하나 |
+| 북마크 큰 카드(`feat-notes/screen/bookmarks/`) | 한 화면의 "가장 최근 하나" 를 크게 | 여러 개를 나란히 — 큰 카드는 화면당 하나 |
 | `NumberedRow` | **순서에 뜻이 있는** 목록(그전에 모은 북마크, 읽다 멈춘 노트). 번호는 표시 순서이지 키가 아니다(BM3 §3.4) | 순서가 무의미한 목록 — 번호가 거짓 위계를 만든다 |
 | `NoteRow` · `CategoryRow` | 목록 패널의 카테고리/노트 트리 | 패널 밖 |
 
@@ -1029,7 +1036,7 @@ Canvas 로 그리는 통계 차트 5종. 전부 `progress: () -> Float`(`remembe
 - **`CategoryChip`** — 노트의 분류 이름 하나. **누를 수 없는 라벨**이다. 필터·선택 칩으로 쓰지 않는다 — 선택 칩은 면·테두리·글자가 같이 바뀌는 별도 모양이다(STA §7 섹션 칩). 길면 칩이 먼저 말줄임되고 날짜는 줄지 않는다(BM3 §2.2).
 - **`SectionLabel`** — 묶음의 이름 + 개수/힌트. 빈 묶음이면 라벨도 그리지 않는다(BM1 §4.3 "섹션 헤더와 개수는 빈 상태에서 그리지 않는다").
 - **`SearchField`** — 목록 패널 필터 하나. 검색 중에는 카테고리를 모두 펼치고 빈 카테고리를 숨긴다(SN Interactions).
-- **경고 배지**(`feat/screen/ListPanelScreen.kt` `WarnBadge`) — "사용자가 손봐야 할 것" 이 있는 줄에만(토큰 없음·모델 없음). 정보성 배지로 쓰지 않는다.
+- **경고 배지**(`feat-notes/screen/ListPanelScreen.kt` `WarnBadge`) — "사용자가 손봐야 할 것" 이 있는 줄에만(토큰 없음·모델 없음). 정보성 배지로 쓰지 않는다.
 
 #### 떠 있는 크롬
 
@@ -1083,8 +1090,11 @@ Canvas 로 그리는 통계 차트 5종. 전부 `progress: () -> Float`(`remembe
 ### 9.1 리소스 규칙
 
 - 화면 문구는 전부 `strings.xml`. 코드에 한글 리터럴을 두지 않는다. 예외는 프리뷰 더미와 개발자용 `error()`·예외 메시지뿐이다.
-- 모듈별 접두사가 Gradle `resourcePrefix` 로 **강제**된다 — design-system `ds_`, feature:notes `notes_`. 라이브러리 리소스는
-  앱에 합쳐질 때 이름이 겹치면 조용히 덮이기 때문이다.
+- 모듈별 접두사가 Gradle `resourcePrefix` 로 **강제**된다 — design-system `ds_` · `:core:ui` `ui_` · `:core:ai` `ai_` · 기능 모듈은
+  모듈 이름 그대로(`notes_` · `connect_` · `settings_` · `quiz_` · `stats_`, 기능 컨벤션이 건다). 라이브러리 리소스는
+  앱에 합쳐질 때 이름이 겹치면 조용히 덮이기 때문이다. `:app` 은 접두사를 걸지 않고 셸 문구를 `shell_` 로 시작한다(파이썬 시험이 본다).
+- 문구는 그것을 참조하는 모듈이 하나면 그 모듈, 둘 이상이면 `:core:ui` 에 둔다. 다른 모듈은
+  `import com.hancekim.mynote.core.ui.R as UiR` 로 참조한다.
 - design-system `strings.xml` 에는 여러 화면이 공유하는 액션 문구와 이 모듈 컴포넌트가 쓰는 문구만 둔다.
   feature 는 `import com.hancekim.mynote.core.designsystem.R as DsR` 로 참조한다.
 - 파라미터 기본값에 문자열 리터럴을 두지 않는다. `placeholder: String? = null` + `stringResource` 폴백으로 받는다.
@@ -1191,7 +1201,7 @@ Canvas 로 그리는 통계 차트 5종. 전부 `progress: () -> Float`(`remembe
 - 리더의 노트 제목과 본문 제목 블록은 `heading()` — TalkBack 제목 단위 이동이 절 제목에 선다(표 머리 칸도 `heading()`).
 - 차트는 전부 `contentDescription` 을 필수로 받는다.
 - `correct`/`wrong` 은 아이콘·글자와 함께 쓴다(2.1).
-- TalkBack(터치 탐색)이 켜지면 퀴즈 자동 진행을 끄고 버튼을 띄운다(`feat/quiz/QuizAutoAdvancePolicy.kt`).
+- TalkBack(터치 탐색)이 켜지면 퀴즈 자동 진행을 끄고 버튼을 띄운다(`feat-quiz/QuizAutoAdvancePolicy.kt`).
 - 감속 모션 — 6.5.
 - 글자 크기 — 사용자 토글 `MyNoteFontScale`(16/18sp, 3.2). 시스템 글꼴 배율은 `sp` 로 따로 적용된다.
 
@@ -1276,15 +1286,16 @@ Canvas 로 그리는 통계 차트 5종. 전부 `progress: () -> Float`(`remembe
 
 ### 12.1 코드 체크리스트
 
-- [ ] 화면은 `feature/notes` 의 기존 구조 안에 끼운다(새 모듈이 아니다). 목적지 키·씬은 `:core:navigation`.
-- [ ] 화면 루트는 `Surface(color = colors.bg)`. 프로덕션의 `MyNoteTheme { }` 는 `NotesRoute.kt` 한 곳뿐이므로 화면은 테마를 감싸지 않는다.
+- [ ] 화면은 그 기능 모듈(`feature/<기능>`)의 기존 구조 안에 끼운다(새 기능이 아니면 새 모듈이 아니다). 목적지 키·씬은 `:core:navigation`,
+  화면 등록은 그 기능의 등록 파일, 두 기능 이상이 쓰는 조각은 `:core:ui`. 기능 모듈끼리는 서로를 의존하지 않는다.
+- [ ] 화면 루트는 `Surface(color = colors.bg)`. 프로덕션의 `MyNoteTheme { }` 는 `:app` 셸의 `NotesRoute.kt` 한 곳뿐이므로 화면은 테마를 감싸지 않는다.
 - [ ] 색은 `MyNoteTheme.colors`, 글자는 `MyNoteTheme.textStyles`, 창 크기는 `MyNoteTheme.adaptive`. `Color(0x…)` 0건, `MaterialTheme` 0건.
 - [ ] Material3 컴포넌트를 쓰면 색을 **명시**한다. `colorScheme` 이 제공되지 않아 생략하면 머티리얼 기본색이 뜬다.
 - [ ] 화면에서 창 크기를 다시 재지 않는다(`BoxWithConstraints` 금지). 2단 여부·여백은 셸(`NotesLayout`)이 넘긴다.
 - [ ] 하단·오른쪽 여백은 `contentBottomPadding`/`contentEndPadding` 을 받는다 — 플로팅 내비에 가리면 안 된다.
 - [ ] 유리는 `GlassSurface` 로만. 오버레이는 `layerBackdrop` Box 밖.
 - [ ] 애니메이션 값은 `graphicsLayer { }`/draw 람다 안에서 읽는다. 무한 애니메이션은 `rememberReduceMotion()` 을 실제로 반영한다.
-- [ ] 문구는 `notes_*`(공용이면 `ds_*`), 합니다체.
+- [ ] 문구는 그 모듈 접두사(`notes_` · `connect_` · `settings_` · `quiz_` · `stats_`, 둘 이상이 쓰면 `ui_`, 공용 액션은 `ds_*`), 합니다체.
 - [ ] `@Preview` 가 `MyNoteTheme(windowClass = …, heightClass = …)` 로 감싸고 폼팩터를 넘긴다. 여러 상태는 `PreviewParameterProvider`.
 - [ ] 컬렉션 파라미터는 `ImmutableList`.
 
@@ -1378,7 +1389,8 @@ Canvas 로 그리는 통계 차트 5종. 전부 `progress: () -> Float`(`remembe
 | 재사용 위젯·Modifier | `:core:design-system` | `component/` |
 | 차트 | `:core:design-system` | `chart/`. 지연·곡선은 `ChartMotion` |
 | 본문 블록 | 여러 모듈 한 세트 | 8.6 마지막 문단 |
-| 화면 전용 위젯 | `:feature:notes` | `quiz/component/` 처럼 화면 옆 |
+| 두 기능 이상이 쓰는 화면 조각 | `:core:ui` | 모델 상태 · 토큰 입력처럼 기능 뜻을 아는 조각. design-system 은 기능 뜻을 모른다 |
+| 화면 전용 위젯 | 그 기능 모듈(`:feature:*`) | `feat-quiz/component/` 처럼 화면 옆 |
 
 ### 13.2 토큰 규칙
 
@@ -1479,7 +1491,7 @@ if (adaptive.useFloatingRail) { /* 레일 형태 */ }
 | 6 | Figma · 토큰 사본 시차 | 기준 커밋 `dcbb3e7` 이후 코드에 `chartAccent2`·`chartAccent3`·`chartFuture`(27 → 30색), Expanded `cardMinWidth` 220 → 200, 아이콘 `BookmarkFilled`·`Settings`·`Key`, 컴포넌트 `FloatingStatusPill`·`BookmarkRibbon`·`BookmarkGlyph`·`NumberedRow`·`SectionLabel`·`chart/` 가 생겼다 | Figma 와 Claude Design `tokens/`(DTCG·plugin JSON)가 코드와 같다. 지금 `tokens/` 도 색 27개이고 `dimension` 에 퀴즈 화면 상수를 둔다 | Figma 와 `tokens/` 를 함께 다시 만든다(13.0 디자인 쪽 사본) | 둘 다 |
 | 7 | 안 쓰는 아이콘 | `MyNoteIcons.Search` 는 `FloatingNav` 프리뷰에서만 쓰인다(실제 내비는 홈·북마크·통계 3칸) | — | 검색 진입이 생기기 전까지 남길지 정한다 | 개발자 |
 | 8 | `MyNoteEasing` 이름 | 공개 곡선은 `MyNoteEasing`(0.2, 0.8, 0.2, 1, `ds/motion/Motion.kt:11`) 하나. (0.2, 0, 0, 1) 은 `SceneMotion.Easing`(internal)·`NotesTopBar` 의 private 곡선. 커밋 `51a3d90` 이 `QuizEasing`·`RiseEasing` 을 `MyNoteEasing` 으로 합쳤다. 북마크·통계는 `MyNoteEasing` 으로 구현됐다 | BM1 §4.1·§5, BM3 §4, STA 머리말이 "`MyNoteEasing` = cubic-bezier(.2, 0, 0, 1)" 로 적었다. QZ §4·DS §08 은 (.2, .8, .2, 1) | **코드 유지.** 디자이너 판단: 그 자리들(재배치·막대 등장·요약 카드 크기)은 6.6 의 "도착" 성격이라 이름(`MyNoteEasing`)이 의도이고 괄호 값이 오기다. 핸드오프 템플릿의 정의를 바로잡고, 장면 곡선은 문서에서 `SceneMotion.Easing` 으로 따로 부른다 | 디자이너 |
-| 9 | 드로어 스크림 | `ModalNavigationDrawer` 에 `scrimColor` 없음(`feat/shell/NotesShell.kt:194`) → M3 기본 `colorScheme.scrim` × 0.32. `MaterialTheme` 이 없어 검정 32%(라이브러리 기본값이라 레포에 숫자가 없다) | SN: rgba(0,0,0,.55). 토큰 `scrim`(#06090C 66%)은 "모달 뒤" 의 색 | 드로어에도 `colors.scrim` 을 준다 — 모달 뒤는 한 색이어야 하고, `MaterialTheme` 이 없어 색을 생략하면 머티리얼 기본이 뜬다는 규칙(12.1)의 사례다 | 디자이너 |
+| 9 | 드로어 스크림 | `ModalNavigationDrawer` 에 `scrimColor` 없음(`app/shell/NotesShell.kt:331`) → M3 기본 `colorScheme.scrim` × 0.32. `MaterialTheme` 이 없어 검정 32%(라이브러리 기본값이라 레포에 숫자가 없다) | SN: rgba(0,0,0,.55). 토큰 `scrim`(#06090C 66%)은 "모달 뒤" 의 색 | 드로어에도 `colors.scrim` 을 준다 — 모달 뒤는 한 색이어야 하고, `MaterialTheme` 이 없어 색을 생략하면 머티리얼 기본이 뜬다는 규칙(12.1)의 사례다 | 디자이너 |
 | 10 | 카드·행 눌림 | `NoteCard`(`NoteCard.kt:67`)·`NoteRow`(`NoteRow.kt:40`)·`CategoryRow`(`CategoryRow.kt:35`)·`NumberedRow`·`FloatingStatusPill` 은 indication 미지정 → foundation 기본 `DefaultDebugIndication`(눌림 검정 30% 덮개). `CategoryRow` 는 `clip` 이 없어 사각 | 리플·덮개 없음, 눌림 = 바탕보다 밝은 면(2.3 눌림 표). SN §1 카드 active `surface2`, BM2 1b "눌림 상태(surface-2)", ST §2.3 "리플 없음", DS §08 "리플 쓰지 않는다" | 다섯 곳에 2.3 눌림 표의 바탕별 눌림색으로 `PressIndication` 을 준다 — `NoteCard` → `surface2` · 패널 행(`NoteRow`·`CategoryRow`, `surface` 위) → `surface2` · `NumberedRow`(`bg` 위) → `surface` · `FloatingStatusPill`(유리) → `navItemPressed`. 검정 덮개는 다크 바탕에서 "꺼짐" 으로 읽힌다. 기기로 확인 못 함(adb 금지) | 디자이너 |
 | 11 | 플로팅 내비 항목 | 커밋 `e5c80fa`(2026-09-12) '리퀴드 글래스 플로팅 내비' 부터: 항목 높이 46 · 알약 반경 23 · 아이콘만, 선택 시 알약이 늘어나며 라벨(12sp/600 `accent`)을 연다 · `navItem*` 선택 알약 · spring 선택 · 드롭 섀도 없음(커밋 메시지에 이유) | NAV §4-2·4-4, DS §07: 62 × 50, 아이콘 위·라벨 아래(11/500, 늘 보임), 선택 `accent` 16%·반경 18. BM1 §6(2026-10-01)도 이 값을 "기존 값" 으로 다시 적었고 "선택 전환 애니메이션 없음" | **코드가 최신 결정이다** — 커밋에 근거가 있고, BM1 은 커밋 뒤에 쓰였는데도 옛 값을 베꼈다. DS 시트 §07·핸드오프 템플릿을 코드 값으로 고친다. 디자이너 판단: 비선택 항목이 아이콘만이라 칸이 셋인 지금은 괜찮지만, 칸이 늘면 라벨 방식을 다시 본다 | 디자이너 |
 | 12 | 유리 그림자 · 다이얼로그 유리 | `GlassShadow` 반경 20 · y 14 · 45%(`GlassSurface.kt:76`, `e5c80fa`, CSS 환산 근거 없음). `glassPanel` 66%(`51a3d90` 이후 그대로). 퀴즈 설정 다이얼로그 블러 20(`QuizSetupDialog.kt:283`), 모델 다이얼로그 블러 8(기본) | NAV §4-3 `0 14 40 rgba(0,0,0,.45)`. QZ §3.2 다이얼로그 rgba(27,35,45,.84) + 블러 28. ST §10.3 `glassPanel` 92% | ① **두 다이얼로그의 블러를 하나로** — 같은 `glassPanel` 층이 화면마다 다르게 보인다(4.6 "같은 층은 같은 유리"). ② 핸드오프 사본은 66% 로 고친다. ③ 그림자 환산은 기기 캡처로 확인한 뒤 정한다 | 디자이너 |
@@ -1492,7 +1504,7 @@ if (adaptive.useFloatingRail) { /* 레일 형태 */ }
 | 19 | 경고 배지 테두리 | 테두리 없음, 면 `warn` 9%(`ListPanelScreen.kt:285`) | ST §2.3 "테두리 `warn` 22%" · DS §08 "테두리 없음" | 코드 · DS 가 맞다. ST 문장만 낡았다 | 디자이너 |
 | 20 | 터치 최소 크기 | `minimumInteractiveComponentSize` 는 `BookmarksScreen.kt:390` 한 곳뿐. 44 미만: 설정 버튼 40(`SettingsScreen.kt:693`) · 조용한 버튼 36(`:658`) · 상태 알약 40(`FloatingStatusPill.kt:151`) · 퀴즈 닫기 40(`QuizParts.kt:137`) · `NoteRow` ≈ 36 · `CategoryRow` ≈ 40(패딩 + 줄 높이 근사, 기기 측정 안 함). 44 이상: 상단 바 토글 44 · 내비 항목 46 · 맨 위로 46 · `NumberedRow` 44 · 설정 줄 48 | 44dp(QZ §2, ST §7), 40dp 버튼은 터치 영역 48dp | 40 · 36dp 버튼과 알약은 보이는 크기를 두고 `minimumInteractiveComponentSize` 로 터치 영역만 넓힌다. 트리 행(`NoteRow`·`CategoryRow`)은 `heightIn(min = 44.dp)` 로 행 높이 자체를 44 로 — 행 전체가 누르는 면이고 활성 배경이 행을 채우므로 보이는 면과 터치 영역이 같아야 한다(디자이너 판단) | 디자이너 |
 | 21 | 핸드오프 말투 | 앱 문구 전부 합니다체(9.3) | SN · QZ 핸드오프 원문이 해요체 · 반말(PRD 8.2 #14) | 코드가 맞다. 앞으로 핸드오프 문구는 합니다체로 쓰게 핸드오프 템플릿에 적는다 | 디자이너 |
-| 22 | 모달 뒤 덮개 | `scrim` 을 쓰는 곳은 `QuizOverlay` 하나. 모델 다이얼로그는 Compose `Dialog` 의 기본 창 dim(`feat/screen/ModelDialogs.kt:87`) | `scrim` = 모달 뒤의 색(2.3) | 모델 다이얼로그 뒤도 `scrim` 으로 — #9 와 같은 이유 | 개발자 |
+| 22 | 모달 뒤 덮개 | `scrim` 을 쓰는 곳은 `QuizOverlay` 하나. 모델 다이얼로그는 Compose `Dialog` 의 기본 창 dim(`feat-settings/screen/ModelDialogs.kt:91`) | `scrim` = 모달 뒤의 색(2.3) | 모델 다이얼로그 뒤도 `scrim` 으로 — #9 와 같은 이유 | 개발자 |
 | 23 | 공유 요소 곡선 | `navSharedElement`/`navSharedBounds` 가 `boundsTransform` 을 주지 않아 Compose 기본 spring(`nav/shared/SharedElements.kt`). 길이가 정해지지 않는다 | NAV §6-1 · SN "공유 요소 전환": **360ms, cubic-bezier(.2, 0, 0, 1)**, 위치·크기·글자 크기 보간, 씬 슬라이드와 **동시에** 재생(6.6 "같은 물체가 이어진다") | 디자이너 결정: `boundsTransform` 을 장면 곡선·장면 길이(`SceneMotion` 340ms) 그대로 준다. 핸드오프 원값 360ms 와의 20ms 차이는 보이지 않고, 같은 상수를 쓰면 씬 슬라이드와 같이 출발해 같이 도착해 한 동작으로 읽힌다. 맞추면 6.6 곡선 표의 장면 행으로 돌아간다 | 개발자 |
 | 24 | 아이콘 선 굵기 | 선을 긋는 아이콘 13개 전부 1.7(15개 중 — `Sparkle` · `CheckBoxChecked` 는 면만, `MyNoteIcons.kt` `strokeIcon`/`filledIcon`) | BM1 §3 "윤곽 stroke 1.8, StrokeJoin.Round", §4.1 표 "꺼짐 \| 윤곽, stroke bodyText 1.8" | 1.7 한 벌이 7.1 "한 벌만 쓴다" 와 맞다. 사본을 고친다 | 개발자 |
 | 25 | 다이얼로그 제목 스타일 | 퀴즈 설정 다이얼로그 `screenTitle`(19 · 짧은 창 17, `QuizSetupDialog.kt:91`), 모델 다이얼로그 `sectionTitle`(21, `ModelDialogs.kt:100`) | QZ §2 "다이얼로그 제목 19sp / 700". ST §10.3 모델 확인 다이얼로그는 "설정 다이얼로그와 같은 유리" — 같은 계열이다. 3.5 "같은 역할이면 같은 스타일" | 다이얼로그 제목은 `screenTitle` 로 모은다. 짧은 창에서 17 로 줄어 가로 폰의 다이얼로그에 맞다 | 디자이너 |

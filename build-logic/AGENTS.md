@@ -24,9 +24,9 @@ dependencies {
 ```
 
 `compileSdk`·`minSdk`·JVM 17·desugaring·ktlint·테스트 옵션이 한 줄도 없다. 전부
-`hancenote.android.library` 안에 있다. `feature/notes/build.gradle.kts` 는 더 짧다 —
-`hancenote.android.feature` 한 줄이 Compose·Hilt·KSP 와 `:core:{common,design-system,domain,navigation}`
-+ lifecycle + coroutines 까지 다 끌고 온다.
+`hancenote.android.library` 안에 있다. 기능 모듈(`feature/*/build.gradle.kts`)은 더 짧다 —
+`hancenote.android.feature` 한 줄과 `namespace` 뿐이고, 그 한 줄이 Compose·Hilt·KSP 와 `:core:{common,design-system,domain,navigation,ui}`
++ lifecycle + coroutines + 문구 접두사까지 다 끌고 온다. `dependencies {}` 블록이 없다.
 
 > **모듈 파일에 설정을 추가하려는 충동이 들면 먼저 여기 컨벤션에 있는지 확인한다.**
 > 두 벌로 선언하면 버전 올릴 때 한쪽만 고쳐질 자리가 생긴다 — 커밋 `22815da` 가
@@ -375,7 +375,8 @@ e: .../ZzAndroidProbe.kt:3:8 Unresolved reference 'android'.
 - `compileSdk` 37 · `targetSdk` 37 · `minSdk` 32 · Java/JVM 타깃 17(build-logic 자신도 17)
 - 모듈 17개 = `:app` + core 11(`common`, `ai`, `data`, `database`, `design-foundation`,
   `design-system`, `domain`, `format`, `navigation`, `network`, `ui`) + feature 5(`notes`, `connect`, `settings`, `quiz`, `stats`)
-- 테스트가 있는 모듈: `app` · 빈 뼈대(`core/ui` · `feature/{connect,settings,quiz,stats}`)를 뺀 전부(core 10 · `feature/notes`).
+- 단위 시험(`src/test`)은 17 모듈 모두에 있다. 계측 시험(`src/androidTest`)은 `:app` · `:core:design-system` · `:core:database` 셋뿐이다 —
+  기능 화면을 그리는 계측(뒤로가기 7단 · 브랜드)은 셸과 같이 `:app` 에 있다. 계측 명령은 루트 `AGENTS.md` 의 한 번에 검증 줄.
 - 모듈 경계(기능끼리 의존 0 · 데이터 층 의존 0)는 빌드가 아니라 `notes-tests/test_feature_modules.py` 의 FM-2 · FM-3 이 본다 —
   settings · 모듈 build 파일 · 이 컨벤션 소스를 읽어 닫힘을 구하므로 컨벤션이 넣는 의존도 센다.
 - 없는 것(과거에 있었으나 제거됨): Circuit convention · android test(benchmark) convention ·
