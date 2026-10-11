@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen.stats
+package com.hancekim.mynote.feature.stats.screen
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -48,14 +48,14 @@ import com.hancekim.mynote.core.designsystem.motion.MyNoteEasing
 import com.hancekim.mynote.core.designsystem.motion.rememberReduceMotion
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.domain.stats.StatsPeriod
-import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.stats.ComparisonUi
-import com.hancekim.mynote.feature.notes.stats.DeltaUi
-import com.hancekim.mynote.feature.notes.stats.PeriodNoteUi
-import com.hancekim.mynote.feature.notes.stats.StatKind
-import com.hancekim.mynote.feature.notes.stats.StatNumberUi
-import com.hancekim.mynote.feature.notes.stats.StatsDeltaFormat
-import com.hancekim.mynote.feature.notes.stats.StatsSection
+import com.hancekim.mynote.feature.stats.ComparisonUi
+import com.hancekim.mynote.feature.stats.DeltaUi
+import com.hancekim.mynote.feature.stats.PeriodNoteUi
+import com.hancekim.mynote.feature.stats.R
+import com.hancekim.mynote.feature.stats.StatKind
+import com.hancekim.mynote.feature.stats.StatNumberUi
+import com.hancekim.mynote.feature.stats.StatsDeltaFormat
+import com.hancekim.mynote.feature.stats.StatsSection
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import java.time.LocalDate
@@ -70,7 +70,7 @@ internal fun StatsNotice(
     when {
         !logEnabled -> {
             Text(
-                text = stringResource(R.string.notes_stats_log_off),
+                text = stringResource(R.string.stats_log_off),
                 style = MyNoteTheme.textStyles.caption.copy(lineHeight = 21.sp),
                 color = colors.text2,
                 modifier = modifier.padding(start = 2.dp, end = 2.dp, bottom = 12.dp),
@@ -79,7 +79,7 @@ internal fun StatsNotice(
 
         intro -> {
             Text(
-                text = stringResource(R.string.notes_stats_intro_empty),
+                text = stringResource(R.string.stats_intro_empty),
                 style = MyNoteTheme.textStyles.bodySmall,
                 color = colors.text2,
                 modifier = modifier.padding(start = 2.dp, end = 2.dp, bottom = 18.dp),
@@ -161,7 +161,7 @@ internal fun PeriodNoteText(
     Text(
         text =
             stringResource(
-                if (note.short) R.string.notes_stats_period_short else R.string.notes_stats_period_partial,
+                if (note.short) R.string.stats_period_short else R.string.stats_period_partial,
                 since,
                 note.days,
             ),
@@ -352,10 +352,10 @@ private fun comparisonText(
     formats: StatsFormats,
 ): String =
     when (comparison) {
-        is ComparisonUi.Week -> stringResource(R.string.notes_stats_compare_week, comparison.until.short())
-        is ComparisonUi.Month -> stringResource(R.string.notes_stats_compare_month, comparison.untilDay)
-        is ComparisonUi.Since -> stringResource(R.string.notes_stats_compare_since, formats.date(comparison.date))
-        ComparisonUi.Pending -> stringResource(R.string.notes_stats_compare_pending)
+        is ComparisonUi.Week -> stringResource(R.string.stats_compare_week, comparison.until.short())
+        is ComparisonUi.Month -> stringResource(R.string.stats_compare_month, comparison.untilDay)
+        is ComparisonUi.Since -> stringResource(R.string.stats_compare_since, formats.date(comparison.date))
+        ComparisonUi.Pending -> stringResource(R.string.stats_compare_pending)
     }
 
 @Composable
@@ -363,8 +363,8 @@ private fun comparisonText(
 private fun deltaText(number: StatNumberUi): String =
     when (val delta = number.delta) {
         is DeltaUi.Value -> StatsDeltaFormat.signed(delta.diff, percentPoint = number.kind == StatKind.Accuracy)
-        DeltaUi.FirstWeek -> stringResource(R.string.notes_stats_first_week)
-        is DeltaUi.Questions -> stringResource(R.string.notes_stats_questions, delta.count)
+        DeltaUi.FirstWeek -> stringResource(R.string.stats_first_week)
+        is DeltaUi.Questions -> stringResource(R.string.stats_questions, delta.count)
         DeltaUi.None -> StatsDeltaFormat.DASH
         DeltaUi.Blank -> BLANK
     }
@@ -378,7 +378,7 @@ private fun cellDescription(
     unit: String,
 ): String {
     val value = number.value?.let { it.toString() + unit } ?: StatsDeltaFormat.DASH
-    val head = stringResource(R.string.notes_stats_cell_desc, label, value)
+    val head = stringResource(R.string.stats_cell_desc, label, value)
     val delta = number.delta as? DeltaUi.Value ?: return head
     val amount = StatsDeltaFormat.magnitude(delta.diff, if (number.kind == StatKind.Accuracy) PERCENT_POINT else unit)
     val week = period == StatsPeriod.Week
@@ -386,21 +386,21 @@ private fun cellDescription(
         when {
             delta.diff > 0 -> {
                 stringResource(
-                    if (week) R.string.notes_stats_delta_more_week else R.string.notes_stats_delta_more_month,
+                    if (week) R.string.stats_delta_more_week else R.string.stats_delta_more_month,
                     amount,
                 )
             }
 
             delta.diff < 0 -> {
                 stringResource(
-                    if (week) R.string.notes_stats_delta_less_week else R.string.notes_stats_delta_less_month,
+                    if (week) R.string.stats_delta_less_week else R.string.stats_delta_less_month,
                     amount,
                 )
             }
 
             else -> {
                 stringResource(
-                    if (week) R.string.notes_stats_delta_same_week else R.string.notes_stats_delta_same_month,
+                    if (week) R.string.stats_delta_same_week else R.string.stats_delta_same_month,
                 )
             }
         }
@@ -411,32 +411,32 @@ private fun cellDescription(
 @ReadOnlyComposable
 private fun StatKind.unit(): String =
     when (this) {
-        StatKind.Notes -> stringResource(R.string.notes_stats_unit_notes)
-        StatKind.Minutes -> stringResource(R.string.notes_stats_unit_minutes)
-        StatKind.Quizzes -> stringResource(R.string.notes_stats_unit_times)
+        StatKind.Notes -> stringResource(R.string.stats_unit_notes)
+        StatKind.Minutes -> stringResource(R.string.stats_unit_minutes)
+        StatKind.Quizzes -> stringResource(R.string.stats_unit_times)
         StatKind.Accuracy -> PERCENT
     }
 
 private fun StatKind.labelRes(): Int =
     when (this) {
-        StatKind.Notes -> R.string.notes_stats_num_notes
-        StatKind.Minutes -> R.string.notes_stats_num_minutes
-        StatKind.Quizzes -> R.string.notes_stats_num_quizzes
-        StatKind.Accuracy -> R.string.notes_stats_num_accuracy
+        StatKind.Notes -> R.string.stats_num_notes
+        StatKind.Minutes -> R.string.stats_num_minutes
+        StatKind.Quizzes -> R.string.stats_num_quizzes
+        StatKind.Accuracy -> R.string.stats_num_accuracy
     }
 
 private fun StatsPeriod.labelRes(): Int =
     when (this) {
-        StatsPeriod.Week -> R.string.notes_stats_period_week
-        StatsPeriod.Month -> R.string.notes_stats_period_month
-        StatsPeriod.All -> R.string.notes_stats_period_all
+        StatsPeriod.Week -> R.string.stats_period_week
+        StatsPeriod.Month -> R.string.stats_period_month
+        StatsPeriod.All -> R.string.stats_period_all
     }
 
 private fun StatsSection.labelRes(): Int =
     when (this) {
-        StatsSection.Reading -> R.string.notes_stats_section_reading
-        StatsSection.Quiz -> R.string.notes_stats_section_quiz
-        StatsSection.Bookmarks -> R.string.notes_stats_section_bookmarks
+        StatsSection.Reading -> R.string.stats_section_reading
+        StatsSection.Quiz -> R.string.stats_section_quiz
+        StatsSection.Bookmarks -> R.string.stats_section_bookmarks
     }
 
 private val STRIP_RADIUS = 14.dp

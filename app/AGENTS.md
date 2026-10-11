@@ -75,7 +75,7 @@
 먼저 컴포즈될 수 있다.
 
 **목적지 키 7개의 화면은 기능별 등록 파일이 등록한다(FM-4).** `:feature:notes` 의 `NotesDestinations.kt`(홈 · 북마크 · 리더) ·
-`screen/stats/StatsDestinations.kt`(통계 · 지난 요약) · `settings/SettingsDestinations.kt`(설정) ·
+`:feature:stats` 의 `screen/StatsDestinations.kt`(통계 · 지난 요약) · `settings/SettingsDestinations.kt`(설정) ·
 `screen/connect/ConnectDestinations.kt`(쌓은 연결 화면). 셸 파일은 목적지 화면을 부르지 않고, `shellDestinations` 가 기능마다
 자기 상태 · 입구만 넘겨 묶는다. 화면이 셸에게서 받는 틀 값은 셸 틀 계약 `:core:ui` 의 `frame/ShellFrame`(위 · 아래 · 끝 여백 · 두 단 · 쌓이는 씬 ·
 스크롤 홀더 · draft · 스낵바 호스트)뿐이다. 기능 자기 상태 · 입구와 셸이 묶어 넘기는 화면용 값(연결 있음 · 셸 뒤로 · 리더 CTA 의

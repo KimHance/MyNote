@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.stats
+package com.hancekim.mynote.feature.stats
 
 import androidx.compose.runtime.Immutable
 import com.hancekim.mynote.core.common.mvi.MviEvent

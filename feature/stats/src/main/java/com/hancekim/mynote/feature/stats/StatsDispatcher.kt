@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.stats
+package com.hancekim.mynote.feature.stats
 
 import dagger.Module
 import dagger.Provides

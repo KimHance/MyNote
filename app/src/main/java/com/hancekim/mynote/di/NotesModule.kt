@@ -6,8 +6,8 @@ import com.hancekim.mynote.core.ui.FailureLog
 import com.hancekim.mynote.core.ui.NotesMessages
 import com.hancekim.mynote.feature.notes.quiz.AccessibilityAutoAdvancePolicy
 import com.hancekim.mynote.feature.notes.quiz.QuizAutoAdvancePolicy
-import com.hancekim.mynote.feature.notes.stats.LogStatsTrace
-import com.hancekim.mynote.feature.notes.stats.StatsTrace
+import com.hancekim.mynote.feature.stats.LogStatsTrace
+import com.hancekim.mynote.feature.stats.StatsTrace
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

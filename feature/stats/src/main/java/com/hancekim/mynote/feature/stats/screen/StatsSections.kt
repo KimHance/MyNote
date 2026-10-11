@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen.stats
+package com.hancekim.mynote.feature.stats.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -50,15 +50,15 @@ import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.domain.stats.BucketState
 import com.hancekim.mynote.core.domain.stats.StatsPeriod
 import com.hancekim.mynote.core.ui.screen.bookmarks.rememberBookmarkTimeLabel
-import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.stats.BookmarkStatsUi
-import com.hancekim.mynote.feature.notes.stats.CategoryMinutesUi
-import com.hancekim.mynote.feature.notes.stats.PatternUi
-import com.hancekim.mynote.feature.notes.stats.QuizStatsUi
-import com.hancekim.mynote.feature.notes.stats.ReadingUi
-import com.hancekim.mynote.feature.notes.stats.StaleReasonUi
-import com.hancekim.mynote.feature.notes.stats.StatsDeltaFormat
-import com.hancekim.mynote.feature.notes.stats.StatsIntent
+import com.hancekim.mynote.feature.stats.BookmarkStatsUi
+import com.hancekim.mynote.feature.stats.CategoryMinutesUi
+import com.hancekim.mynote.feature.stats.PatternUi
+import com.hancekim.mynote.feature.stats.QuizStatsUi
+import com.hancekim.mynote.feature.stats.R
+import com.hancekim.mynote.feature.stats.ReadingUi
+import com.hancekim.mynote.feature.stats.StaleReasonUi
+import com.hancekim.mynote.feature.stats.StatsDeltaFormat
+import com.hancekim.mynote.feature.stats.StatsIntent
 import kotlinx.collections.immutable.toImmutableList
 
 internal enum class ChartSize(
@@ -80,8 +80,8 @@ internal fun ReadingCharts(
 ) {
     val progress = rememberChartProgress(period)
     val title = timeTitle(period)
-    val minuteUnit = stringResource(R.string.notes_stats_unit_minutes)
-    val minutesFormat = stringResource(R.string.notes_stats_minutes_value)
+    val minuteUnit = stringResource(R.string.stats_unit_minutes)
+    val minutesFormat = stringResource(R.string.stats_minutes_value)
     val bars =
         reading.bars
             .map { ChartBar(formats.bucket(it.label), it.minutes, it.state.toChartKind()) }
@@ -92,9 +92,9 @@ internal fun ReadingCharts(
     val beforeRecord = pending.filter { it.index < currentIndex }.joinToString(SEPARATOR) { it.value.label }
     val notYet = pending.filter { it.index > currentIndex }.joinToString(SEPARATOR) { it.value.label }
     val listed = counted.joinToString(SEPARATOR) { it.label + " " + minutesFormat.format(it.value) }
-    val barsBase = stringResource(R.string.notes_stats_bars_desc, title, listed)
-    val beforeText = stringResource(R.string.notes_stats_bars_before, beforeRecord)
-    val futureText = stringResource(R.string.notes_stats_bars_future, notYet)
+    val barsBase = stringResource(R.string.stats_bars_desc, title, listed)
+    val beforeText = stringResource(R.string.stats_bars_before, beforeRecord)
+    val futureText = stringResource(R.string.stats_bars_future, notYet)
     val barsFuture =
         (if (beforeRecord.isEmpty()) "" else SENTENCE + beforeText) +
             (if (notYet.isEmpty()) "" else SENTENCE + futureText)
@@ -130,17 +130,17 @@ private fun CategoryCard(
             .sortedBy { it.colorIndex }
             .map { ChartSlice(it.minutes.toFloat(), categoryColor(it.colorIndex)) }
             .toImmutableList()
-    val minutesFormat = stringResource(R.string.notes_stats_minutes_value)
+    val minutesFormat = stringResource(R.string.stats_minutes_value)
     val parts = reading.legend.joinToString(SEPARATOR) { it.name + " " + minutesFormat.format(it.minutes) }
     val description =
-        stringResource(R.string.notes_stats_donut_desc, reading.categoryTotal, parts) +
-            (focus?.let { SEPARATOR + stringResource(R.string.notes_stats_focus_desc, it) } ?: "")
-    val minuteUnit = stringResource(R.string.notes_stats_unit_minutes)
+        stringResource(R.string.stats_donut_desc, reading.categoryTotal, parts) +
+            (focus?.let { SEPARATOR + stringResource(R.string.stats_focus_desc, it) } ?: "")
+    val minuteUnit = stringResource(R.string.stats_unit_minutes)
     ChartCard(
-        title = stringResource(R.string.notes_stats_time_by_category),
+        title = stringResource(R.string.stats_time_by_category),
         trailing = {
             UnitLabel(
-                if (short) stringResource(R.string.notes_stats_minutes_value, reading.categoryTotal) else minuteUnit,
+                if (short) stringResource(R.string.stats_minutes_value, reading.categoryTotal) else minuteUnit,
             )
         },
     ) {
@@ -214,7 +214,7 @@ private fun LegendItem(
         )
         if (focused) {
             Text(
-                text = stringResource(R.string.notes_stats_focus),
+                text = stringResource(R.string.stats_focus),
                 style = MyNoteTheme.textStyles.caption.copy(fontSize = 10.sp, fontWeight = FontWeight.W600),
                 color = colors.accent,
                 maxLines = 1,
@@ -238,28 +238,28 @@ internal fun ReadingList(
     onIntent: (StatsIntent) -> Unit,
 ) {
     ListLabel(
-        text = stringResource(R.string.notes_stats_stalled),
+        text = stringResource(R.string.stats_stalled),
         count = reading.stalled.size.takeIf { it > 0 },
         first = first,
     )
     if (reading.stalled.isEmpty()) {
-        EmptyLine(stringResource(R.string.notes_stats_stalled_empty))
+        EmptyLine(stringResource(R.string.stats_stalled_empty))
         return
     }
     reading.stalled.forEachIndexed { index, note ->
         val time = rememberBookmarkTimeLabel(note.endedAt, long = false)
         val subtitle =
             stringResource(
-                R.string.notes_stats_row_sub3,
+                R.string.stats_row_sub3,
                 note.category,
-                stringResource(R.string.notes_stats_stalled_at, note.percent),
+                stringResource(R.string.stats_stalled_at, note.percent),
                 time,
             )
         NumberedRow(
             number = index + 1,
             title = note.title,
             subtitle = subtitle,
-            contentDescription = stringResource(R.string.notes_stats_row_desc, index + 1, note.title, subtitle),
+            contentDescription = stringResource(R.string.stats_row_desc, index + 1, note.title, subtitle),
             onClick = { onIntent(StatsIntent.OpenNote(note.noteId, resumeAt = note.percent / FULL)) },
             compactHeight = compactHeight,
             trailing = { ProgressTrack(note.percent / FULL) },
@@ -273,11 +273,11 @@ internal fun QuizCharts(
     quiz: QuizStatsUi,
 ) {
     val progress = rememberChartProgress(period)
-    val questions = stringResource(R.string.notes_stats_questions, quiz.asked)
-    val notTaken = stringResource(R.string.notes_stats_not_taken)
-    val lowest = stringResource(R.string.notes_stats_lowest)
+    val questions = stringResource(R.string.stats_questions, quiz.asked)
+    val notTaken = stringResource(R.string.stats_not_taken)
+    val lowest = stringResource(R.string.stats_lowest)
     ChartCard(
-        title = stringResource(R.string.notes_stats_accuracy_by_category),
+        title = stringResource(R.string.stats_accuracy_by_category),
         trailing = { UnitLabel(questions) },
     ) {
         quiz.rows.forEachIndexed { index, row ->
@@ -286,12 +286,12 @@ internal fun QuizCharts(
                 if (accuracy == null) {
                     row.name + SEPARATOR + notTaken
                 } else {
-                    stringResource(R.string.notes_stats_accuracy_row_desc, row.name, row.asked, accuracy) +
+                    stringResource(R.string.stats_accuracy_row_desc, row.name, row.asked, accuracy) +
                         if (row.lowest) SEPARATOR + lowest else ""
                 }
             HBarRow(
                 title = row.name,
-                subtitle = if (row.asked > 0) stringResource(R.string.notes_stats_questions, row.asked) else notTaken,
+                subtitle = if (row.asked > 0) stringResource(R.string.stats_questions, row.asked) else notTaken,
                 value = accuracy?.let { StatsDeltaFormat.percent(it) } ?: StatsDeltaFormat.DASH,
                 fraction = accuracy?.let { it / FULL },
                 highlighted = row.lowest,
@@ -321,29 +321,29 @@ internal fun QuizList(
         )
     }
     ListLabel(
-        text = stringResource(R.string.notes_stats_retry),
-        hint = stringResource(R.string.notes_stats_retry_hint),
+        text = stringResource(R.string.stats_retry),
+        hint = stringResource(R.string.stats_retry_hint),
         first = first && pattern == null,
     )
     if (quiz.retries.isEmpty()) {
-        EmptyLine(stringResource(R.string.notes_stats_retry_empty))
+        EmptyLine(stringResource(R.string.stats_retry_empty))
         return
     }
     quiz.retries.forEachIndexed { index, retry ->
         val subtitle =
             stringResource(
-                R.string.notes_stats_row_sub,
+                R.string.stats_row_sub,
                 retry.category,
-                stringResource(R.string.notes_stats_retry_count, retry.ordinal),
+                stringResource(R.string.stats_retry_count, retry.ordinal),
             )
-        val value = stringResource(R.string.notes_stats_retry_value, retry.first, retry.last)
+        val value = stringResource(R.string.stats_retry_value, retry.first, retry.last)
         val tail = value.lastIndexOf(retry.last.toString()).coerceAtLeast(0)
         NumberedRow(
             number = index + 1,
             title = retry.title,
             subtitle = subtitle,
             contentDescription =
-                stringResource(R.string.notes_stats_row_desc, index + 1, retry.title, subtitle) + SEPARATOR + value,
+                stringResource(R.string.stats_row_desc, index + 1, retry.title, subtitle) + SEPARATOR + value,
             onClick = { onIntent(StatsIntent.RetryQuiz(retry.noteId)) },
             compactHeight = compactHeight,
             trailing = {
@@ -380,8 +380,8 @@ internal fun BookmarkCharts(
         bookmarks.buckets
             .map { DivergingBar(formats.bucket(it.label), it.added, it.removed, it.state.toChartKind()) }
             .toImmutableList()
-    val addedFormat = stringResource(R.string.notes_stats_bookmark_added)
-    val removedFormat = stringResource(R.string.notes_stats_bookmark_removed)
+    val addedFormat = stringResource(R.string.stats_bookmark_added)
+    val removedFormat = stringResource(R.string.stats_bookmark_removed)
     val perBucket =
         bars
             .filter { it.up > 0 || it.down > 0 }
@@ -393,22 +393,22 @@ internal fun BookmarkCharts(
                 ).joinToString(" ")
             }
     val description =
-        stringResource(R.string.notes_stats_bookmark_trend_desc, bookmarks.added, bookmarks.removed, perBucket) +
+        stringResource(R.string.stats_bookmark_trend_desc, bookmarks.added, bookmarks.removed, perBucket) +
             SENTENCE.trim()
     ChartCard(
-        title = stringResource(R.string.notes_stats_bookmark_trend),
+        title = stringResource(R.string.stats_bookmark_trend),
         trailing = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 LegendSwatch(colors.accent)
                 Text(
-                    text = stringResource(R.string.notes_stats_bookmark_added, bookmarks.added),
+                    text = stringResource(R.string.stats_bookmark_added, bookmarks.added),
                     style = MyNoteTheme.textStyles.caption.copy(fontSize = 12.sp),
                     color = colors.text2,
                 )
                 Spacer(Modifier.width(12.dp))
                 LegendSwatch(colors.text3)
                 Text(
-                    text = stringResource(R.string.notes_stats_bookmark_removed, bookmarks.removed),
+                    text = stringResource(R.string.stats_bookmark_removed, bookmarks.removed),
                     style = MyNoteTheme.textStyles.caption.copy(fontSize = 12.sp),
                     color = colors.text2,
                 )
@@ -427,29 +427,29 @@ internal fun BookmarkList(
     onIntent: (StatsIntent) -> Unit,
 ) {
     ListLabel(
-        text = stringResource(R.string.notes_stats_bookmark_old),
-        hint = stringResource(R.string.notes_stats_bookmark_old_hint),
+        text = stringResource(R.string.stats_bookmark_old),
+        hint = stringResource(R.string.stats_bookmark_old_hint),
         first = first,
     )
     if (bookmarks.stale.isEmpty()) {
-        EmptyLine(stringResource(R.string.notes_stats_bookmark_old_empty))
+        EmptyLine(stringResource(R.string.stats_bookmark_old_empty))
         return
     }
     bookmarks.stale.forEachIndexed { index, stale ->
         val reason =
             when (val why = stale.reason) {
-                is StaleReasonUi.LastOpened -> stringResource(R.string.notes_stats_bookmark_last_opened, why.days)
-                StaleReasonUi.Unread -> stringResource(R.string.notes_stats_bookmark_unread)
-                StaleReasonUi.UnreadSinceLog -> stringResource(R.string.notes_stats_bookmark_unread_since_log)
+                is StaleReasonUi.LastOpened -> stringResource(R.string.stats_bookmark_last_opened, why.days)
+                StaleReasonUi.Unread -> stringResource(R.string.stats_bookmark_unread)
+                StaleReasonUi.UnreadSinceLog -> stringResource(R.string.stats_bookmark_unread_since_log)
             }
-        val subtitle = stringResource(R.string.notes_stats_row_sub, stale.category, reason)
-        val age = stringResource(R.string.notes_stats_bookmark_age, stale.ageDays)
+        val subtitle = stringResource(R.string.stats_row_sub, stale.category, reason)
+        val age = stringResource(R.string.stats_bookmark_age, stale.ageDays)
         NumberedRow(
             number = index + 1,
             title = stale.title,
             subtitle = subtitle,
             contentDescription =
-                stringResource(R.string.notes_stats_row_desc, index + 1, stale.title, subtitle) + SEPARATOR + age,
+                stringResource(R.string.stats_row_desc, index + 1, stale.title, subtitle) + SEPARATOR + age,
             onClick = { onIntent(StatsIntent.OpenNote(stale.noteId)) },
             compactHeight = compactHeight,
             trailing = {
@@ -472,7 +472,7 @@ internal fun PatternCard(
 ) {
     val colors = MyNoteTheme.colors
     val chipShape = RoundedCornerShape(8.dp)
-    val title = stringResource(R.string.notes_stats_pattern)
+    val title = stringResource(R.string.stats_pattern)
     val generated = generatedText(pattern.generated, formats)
     val description = (listOf(title, generated) + pattern.tags + pattern.sentence).joinToString(SEPARATOR)
     ChartCard(

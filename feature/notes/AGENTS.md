@@ -3,8 +3,8 @@
 이 파일은 이 모듈에서 작업하는 에이전트를 위한 안내다.
 
 셸을 뺀 앱 화면이 여기 있다. `MainActivity` 가 부르는 `NotesRoute()` 와 셸(`NavDisplay` 하나 · `MyNoteTheme` 하나 · 셸 ViewModel)은
-`:app` 의 `shell/` 이고, 셸이 이 모듈의 ViewModel 셋(노트 · 설정 · 퀴즈, + 통계 `StatsViewModel` · 연결 `ConnectViewModel`)과 등록 파일 넷을 불러
-화면 11개(Home · Bookmarks · Stats · StatsHistory · ListPanel · NoteReader · Settings · 퀴즈 4개)를 그린다. "새 화면을 추가한다" 는 대개
+`:app` 의 `shell/` 이고, 셸이 이 모듈의 ViewModel 셋(노트 · 설정 · 퀴즈, + 연결 `ConnectViewModel`)과 등록 파일 셋을 불러
+화면 9개(Home · Bookmarks · ListPanel · NoteReader · Settings · 퀴즈 4개)를 그린다. 통계 · 지난 요약은 `:feature:stats` 에 있다(`feature/stats/AGENTS.md`). "새 화면을 추가한다" 는 대개
 새 모듈이 아니라 이 구조 안에 끼우는 일이다.
 
 의존은 컨벤션(`hancenote.android.feature`)이 `:core:common` · `:core:design-system` ·
@@ -36,12 +36,7 @@ UseCase 와 `QuizGenerator` 인터페이스로만 들어온다.
 `NavDisplay` 가 통째로 다시 만들어지므로 목적지 스코프면 그때 새로 생기고, 셸과 목적지가 같은 VM 을 다른 인스턴스로 받는다(결정 7).
 목적지별 ViewModel 데코레이터를 넣지 않는다. 파이썬 `FM-7 기능 ViewModel 은 Activity 를 owner 로 받는다` 가 지킨다.
 
-통계 ViewModel `stats/StatsViewModel` 은 기간·섹션은 `SavedStateHandle` 에 둔다. 집계 Flow 는
-`navigator.stack` 의 top 이 `Stats` 일 때만 `flatMapLatest` 로 붙고 아니면 `emptyFlow()` 라 리더에 가 있는 동안
-Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `SharingStarted.Lazily` 로 바꾸면 한 번 연 뒤
-앱이 끝날 때까지 집계가 돈다 — 쓰지 말 것. 집계 · 지난 요약의 `flowOn` 디스패처는 주입한다(`@StatsWork`). 리더 · 퀴즈 진입은
-통계 VM 이 목적지 키로 리더를 열고(`StatsIntent.OpenNote` · `RetryQuiz`) 이어 읽을 위치 · 퀴즈 설정은 계약
-`FeatureSignals.reportReaderOpened` 로 노트 VM 에 넘긴다 — 노트 VM 이 읽을 수 있는 노트면 퀴즈 VM 에 설정을 요청한다(FM-6 ① ②).
+통계 ViewModel 의 집계 게이트 · `@StatsWork` · 리더 · 퀴즈 진입(FM-6 ① ②)은 `feature/stats/AGENTS.md` 에 있다.
 
 세 번째를 ViewModel 로 올리려는 충동을 참아라. 드로어/패널은 창 크기에 따라 존재 자체가
 사라지는 값이라 상태로 올리면 폼팩터 전환 때 의미가 없어진다. 대신 **뒤로가기는 먹는다**
@@ -72,10 +67,9 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
   기능 화면 안에 스낵바 수집을 두지 않는다.
 - 문구는 ViewModel 이 `getString` 을 직접 부르지 않는다. 인터페이스 `NotesMessages` 를 주입받아 부르고,
   `getString` 은 구현 `AndroidNotesMessages`(앱 `Application`)에만 있다. 접근성 판정(`QuizAutoAdvancePolicy`) ·
-  통계 기록(`StatsTrace`) · 실패 로그(`FailureLog`)도 같은 패턴이고 구현은 `:app` 의 `NotesModule` 이 묶는다.
+  실패 로그(`FailureLog`)도 같은 패턴이고 구현은 `:app` 의 `NotesModule` 이 묶는다.
   `NotesMessages` · `FailureLog` 와 그 구현, 알림 `NoticeUi`, 글자 크기 매핑(`FontScaleUi`)은 여러 기능의 VM 이 같이 써서 `:core:ui` 에 있다.
-  이 모듈 안의 Hilt 모듈은 하나 — 통계 디스패처 `stats/StatsDispatcher.kt` 의 `StatsDispatcherModule`(`@StatsWork`)이고
-  통계 패키지와 같이 옮겨 간다.
+  이 모듈 안에는 Hilt 모듈이 없다 — 통계 디스패처 `@StatsWork` 의 모듈은 통계 패키지와 같이 `:feature:stats` 로 갔다.
   시각은 `:core:common` 의 `Clock`(간격) · `WallClock`(기록 시각)을 주입받는다 — ViewModel 이 JVM 시험에서
   가상 시간으로 만들어지게 하려는 것이다(FM-8 · `NotesViewModelTest`).
 
@@ -126,10 +120,10 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
 
 시작 분기 · Scaffold · 드로어/고정 패널 틀 · `NavDisplay` · 오버레이 자리 · 뒤로가기 7단 순서 · 루트 스낵바 · 모델 알약 · 셸 ViewModel 은
 `:app` 의 `shell/` 이다(기능 문서 `feature-modules` 결정 2 · FM-5). 뒤로가기 순위 표와 셸 파일 나눔은 `app/AGENTS.md` 에 있다.
-이 모듈은 셸이 부르는 것 — 등록 파일 넷(`notesDestinations` · `statsDestinations` · `settingsDestinations` · `connectDestinations`) ·
+이 모듈은 셸이 부르는 것 — 등록 파일 셋(`notesDestinations` · `settingsDestinations` · `connectDestinations`) ·
 목록 패널(`ListPanelScreen` · `ListPanelChrome`) · 퀴즈 오버레이(`QuizOverlay`) · 모델 확인 대화상자(`ModelConfirmDialog`) ·
 연결 루트(`ConnectRoute`) · 읽는 중 화면(`ConnectReadingScreen`) · ViewModel 셋 — 만 공개로 내놓고 셸을 import 하지 않는다.
-BR-8 계측이 그리는 연결 화면(`ConnectScreen`) · 요약 카드(`SummaryCard` · `SummaryForm` · `rememberStatsFormats`)도 그래서 공개다.
+BR-8 계측이 그리는 연결 화면(`ConnectScreen`)도 그래서 공개다.
 
 엔트리 안 핸들러(설정의 토큰 편집 취소 · 쌓은 연결 화면의 뒤로)는 이 모듈 화면에 있다. `NavDisplay` 뒤에 컴포즈되어 pop 보다
 먼저 받는다 — 7단 밖이고 `:app` 의 `BackOrderTest`(`FM-10 토큰 편집 중 뒤로가기는 편집을 취소한다`)가 지킨다.
@@ -171,20 +165,7 @@ BR-8 계측이 그리는 연결 화면(`ConnectScreen`) · 요약 카드(`Summar
 
 플로팅 내비의 3칸이 전부 `SwitchTab` 으로 배선돼 있다. 통계는 북마크와 같은 규칙이다 — `[Home]` 에서 push,
 그 밖에서 `ReplaceAll([Home, Stats])`, 이미 top 이면 `Ignored`(`:core:navigation` 의 `TabSwitch.kt`, `TabSwitchTest`).
-통계 화면(`screen/stats/`)의 2단 여부도 북마크와 같은 `NotesLayout.contentTwoPane`(콘텐츠 폭 ≥ 640dp)이고,
-가로 막대·낮은 차트 같은 축소 변형은 `heightClass == Compact` 로 갈린다. 2단 오른쪽 칸 항목 키는 배치마다
-다르게 둔다(`side-*`) — 같은 키를 쓰면 `LazyListState` 가 키를 따라가 폴드 전환 때 오른쪽 칸이 아래로 밀린다.
-
-### 요약 카드 · 지난 요약 · 패턴 (통계 2·3단계)
-
-- 카드·패턴의 보임 규칙은 순수 함수 `stats/SummaryCardRules.kt`(`summaryCardOf`·`patternOf`) 와 `stats/GeneratedAgo` 에 있고
-  `SummaryCardRulesTest`·`GeneratedAgoTest` 가 지킨다. Composable 안에서 `latest`/`lastFailureAt` 을 다시 비교하지 말 것.
-- **카드는 별도 LazyColumn 항목이 아니라 `"segment"` 항목 안(기록 꺼짐 안내 아래, 세그먼트 위)에 있다.** 워커가 끝나 카드가
-  나타날 때 별도 항목이면 목록이 첫 보이는 키(`segment`)를 붙잡아 카드가 화면 위로 숨는다(8.2 #64 와 같은 원인).
-- 인사이트 Flow 는 `Stats` 가 top 일 때만, 지난 요약 목록은 `StatsHistory` 가 top 일 때만 붙는다(집계와 같은 게이트).
-- `StatsHistory` 는 백스택 엔트리라 뒤로가기는 `NavDisplay` pop(5순위)이 받는다. 상단 바는 `←` + `지난 요약`,
-  `NotesTopBar(showRefresh = false)`, 플로팅 내비는 그대로 보인다. 행 펼침은 화면 로컬 `rememberSaveable`(키 `weekStart`).
-- 초점 표시는 `SummaryCardUi.focusInLegend`(이번 주 기간 && 이번 주 요약 && 오래되지 않음)일 때만 범례에 붙는다.
+통계 화면의 2단 · 요약 카드 · 지난 요약 · 패턴은 `feature/stats/AGENTS.md` 에 있다.
 
 ### 학습 기록 배선 (통계 0단계)
 

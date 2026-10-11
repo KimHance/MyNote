@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen.stats
+package com.hancekim.mynote.feature.stats.screen
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -66,10 +66,10 @@ import com.hancekim.mynote.core.designsystem.component.PressIndication
 import com.hancekim.mynote.core.designsystem.motion.MyNoteEasing
 import com.hancekim.mynote.core.designsystem.motion.rememberReduceMotion
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
-import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.stats.GeneratedAgo
-import com.hancekim.mynote.feature.notes.stats.SummaryCardUi
-import com.hancekim.mynote.feature.notes.stats.SummaryLabel
+import com.hancekim.mynote.feature.stats.GeneratedAgo
+import com.hancekim.mynote.feature.stats.R
+import com.hancekim.mynote.feature.stats.SummaryCardUi
+import com.hancekim.mynote.feature.stats.SummaryLabel
 import java.time.LocalDate
 
 enum class SummaryForm {
@@ -177,14 +177,14 @@ fun SummaryCard(
     val meta = generatedText(summary.generated, formats)
     val status =
         when {
-            summary.running -> stringResource(R.string.notes_stats_summary_running)
-            summary.failed -> stringResource(R.string.notes_stats_summary_failed)
+            summary.running -> stringResource(R.string.stats_summary_running)
+            summary.failed -> stringResource(R.string.stats_summary_failed)
             else -> null
         }
     val focus = summary.focus?.takeIf { !summary.stale }
     val description =
-        stringResource(R.string.notes_stats_summary_desc, label, summary.headline, summary.detail) +
-            (focus?.let { SEPARATOR + stringResource(R.string.notes_stats_focus_desc, it) } ?: "") +
+        stringResource(R.string.stats_summary_desc, label, summary.headline, summary.detail) +
+            (focus?.let { SEPARATOR + stringResource(R.string.stats_focus_desc, it) } ?: "") +
             (status?.let { SEPARATOR + it } ?: "")
 
     Column(
@@ -213,7 +213,7 @@ fun SummaryCard(
             MetaButton(
                 text = meta,
                 height = metrics.metaHeight,
-                description = stringResource(R.string.notes_stats_summary_history_desc, meta),
+                description = stringResource(R.string.stats_summary_history_desc, meta),
                 onClick = onOpenHistory,
             )
         }
@@ -301,7 +301,7 @@ private fun SummaryBody(
                 modifier = Modifier.padding(top = FOCUS_TOP),
             ) {
                 Text(
-                    text = stringResource(R.string.notes_stats_focus),
+                    text = stringResource(R.string.stats_focus),
                     style = MyNoteTheme.textStyles.caption.copy(fontSize = 12.sp),
                     color = colors.text3,
                 )
@@ -410,16 +410,16 @@ internal fun summaryLabel(
 ): String =
     when (label) {
         SummaryLabel.ThisWeek -> {
-            stringResource(R.string.notes_stats_summary_this_week)
+            stringResource(R.string.stats_summary_this_week)
         }
 
         SummaryLabel.LastWeek -> {
-            stringResource(R.string.notes_stats_summary_last_week)
+            stringResource(R.string.stats_summary_last_week)
         }
 
         is SummaryLabel.Range -> {
             stringResource(
-                R.string.notes_stats_summary_range,
+                R.string.stats_summary_range,
                 rangeText(label.start, label.end, formats),
             )
         }
@@ -433,9 +433,9 @@ internal fun rangeText(
     formats: StatsFormats,
 ): String =
     if (start.month == end.month && start.year == end.year) {
-        stringResource(R.string.notes_stats_range_same_month, formats.date(start), end.dayOfMonth)
+        stringResource(R.string.stats_range_same_month, formats.date(start), end.dayOfMonth)
     } else {
-        stringResource(R.string.notes_stats_range, formats.date(start), formats.date(end))
+        stringResource(R.string.stats_range, formats.date(start), formats.date(end))
     }
 
 @Composable
@@ -445,10 +445,10 @@ internal fun generatedText(
     formats: StatsFormats,
 ): String =
     when (generated) {
-        GeneratedAgo.Today -> stringResource(R.string.notes_stats_generated_today)
-        GeneratedAgo.Yesterday -> stringResource(R.string.notes_stats_generated_yesterday)
-        is GeneratedAgo.Recent -> stringResource(R.string.notes_stats_generated_date, formats.date(generated.date))
-        is GeneratedAgo.Stale -> stringResource(R.string.notes_stats_generated_days_ago, generated.days)
+        GeneratedAgo.Today -> stringResource(R.string.stats_generated_today)
+        GeneratedAgo.Yesterday -> stringResource(R.string.stats_generated_yesterday)
+        is GeneratedAgo.Recent -> stringResource(R.string.stats_generated_date, formats.date(generated.date))
+        is GeneratedAgo.Stale -> stringResource(R.string.stats_generated_days_ago, generated.days)
     }
 
 private val FOCUS_TOP = 14.dp

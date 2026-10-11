@@ -8,12 +8,15 @@ import com.hancekim.mynote.core.ui.element.LastSync
 import com.hancekim.mynote.core.ui.element.SyncFailureKind
 import com.hancekim.mynote.core.ui.element.quizCtaUi
 import com.hancekim.mynote.feature.notes.element.NotesIntent
+import com.hancekim.mynote.feature.notes.element.ReaderScrollRequest
 import com.hancekim.mynote.feature.notes.quiz.QuizIntent
 import com.hancekim.mynote.feature.notes.quiz.QuizUiState
 import com.hancekim.mynote.feature.notes.settings.SettingsIntent
+import com.hancekim.mynote.feature.stats.StatsIntent
 import com.hancekim.mynote.shell.FeatureFixture.Companion.CATEGORY
 import com.hancekim.mynote.shell.FeatureFixture.Companion.NOTE_ID
 import com.hancekim.mynote.shell.FeatureFixture.Companion.REPO
+import com.hancekim.mynote.shell.FeatureFixture.Companion.UNREADABLE_ID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -27,7 +30,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
-/** 기능 사이 신호(FM-6) 가운데 셸 ViewModel · 셸 판정을 지나는 것 — 셸이 `:app` 에 있어 여기 산다(FM-13 같은 클래스 이름). */
+/**
+ * 기능 사이 신호(FM-6) 가운데 셸 ViewModel · 셸 판정을 지나는 것과 통계에서 노트 · 퀴즈로 가는 것 —
+ * 셸 · 여러 기능 모듈을 같이 보는 자리가 `:app` 이라 여기 산다(FM-13 같은 클래스 이름).
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 class FeatureSignalsTest {
     @Before
@@ -39,6 +45,54 @@ class FeatureSignalsTest {
     fun tearDown() {
         Dispatchers.resetMain()
     }
+
+    @Test
+    fun `FM-6 통계에서 노트를 열면 리더가 열린다`() =
+        runTest {
+            val fixture = FeatureFixture(this)
+            val notes = fixture.notes()
+            val stats = fixture.stats()
+            fixture.subscribe(notes, stats)
+
+            stats.onIntent(StatsIntent.OpenNote(NOTE_ID, resumeAt = 0.4f))
+
+            assertEquals(
+                NotesNavKey.Reader(NOTE_ID),
+                fixture.navigator.stack.value
+                    .last(),
+            )
+            assertEquals(ReaderScrollRequest(NOTE_ID, 0.4f, id = 1), notes.state.value.readerScrollRequest)
+        }
+
+    @Test
+    fun `FM-6 통계 다시 풀기는 리더를 열고 퀴즈 설정을 띄운다`() =
+        runTest {
+            val fixture = FeatureFixture(this)
+            val notes = fixture.notes()
+            val quiz = fixture.quiz()
+            val stats = fixture.stats()
+            fixture.subscribe(notes, quiz, stats)
+
+            stats.onIntent(StatsIntent.RetryQuiz(NOTE_ID))
+
+            assertEquals(
+                NotesNavKey.Reader(NOTE_ID),
+                fixture.navigator.stack.value
+                    .last(),
+            )
+            assertEquals(QuizUiState.Setup(NOTE_ID), quiz.state.value.quiz)
+
+            quiz.onIntent(QuizIntent.Dismiss)
+            fixture.settle()
+            stats.onIntent(StatsIntent.RetryQuiz(UNREADABLE_ID))
+
+            assertEquals(
+                NotesNavKey.Reader(UNREADABLE_ID),
+                fixture.navigator.stack.value
+                    .last(),
+            )
+            assertEquals(QuizUiState.Idle, quiz.state.value.quiz)
+        }
 
     @Test
     fun `FM-6 설정을 열면 토큰 편집을 정리한다`() =
