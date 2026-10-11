@@ -1,6 +1,5 @@
 package com.hancekim.mynote.feature.notes.shell
 
-import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -19,6 +18,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,11 +28,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.navigationevent.compose.LocalNavigationEventDispatcherOwner
+import androidx.navigationevent.compose.rememberNavigationEventDispatcherOwner
 import com.hancekim.mynote.core.designsystem.component.MyNoteSnackbarHost
 import com.hancekim.mynote.core.designsystem.component.rememberFloatingNavScrollState
 import com.hancekim.mynote.core.designsystem.motion.MyNoteEasing
@@ -149,46 +150,51 @@ internal fun NotesShell(
                         .fillMaxSize()
                         .nestedScroll(navScroll.nestedScrollConnection),
                 ) {
-                    Box(
-                        Modifier
-                            .fillMaxSize()
-                            .layerBackdrop(backdrop),
+                    CompositionLocalProvider(
+                        LocalNavigationEventDispatcherOwner provides
+                            rememberNavigationEventDispatcherOwner(enabled = !(useDrawer && drawerState.isOpen)),
                     ) {
-                        NotesNavDisplay(
+                        Box(
+                            Modifier
+                                .fillMaxSize()
+                                .layerBackdrop(backdrop),
+                        ) {
+                            NotesNavDisplay(
+                                uiState = uiState,
+                                onIntent = onIntent,
+                                sceneStrategies = sceneStrategies,
+                                stackedScenes = useDrawer,
+                                contentBottomPadding = layout.contentBottomPadding,
+                                contentEndPadding = layout.contentEndPadding,
+                                contentTopPadding = contentTopPadding,
+                                twoPane = layout.twoPane,
+                                onEnableNotifications = onEnableNotifications,
+                                scroll = scroll,
+                                drafts = drafts,
+                                onQuizAction = { noteId, action ->
+                                    when (action) {
+                                        CtaAction.OpenSetup -> onIntent(NotesIntent.OpenQuizSetup(noteId))
+                                        CtaAction.ConfirmDownload -> onConfirmDownload()
+                                        CtaAction.OpenSettings -> onIntent(NotesIntent.OpenSettings)
+                                        CtaAction.StartDownload -> onIntent(NotesIntent.StartModelDownload)
+                                    }
+                                },
+                            )
+                        }
+
+                        BackHandler(enabled = !uiState.isNavSettled && !drawerEngaged) {}
+
+                        NotesOverlays(
                             uiState = uiState,
                             onIntent = onIntent,
-                            sceneStrategies = sceneStrategies,
-                            stackedScenes = useDrawer,
-                            contentBottomPadding = layout.contentBottomPadding,
-                            contentEndPadding = layout.contentEndPadding,
-                            contentTopPadding = contentTopPadding,
-                            twoPane = layout.twoPane,
-                            onEnableNotifications = onEnableNotifications,
+                            layout = layout,
                             scroll = scroll,
-                            drafts = drafts,
-                            onQuizAction = { noteId, action ->
-                                when (action) {
-                                    CtaAction.OpenSetup -> onIntent(NotesIntent.OpenQuizSetup(noteId))
-                                    CtaAction.ConfirmDownload -> onConfirmDownload()
-                                    CtaAction.OpenSettings -> onIntent(NotesIntent.OpenSettings)
-                                    CtaAction.StartDownload -> onIntent(NotesIntent.StartModelDownload)
-                                }
-                            },
+                            navScroll = navScroll,
+                            backdrop = backdrop,
+                            pillVisible = pillVisible,
+                            quizStartInset = if (collapsiblePanelOpen) adaptive.paneWidth + 1.dp else 0.dp,
                         )
                     }
-
-                    BackHandler(enabled = !uiState.isNavSettled && !drawerEngaged) {}
-
-                    NotesOverlays(
-                        uiState = uiState,
-                        onIntent = onIntent,
-                        layout = layout,
-                        scroll = scroll,
-                        navScroll = navScroll,
-                        backdrop = backdrop,
-                        pillVisible = pillVisible,
-                        quizStartInset = if (collapsiblePanelOpen) adaptive.paneWidth + 1.dp else 0.dp,
-                    )
                 }
             }
         }
@@ -226,10 +232,11 @@ internal fun NotesExitEffects(
     uiState: NotesUiState,
     snackbarHostState: SnackbarHostState,
     onIntent: (NotesIntent) -> Unit,
+    onExit: () -> Unit,
 ) {
-    val context = LocalContext.current
     val exitHint = stringResource(R.string.notes_exit_hint)
     val currentOnIntent by rememberUpdatedState(onIntent)
+    val currentOnExit by rememberUpdatedState(onExit)
     LaunchedEffect(uiState.exitHintId) {
         val id = uiState.exitHintId
         if (id > 0) {
@@ -239,7 +246,7 @@ internal fun NotesExitEffects(
         }
     }
     LaunchedEffect(uiState.exitRequestId) {
-        if (uiState.exitRequestId > 0) (context as? Activity)?.finish()
+        if (uiState.exitRequestId > 0) currentOnExit()
     }
 }
 

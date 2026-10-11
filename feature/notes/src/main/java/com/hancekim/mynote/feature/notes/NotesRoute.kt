@@ -1,6 +1,7 @@
 package com.hancekim.mynote.feature.notes
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -87,6 +88,7 @@ fun NotesRoute(viewModel: NotesViewModel = hiltViewModel()) {
                 viewModel.onIntent(intent)
             }
         },
+        onExit = { (context as? Activity)?.finish() },
         onEnableNotifications = { openNotificationSettings(context) },
     )
 }
@@ -112,6 +114,7 @@ private fun openNotificationSettings(context: Context) {
 internal fun NotesScreen(
     uiState: NotesUiState,
     onIntent: (NotesIntent) -> Unit,
+    onExit: () -> Unit,
     onEnableNotifications: () -> Unit = {},
 ) {
     val containerSize = LocalWindowInfo.current.containerDpSize
@@ -169,7 +172,7 @@ internal fun NotesScreen(
     val drafts = remember { NotesDrafts() }
 
     MyNoteTheme(windowClass = windowClass, heightClass = heightClass, fontScale = uiState.fontScale) {
-        NotesExitEffects(uiState, snackbarHostState, onIntent)
+        NotesExitEffects(uiState, snackbarHostState, onIntent, onExit)
         when (uiState.start) {
             StartDestination.Reading -> {
                 ConnectReadingScreen()
@@ -245,6 +248,7 @@ private fun NotesScreenCompactPreview() {
     NotesScreen(
         uiState = previewUiState,
         onIntent = {},
+        onExit = {},
     )
 }
 
@@ -254,6 +258,7 @@ private fun NotesScreenExpandedPreview() {
     NotesScreen(
         uiState = previewUiState,
         onIntent = {},
+        onExit = {},
     )
 }
 
@@ -263,5 +268,6 @@ private fun NotesScreenShortPreview() {
     NotesScreen(
         uiState = previewUiState,
         onIntent = {},
+        onExit = {},
     )
 }

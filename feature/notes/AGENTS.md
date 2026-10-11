@@ -94,7 +94,7 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
 
 | 순위 | 핸들러 | 어디서 컴포즈되나 |
 |---|---|---|
-| 1 | 드로어 닫기 (Material3) | `ModalDrawerSheet(drawerState = …)` — `ModalNavigationDrawer` 가 `content()` **뒤에** 드로어를 컴포즈하므로 자동으로 제일 늦다 |
+| 1 | 드로어 닫기 (Material3) | `ModalDrawerSheet(drawerState = …)` 의 예측 뒤로가기 핸들러. 드로어가 열려 있는 동안 `NotesShell` 이 Scaffold 내용의 자식 디스패처를 꺼서 이 핸들러가 받는다 |
 | 2 | 퀴즈 오버레이 닫기 | `QuizOverlay` (= `NotesOverlays`, NavDisplay 뒤) |
 | 3 | 전환 중 삼킴 | `NotesShell` 의 `BackHandler(enabled = !isNavSettled && !drawerEngaged) {}` |
 | 4 | `NavDisplay` 의 pop | `NotesNavDisplay` |
@@ -103,6 +103,14 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
 | 7 | 앱 종료 안내 → 종료 | `NotesShell` 본문 (`enabled = !canPop && !drawerEngaged && !collapsiblePanelOpen`) |
 
 각각 그 자리에 있어야 하는 이유:
+
+- **Scaffold 내용(NavDisplay · 삼킴 · 오버레이)은 자식 디스패처 안에 있다.** `NotesShell` 이
+  `rememberNavigationEventDispatcherOwner(enabled = !(useDrawer && drawerState.isOpen))` 로 감싼다. M3 드로어 핸들러는
+  본 컴포지션에서 등록되고 `NavDisplay` 는 Scaffold 내용(서브컴포즈)이라 나중에 등록돼, 셸이 처음부터 쌓인 스택으로
+  만들어지면(접기 · 펴기로 창 등급 가지가 바뀔 때) pop 이 드로어를 이겼다. 드로어가 열려 있는 동안 자식을 통째로 끄면
+  M3 핸들러가 늘림 연출과 함께 닫는다. 여는 중(`isOpen` 거짓)엔 자식이 켜져 있어 ⑤ 는 그대로다. `useDrawer &&` 를 빼면
+  접힌 화면에서 드로어를 연 채 펼쳤을 때 열림으로 남은 상태가 넓은 창의 pop 을 막는다. 순서는 계측
+  `BackOrderTest`(FM-10)가 지킨다 — 상태 없는 셸을 하네스로 띄워 단마다 누른다.
 
 - **삼킴은 `NavDisplay` 호출 뒤에 둔다.** `NavDisplay` 는 예측 뒤로가기 애니메이션을 **이미 커밋한
   뒤** `onBack` 을 부른다. 앞에 두고 버리면 화면은 닫혔는데 스택은 그대로라 어긋난다.
