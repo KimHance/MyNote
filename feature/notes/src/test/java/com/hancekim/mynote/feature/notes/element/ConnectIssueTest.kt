@@ -22,4 +22,23 @@ class ConnectIssueTest {
                 .size,
         )
     }
+
+    @Test
+    fun `RC-18 편집기 실패는 확인 실패 아홉 갈래를 모두 토큰 실패 종류로 보인다`() {
+        val expected =
+            mapOf(
+                ConnectProbeFailure.NeedsToken to TokenFailureKind.Rejected,
+                ConnectProbeFailure.TokenRejected to TokenFailureKind.Rejected,
+                ConnectProbeFailure.RepoNotVisible to TokenFailureKind.NotVisible,
+                ConnectProbeFailure.ManifestInaccessible to TokenFailureKind.NoList,
+                ConnectProbeFailure.RateLimited to TokenFailureKind.Limit,
+                ConnectProbeFailure.NoManifest to TokenFailureKind.NoList,
+                ConnectProbeFailure.MalformedManifest to TokenFailureKind.BadList,
+                ConnectProbeFailure.Offline to TokenFailureKind.Offline,
+                ConnectProbeFailure.Transient to TokenFailureKind.Transient,
+            )
+
+        assertEquals(ConnectProbeFailure.entries.toSet(), expected.keys)
+        assertEquals(expected, ConnectProbeFailure.entries.associateWith { tokenFailureOfProbe(it) })
+    }
 }

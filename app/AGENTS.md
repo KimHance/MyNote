@@ -192,7 +192,7 @@ DataStore(DataStoreTokenStore) → TokenRepository → ObserveTokenUseCase
 
 ### BuildConfig 필드 — debug 첫 실행 시드 + 템플릿 주소
 
-저장소 연결은 앱 화면(`:feature:notes` 연결 화면)에서 한다. 빌드가 넣는 값은 **둘**이다: **debug 첫 실행 시드**와
+저장소 연결은 앱 화면(`:feature:connect` 연결 화면)에서 한다. 빌드가 넣는 값은 **둘**이다: **debug 첫 실행 시드**와
 **템플릿 저장소 주소**(RC-26). `RemoteConfigModule` 이 시드를 `ConnectionSeed?`(`GITHUB_OWNER`·`GITHUB_REPO` 둘 다 채워졌을 때만),
 템플릿 주소를 `TemplateRepo?`(`parseTemplateRepo(BuildConfig.TEMPLATE_REPO)` — 모양이 틀리거나 비면 `null`)로 만든다.
 필드는 여섯: `GITHUB_OWNER`·`GITHUB_REPO`·`GITHUB_BRANCH`·`GITHUB_TOKEN`·`TEMPLATE_REPO`·`TITLE_FONT_NAME`(아래 제목 글꼴 절).
