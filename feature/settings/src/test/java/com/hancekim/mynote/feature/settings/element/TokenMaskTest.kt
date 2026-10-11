@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.element
+package com.hancekim.mynote.feature.settings.element
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull

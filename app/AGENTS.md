@@ -75,7 +75,7 @@
 먼저 컴포즈될 수 있다.
 
 **목적지 키 7개의 화면은 기능별 등록 파일이 등록한다(FM-4).** `:feature:notes` 의 `NotesDestinations.kt`(홈 · 북마크 · 리더) ·
-`:feature:stats` 의 `screen/StatsDestinations.kt`(통계 · 지난 요약) · `settings/SettingsDestinations.kt`(설정) ·
+`:feature:stats` 의 `screen/StatsDestinations.kt`(통계 · 지난 요약) · `:feature:settings` 의 `SettingsDestinations.kt`(설정) ·
 `:feature:connect` 의 `screen/ConnectDestinations.kt`(쌓은 연결 화면). 셸 파일은 목적지 화면을 부르지 않고, `shellDestinations` 가 기능마다
 자기 상태 · 입구만 넘겨 묶는다. 화면이 셸에게서 받는 틀 값은 셸 틀 계약 `:core:ui` 의 `frame/ShellFrame`(위 · 아래 · 끝 여백 · 두 단 · 쌓이는 씬 ·
 스크롤 홀더 · draft · 스낵바 호스트)뿐이다. 기능 자기 상태 · 입구와 셸이 묶어 넘기는 화면용 값(연결 있음 · 셸 뒤로 · 리더 CTA 의
@@ -410,7 +410,7 @@ APK 85.4MB → 60.6MB. **되돌릴 조건은 하나다: 인텔 맥에서 x86_64 
   `MyNoteApplication`(Hilt · 토큰 동기 · 워커)이 실제로 뜬 채 돈다.
 - JVM 시험은 `src/test/…/shell/` — 셸 VM(`ShellViewModelTest`) · 등록 묶음(`ShellDestinationsTest`) · 시작 분기(`ConnectStartTest`) ·
   셸을 지나는 기능 사이 신호(`FeatureSignalsTest` · `NotesViewModelTest` · `HomeBodyTest` 의 셸 쪽 — 같은 클래스 이름이 `:feature:notes`
-  시험에도 있다, FM-13). `FeatureFixture` 는 셸 VM 과 기능 VM 셋을 같은 Navigator · 신호 계약 · 홀더로 세우는 `:feature:notes` 시험 도구의 사본이다.
+  시험에도 있다, FM-13 · `FeatureSignalsTest` 는 `:feature:settings` 에도). `FeatureFixture` 는 셸 VM 과 기능 VM 셋을 같은 Navigator · 신호 계약 · 홀더로 세우는 `:feature:notes` 시험 도구의 사본이다.
 - 배선 검증은 여전히 `./gradlew :app:compileDebugKotlin`(= Hilt 그래프 검증)이다.
 
 ## 계측 테스트 — 평가 하네스와 "앱이 지워지지 않게"

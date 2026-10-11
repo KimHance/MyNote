@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen
+package com.hancekim.mynote.feature.settings.screen
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
@@ -70,12 +70,11 @@ import com.hancekim.mynote.core.ui.screen.connect.TokenHowTo
 import com.hancekim.mynote.core.ui.screen.connect.VerifyingLine
 import com.hancekim.mynote.core.ui.screen.connect.monoAnnotated
 import com.hancekim.mynote.core.ui.screen.connect.openExternal
-import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.element.TokenEditState
-import com.hancekim.mynote.feature.notes.element.maskedTokenTail
-import com.hancekim.mynote.feature.notes.screen.connect.DisconnectDialog
-import com.hancekim.mynote.feature.notes.settings.SettingsIntent
-import com.hancekim.mynote.feature.notes.settings.SettingsUiState
+import com.hancekim.mynote.feature.settings.R
+import com.hancekim.mynote.feature.settings.SettingsIntent
+import com.hancekim.mynote.feature.settings.SettingsUiState
+import com.hancekim.mynote.feature.settings.element.TokenEditState
+import com.hancekim.mynote.feature.settings.element.maskedTokenTail
 import kotlinx.coroutines.launch
 import com.hancekim.mynote.core.designsystem.R as DsR
 import com.hancekim.mynote.core.ui.R as UiR
@@ -111,7 +110,7 @@ internal fun RepoSection(
             IconBox(icon = ConnectIcons.Folder)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 KeepWordsText(
-                    text = stringResource(R.string.notes_repo_card_title),
+                    text = stringResource(R.string.settings_repo_card_title),
                     style =
                         MyNoteTheme.textStyles.cardTitle
                             .copy(fontWeight = FontWeight.W500),
@@ -123,7 +122,7 @@ internal fun RepoSection(
         if (connection == null) {
             Box(Modifier.padding(start = ACTION_INDENT, end = 16.dp, bottom = 16.dp)) {
                 PrimaryButton(
-                    text = stringResource(R.string.notes_repo_connect),
+                    text = stringResource(R.string.settings_repo_connect),
                     onClick = { onIntent(SettingsIntent.OpenConnect) },
                 )
             }
@@ -152,7 +151,7 @@ private fun RepoStatusLine(
     val colors = MyNoteTheme.colors
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         val tail = maskedTokenTail(uiState.maskedToken)
-        val tailDescription = tail?.let { stringResource(R.string.notes_settings_token_tail_a11y, it) }
+        val tailDescription = tail?.let { stringResource(R.string.settings_token_tail_a11y, it) }
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(7.dp),
@@ -219,7 +218,7 @@ private fun RepoLines(
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             KeepWordsText(
-                text = stringResource(R.string.notes_repo_label),
+                text = stringResource(R.string.settings_repo_label),
                 style = MyNoteTheme.textStyles.caption,
                 color = colors.text2,
             )
@@ -227,9 +226,9 @@ private fun RepoLines(
                 text =
                     connection.indexPath.substringBeforeLast('/', "").ifEmpty { "/" }.let { folder ->
                         if (connection.branch.isBlank()) {
-                            monoAnnotated(R.string.notes_repo_value_default, connection.fullName, folder)
+                            monoAnnotated(R.string.settings_repo_value_default, connection.fullName, folder)
                         } else {
-                            monoAnnotated(R.string.notes_repo_value, connection.fullName, connection.branch, folder)
+                            monoAnnotated(R.string.settings_repo_value, connection.fullName, connection.branch, folder)
                         }
                     },
                 style = MyNoteTheme.textStyles.monoSmall,
@@ -242,13 +241,13 @@ private fun RepoLines(
             }
 
             LastSync.Succeeded -> {
-                LastSyncLine(RepoDot.Ok, stringResource(R.string.notes_repo_last_ok))
+                LastSyncLine(RepoDot.Ok, stringResource(R.string.settings_repo_last_ok))
             }
 
             is LastSync.Failed -> {
                 LastSyncLine(
                     RepoDot.Warn,
-                    stringResource(R.string.notes_repo_last_fail, stringResource(syncFailureKindRes(last.kind))),
+                    stringResource(R.string.settings_repo_last_fail, stringResource(syncFailureKindRes(last.kind))),
                 )
             }
         }
@@ -291,12 +290,12 @@ private fun RepoActions(
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         SecondaryButton(
-            text = stringResource(R.string.notes_repo_change),
+            text = stringResource(R.string.settings_repo_change),
             enabled = !locked,
             onClick = { onIntent(SettingsIntent.OpenConnect) },
         )
         DestructiveButton(
-            text = stringResource(R.string.notes_repo_disconnect),
+            text = stringResource(R.string.settings_repo_disconnect),
             enabled = !locked,
             onClick = { onIntent(SettingsIntent.RequestDisconnect) },
         )
@@ -320,7 +319,7 @@ private fun TokenBlock(
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             KeepWordsText(
-                text = stringResource(R.string.notes_settings_token_title),
+                text = stringResource(R.string.settings_token_title),
                 style = MyNoteTheme.textStyles.caption,
                 color = colors.text2,
             )
@@ -356,28 +355,28 @@ private fun TokenBlock(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 if (uiState.hasToken) {
-                    val change = stringResource(R.string.notes_settings_token_change_a11y)
+                    val change = stringResource(R.string.settings_token_change_a11y)
                     val changeModifier = Modifier.semantics { contentDescription = change }
                     if (card.showBadge) {
                         PrimaryButton(
-                            text = stringResource(R.string.notes_settings_token_change),
+                            text = stringResource(R.string.settings_token_change),
                             onClick = { onIntent(SettingsIntent.StartTokenEdit) },
                             modifier = changeModifier,
                         )
                     } else {
                         SecondaryButton(
-                            text = stringResource(R.string.notes_settings_token_change),
+                            text = stringResource(R.string.settings_token_change),
                             onClick = { onIntent(SettingsIntent.StartTokenEdit) },
                             modifier = changeModifier,
                         )
                     }
                     DestructiveButton(
-                        text = stringResource(R.string.notes_settings_token_clear),
+                        text = stringResource(R.string.settings_token_clear),
                         onClick = { onIntent(SettingsIntent.ClearToken) },
                     )
                 } else {
                     PrimaryButton(
-                        text = stringResource(R.string.notes_settings_token_enter),
+                        text = stringResource(R.string.settings_token_enter),
                         onClick = { onIntent(SettingsIntent.StartTokenEdit) },
                     )
                 }
@@ -452,7 +451,7 @@ private fun TokenEditor(
             focusRequester = focusRequester,
         )
         KeepWordsText(
-            text = stringResource(R.string.notes_settings_token_local_only),
+            text = stringResource(R.string.settings_token_local_only),
             style = MyNoteTheme.textStyles.caption,
             color = colors.text3,
         )
@@ -468,7 +467,7 @@ private fun TokenEditor(
             if (uiState.hasToken && !edit.verifying) {
                 Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
                     DestructiveButton(
-                        text = stringResource(R.string.notes_settings_token_clear),
+                        text = stringResource(R.string.settings_token_clear),
                         onClick = { onIntent(SettingsIntent.ClearToken) },
                     )
                 }
@@ -480,7 +479,7 @@ private fun TokenEditor(
             PrimaryButton(
                 text =
                     stringResource(
-                        if (edit.verifying) R.string.notes_token_verifying_action else DsR.string.ds_action_save,
+                        if (edit.verifying) R.string.settings_token_verifying_action else DsR.string.ds_action_save,
                     ),
                 enabled = !draft.isBlank && !edit.verifying,
                 onClick = save,

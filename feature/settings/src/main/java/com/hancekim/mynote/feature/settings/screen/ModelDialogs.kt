@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen
+package com.hancekim.mynote.feature.settings.screen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,7 +17,7 @@ import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.ui.screen.DestructiveButton
 import com.hancekim.mynote.core.ui.screen.PrimaryButton
 import com.hancekim.mynote.core.ui.screen.SecondaryButton
-import com.hancekim.mynote.feature.notes.R
+import com.hancekim.mynote.feature.settings.R
 import com.kyant.backdrop.Backdrop
 import com.hancekim.mynote.core.designsystem.R as DsR
 import com.hancekim.mynote.core.ui.R as UiR
@@ -29,9 +29,9 @@ fun ModelConfirmDialog(
     backdrop: Backdrop? = null,
 ) {
     ModelDialog(
-        title = stringResource(R.string.notes_model_confirm_title),
-        body = stringResource(R.string.notes_model_confirm_body),
-        dismissLabel = stringResource(R.string.notes_model_confirm_later),
+        title = stringResource(R.string.settings_model_confirm_title),
+        body = stringResource(R.string.settings_model_confirm_body),
+        dismissLabel = stringResource(R.string.settings_model_confirm_later),
         confirmLabel = stringResource(UiR.string.ui_model_download),
         destructive = false,
         onDismiss = onDismiss,
@@ -47,10 +47,10 @@ internal fun ModelDeleteDialog(
     backdrop: Backdrop? = null,
 ) {
     ModelDialog(
-        title = stringResource(R.string.notes_model_delete_title),
-        body = stringResource(R.string.notes_model_delete_body),
+        title = stringResource(R.string.settings_model_delete_title),
+        body = stringResource(R.string.settings_model_delete_body),
         dismissLabel = stringResource(DsR.string.ds_action_cancel),
-        confirmLabel = stringResource(R.string.notes_model_delete),
+        confirmLabel = stringResource(R.string.settings_model_delete),
         destructive = true,
         onDismiss = onDismiss,
         onConfirm = onConfirm,
@@ -65,10 +65,10 @@ internal fun StudyLogClearDialog(
     backdrop: Backdrop? = null,
 ) {
     ModelDialog(
-        title = stringResource(R.string.notes_settings_studylog_clear_title),
-        body = stringResource(R.string.notes_settings_studylog_clear_body),
+        title = stringResource(R.string.settings_studylog_clear_title),
+        body = stringResource(R.string.settings_studylog_clear_body),
         dismissLabel = stringResource(DsR.string.ds_action_cancel),
-        confirmLabel = stringResource(R.string.notes_settings_studylog_clear_confirm),
+        confirmLabel = stringResource(R.string.settings_studylog_clear_confirm),
         destructive = true,
         onDismiss = onDismiss,
         onConfirm = onConfirm,

@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.settings
+package com.hancekim.mynote.feature.settings
 
 import androidx.compose.runtime.Stable
 import com.hancekim.mynote.core.common.mvi.MviEvent
@@ -13,8 +13,8 @@ import com.hancekim.mynote.core.ui.element.NoticeUi
 import com.hancekim.mynote.core.ui.element.RepoCardUi
 import com.hancekim.mynote.core.ui.element.SecretText
 import com.hancekim.mynote.core.ui.element.repoCardUi
-import com.hancekim.mynote.feature.notes.element.DisconnectDialogUi
-import com.hancekim.mynote.feature.notes.element.TokenEditState
+import com.hancekim.mynote.feature.settings.element.DisconnectDialogUi
+import com.hancekim.mynote.feature.settings.element.TokenEditState
 
 @Stable
 data class SettingsUiState(

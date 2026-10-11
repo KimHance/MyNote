@@ -50,8 +50,8 @@ import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.quiz.QuizIntent
 import com.hancekim.mynote.feature.notes.quiz.QuizViewModel
-import com.hancekim.mynote.feature.notes.settings.SettingsIntent
-import com.hancekim.mynote.feature.notes.settings.SettingsViewModel
+import com.hancekim.mynote.feature.settings.SettingsIntent
+import com.hancekim.mynote.feature.settings.SettingsViewModel
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import com.hancekim.mynote.core.designsystem.R as DsR

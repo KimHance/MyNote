@@ -20,9 +20,9 @@ import com.hancekim.mynote.feature.connect.screen.connectDestinations
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.notesDestinations
-import com.hancekim.mynote.feature.notes.settings.SettingsIntent
-import com.hancekim.mynote.feature.notes.settings.SettingsUiState
-import com.hancekim.mynote.feature.notes.settings.settingsDestinations
+import com.hancekim.mynote.feature.settings.SettingsIntent
+import com.hancekim.mynote.feature.settings.SettingsUiState
+import com.hancekim.mynote.feature.settings.settingsDestinations
 import com.hancekim.mynote.feature.stats.screen.statsDestinations
 
 /**

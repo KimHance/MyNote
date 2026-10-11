@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.settings
+package com.hancekim.mynote.feature.settings
 
 import androidx.lifecycle.viewModelScope
 import com.hancekim.mynote.core.common.mvi.MviViewModel
@@ -34,14 +34,14 @@ import com.hancekim.mynote.core.ui.element.toUi
 import com.hancekim.mynote.core.ui.element.unseen
 import com.hancekim.mynote.core.ui.signal.FeatureSignals
 import com.hancekim.mynote.core.ui.signal.LastSyncHolder
-import com.hancekim.mynote.feature.notes.element.DisconnectDialogUi
-import com.hancekim.mynote.feature.notes.element.TokenEditEffect
-import com.hancekim.mynote.feature.notes.element.TokenEditEvent
-import com.hancekim.mynote.feature.notes.element.TokenEditState
-import com.hancekim.mynote.feature.notes.element.connectionLinkOf
-import com.hancekim.mynote.feature.notes.element.maskToken
-import com.hancekim.mynote.feature.notes.element.reduceTokenEdit
-import com.hancekim.mynote.feature.notes.element.tokenFailureOfProbe
+import com.hancekim.mynote.feature.settings.element.DisconnectDialogUi
+import com.hancekim.mynote.feature.settings.element.TokenEditEffect
+import com.hancekim.mynote.feature.settings.element.TokenEditEvent
+import com.hancekim.mynote.feature.settings.element.TokenEditState
+import com.hancekim.mynote.feature.settings.element.connectionLinkOf
+import com.hancekim.mynote.feature.settings.element.maskToken
+import com.hancekim.mynote.feature.settings.element.reduceTokenEdit
+import com.hancekim.mynote.feature.settings.element.tokenFailureOfProbe
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.CancellationException

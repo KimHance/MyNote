@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.element
+package com.hancekim.mynote.feature.settings.element
 
 fun maskToken(token: String?): String? {
     val value = token?.trim().orEmpty()

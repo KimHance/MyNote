@@ -4,45 +4,24 @@ import com.hancekim.mynote.core.common.mvi.MviViewModel
 import com.hancekim.mynote.core.common.throttle.Clock
 import com.hancekim.mynote.core.common.throttle.WallClock
 import com.hancekim.mynote.core.domain.AddBookmarkUseCase
-import com.hancekim.mynote.core.domain.CancelModelDownloadUseCase
-import com.hancekim.mynote.core.domain.ClearStudyLogUseCase
-import com.hancekim.mynote.core.domain.CountErasableUseCase
-import com.hancekim.mynote.core.domain.DeleteModelUseCase
-import com.hancekim.mynote.core.domain.DiscardPartialModelUseCase
-import com.hancekim.mynote.core.domain.DisconnectUseCase
 import com.hancekim.mynote.core.domain.GenerateQuizUseCase
 import com.hancekim.mynote.core.domain.GetCategoriesUseCase
 import com.hancekim.mynote.core.domain.ObserveAppliedTokenUseCase
 import com.hancekim.mynote.core.domain.ObserveBookmarksUseCase
 import com.hancekim.mynote.core.domain.ObserveConnectionUseCase
-import com.hancekim.mynote.core.domain.ObserveFontScaleUseCase
 import com.hancekim.mynote.core.domain.ObserveModelStatusUseCase
-import com.hancekim.mynote.core.domain.ObserveStudyLogEnabledUseCase
 import com.hancekim.mynote.core.domain.ObserveSyncRunsUseCase
 import com.hancekim.mynote.core.domain.RecordBookmarkEventUseCase
 import com.hancekim.mynote.core.domain.RecordQuizAttemptUseCase
 import com.hancekim.mynote.core.domain.RecordReadSessionUseCase
 import com.hancekim.mynote.core.domain.RemoveBookmarksUseCase
-import com.hancekim.mynote.core.domain.SaveTokenUseCase
-import com.hancekim.mynote.core.domain.SetFontScaleUseCase
-import com.hancekim.mynote.core.domain.SetStudyLogEnabledUseCase
-import com.hancekim.mynote.core.domain.StartModelDownloadUseCase
 import com.hancekim.mynote.core.domain.SyncNotesUseCase
-import com.hancekim.mynote.core.domain.VerifyConnectLinkUseCase
-import com.hancekim.mynote.core.domain.connect.ConnectCandidate
-import com.hancekim.mynote.core.domain.connect.ConnectLinkRepo
-import com.hancekim.mynote.core.domain.connect.ConnectProbe
-import com.hancekim.mynote.core.domain.connect.ConnectProbeFailure
-import com.hancekim.mynote.core.domain.connect.ConnectProbeResult
 import com.hancekim.mynote.core.domain.model.Bookmark
 import com.hancekim.mynote.core.domain.model.BookmarkEvent
 import com.hancekim.mynote.core.domain.model.Category
 import com.hancekim.mynote.core.domain.model.ConnectionState
 import com.hancekim.mynote.core.domain.model.ErasureCount
 import com.hancekim.mynote.core.domain.model.FontScale
-import com.hancekim.mynote.core.domain.model.InsightFailureKind
-import com.hancekim.mynote.core.domain.model.InsightStamp
-import com.hancekim.mynote.core.domain.model.InsightWorkState
 import com.hancekim.mynote.core.domain.model.ModelStatus
 import com.hancekim.mynote.core.domain.model.NetworkStatus
 import com.hancekim.mynote.core.domain.model.Note
@@ -50,19 +29,15 @@ import com.hancekim.mynote.core.domain.model.NoteBlock
 import com.hancekim.mynote.core.domain.model.NoteSpan
 import com.hancekim.mynote.core.domain.model.PendingConnection
 import com.hancekim.mynote.core.domain.model.QuizAttempt
-import com.hancekim.mynote.core.domain.model.QuizPattern
 import com.hancekim.mynote.core.domain.model.QuizQuestion
 import com.hancekim.mynote.core.domain.model.ReadSession
 import com.hancekim.mynote.core.domain.model.RepoConnection
 import com.hancekim.mynote.core.domain.model.SourceId
 import com.hancekim.mynote.core.domain.model.SyncOutcome
 import com.hancekim.mynote.core.domain.model.UnsupportedReason
-import com.hancekim.mynote.core.domain.model.WeeklySummary
 import com.hancekim.mynote.core.domain.repository.AppliedTokenSource
 import com.hancekim.mynote.core.domain.repository.BookmarkRepository
 import com.hancekim.mynote.core.domain.repository.ConnectionRepository
-import com.hancekim.mynote.core.domain.repository.InsightRepository
-import com.hancekim.mynote.core.domain.repository.InsightScheduler
 import com.hancekim.mynote.core.domain.repository.NetworkStatusSource
 import com.hancekim.mynote.core.domain.repository.NotesRepository
 import com.hancekim.mynote.core.domain.repository.QuizGenerator
@@ -77,8 +52,6 @@ import com.hancekim.mynote.core.ui.NotesMessages
 import com.hancekim.mynote.core.ui.signal.FeatureSignals
 import com.hancekim.mynote.core.ui.signal.LastSyncHolder
 import com.hancekim.mynote.feature.notes.quiz.QuizViewModel
-import com.hancekim.mynote.feature.notes.settings.SettingsViewModel
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -88,10 +61,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
-import java.time.LocalDate
 
 /**
- * 기능 ViewModel 셋(노트 · 설정 · 퀴즈)을 같은 Navigator · 신호 계약 · 마지막 동기화 홀더로 세운다 — 앱의 싱글턴과 같은 모양.
+ * 기능 ViewModel 둘(노트 · 퀴즈)을 같은 Navigator · 신호 계약 · 마지막 동기화 홀더로 세운다 — 앱의 싱글턴과 같은 모양.
  * 가짜 저장소로 실제 UseCase 를 만들고, 시계는 runTest 스케줄러에 묶는다.
  */
 internal class FeatureFixture(
@@ -100,7 +72,6 @@ internal class FeatureFixture(
     bookmarks: List<Bookmark> = emptyList(),
     disconnect: Result<Unit> = Result.success(Unit),
     model: ModelStatus = ModelStatus.Ready,
-    val probeGate: CompletableDeferred<Unit>? = null,
 ) {
     val clock = Clock { scope.testScheduler.currentTime }
     val wallClock = WallClock { WALL_BASE + scope.testScheduler.currentTime }
@@ -115,7 +86,6 @@ internal class FeatureFixture(
     val lastSync = LastSyncHolder()
     val navigator = Navigator(scope.backgroundScope, NotesNavKey.Home, clock = clock)
     private val failureLog = FailureLog { _, _, cause -> failures += cause }
-    private val probe = FakeProbe(probeGate)
 
     fun notes() =
         NotesViewModel(
@@ -134,31 +104,6 @@ internal class FeatureFixture(
             lastSync = lastSync,
             clock = clock,
             wallClock = wallClock,
-            failureLog = failureLog,
-        )
-
-    fun settings() =
-        SettingsViewModel(
-            observeConnection = ObserveConnectionUseCase(connections),
-            observeAppliedToken = ObserveAppliedTokenUseCase(tokens),
-            observeFontScale = ObserveFontScaleUseCase(FakeSettings),
-            observeStudyLogEnabled = ObserveStudyLogEnabledUseCase(FakeSettings),
-            observeModelStatus = ObserveModelStatusUseCase(models),
-            saveToken = SaveTokenUseCase(tokens),
-            countErasable = CountErasableUseCase(connections),
-            disconnect = DisconnectUseCase(connections),
-            verifyConnectLink = VerifyConnectLinkUseCase(probe, tokens, connections, tokens),
-            setFontScale = SetFontScaleUseCase(FakeSettings),
-            setStudyLogEnabled = SetStudyLogEnabledUseCase(FakeSettings),
-            clearStudyLog = ClearStudyLogUseCase(studyLog, FakeInsights, FakeScheduler, models, FakeSettings),
-            startModelDownload = StartModelDownloadUseCase(models),
-            cancelModelDownload = CancelModelDownloadUseCase(models),
-            discardPartialModel = DiscardPartialModelUseCase(models),
-            deleteModel = DeleteModelUseCase(models),
-            messages = FakeMessages,
-            navigator = navigator,
-            signals = signals,
-            lastSync = lastSync,
             failureLog = failureLog,
         )
 
@@ -329,19 +274,6 @@ internal class FeatureFixture(
         override suspend fun deleteModel() = Unit
     }
 
-    private class FakeProbe(
-        private val gate: CompletableDeferred<Unit>?,
-    ) : ConnectProbe {
-        override suspend fun verify(
-            repo: ConnectLinkRepo,
-            candidates: List<ConnectCandidate>,
-            token: String?,
-        ): ConnectProbeResult {
-            gate?.await()
-            return ConnectProbeResult.Failed(ConnectProbeFailure.Transient)
-        }
-    }
-
     private object FakeSettings : SettingsRepository {
         override fun observeFontScale(): Flow<FontScale> = flowOf(FontScale.Normal)
 
@@ -361,58 +293,6 @@ internal class FeatureFixture(
             count: Int,
         ): Result<List<QuizQuestion>> =
             Result.success(List(count) { QuizQuestion("문항 $it", listOf("가", "나", "다", "라"), 0, "해설") })
-    }
-
-    private object FakeInsights : InsightRepository {
-        override fun observeLatestSummary(stamp: InsightStamp) = emptyFlow<Nothing>()
-
-        override fun observeSummaries(stamp: InsightStamp) = emptyFlow<Nothing>()
-
-        override fun observeLatestPattern(stamp: InsightStamp) = emptyFlow<Nothing>()
-
-        override fun observeStatus() = emptyFlow<Nothing>()
-
-        override suspend fun summaries(stamp: InsightStamp) = emptyList<Nothing>()
-
-        override suspend fun latestPattern(stamp: InsightStamp) = null
-
-        override suspend fun status() = error("안 쓴다")
-
-        override suspend fun save(
-            summary: WeeklySummary,
-            stamp: InsightStamp,
-        ) = Unit
-
-        override suspend fun save(
-            pattern: QuizPattern,
-            stamp: InsightStamp,
-        ) = Unit
-
-        override suspend fun markSuccess(at: Long) = Unit
-
-        override suspend fun markFailure(
-            at: Long,
-            kind: InsightFailureKind,
-            summaryFailed: Boolean,
-        ) = Unit
-
-        override suspend fun markSkipped(at: Long) = Unit
-
-        override suspend fun bumpEpoch() = 0L
-
-        override suspend fun clearStatus() = Unit
-
-        override suspend fun prune(before: LocalDate) = Unit
-    }
-
-    private object FakeScheduler : InsightScheduler {
-        override val stamp = InsightStamp("test", 1)
-
-        override suspend fun schedule() = Unit
-
-        override fun cancel() = Unit
-
-        override fun state(): Flow<InsightWorkState> = flowOf(InsightWorkState.Idle)
     }
 
     object FakeMessages : NotesMessages {

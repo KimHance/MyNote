@@ -9,8 +9,8 @@ import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.quiz.QuizIntent
 import com.hancekim.mynote.feature.notes.quiz.QuizOverlayState
 import com.hancekim.mynote.feature.notes.screen.ListPanelChrome
-import com.hancekim.mynote.feature.notes.settings.SettingsIntent
-import com.hancekim.mynote.feature.notes.settings.SettingsUiState
+import com.hancekim.mynote.feature.settings.SettingsIntent
+import com.hancekim.mynote.feature.settings.SettingsUiState
 
 /** 셸이 그리는 데 쓰는 기능 상태 넷. 화면만 쓰는 값은 여기서 묶어 넘긴다(결정 13). */
 @Stable
