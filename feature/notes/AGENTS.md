@@ -266,9 +266,10 @@ UI 에 `"no-space"` 를 다시 적으면 값이 어긋나는 순간 **공간 부
 
 예전엔 `flow { emit(quizGenerator.isAvailable()) }` 로 앱 시작에 한 번만 읽었다. 그래서 다 받아도
 앱을 다시 켜야 퀴즈가 켜졌다. 지금은 어느 기능도 `QuizGenerator.isAvailable()` 을 부르지 않는다 —
-읽는 곳마다 `ObserveModelStatusUseCase` 로 `ModelStatus` 를 받고, `ModelDownloads.status()` 가 WorkManager 와 설치 파일을
-계속 흘린다(`Ready` = 설치된 파일이 있음). 리더 끝 CTA 는 `Ready` 가 아니어도 숨지 않고 상태에 맞는 부제 · 동작으로
-남는다(`quizCtaUi`, 아래). 이 모듈에서는 목록 패널의 설정 배지 · 진행 막대가 모델 상태를 읽는다.
+읽는 ViewModel(셸 · 설정 · 퀴즈 · 통계)이 각자 `ObserveModelStatusUseCase` 로 `ModelStatus` 를 받고, `ModelDownloads.status()` 가
+WorkManager 와 설치 파일을 계속 흘린다(`Ready` = 설치된 파일이 있음). 리더 끝 CTA 는 `Ready` 가 아니어도 숨지 않고 상태에 맞는
+부제 · 동작으로 남는다(`quizCtaUi`, 아래). 이 모듈은 그 UseCase 를 주입받지 않는다 — 목록 패널의 설정 배지 · 진행 막대가 쓰는
+모델 상태는 셸 ViewModel 이 읽어 목록 패널 크롬 값(`ListPanelChrome.modelStatus`, `:app` 의 `shell/ShellFeatures.kt`)으로 넘긴다.
 
 ### 상태 → 화면 매핑은 순수 함수다
 

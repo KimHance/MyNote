@@ -949,7 +949,7 @@ UI 를 그리는 파일은 같은 파일에 `@Preview` 동반.
 
 | 묶음 | 함수 | 파일 |
 |---|---|---|
-| 공용(노트 · 연결 · 설정 · 퀴즈) | `PrimaryButton` · `SecondaryButton` · `DestructiveButton` · `QuietButton` | `ui/screen/Buttons.kt` |
+| 공용(노트 · 연결 · 설정) | `PrimaryButton` · `SecondaryButton` · `DestructiveButton` · `QuietButton` | `ui/screen/Buttons.kt` |
 | 퀴즈 | `QuizPrimaryButton` · `QuizOutlineButton`(높이 50dp, 반경 15dp) · `QuizQuietButton`(반경 12dp) · `QuizCloseButton`(40dp 원) | `feat-quiz/component/QuizParts.kt` |
 | 퀴즈 설정 다이얼로그 | `DialogPrimaryButton` · `DialogQuietButton` | `feat-quiz/component/QuizSetupDialog.kt` |
 
