@@ -40,12 +40,12 @@ import com.hancekim.mynote.core.navigation.key.activeNoteId
 import com.hancekim.mynote.core.ui.element.NotesDrafts
 import com.hancekim.mynote.feature.notes.CategoryUi
 import com.hancekim.mynote.feature.notes.NoteUi
-import com.hancekim.mynote.feature.notes.QuizQuestionUi
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.NotesUiState
-import com.hancekim.mynote.feature.notes.quiz.QuizIntent
-import com.hancekim.mynote.feature.notes.quiz.QuizOverlayState
-import com.hancekim.mynote.feature.notes.quiz.QuizUiState
+import com.hancekim.mynote.feature.quiz.QuizIntent
+import com.hancekim.mynote.feature.quiz.QuizOverlayState
+import com.hancekim.mynote.feature.quiz.QuizQuestionUi
+import com.hancekim.mynote.feature.quiz.QuizUiState
 import com.hancekim.mynote.feature.settings.SettingsIntent
 import com.hancekim.mynote.feature.settings.SettingsUiState
 import com.hancekim.mynote.feature.settings.element.TokenEditState

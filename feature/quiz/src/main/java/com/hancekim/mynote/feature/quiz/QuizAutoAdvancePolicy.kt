@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.quiz
+package com.hancekim.mynote.feature.quiz
 
 import android.content.Context
 import android.view.accessibility.AccessibilityManager

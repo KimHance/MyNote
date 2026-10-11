@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.quiz.component
+package com.hancekim.mynote.feature.quiz.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -39,13 +39,13 @@ import com.hancekim.mynote.core.ui.element.CtaAction
 import com.hancekim.mynote.core.ui.element.QuizCtaUi
 import com.hancekim.mynote.core.ui.element.fractionOrNull
 import com.hancekim.mynote.core.ui.element.quizCtaUi
-import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.quiz.QuizUiState
+import com.hancekim.mynote.feature.quiz.QuizUiState
+import com.hancekim.mynote.feature.quiz.R
 import com.hancekim.mynote.core.ui.R as UiR
 
 @Suppress("ktlint:compose:modifier-clickable-order", "ktlint:compose:lambda-param-event-trailing")
 @Composable
-internal fun QuizCtaCard(
+fun QuizCtaCard(
     status: ModelStatus,
     modifier: Modifier = Modifier,
     onAction: (CtaAction) -> Unit,
@@ -68,7 +68,7 @@ internal fun QuizCtaCard(
                         interactionSource = null,
                         indication = remember { PressIndication(scale = 0.985f) },
                         role = Role.Button,
-                        onClickLabel = stringResource(R.string.notes_quiz_setup_title),
+                        onClickLabel = stringResource(R.string.quiz_setup_title),
                         onClick = throttledProcess(action = { onAction(cta.action) }),
                     ).aiShine(
                         color = colors.accent,
@@ -99,7 +99,7 @@ internal fun QuizCtaCard(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text(
-                    text = stringResource(R.string.notes_quiz_cta_title),
+                    text = stringResource(R.string.quiz_cta_title),
                     style = MyNoteTheme.textStyles.cardTitle.copy(fontWeight = FontWeight.W700),
                     color = colors.text,
                 )

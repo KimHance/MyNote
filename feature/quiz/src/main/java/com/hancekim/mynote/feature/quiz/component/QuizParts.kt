@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.quiz.component
+package com.hancekim.mynote.feature.quiz.component
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.sp
 import com.hancekim.mynote.core.designsystem.component.MyNoteIcons
 import com.hancekim.mynote.core.designsystem.component.PressIndication
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
-import com.hancekim.mynote.feature.notes.R
+import com.hancekim.mynote.feature.quiz.R
 
 @Composable
 internal fun QuizPrimaryButton(
@@ -149,7 +149,7 @@ internal fun QuizCloseButton(
     ) {
         Icon(
             imageVector = MyNoteIcons.Close,
-            contentDescription = stringResource(R.string.notes_quiz_close),
+            contentDescription = stringResource(R.string.quiz_close),
             tint = colors.text2,
             modifier = Modifier.size(iconSize),
         )

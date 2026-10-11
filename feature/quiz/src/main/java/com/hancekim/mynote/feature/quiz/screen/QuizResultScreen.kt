@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.quiz.screen
+package com.hancekim.mynote.feature.quiz.screen
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
@@ -49,10 +49,10 @@ import com.hancekim.mynote.core.designsystem.component.riseIn
 import com.hancekim.mynote.core.designsystem.motion.MyNoteEasing
 import com.hancekim.mynote.core.designsystem.motion.rememberReduceMotion
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
-import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.quiz.QuizIntent
-import com.hancekim.mynote.feature.notes.quiz.QuizUiState
-import com.hancekim.mynote.feature.notes.quiz.component.QuizPrimaryButton
+import com.hancekim.mynote.feature.quiz.QuizIntent
+import com.hancekim.mynote.feature.quiz.QuizUiState
+import com.hancekim.mynote.feature.quiz.R
+import com.hancekim.mynote.feature.quiz.component.QuizPrimaryButton
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
@@ -141,7 +141,7 @@ internal fun QuizResultScreen(
             }
 
             QuizPrimaryButton(
-                text = stringResource(R.string.notes_quiz_back_to_note),
+                text = stringResource(R.string.quiz_back_to_note),
                 onClick = { onIntent(QuizIntent.Dismiss) },
                 height = 52.dp,
                 modifier = Modifier.padding(bottom = 12.dp),
@@ -161,7 +161,7 @@ private fun ScoreGauge(
 ) {
     val colors = MyNoteTheme.colors
     val still = rememberReduceMotion()
-    val scoreDescription = stringResource(R.string.notes_quiz_result_score, total, score)
+    val scoreDescription = stringResource(R.string.quiz_result_score, total, score)
 
     var started by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { started = true }
@@ -228,13 +228,13 @@ private fun MarkChips(
     modifier: Modifier = Modifier,
 ) {
     val colors = MyNoteTheme.colors
-    val correctLabel = stringResource(R.string.notes_quiz_correct)
-    val wrongLabel = stringResource(R.string.notes_quiz_wrong)
+    val correctLabel = stringResource(R.string.quiz_correct)
+    val wrongLabel = stringResource(R.string.quiz_wrong)
     Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
         marks.forEachIndexed { index, correct ->
             val markLabel =
                 stringResource(
-                    R.string.notes_quiz_result_mark,
+                    R.string.quiz_result_mark,
                     index + 1,
                     if (correct) correctLabel else wrongLabel,
                 )
@@ -268,21 +268,21 @@ private data class Verdict(
 
 @Composable
 private fun verdictFor(rate: Float): Verdict {
-    val review = stringResource(R.string.notes_quiz_result_review_body)
+    val review = stringResource(R.string.quiz_result_review_body)
     return when {
         rate >= 1f -> {
             Verdict(
-                stringResource(R.string.notes_quiz_result_perfect_title),
-                stringResource(R.string.notes_quiz_result_perfect_body),
+                stringResource(R.string.quiz_result_perfect_title),
+                stringResource(R.string.quiz_result_perfect_body),
             )
         }
 
         rate >= 0.6f -> {
-            Verdict(stringResource(R.string.notes_quiz_result_good_title), review)
+            Verdict(stringResource(R.string.quiz_result_good_title), review)
         }
 
         else -> {
-            Verdict(stringResource(R.string.notes_quiz_result_retry_title), review)
+            Verdict(stringResource(R.string.quiz_result_retry_title), review)
         }
     }
 }

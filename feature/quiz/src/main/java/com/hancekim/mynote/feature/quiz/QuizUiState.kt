@@ -1,7 +1,6 @@
-package com.hancekim.mynote.feature.notes.quiz
+package com.hancekim.mynote.feature.quiz
 
 import androidx.compose.runtime.Immutable
-import com.hancekim.mynote.feature.notes.QuizQuestionUi
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList

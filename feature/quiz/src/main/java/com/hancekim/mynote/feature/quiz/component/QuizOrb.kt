@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.quiz.component
+package com.hancekim.mynote.feature.quiz.component
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.InfiniteTransition

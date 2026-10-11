@@ -11,8 +11,8 @@ import com.hancekim.mynote.core.ui.element.SyncFailureKind
 import com.hancekim.mynote.core.ui.element.quizCtaUi
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.ReaderScrollRequest
-import com.hancekim.mynote.feature.notes.quiz.QuizIntent
-import com.hancekim.mynote.feature.notes.quiz.QuizUiState
+import com.hancekim.mynote.feature.quiz.QuizIntent
+import com.hancekim.mynote.feature.quiz.QuizUiState
 import com.hancekim.mynote.feature.settings.SettingsIntent
 import com.hancekim.mynote.feature.stats.StatsIntent
 import com.hancekim.mynote.shell.FeatureFixture.Companion.CATEGORY
@@ -24,6 +24,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -31,12 +32,13 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
 /**
- * 기능 사이 신호(FM-6) 가운데 셸 ViewModel · 셸 판정을 지나는 것과 통계에서 노트 · 퀴즈로 가는 것 · 노트와 설정 ViewModel 이 같이 보는 것 —
+ * 기능 사이 신호(FM-6) 가운데 셸 ViewModel · 셸 판정을 지나는 것과 통계에서 노트 · 퀴즈로 가는 것 · 노트와 설정 · 퀴즈 ViewModel 이 같이 보는 것 —
  * 셸 · 여러 기능 모듈을 같이 보는 자리가 `:app` 이라 여기 산다(FM-13 같은 클래스 이름).
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -228,5 +230,48 @@ class FeatureSignalsTest {
 
             assertEquals(listOf(EVENT_ID), fixture.studyLog.cancelledEvents)
             assertEquals(listOf(Bookmark(NOTE_ID, addedAt = 100L)), fixture.bookmarks.entries.value)
+        }
+
+    @Test
+    fun `FM-6 퀴즈가 리더를 덮는 동안 읽기 세션이 멈춘다`() =
+        runTest {
+            val fixture = FeatureFixture(this)
+            val notes = fixture.notes()
+            val quiz = fixture.quiz()
+            fixture.subscribe(notes, quiz)
+            notes.onIntent(NotesIntent.ForegroundChanged(true))
+            notes.onIntent(NotesIntent.SelectNote(NOTE_ID))
+
+            advanceTimeBy(40_000)
+            quiz.onIntent(QuizIntent.OpenSetup(NOTE_ID, CATEGORY))
+            quiz.onIntent(QuizIntent.Generate(NOTE_ID, 3))
+            assertTrue(fixture.signals.quizCoversReader.value)
+            advanceTimeBy(100_000)
+            quiz.onIntent(QuizIntent.Dismiss)
+            advanceTimeBy(10_000)
+            notes.onIntent(NotesIntent.ForegroundChanged(false))
+            runCurrent()
+
+            assertEquals(
+                50_000L,
+                fixture.studyLog.sessions
+                    .single()
+                    .activeMillis,
+            )
+        }
+
+    @Test
+    fun `FM-6 새로 만든 노트 ViewModel 은 지난 리더 열기를 다시 처리하지 않는다`() =
+        runTest {
+            val fixture = FeatureFixture(this)
+            fixture.signals.reportReaderOpened(NOTE_ID, resumeAt = 0.4f, quiz = true)
+
+            val notes = fixture.notes()
+            val quiz = fixture.quiz()
+            fixture.subscribe(notes, quiz)
+
+            assertNull(notes.state.value.readerScrollRequest)
+            assertNull(fixture.signals.quizSetup.value)
+            assertEquals(QuizUiState.Idle, quiz.state.value.quiz)
         }
 }

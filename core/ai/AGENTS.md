@@ -99,7 +99,7 @@ NPU 는 예전 실측에서 `Backend.NPU` 가 예외 없이 CPU 로 폴백했다
 - **greedy** — `SamplerConfig(topK = 1, topP = 1.0, temperature = 0.0)`. 구조화(JSON) 출력이라 온도 0.
   **부수효과가 UX 전제다:** 같은 노트·같은 문항 수로 재시도하면 사실상 같은 출력이 나온다.
   그래서 실패 화면의 실질적 탈출구는 "같은 조건 재시도"가 아니라 **문항 수를 줄인 재시도**
-  (`NotesIntent.RetryQuizWithFewer`)다. 샘플러를 건드리면 그 전제가 바뀐다.
+  (`:feature:quiz` 의 `QuizIntent.RetryWithFewer`)다. 샘플러를 건드리면 그 전제가 바뀐다.
 - **`maxOutputToken = 340 * count`** — 문항당 토큰 예산. **220 으로 잡았을 때 해설이 문장 중간에서
   잘렸다**(커밋 `c522d30` 실측). 한국어는 토큰당 글자 수가 적다. 호출자는 3~5문항을 보내므로
   (`QuizUiState.MIN/DEFAULT/MAX_COUNT` = 3/4/5) 실제 예산은 1,020~1,700 토큰이다.
@@ -185,7 +185,7 @@ NPU 는 예전 실측에서 `Backend.NPU` 가 예외 없이 CPU 로 폴백했다
 `Conversation.sendMessage(...)` 는 suspend 가 아니라 **블로킹 JNI 호출**이다(0.17.0 시그니처 확인).
 그래서:
 
-- 호출자(`NotesViewModel`)가 60초 `withTimeoutOrNull` 로 감싸고 `quizJob.cancel()` 도 하지만,
+- 호출자(`:feature:quiz` 의 `QuizViewModel`)가 60초 `withTimeoutOrNull` 로 감싸고 `quizJob.cancel()` 도 하지만,
   그건 **코루틴만 푼다.** 네이티브 디코딩은 끝까지 돌고, 그동안 `ModelEngine` 의 `Mutex` 를
   계속 붙잡고 있다 → 취소 직후 들어온 다음 요청은 앞 생성이 끝날 때까지 **대기**한다.
   "취소했는데 여전히 느리다"의 정체가 이것이다.

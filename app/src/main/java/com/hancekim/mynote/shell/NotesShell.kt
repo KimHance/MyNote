@@ -57,10 +57,11 @@ import com.hancekim.mynote.feature.connect.screen.ConnectReadingScreen
 import com.hancekim.mynote.feature.connect.screen.ConnectRoute
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
-import com.hancekim.mynote.feature.notes.quiz.QuizOverlay
-import com.hancekim.mynote.feature.notes.quiz.QuizUiState
 import com.hancekim.mynote.feature.notes.screen.ListPanelChrome
 import com.hancekim.mynote.feature.notes.screen.ListPanelScreen
+import com.hancekim.mynote.feature.quiz.QuizOverlay
+import com.hancekim.mynote.feature.quiz.QuizUiState
+import com.hancekim.mynote.feature.quiz.component.QuizCtaCard
 import com.hancekim.mynote.feature.settings.SettingsIntent
 import com.hancekim.mynote.feature.settings.screen.ModelConfirmDialog
 import com.kyant.backdrop.backdrops.layerBackdrop
@@ -223,10 +224,15 @@ internal fun NotesShell(
                 settings = { settingsState.value },
                 onSettingsIntent = { currentIntents.value.settings(it) },
                 onEnableNotifications = { currentEnableNotifications.value() },
-                quizModelStatus = { quizModelStatus.value },
-                onQuizAction = { noteId, action ->
-                    val category = notesState.value.categoryNameOf(noteId).orEmpty()
-                    currentIntents.value.send(ctaTarget(noteId, category, action), currentConfirmDownload.value)
+                // 리더 끝 CTA — 노트는 퀴즈 모듈을 모르니 셸이 슬롯에 퀴즈 카드를 넣는다(FM-2 · FM-6 ⑤)
+                readerEndCta = { noteId ->
+                    QuizCtaCard(
+                        status = quizModelStatus.value,
+                        onAction = { action ->
+                            val category = notesState.value.categoryNameOf(noteId).orEmpty()
+                            currentIntents.value.send(ctaTarget(noteId, category, action), currentConfirmDownload.value)
+                        },
+                    )
                 },
                 hasConnection = { hasConnection.value },
                 onShellBack = { currentIntents.value.shell(ShellIntent.Back) },

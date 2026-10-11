@@ -3,7 +3,6 @@ package com.hancekim.mynote.shell
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.unit.Dp
 import androidx.navigation3.runtime.NavEntry
-import com.hancekim.mynote.core.domain.model.ModelStatus
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import com.hancekim.mynote.core.navigation.registry.destinationProvider
 import com.hancekim.mynote.core.ui.element.NotesDrafts
@@ -22,8 +21,7 @@ class ShellDestinationsTest {
             settings = { SettingsUiState() },
             onSettingsIntent = {},
             onEnableNotifications = {},
-            quizModelStatus = { ModelStatus.Missing },
-            onQuizAction = { _, _ -> },
+            readerEndCta = {},
             hasConnection = { false },
             onShellBack = {},
         )

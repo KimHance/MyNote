@@ -48,8 +48,8 @@ import com.hancekim.mynote.feature.notes.NotesViewModel
 import com.hancekim.mynote.feature.notes.RecentNoteUi
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
-import com.hancekim.mynote.feature.notes.quiz.QuizIntent
-import com.hancekim.mynote.feature.notes.quiz.QuizViewModel
+import com.hancekim.mynote.feature.quiz.QuizIntent
+import com.hancekim.mynote.feature.quiz.QuizViewModel
 import com.hancekim.mynote.feature.settings.SettingsIntent
 import com.hancekim.mynote.feature.settings.SettingsViewModel
 import kotlinx.collections.immutable.persistentListOf

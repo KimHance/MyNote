@@ -4,8 +4,8 @@ import com.hancekim.mynote.core.ui.AndroidFailureLog
 import com.hancekim.mynote.core.ui.AndroidNotesMessages
 import com.hancekim.mynote.core.ui.FailureLog
 import com.hancekim.mynote.core.ui.NotesMessages
-import com.hancekim.mynote.feature.notes.quiz.AccessibilityAutoAdvancePolicy
-import com.hancekim.mynote.feature.notes.quiz.QuizAutoAdvancePolicy
+import com.hancekim.mynote.feature.quiz.AccessibilityAutoAdvancePolicy
+import com.hancekim.mynote.feature.quiz.QuizAutoAdvancePolicy
 import com.hancekim.mynote.feature.stats.LogStatsTrace
 import com.hancekim.mynote.feature.stats.StatsTrace
 import dagger.Binds

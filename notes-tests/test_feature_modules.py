@@ -124,6 +124,65 @@ SHARED_PIECES = {
 # 외부 브라우저 찾기 — `openExternal` 과 같은 모듈 manifest 에 있어야 한다
 BROWSER_QUERY = "android.intent.category.BROWSABLE"
 
+# FM-1 — 모듈 지도의 화면 파일(기능 문서 feature-modules). 파일 이름 → 그 파일이 사는 기능 모듈. 모든 기능 떼기가 끝난 뒤의 자리다
+SCREEN_FILES = {
+    ":feature:notes": (
+        "HomeScreen.kt",
+        "BookmarksScreen.kt",
+        "ListPanelScreen.kt",
+        "NoteReaderScreen.kt",
+        "ConnectBand.kt",
+        "NotesViewModel.kt",
+        "NotesDestinations.kt",
+    ),
+    ":feature:connect": (
+        "ConnectScreen.kt",
+        "ConnectReading.kt",
+        "ConnectDialogs.kt",
+        "ConnectViewModel.kt",
+        "ConnectDestinations.kt",
+    ),
+    ":feature:settings": (
+        "SettingsScreen.kt",
+        "RepoSection.kt",
+        "ModelCard.kt",
+        "ModelDialogs.kt",
+        "DisconnectDialog.kt",
+        "TokenEdit.kt",
+        "TokenMask.kt",
+        "ConnectionLink.kt",
+        "SettingsViewModel.kt",
+        "SettingsDestinations.kt",
+    ),
+    ":feature:quiz": (
+        "QuizOverlay.kt",
+        "QuizSetupDialog.kt",
+        "QuizGeneratingScreen.kt",
+        "QuizSolveScreen.kt",
+        "QuizResultScreen.kt",
+        "QuizFailedScreen.kt",
+        "QuizCtaCard.kt",
+        "QuizQuestionUi.kt",
+        "QuizViewModel.kt",
+    ),
+    ":feature:stats": (
+        "StatsScreen.kt",
+        "StatsHistoryScreen.kt",
+        "StatsViewModel.kt",
+        "StatsDestinations.kt",
+    ),
+}
+# 노트에 남으면 안 되는 다른 기능의 파일 이름 머리. 연결 띠(`ConnectBand.kt`)는 모듈 지도에서 노트 몫이다
+OTHER_FEATURE_HEADS = ("Connect", "Settings", "Quiz", "Stats")
+NOTES_KEPT = {"ConnectBand.kt"}
+
+# FM-11 — 정의만 있고 아무도 쓰지 않는 문구 가운데 이유가 있어 두는 것(plan D47). 누가 쓰기 시작하면 시험이 목록에서 지우라고 알린다
+UNUSED_KEPT = {
+    # DESIGN.md 공통 문구 표의 공통 액션 일곱 가운데 둘 — 디자인 기준 문서가 정한 어휘라 화면이 아직 안 써도 둔다
+    "ds_action_confirm",
+    "ds_action_retry",
+}
+
 # FM-6 — 기능 사이 이동 · 신호가 지나는 타입. 모두 `:core:*` 에 하나씩
 SIGNAL_TYPES = (
     "FeatureSignals",
@@ -499,6 +558,29 @@ class FeatureModulesTest(unittest.TestCase):
         manifests = {module_of(path) for path in main_files() if path.name == "AndroidManifest.xml" and BROWSER_QUERY in path.read_text(encoding="utf-8")}
         self.assertEqual(manifests, {CORE_UI}, "외부 브라우저 찾기 `<queries>` 는 `openExternal` 이 사는 모듈에 하나")
 
+    def test_FM_1_화면은_모듈_지도대로_산다(self):
+        sources = [path for path in kotlin_main_sources() if module_of(path).startswith(":feature:")]
+        homes = {}
+        for path in sources:
+            homes.setdefault(path.name, set()).add(module_of(path))
+        # 헛통과 막이 — 모듈 지도의 화면 파일을 하나도 빠짐없이 찾는지, 다섯 모듈을 다 보는지 먼저 본다
+        self.assertEqual({module_of(path) for path in sources}, set(FEATURES))
+        wrong = [
+            f"{name}: {sorted(homes.get(name, ()))} — {home} 에만 있어야 한다"
+            for home, names in SCREEN_FILES.items()
+            for name in names
+            if homes.get(name) != {home}
+        ]
+        self.assertEqual(wrong, [])
+        left = sorted(
+            str(path.relative_to(REPO_ROOT))
+            for path in sources
+            if module_of(path) == ":feature:notes"
+            and path.name.startswith(OTHER_FEATURE_HEADS)
+            and path.name not in NOTES_KEPT
+        )
+        self.assertEqual(left, [], "노트에 연결 · 설정 · 퀴즈 · 통계 화면 파일이 남았습니다")
+
     def test_FM_6_기능_사이_신호_타입은_core_에_있다(self):
         wrong = [f"{name}: {declared_in(name)}" for name in SIGNAL_TYPES if len(declared_in(name)) != 1 or not declared_in(name)[0].startswith(":core:")]
         self.assertEqual(wrong, [])
@@ -530,6 +612,17 @@ class FeatureModulesTest(unittest.TestCase):
             if not set(homes) <= expected:
                 wrong.append(f"{name}: 정의 {homes} · 참조 {sorted(users)}")
         self.assertEqual(wrong, [])
+
+    def test_FM_11_쓰지_않는_문구가_없다(self):
+        defined, references = string_definitions(), string_references()
+        # 헛통과 막이 — 배열 참조(`R.array`)와 manifest 참조를 실제로 알아보는지 먼저 본다
+        self.assertTrue(references.get("quiz_generating_steps"), "배열 문구 참조를 읽지 못했습니다")
+        self.assertIn(":app", references.get("app_name", ()), "manifest 의 문구 참조를 읽지 못했습니다")
+        unused = sorted(name for name in defined if not references.get(name) and name not in UNUSED_KEPT)
+        self.assertEqual(unused, [], "정의만 있고 아무도 쓰지 않는 문구 — 지우거나 이유를 적어 UNUSED_KEPT 에")
+        stale = [f"{name}: 정의가 없다" for name in sorted(UNUSED_KEPT) if name not in defined]
+        stale += [f"{name}: 이제 쓰인다 — UNUSED_KEPT 에서 지우세요" for name in sorted(UNUSED_KEPT) if references.get(name)]
+        self.assertEqual(stale, [])
 
     def test_FM_11_문구_이름은_모듈을_넘어_겹치지_않는다(self):
         defined = string_definitions()

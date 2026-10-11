@@ -1,6 +1,5 @@
-package com.hancekim.mynote.feature.notes.quiz
+package com.hancekim.mynote.feature.quiz
 
-import com.hancekim.mynote.feature.notes.QuizQuestionUi
 import kotlinx.collections.immutable.persistentListOf
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

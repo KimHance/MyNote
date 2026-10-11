@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.quiz.component
+package com.hancekim.mynote.feature.quiz.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -38,9 +38,9 @@ import com.hancekim.mynote.core.designsystem.component.MyNoteIcons
 import com.hancekim.mynote.core.designsystem.component.PressIndication
 import com.hancekim.mynote.core.designsystem.component.throttledProcess
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
-import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.quiz.QuizIntent
-import com.hancekim.mynote.feature.notes.quiz.QuizUiState
+import com.hancekim.mynote.feature.quiz.QuizIntent
+import com.hancekim.mynote.feature.quiz.QuizUiState
+import com.hancekim.mynote.feature.quiz.R
 import com.kyant.backdrop.Backdrop
 import com.hancekim.mynote.core.designsystem.R as DsR
 
@@ -87,12 +87,12 @@ internal fun QuizSetupDialog(
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                     Text(
-                        text = stringResource(R.string.notes_quiz_setup_title),
+                        text = stringResource(R.string.quiz_setup_title),
                         style = type.screenTitle,
                         color = colors.text,
                     )
                     Text(
-                        text = stringResource(R.string.notes_quiz_setup_subtitle, noteTitle),
+                        text = stringResource(R.string.quiz_setup_subtitle, noteTitle),
                         style = MyNoteTheme.textStyles.caption,
                         color = colors.text3,
                         maxLines = 1,
@@ -112,12 +112,12 @@ internal fun QuizSetupDialog(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            text = stringResource(R.string.notes_quiz_setup_count_label),
+                            text = stringResource(R.string.quiz_setup_count_label),
                             style = MyNoteTheme.textStyles.caption.copy(fontWeight = FontWeight.W500),
                             color = colors.text2,
                         )
                         Text(
-                            text = stringResource(R.string.notes_quiz_setup_count_max, state.maxCount),
+                            text = stringResource(R.string.quiz_setup_count_max, state.maxCount),
                             style = type.monoSmall.copy(fontSize = 12.sp),
                             color = colors.text3,
                         )
@@ -136,7 +136,7 @@ internal fun QuizSetupDialog(
                         }
                     }
                     Text(
-                        text = stringResource(R.string.notes_quiz_setup_hint),
+                        text = stringResource(R.string.quiz_setup_hint),
                         style = type.caption,
                         color = colors.text3,
                     )
@@ -152,7 +152,7 @@ internal fun QuizSetupDialog(
                         onClick = { onIntent(QuizIntent.Dismiss) },
                     )
                     DialogPrimaryButton(
-                        text = stringResource(R.string.notes_quiz_create),
+                        text = stringResource(R.string.quiz_create),
                         onClick = throttledProcess { onIntent(QuizIntent.Generate(state.noteId, state.maxCount)) },
                     )
                 }
@@ -201,7 +201,7 @@ private fun CountSegment(
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = stringResource(R.string.notes_quiz_count, count),
+                text = stringResource(R.string.quiz_count, count),
                 style =
                     MyNoteTheme.textStyles.treeLabel.copy(
                         fontSize = 14.5f.sp,

@@ -1,9 +1,8 @@
 package com.hancekim.mynote.feature.notes
 
+import androidx.compose.runtime.Composable
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
-import com.hancekim.mynote.core.domain.model.ModelStatus
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
-import com.hancekim.mynote.core.ui.element.CtaAction
 import com.hancekim.mynote.core.ui.frame.ShellDestinations
 import com.hancekim.mynote.core.ui.frame.sceneEdgeModifier
 import com.hancekim.mynote.feature.notes.element.NotesIntent
@@ -15,13 +14,12 @@ import com.hancekim.mynote.feature.notes.screen.bookmarks.BookmarksScreen
 /**
  * 노트 기능의 목적지 — 홈 · 북마크 · 리더. 노트 상태는 화면 안에서 읽는다(다른 기능 상태가 바뀌어도 다시 그리지 않는다).
  *
- * 리더 끝 CTA 는 퀴즈 · 모델 받기 쪽 값이라 셸이 묶어 넘긴다 — [modelStatus] 와 [onQuizAction](노트 id, 행동).
+ * 리더 끝 CTA 는 퀴즈 기능의 화면이라 셸이 슬롯으로 넘긴다 — [readerEndCta](노트 id). 노트는 퀴즈 모듈을 모른다(FM-2).
  */
 fun notesDestinations(
     state: () -> NotesUiState,
     onIntent: (NotesIntent) -> Unit,
-    modelStatus: () -> ModelStatus,
-    onQuizAction: (String, CtaAction) -> Unit,
+    readerEndCta: @Composable (noteId: String) -> Unit,
 ): ShellDestinations =
     { frame ->
         destination<NotesNavKey.Home> {
@@ -68,8 +66,7 @@ fun notesDestinations(
                     contentEndPadding = frame.contentEndPadding,
                     scrollState = frame.scroll.reader,
                     contentState = frame.scroll.readerContent,
-                    onQuizAction = { action -> onQuizAction(note.id, action) },
-                    modelStatus = modelStatus(),
+                    endCta = { readerEndCta(note.id) },
                 )
             }
         }

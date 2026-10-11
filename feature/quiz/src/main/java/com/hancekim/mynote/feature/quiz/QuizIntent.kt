@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.quiz
+package com.hancekim.mynote.feature.quiz
 
 import androidx.compose.runtime.Stable
 import com.hancekim.mynote.core.common.mvi.MviEvent
