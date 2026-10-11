@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen.stats
+package com.hancekim.mynote.feature.stats.screen
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -10,8 +10,8 @@ import com.hancekim.mynote.core.designsystem.chart.ChartBarKind
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.domain.stats.BucketState
 import com.hancekim.mynote.core.domain.stats.StatsPeriod
-import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.stats.BucketLabel
+import com.hancekim.mynote.feature.stats.BucketLabel
+import com.hancekim.mynote.feature.stats.R
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -36,9 +36,9 @@ class StatsFormats internal constructor(
 
 @Composable
 fun rememberStatsFormats(): StatsFormats {
-    val date = stringResource(R.string.notes_stats_date)
-    val week = stringResource(R.string.notes_stats_bucket_week)
-    val month = stringResource(R.string.notes_stats_bucket_month)
+    val date = stringResource(R.string.stats_date)
+    val week = stringResource(R.string.stats_bucket_week)
+    val month = stringResource(R.string.stats_bucket_month)
     return remember(date, week, month) {
         StatsFormats(
             date = DateTimeFormatter.ofPattern(date, Locale.KOREAN),
@@ -77,9 +77,9 @@ internal fun outlineOnly(index: Int): Boolean = index >= PALETTE_SIZE
 internal fun timeTitle(period: StatsPeriod): String =
     stringResource(
         when (period) {
-            StatsPeriod.Week -> R.string.notes_stats_time_by_day
-            StatsPeriod.Month -> R.string.notes_stats_time_by_week
-            StatsPeriod.All -> R.string.notes_stats_time_by_month
+            StatsPeriod.Week -> R.string.stats_time_by_day
+            StatsPeriod.Month -> R.string.stats_time_by_week
+            StatsPeriod.All -> R.string.stats_time_by_month
         },
     )
 

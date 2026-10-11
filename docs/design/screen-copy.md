@@ -6,7 +6,7 @@
 | 기능 문서 | docs/spec/screen-copy.md |
 | 등급 | 문구만 |
 | 바꾼 문구 표 | docs/design/screen-copy-rows.md (이 문서가 20 KB 를 넘지 않게 나눴다) |
-| 마지막 변경 | 2026-10-12 · 셸 문구 넷의 리소스 이름을 `shell_` 로(shell-to-app — 값 그대로) |
+| 마지막 변경 | 2026-10-12 · 통계 문구의 리소스 이름을 `stats_` 로 · 한 줄 고정 자리 파일 칸을 통계 모듈 경로로(move-stats — 값 그대로) |
 
 ## 문구
 
@@ -86,8 +86,8 @@ SC-1 이 보지 않는 문구다. 이름으로만 뺀다.
 |---|---|
 | `notes_settings_preview_text` | 노트 본문 견본이라 노트의 해라체를 그대로 보인다 |
 | `ui_app_title` · `app_name` · `notes_model_name` · `ui_settings_token_placeholder` | 고유명사 · 토큰 머리 견본 |
-| `ui_bookmark_time` · `ui_bookmark_date_this_year` · `ui_bookmark_date_other_year` · `ui_bookmark_date_other_year_short` · `notes_stats_date` · `notes_stats_bucket_week` · `notes_stats_bucket_month` | 날짜 · 시각 형식 문구 |
-| `notes_bookmark_row_sub` · `notes_stats_row_sub` · `notes_stats_row_sub3` · `notes_stats_cell_desc` · `notes_stats_bars_desc` · `notes_stats_summary_desc` · `notes_stats_history_row_desc` · `notes_stats_range` · `notes_stats_retry_value` · `notes_model_bytes` · `ui_model_percent` | 자리만 있는 형식 문구 |
+| `ui_bookmark_time` · `ui_bookmark_date_this_year` · `ui_bookmark_date_other_year` · `ui_bookmark_date_other_year_short` · `stats_date` · `stats_bucket_week` · `stats_bucket_month` | 날짜 · 시각 형식 문구 |
+| `notes_bookmark_row_sub` · `stats_row_sub` · `stats_row_sub3` · `stats_cell_desc` · `stats_bars_desc` · `stats_summary_desc` · `stats_history_row_desc` · `stats_range` · `stats_retry_value` · `notes_model_bytes` · `ui_model_percent` | 자리만 있는 형식 문구 |
 
 ### 쓰지 않는 표현
 
@@ -141,11 +141,11 @@ SC-1 이 보지 않는 문구다. 이름으로만 뺀다.
 | 모델 카드 상태 · 세부 | `screen/ModelCard.kt` | `ui_model_missing` · `waiting` · `preparing` · `downloading` · `retrying` · `verifying` · `paused` · `ready` · `failed` 와 그 `_desc` · `ui_model_failed_space` · `ui_model_failed_generic` | `ui_model_failed_generic` −2 |
 | 저장소 카드 상태 라벨 | `screen/RepoSection.kt` | `ui_repo_state_none` · `check_token` · `idle` · `token` · `public` | `ui_repo_state_idle` −3 |
 | 버튼(설정 · 연결 · 모델 · 대화상자) | `screen/SettingsScreen.kt` 버튼 라벨 · 퀴즈 설정 버튼 · 연결 띠 | `notes_*` · `ui_*` 버튼 문구 스물아홉 · `ds_action_save` · `ds_action_cancel` · `notes_quiz_create` · `notes_home_connect_action` | 없음 — `notes_model_delete` 를 그대로 둔 까닭(용어 표) |
-| 통계 머리 기간 · 숫자 칸 · 구역 칩 | `screen/stats/StatsHeader.kt` | `notes_stats_period_*` · `notes_stats_num_*` · `notes_stats_unit_*` · `notes_stats_first_week` · `notes_stats_questions` · `notes_stats_section_*` | `notes_stats_questions` +0 |
-| 통계 차트 제목 · 단위 · 범례 초점 | `screen/stats/StatsSections.kt` | `notes_stats_time_by_*` · `notes_stats_accuracy_by_category` · `notes_stats_bookmark_trend` · `notes_stats_pattern` · `notes_stats_minutes_value` · `notes_stats_generated_*` · `notes_stats_focus` · `notes_stats_retry_value` · `notes_stats_bookmark_age` | 없음 |
-| 정답률 막대 행 부제 | ds `HBarRow.kt` | `notes_stats_questions` · `notes_stats_not_taken` | `notes_stats_not_taken` +0 |
-| 번호 행 부제 | ds `NumberedRow.kt` | `notes_stats_row_sub` · `row_sub3` · `stalled_at` · `retry_count` · `notes_stats_bookmark_last_opened` · `unread` · `unread_since_log` | 없음 |
-| 요약 카드 머리 · 정리 시각 | `screen/stats/SummaryCard.kt` | `notes_stats_summary_*` · `notes_stats_range*` · `notes_stats_generated_*` | 없음 |
+| 통계 머리 기간 · 숫자 칸 · 구역 칩 | stats `screen/StatsHeader.kt` | `stats_period_*` · `stats_num_*` · `stats_unit_*` · `stats_first_week` · `stats_questions` · `stats_section_*` | `stats_questions` +0 |
+| 통계 차트 제목 · 단위 · 범례 초점 | stats `screen/StatsSections.kt` | `stats_time_by_*` · `stats_accuracy_by_category` · `stats_bookmark_trend` · `stats_pattern` · `stats_minutes_value` · `stats_generated_*` · `stats_focus` · `stats_retry_value` · `stats_bookmark_age` | 없음 |
+| 정답률 막대 행 부제 | ds `HBarRow.kt` | `stats_questions` · `stats_not_taken` | `stats_not_taken` +0 |
+| 번호 행 부제 | ds `NumberedRow.kt` | `stats_row_sub` · `row_sub3` · `stalled_at` · `retry_count` · `stats_bookmark_last_opened` · `unread` · `unread_since_log` | 없음 |
+| 요약 카드 머리 · 정리 시각 | stats `screen/SummaryCard.kt` | `stats_summary_*` · `stats_range*` · `stats_generated_*` | 없음 |
 | 북마크 행 · 큰 카드 시각 | `screen/bookmarks/` | `notes_bookmark_row_sub` · `ui_bookmark_added_*` · 날짜 형식 | 없음 |
 | 목록 패널 설정 줄 · 배지 | `screen/ListPanelScreen.kt` | `ui_settings` · `notes_model_badge_*` · `notes_settings_token_check_badge` · `ui_model_percent` | 없음 |
 | 원문 보기 버튼 | ds `UnsupportedBlock.kt` | `ds_unsupported_show_raw` · `hide_raw` · `more_lines` | 없음 |
@@ -212,3 +212,4 @@ copy-apply 가 `strings.xml` 과 한 묶음으로 고친다. 인용 글자가 `s
 | 2026-10-11 | feature-modules | 처음 — 395개 전수, 바꾼 문구 56행(screen-copy-rows.md) |
 | 2026-10-11 | feature-modules | 끝말 막음 8 · 9 넓히고 10 더함 — 검수가 `맞지?` · `다시 해` 거짓 통과를 찾았다 |
 | 2026-10-12 | feature-modules | 리소스 이름만 — 셸이 `:app` 으로 가며 셸만 쓰는 내비 · 제목 문구 넷이 `notes_` 에서 `shell_` 로(값 그대로 · feature-modules 결정 15 · 16) |
+| 2026-10-12 | feature-modules | 리소스 이름 · 경로만 — 통계가 `:feature:stats` 로 가며 통계만 쓰는 문구가 `notes_stats_` 에서 `stats_` 로(값 그대로 · feature-modules 결정 15) · 한 줄 고정 자리 통계 세 행의 파일 칸이 통계 모듈 안 경로로 |

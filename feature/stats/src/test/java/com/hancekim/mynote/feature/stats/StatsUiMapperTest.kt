@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.stats
+package com.hancekim.mynote.feature.stats
 
 import com.hancekim.mynote.core.domain.model.NoteFacts
 import com.hancekim.mynote.core.domain.model.QuizAttemptSummary

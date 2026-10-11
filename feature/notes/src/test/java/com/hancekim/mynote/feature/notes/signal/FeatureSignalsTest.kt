@@ -16,11 +16,9 @@ import com.hancekim.mynote.feature.notes.FeatureFixture.Companion.NOTE_ID
 import com.hancekim.mynote.feature.notes.FeatureFixture.Companion.REPO
 import com.hancekim.mynote.feature.notes.FeatureFixture.Companion.UNREADABLE_ID
 import com.hancekim.mynote.feature.notes.element.NotesIntent
-import com.hancekim.mynote.feature.notes.element.ReaderScrollRequest
 import com.hancekim.mynote.feature.notes.quiz.QuizIntent
 import com.hancekim.mynote.feature.notes.quiz.QuizUiState
 import com.hancekim.mynote.feature.notes.settings.SettingsIntent
-import com.hancekim.mynote.feature.notes.stats.StatsIntent
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -51,54 +49,6 @@ class FeatureSignalsTest {
     fun tearDown() {
         Dispatchers.resetMain()
     }
-
-    @Test
-    fun `FM-6 통계에서 노트를 열면 리더가 열린다`() =
-        runTest {
-            val fixture = FeatureFixture(this)
-            val notes = fixture.notes()
-            val stats = fixture.stats()
-            fixture.subscribe(notes, stats)
-
-            stats.onIntent(StatsIntent.OpenNote(NOTE_ID, resumeAt = 0.4f))
-
-            assertEquals(
-                NotesNavKey.Reader(NOTE_ID),
-                fixture.navigator.stack.value
-                    .last(),
-            )
-            assertEquals(ReaderScrollRequest(NOTE_ID, 0.4f, id = 1), notes.state.value.readerScrollRequest)
-        }
-
-    @Test
-    fun `FM-6 통계 다시 풀기는 리더를 열고 퀴즈 설정을 띄운다`() =
-        runTest {
-            val fixture = FeatureFixture(this)
-            val notes = fixture.notes()
-            val quiz = fixture.quiz()
-            val stats = fixture.stats()
-            fixture.subscribe(notes, quiz, stats)
-
-            stats.onIntent(StatsIntent.RetryQuiz(NOTE_ID))
-
-            assertEquals(
-                NotesNavKey.Reader(NOTE_ID),
-                fixture.navigator.stack.value
-                    .last(),
-            )
-            assertEquals(QuizUiState.Setup(NOTE_ID), quiz.state.value.quiz)
-
-            quiz.onIntent(QuizIntent.Dismiss)
-            fixture.settle()
-            stats.onIntent(StatsIntent.RetryQuiz(UNREADABLE_ID))
-
-            assertEquals(
-                NotesNavKey.Reader(UNREADABLE_ID),
-                fixture.navigator.stack.value
-                    .last(),
-            )
-            assertEquals(QuizUiState.Idle, quiz.state.value.quiz)
-        }
 
     @Test
     fun `FM-6 연결 확인 중에는 연결 화면을 열지 않는다`() =

@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.stats
+package com.hancekim.mynote.feature.stats
 
 import androidx.lifecycle.SavedStateHandle
 import com.hancekim.mynote.core.common.throttle.Clock

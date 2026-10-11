@@ -20,10 +20,10 @@ import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.notesDestinations
 import com.hancekim.mynote.feature.notes.screen.connect.connectDestinations
-import com.hancekim.mynote.feature.notes.screen.stats.statsDestinations
 import com.hancekim.mynote.feature.notes.settings.SettingsIntent
 import com.hancekim.mynote.feature.notes.settings.SettingsUiState
 import com.hancekim.mynote.feature.notes.settings.settingsDestinations
+import com.hancekim.mynote.feature.stats.screen.statsDestinations
 
 /**
  * 등록 묶음 — 목적지 키 7개의 화면은 기능별 등록 파일이 등록한다(FM-4). 셸은 기능마다 자기 상태 · 입구만 넘긴다.

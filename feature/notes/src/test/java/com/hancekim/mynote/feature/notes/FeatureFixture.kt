@@ -1,6 +1,5 @@
 package com.hancekim.mynote.feature.notes
 
-import androidx.lifecycle.SavedStateHandle
 import com.hancekim.mynote.core.common.mvi.MviViewModel
 import com.hancekim.mynote.core.common.throttle.Clock
 import com.hancekim.mynote.core.common.throttle.WallClock
@@ -17,12 +16,9 @@ import com.hancekim.mynote.core.domain.ObserveAppliedTokenUseCase
 import com.hancekim.mynote.core.domain.ObserveBookmarksUseCase
 import com.hancekim.mynote.core.domain.ObserveConnectionUseCase
 import com.hancekim.mynote.core.domain.ObserveFontScaleUseCase
-import com.hancekim.mynote.core.domain.ObserveInsightsUseCase
 import com.hancekim.mynote.core.domain.ObserveModelStatusUseCase
 import com.hancekim.mynote.core.domain.ObserveStudyLogEnabledUseCase
-import com.hancekim.mynote.core.domain.ObserveStudyStatsUseCase
 import com.hancekim.mynote.core.domain.ObserveSyncRunsUseCase
-import com.hancekim.mynote.core.domain.ObserveWeeklyHistoryUseCase
 import com.hancekim.mynote.core.domain.RecordBookmarkEventUseCase
 import com.hancekim.mynote.core.domain.RecordQuizAttemptUseCase
 import com.hancekim.mynote.core.domain.RecordReadSessionUseCase
@@ -74,7 +70,6 @@ import com.hancekim.mynote.core.domain.repository.QuizModelSource
 import com.hancekim.mynote.core.domain.repository.SettingsRepository
 import com.hancekim.mynote.core.domain.repository.StudyLogRepository
 import com.hancekim.mynote.core.domain.repository.TokenRepository
-import com.hancekim.mynote.core.domain.stats.StatsPeriod
 import com.hancekim.mynote.core.navigation.Navigator
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import com.hancekim.mynote.core.ui.FailureLog
@@ -83,8 +78,6 @@ import com.hancekim.mynote.core.ui.signal.FeatureSignals
 import com.hancekim.mynote.core.ui.signal.LastSyncHolder
 import com.hancekim.mynote.feature.notes.quiz.QuizViewModel
 import com.hancekim.mynote.feature.notes.settings.SettingsViewModel
-import com.hancekim.mynote.feature.notes.stats.StatsTrace
-import com.hancekim.mynote.feature.notes.stats.StatsViewModel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -98,7 +91,7 @@ import kotlinx.coroutines.test.advanceTimeBy
 import java.time.LocalDate
 
 /**
- * 기능 ViewModel 셋(+ 통계)을 같은 Navigator · 신호 계약 · 마지막 동기화 홀더로 세운다 — 앱의 싱글턴과 같은 모양.
+ * 기능 ViewModel 셋(노트 · 설정 · 퀴즈)을 같은 Navigator · 신호 계약 · 마지막 동기화 홀더로 세운다 — 앱의 싱글턴과 같은 모양.
  * 가짜 저장소로 실제 UseCase 를 만들고, 시계는 runTest 스케줄러에 묶는다.
  */
 internal class FeatureFixture(
@@ -179,22 +172,6 @@ internal class FeatureFixture(
             signals = signals,
             wallClock = wallClock,
             failureLog = failureLog,
-        )
-
-    fun stats() =
-        StatsViewModel(
-            savedStateHandle = SavedStateHandle(),
-            observeStudyStats = ObserveStudyStatsUseCase(studyLog, notesRepo, bookmarks),
-            observeStudyLogEnabled = ObserveStudyLogEnabledUseCase(FakeSettings),
-            observeInsights = ObserveInsightsUseCase(FakeInsights, FakeScheduler),
-            observeHistory = ObserveWeeklyHistoryUseCase(studyLog, FakeInsights, FakeScheduler),
-            observeModelStatus = ObserveModelStatusUseCase(models),
-            navigator = navigator,
-            signals = signals,
-            work = UnconfinedTestDispatcher(scope.testScheduler),
-            trace = SilentTrace,
-            clock = clock,
-            wallClock = wallClock,
         )
 
     /** 상태를 구독하고 첫 동기화 · 쓰로틀 창이 지나도록 기다린다. */
@@ -436,17 +413,6 @@ internal class FeatureFixture(
         override fun cancel() = Unit
 
         override fun state(): Flow<InsightWorkState> = flowOf(InsightWorkState.Idle)
-    }
-
-    private object SilentTrace : StatsTrace {
-        override fun started(period: StatsPeriod) = Unit
-
-        override fun computed(
-            period: StatsPeriod,
-            tookMillis: Long,
-        ) = Unit
-
-        override fun failed(cause: Throwable) = Unit
     }
 
     object FakeMessages : NotesMessages {

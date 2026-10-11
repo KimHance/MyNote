@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen.stats
+package com.hancekim.mynote.feature.stats.screen
 
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily

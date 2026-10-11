@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen.stats
+package com.hancekim.mynote.feature.stats.screen
 
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
@@ -58,10 +58,10 @@ import com.hancekim.mynote.core.designsystem.component.fadingEdges
 import com.hancekim.mynote.core.designsystem.motion.MyNoteEasing
 import com.hancekim.mynote.core.designsystem.motion.rememberReduceMotion
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
-import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.stats.HistoryWeekUi
-import com.hancekim.mynote.feature.notes.stats.StatsIntent
-import com.hancekim.mynote.feature.notes.stats.StatsViewModel
+import com.hancekim.mynote.feature.stats.HistoryWeekUi
+import com.hancekim.mynote.feature.stats.R
+import com.hancekim.mynote.feature.stats.StatsIntent
+import com.hancekim.mynote.feature.stats.StatsViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import java.time.LocalDate
@@ -117,7 +117,7 @@ internal fun StatsHistoryScreen(
             ) {
                 item(key = INTRO_KEY) {
                     Text(
-                        text = stringResource(R.string.notes_stats_history_intro),
+                        text = stringResource(R.string.stats_history_intro),
                         style = MyNoteTheme.textStyles.caption.copy(fontSize = 13.sp),
                         color = MyNoteTheme.colors.text2,
                         modifier = Modifier.padding(start = 2.dp, bottom = 6.dp),
@@ -151,22 +151,22 @@ private fun HistoryRow(
     val headline = week.headline
     val range = rangeText(week.weekStart, week.weekStart.plusDays(DAYS_IN_WEEK - 1), formats)
     val numbers =
-        week.accuracy?.let { stringResource(R.string.notes_stats_history_line, week.notes, week.minutes, it) }
-            ?: stringResource(R.string.notes_stats_history_line_noquiz, week.notes, week.minutes)
-    val focusText = week.focus?.let { stringResource(R.string.notes_stats_focus_desc, it) }
-    val generatedText = week.generatedOn?.let { stringResource(R.string.notes_stats_generated_date, formats.date(it)) }
+        week.accuracy?.let { stringResource(R.string.stats_history_line, week.notes, week.minutes, it) }
+            ?: stringResource(R.string.stats_history_line_noquiz, week.notes, week.minutes)
+    val focusText = week.focus?.let { stringResource(R.string.stats_focus_desc, it) }
+    val generatedText = week.generatedOn?.let { stringResource(R.string.stats_generated_date, formats.date(it)) }
     val opened = if (expanded) listOfNotNull(week.detail, focusText, generatedText) else emptyList()
     val description =
         (
             listOf(
                 stringResource(
-                    R.string.notes_stats_history_row_desc,
+                    R.string.stats_history_row_desc,
                     range,
-                    headline ?: stringResource(R.string.notes_stats_history_none),
+                    headline ?: stringResource(R.string.stats_history_none),
                 ),
             ) + opened + numbers
         ).joinToString(SEPARATOR)
-    val state = stringResource(if (expanded) R.string.notes_stats_expanded else R.string.notes_stats_collapsed)
+    val state = stringResource(if (expanded) R.string.stats_expanded else R.string.stats_collapsed)
     val turn by animateFloatAsState(
         targetValue = if (expanded) HALF_TURN else 0f,
         animationSpec = tween(if (reduceMotion) 0 else CHEVRON_MILLIS),
@@ -200,7 +200,7 @@ private fun HistoryRow(
                 if (week.current) {
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = stringResource(R.string.notes_stats_period_week),
+                        text = stringResource(R.string.stats_period_week),
                         style = MyNoteTheme.textStyles.caption.copy(fontSize = 11.sp),
                         color = colors.accent,
                         modifier =
@@ -224,7 +224,7 @@ private fun HistoryRow(
                 when {
                     headline == null -> {
                         Text(
-                            text = stringResource(R.string.notes_stats_history_none),
+                            text = stringResource(R.string.stats_history_none),
                             style = MyNoteTheme.textStyles.bodySmall,
                             color = colors.text2,
                             modifier = Modifier.padding(top = 6.dp),
@@ -293,7 +293,7 @@ private fun ExpandedSummary(
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 10.dp)) {
             week.focus?.let {
                 Text(
-                    text = stringResource(R.string.notes_stats_focus),
+                    text = stringResource(R.string.stats_focus),
                     style = MyNoteTheme.textStyles.caption.copy(fontSize = 12.sp),
                     color = colors.text3,
                 )
@@ -303,7 +303,7 @@ private fun ExpandedSummary(
             Spacer(Modifier.weight(1f))
             week.generatedOn?.let {
                 Text(
-                    text = stringResource(R.string.notes_stats_generated_date, formats.date(it)),
+                    text = stringResource(R.string.stats_generated_date, formats.date(it)),
                     style = MyNoteTheme.textStyles.monoSmall.copy(fontSize = 12.sp, fontWeight = FontWeight.W400),
                     color = colors.text3,
                 )
