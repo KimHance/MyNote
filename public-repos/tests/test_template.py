@@ -11,7 +11,8 @@ import support
 TEMPLATE = support.PUBLIC / "notes-template"
 WORKFLOWS = TEMPLATE / ".github" / "workflows"
 README = TEMPLATE / "README.md"
-APP_STRINGS = support.REPO_ROOT / "feature" / "notes" / "src" / "main" / "res" / "values" / "strings.xml"
+# 앱 문구는 모듈을 옮겨도 따라가게 모든 모듈의 strings.xml 에서 이름으로 찾는다(feature-modules FM-12)
+APP_MODULES = ("app", "core", "feature")
 KIT_TOOL = support.load_module("kit_tool_for_template", support.KIT_TOOL)
 
 README_SECTIONS = ["시작하기", "노트 추가", "비공개로 만들었다면", "형식", "문제 해결"]
@@ -57,9 +58,24 @@ def readme_sections(text):
     return {name: "\n".join(lines) for name, lines in sections.items()}
 
 
+def app_strings_files():
+    for top in APP_MODULES:
+        for path in (support.REPO_ROOT / top).rglob("strings.xml"):
+            parts = path.relative_to(support.REPO_ROOT).parts
+            if "build" not in parts and parts[-5:-1] == ("src", "main", "res", "values"):
+                yield path
+
+
 def app_string(name):
-    root = ElementTree.parse(APP_STRINGS).getroot()
-    return next(node.text for node in root.iter("string") if node.get("name") == name)
+    found = [
+        node.text
+        for path in app_strings_files()
+        for node in ElementTree.parse(path).getroot().iter("string")
+        if node.get("name") == name
+    ]
+    if len(found) != 1:
+        raise AssertionError(f"{name}: 정의 {len(found)}개")
+    return found[0]
 
 
 class TemplateTest(support.TempCase):

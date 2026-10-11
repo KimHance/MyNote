@@ -6,14 +6,12 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SOURCE_ROOTS = ("app", "core", "feature")
 SKIPPED_DIRS = {"build", ".gradle", ".kotlin"}
-FEATURE_STRINGS = REPO_ROOT / "feature" / "notes" / "src" / "main" / "res" / "values" / "strings.xml"
-APP_STRINGS = REPO_ROOT / "app" / "src" / "main" / "res" / "values" / "strings.xml"
-FEATURE_SOURCES = REPO_ROOT / "feature" / "notes" / "src" / "main" / "java" / "com" / "hancekim" / "mynote" / "feature" / "notes"
 
 APP_TITLE = "MyNote"
 TEMPORARY_NAME = "공부 기록"
 WORDMARK_SPELLING = re.compile(r"mynote")
-TITLE_USERS = ("shell/NotesShell.kt", "screen/connect/ConnectReading.kt")
+# 홈 상단 바와 읽는 중 화면 — 모듈을 옮겨도 따라가게 파일 이름으로 찾는다(feature-modules FM-12)
+TITLE_USERS = ("NotesShell.kt", "ConnectReading.kt")
 OTHER_TITLES = {
     "notes_settings": "설정",
     "notes_nav_bookmark": "북마크",
@@ -25,6 +23,26 @@ OTHER_TITLES = {
 def strings_of(path):
     root = ET.parse(path).getroot()
     return {node.get("name"): "".join(node.itertext()) for node in root.iter("string")}
+
+
+def is_main_strings(path):
+    return path.name == "strings.xml" and path.relative_to(REPO_ROOT).parts[-5:-1] == ("src", "main", "res", "values")
+
+
+def defined_strings(name):
+    """모든 모듈의 `strings.xml` 에서 이름으로 찾은 값. 정의는 정확히 하나여야 한다."""
+    found = [strings[name] for strings in map(strings_of, filter(is_main_strings, app_sources())) if name in strings]
+    if len(found) != 1:
+        raise AssertionError(f"{name}: 정의 {len(found)}개")
+    return found[0]
+
+
+def main_source(file_name):
+    """모든 모듈의 `src/main` 에서 파일 이름으로 찾은 소스 하나."""
+    found = [path for path in app_sources() if path.name == file_name and "main" in path.relative_to(REPO_ROOT).parts]
+    if len(found) != 1:
+        raise AssertionError(f"{file_name}: {len(found)}개")
+    return found[0]
 
 
 def app_sources():
@@ -39,14 +57,14 @@ def app_sources():
 
 class BrandTitleTest(unittest.TestCase):
     def test_BR_7_홈과_읽는_중_화면_제목은_MyNote_다(self):
-        self.assertEqual(strings_of(FEATURE_STRINGS)["notes_app_title"], APP_TITLE)
-        for rel in TITLE_USERS:
-            with self.subTest(rel):
-                self.assertIn("R.string.notes_app_title", (FEATURE_SOURCES / rel).read_text(encoding="utf-8"))
+        self.assertEqual(defined_strings("notes_app_title"), APP_TITLE)
+        for file_name in TITLE_USERS:
+            with self.subTest(file_name):
+                self.assertIn("R.string.notes_app_title", main_source(file_name).read_text(encoding="utf-8"))
 
     def test_BR_7_앱_소스에_임시_이름이_없다(self):
         sources = list(app_sources())
-        self.assertIn(FEATURE_STRINGS, sources)
+        self.assertGreaterEqual(len([path for path in sources if is_main_strings(path)]), 2)
         found = [
             str(path.relative_to(REPO_ROOT))
             for path in sources
@@ -65,11 +83,10 @@ class BrandTitleTest(unittest.TestCase):
         self.assertEqual(found, [])
 
     def test_BR_7_다른_화면_제목과_런처_이름은_그대로다(self):
-        strings = strings_of(FEATURE_STRINGS)
         for name, value in OTHER_TITLES.items():
             with self.subTest(name):
-                self.assertEqual(strings[name], value)
-        self.assertEqual(strings_of(APP_STRINGS)["app_name"], APP_TITLE)
+                self.assertEqual(defined_strings(name), value)
+        self.assertEqual(defined_strings("app_name"), APP_TITLE)
 
 
 if __name__ == "__main__":

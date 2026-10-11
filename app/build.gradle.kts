@@ -96,7 +96,12 @@ dependencies {
     implementation(projects.core.data)
     implementation(projects.core.network)
     implementation(projects.core.database)
+    implementation(projects.core.ui)
     implementation(projects.feature.notes)
+    implementation(projects.feature.connect)
+    implementation(projects.feature.settings)
+    implementation(projects.feature.quiz)
+    implementation(projects.feature.stats)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime)
