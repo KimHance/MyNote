@@ -5,7 +5,7 @@
 | 기능 | repo-connect |
 | 기능 문서 | docs/spec/repo-connect.md (기준 a5eb8fb) · docs/spec/sync.md SY-5 · docs/spec/note-template.md 머리 |
 | 등급 | 화면 |
-| 마지막 변경 | 2026-10-08 · 문서 위생 — 정한 것 · 확인 칸의 run 사진 경로를 걷음(`brand` 결정 7) |
+| 마지막 변경 | 2026-10-12 · 리소스 이름만 — 브라우저 없음 스낵바 문구 이름 `ui_token_browser_missing`(feature-modules move-core-ui) |
 
 기준: `DESIGN.md` 토큰 · 설정 토큰 카드 · 북마크 빈 상태 문법. 새 색 없음. 가짜 예시만. **차수 1 은 새 컴포넌트 없음, 차수 2 는 새 조립 둘**: 입구 구역(번호 단계 목록 + 보조 외부 버튼) · RC-9 상자 + 버튼 줄(낭독 영역 밖). 차수 2 의 시안은 `r2/`, 장 설명은 `r2/README.md`.
 
@@ -38,7 +38,7 @@
 | 크기 | 위 여백 루트 compact 28 · 높이 Compact 20 · 넓은 창 72 · 쌓은 12, 간격 24(높이 Compact 16), 한 단 560dp — **입구 유무와 무관, 코드 값 그대로**(입구 없는 빌드 · RC-9 화면이 전과 같아야 함 · `r2/README.md` §5 도 맞춤). 글 줄바꿈은 어절 보존(`KeepWordsText`) | `ConnectScreen.kt` · `KeepWords.kt` · dr-fit #4 |
 | 크기 | **C2** 가로 두 단(높이 Compact + 콘텐츠 폭 ≥ 640, `BoxWithConstraints`): **H1 은 왼쪽 단 맨 위**, 오른쪽 입구는 맨 위에서 시작 · 위 20(332dp 폴백 없음) · 아래 8 · 단 간격 24 · 단 372 · **두 단 폭 상한 800**(`CONTENT_MAX_WIDTH` 560 아님) · 세로 예산은 상태 표시줄 포함 기준 | dr-impl 2 · D26 · D27 · D28 · cv-entry |
 | 입력 | **C3** `entryEmphasis` 출력은 소비처(가로 두 단 허용 — 루트만)에 묶는다. A 에서 루트 · 쌓은 화면의 입구 모양은 같다(차이는 H1 대 상단 바 · 여백뿐). **C4** 새 버튼 둘(`저장소 만들기` · `형식 안내 보기`)은 보이는 높이 40 유지 · 터치 48dp(D25 · 설정 `토큰 만들기` 는 범위 밖) | dr-impl 3 · 4 · D25 |
-| 입력 | 입구 버튼은 앱 상태 · 입력 · 요청을 안 바꿈. 클립보드 읽기 · 붙여넣기 버튼 · 딥링크 없음. 브라우저 없으면 스낵바(`notes_token_browser_missing` 재사용) | 결정 53 · RC-25 ⑥ ⑧ |
+| 입력 | 입구 버튼은 앱 상태 · 입력 · 요청을 안 바꿈. 클립보드 읽기 · 붙여넣기 버튼 · 딥링크 없음. 브라우저 없으면 스낵바(`ui_token_browser_missing` 재사용) | 결정 53 · RC-25 ⑥ ⑧ |
 | 입력 | 단계 목록은 TalkBack 이 순서대로 읽고 번호는 장식. 버튼 이름에 외부 브라우저 열림. 브라우저를 다녀와도 링크 · 토큰 입력은 남음. GitHub 앱이 `…/generate` 를 가로챌 수 있음(열린 질문 19) | RC-25 ⑧ · rv-ui |
 | 데이터 | 연결 정보 · 마지막 결과 종류 · 지울 개수 N · M · 토큰 마스크. 템플릿 값 = 빌드 값 `owner/repo` 하나(비면 입구 · 길 없음 · 입구를 보려면 값을 채운 빌드). 시안 값은 가짜 | 결정 54 · RC-26 |
 
@@ -188,3 +188,4 @@
 | 2026-10-06 | notes-template · 고침 2 | 구현 값 맞춤 — C2 상한 800 · 가로 H1 왼쪽 · 정한 것 8–10 · 확인 행 · DESIGN §15 한 줄 |
 | 2026-10-06 | notes-template · 고침 1 | 후보 A 확정(D22) · 여백 값 = 코드 · 가로 `또는` 뺌(D26) · 정한 것 7 · C1–C4 |
 | 2026-10-08 | brand-identity | 문서 위생(`brand` 결정 7): 정한 것 · 확인 칸의 run 사진 경로를 걷음. 확인 내용 · 결정은 그대로 |
+| 2026-10-12 | feature-modules · move-core-ui | 리소스 이름만 — `notes_token_browser_missing` → `ui_token_browser_missing`(문구가 `:core:ui` 로 옮겨 감 · `feature-modules` FM-11 · FM-12). 값 · 뜻은 그대로 |

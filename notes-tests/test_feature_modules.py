@@ -111,6 +111,13 @@ SHARED_PIECES = {
         "ShellFrame",
         "ShellDestinations",
         "sceneEdgeModifier",
+        "NotesMessages",
+        "AndroidNotesMessages",
+        "FailureLog",
+        "AndroidFailureLog",
+        "NoticeUi",
+        "FontScale.toUi",
+        "MyNoteFontScale.toDomain",
     ),
     ":core:navigation": ("openReaderCommand", "switchTabCommand", "NotesTab"),
 }
@@ -134,10 +141,19 @@ SIGNAL_TYPES = (
 # FM-11 — 결정 15. 공통 액션 문구는 참조 수와 상관없이 design-system 에 산다
 COMMON_ACTION = "ds_action_"
 SHARED_STRING_HOMES = (CORE_UI, ":core:design-system")
+# 아직 `:feature:notes` 한 모듈이 쓰지만 기능을 다 떼면 둘 이상이 쓰는 문구 — 공용 조각과 같이 `:core:ui` 로 먼저 옮겼다.
+# 실제로 둘 이상이 쓰게 되면 시험이 이 목록에서 지우라고 알린다
+PLACED_AHEAD = {
+    "ui_settings": "노트 목록 패널 · 셸 상단 바",
+    "ui_model_percent": "셸 알약 · 노트 목록 패널 · 설정 모델 카드",
+    "ui_token_browser_missing": "연결 · 설정",
+    "ui_token_classic_warn": "연결 · 설정",
+    "ui_token_verifying": "연결 · 설정",
+}
 STRING_REFERENCE = re.compile(r"\b\w*R\.(?:string|array|plurals)\.(\w+)")
 XML_STRING_REFERENCE = re.compile(r"@(?:string|array|plurals)/(\w+)")
 # 맨 윗줄 공개 · 모듈 선언 — `private` 는 같은 이름의 파일 안 도우미라 조각이 아니다
-DECLARATION = r"^(?:(?:public|internal)\s+)?(?:(?:const|data|enum|sealed|inline)\s+)*(?:fun|val|var|class|interface|object|typealias)\s+(?:<[^>]+>\s+)?"
+DECLARATION = r"^(?:(?:public|internal)\s+)?(?:(?:const|data|enum|sealed|inline|fun)\s+)*(?:fun|val|var|class|interface|object|typealias)\s+(?:<[^>]+>\s+)?"
 
 INCLUDE = re.compile(r'include\(\s*"(:[\w:-]+)"\s*\)')
 PROJECT_PATH = re.compile(r'project\(\s*"(:[\w:-]+)"\s*\)')
@@ -444,6 +460,12 @@ class FeatureModulesTest(unittest.TestCase):
         wrong = []
         for name, homes in sorted(defined.items()):
             users = references.get(name, set())
+            if name in PLACED_AHEAD:
+                if len(users) > 1:
+                    wrong.append(f"{name}: 이제 둘 이상이 쓴다 — PLACED_AHEAD 에서 지우세요")
+                elif set(homes) != {CORE_UI}:
+                    wrong.append(f"{name}: 정의 {homes} — 앞당겨 옮긴 문구는 `:core:ui` 에")
+                continue
             if name.startswith(COMMON_ACTION):
                 expected = {":core:design-system"}
             elif len(users) == 1:

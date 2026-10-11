@@ -11,8 +11,6 @@
     <string name="notes_nav_bookmark">북마크</string>
     <string name="notes_nav_stats">통계</string>
 
-    <string name="notes_bookmark_added">북마크에 추가했습니다</string>
-    <string name="notes_bookmark_removed">북마크를 해제했습니다</string>
     <string name="notes_bookmark_remove">북마크 해제</string>
     <string name="notes_bookmark_latest">가장 최근</string>
     <string name="notes_bookmark_earlier">그전에 모은 노트</string>
@@ -24,10 +22,6 @@
     <string name="notes_bookmark_empty_action">홈에서 노트 고르기</string>
 
     <string name="notes_exit_hint">한 번 더 누르면 종료합니다</string>
-    <string name="notes_sync_failed">노트를 불러오지 못했습니다. 연결을 확인하세요.</string>
-    <string name="notes_sync_applied">노트를 불러왔습니다 · %1$s</string>
-    <string name="notes_sync_changed">%1$d개 바뀜</string>
-    <string name="notes_sync_deleted">%1$d개 지움</string>
 
     <string name="notes_quiz_cta_title">이 노트로 퀴즈 풀기</string>
 
@@ -58,7 +52,6 @@
     <string name="notes_quiz_auto_next">다음 문제로</string>
     <string name="notes_quiz_see_result">결과 보기</string>
     <string name="notes_quiz_back_to_note">노트로 돌아가기</string>
-    <string name="notes_quiz_abandoned">퀴즈를 그만뒀습니다</string>
 
     <string name="notes_quiz_result_perfect_title">다 맞혔습니다</string>
     <string name="notes_quiz_result_perfect_body">다른 노트로 퀴즈를 풀어 보세요.</string>
@@ -76,7 +69,6 @@
     <string name="notes_quiz_retry">다시 만들기</string>
     <string name="notes_quiz_retry_fewer">최대 %1$d문제로 줄여서 다시</string>
 
-    <string name="notes_settings">설정</string>
     <string name="notes_settings_token_check_badge">토큰 확인</string>
     <string name="notes_settings_token_change_a11y">토큰 바꾸기</string>
     <string name="notes_settings_token_tail_a11y">끝자리 %1$s</string>
@@ -92,13 +84,10 @@
     <string name="notes_settings_token_clear">지우기</string>
     <string name="notes_settings_token_enter">토큰 입력</string>
     <string name="notes_settings_token_local_only">이 기기에만 저장됩니다.</string>
-    <string name="notes_settings_token_saved">토큰을 저장했습니다</string>
-    <string name="notes_settings_token_cleared">토큰을 지웠습니다</string>
 
     <string name="notes_settings_section_model">퀴즈 모델</string>
     <string name="notes_model_name">Gemma 4 E2B</string>
     <string name="notes_model_bytes">%1$s / %2$s GB</string>
-    <string name="notes_model_percent">%1$d%%</string>
     <string name="notes_model_cancel">취소</string>
     <string name="notes_model_discard_partial">받던 파일 지우기</string>
     <string name="notes_model_delete">삭제</string>
@@ -109,10 +98,6 @@
     <string name="notes_model_confirm_later">나중에</string>
     <string name="notes_model_delete_title">퀴즈 모델을 삭제할까요?</string>
     <string name="notes_model_delete_body">저장 공간 2.6GB를 비웁니다. 퀴즈를 다시 만들려면 모델을 새로 받아야 합니다.</string>
-    <string name="notes_model_deleted">퀴즈 모델을 삭제했습니다</string>
-    <string name="notes_model_paused_snack">받기를 멈췄습니다. 나중에 이어 받을 수 있습니다</string>
-    <string name="notes_model_cancelled_snack">받기를 취소했습니다</string>
-    <string name="notes_model_discarded_snack">받던 파일을 지웠습니다</string>
     <string name="notes_model_badge_missing">모델 없음</string>
     <string name="notes_model_badge_failed">모델 오류</string>
     <string name="notes_settings_section_studylog">학습 기록</string>
@@ -123,7 +108,6 @@
     <string name="notes_settings_studylog_clear_title">학습 기록을 지울까요?</string>
     <string name="notes_settings_studylog_clear_body">읽은 기록, 퀴즈 결과, 북마크 기록과 주간 요약을 모두 지웁니다. 되돌릴 수 없습니다.</string>
     <string name="notes_settings_studylog_clear_confirm">지우기</string>
-    <string name="notes_settings_studylog_cleared">학습 기록을 지웠습니다</string>
     <string name="notes_stats_intro_empty">노트를 읽거나 퀴즈를 풀면 여기에 기록이 쌓입니다.</string>
     <string name="notes_stats_log_off">학습 기록이 꺼져 있습니다. 설정에서 다시 켤 수 있습니다.</string>
     <string name="notes_stats_date">M월 d일</string>
@@ -236,7 +220,6 @@
     <string name="notes_connect_err_no_list">이 저장소에는 노트 목록이 없습니다. 이 앱은 노트 목록이 있는 저장소만 읽을 수 있습니다.</string>
     <string name="notes_connect_err_no_list_fresh">방금 템플릿으로 만들었다면 잠시 뒤 다시 연결하세요.</string>
 
-    <string name="notes_token_browser_missing">브라우저를 열지 못했습니다. 브라우저 앱이 있는지 확인하세요.</string>
     <string name="notes_entry_title">저장소가 아직 없다면</string>
     <string name="notes_entry_desc">템플릿으로 내 노트 저장소를 만들 수 있습니다.</string>
     <string name="notes_entry_step_1">GitHub에서 템플릿으로 저장소를 만듭니다.</string>
@@ -248,8 +231,6 @@
     <string name="notes_entry_guide">형식 안내 보기</string>
     <string name="notes_entry_guide_a11y">형식 안내 보기, 외부 브라우저에서 열립니다</string>
     <string name="notes_entry_or">또는</string>
-    <string name="notes_token_classic_warn">이 토큰은 권한이 넓습니다. 이 저장소 하나만 읽는 세분화된 토큰을 권합니다.</string>
-    <string name="notes_token_verifying">토큰 확인 중</string>
     <string name="notes_token_verifying_action">확인 중</string>
     <string name="notes_token_err_limit_desc">토큰을 입력하면 한도가 늘어납니다. 입력한 뒤 다시 연결하세요.</string>
 
@@ -278,7 +259,6 @@
     <string name="notes_repo_last_fail">최근 불러오기 실패 · %1$s</string>
     <string name="notes_repo_change">저장소 바꾸기</string>
     <string name="notes_repo_disconnect">연결 끊기</string>
-    <string name="notes_repo_disconnect_failed">연결을 끊지 못했습니다. 잠시 뒤 다시 시도하세요.</string>
 
     <string name="notes_dialog_switch_title">저장소를 바꿀까요?</string>
     <string name="notes_dialog_switch_body">이 기기의 노트 %1$d개와 북마크 %2$d개를 지우고 새 저장소의 노트로 바꿉니다. 학습 기록은 남습니다.</string>

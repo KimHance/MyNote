@@ -115,7 +115,7 @@ internal fun ConnectRoute(
     val draft = drafts.connectToken
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val browserMissing = stringResource(R.string.notes_token_browser_missing)
+    val browserMissing = stringResource(UiR.string.ui_token_browser_missing)
     val openOrNotify: (String) -> Unit = { url ->
         if (!openExternal(context, url)) scope.launch { snackbarHostState.showSnackbar(browserMissing) }
     }
@@ -527,10 +527,10 @@ private fun TokenCard(
                 onDone = onDone,
             )
             panel.failure?.let { NoticeBox(text = stringResource(tokenFailureRes(it))) }
-            if (draft.isClassic) NoticeBox(text = stringResource(R.string.notes_token_classic_warn))
+            if (draft.isClassic) NoticeBox(text = stringResource(UiR.string.ui_token_classic_warn))
             if (probing) {
                 VerifyingLine(
-                    text = stringResource(R.string.notes_token_verifying),
+                    text = stringResource(UiR.string.ui_token_verifying),
                     trailing = {
                         QuietButton(
                             text = stringResource(DsR.string.ds_action_cancel),

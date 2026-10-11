@@ -30,7 +30,7 @@ data class RepoCardUi(
     @param:StringRes val tokenNone: Int?,
 )
 
-fun syncFailureKindOf(cause: Throwable?): SyncFailureKind =
+internal fun syncFailureKindOf(cause: Throwable?): SyncFailureKind =
     when (cause) {
         is SyncFailure.Offline -> SyncFailureKind.Offline
         is SyncFailure.TokenRejected -> SyncFailureKind.TokenRejected

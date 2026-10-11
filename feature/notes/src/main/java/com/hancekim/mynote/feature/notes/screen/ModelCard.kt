@@ -179,7 +179,7 @@ private fun ModelProgress(progress: ModelProgressUi) {
                     modifier = Modifier.weight(1f),
                 )
                 Text(
-                    text = stringResource(R.string.notes_model_percent, progress.percent),
+                    text = stringResource(UiR.string.ui_model_percent, progress.percent),
                     style = MyNoteTheme.textStyles.monoSmall,
                     color = colors.text3,
                 )

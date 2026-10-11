@@ -381,7 +381,7 @@ private fun rememberNotesHeaderSlot(
 ): @Composable () -> Unit {
     val currentMenu = rememberUpdatedState(onMenu)
     val homeTitle = stringResource(UiR.string.ui_app_title)
-    val settingsTitle = stringResource(R.string.notes_settings)
+    val settingsTitle = stringResource(UiR.string.ui_settings)
     val bookmarksTitle = stringResource(R.string.notes_nav_bookmark)
     val statsTitle = stringResource(R.string.notes_nav_stats)
     val historyTitle = stringResource(R.string.notes_stats_history_title)

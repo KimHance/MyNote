@@ -46,4 +46,4 @@ class NotesDrafts {
     }
 }
 
-fun isClassicToken(token: String): Boolean = token.trim().startsWith(CLASSIC_PREFIX)
+internal fun isClassicToken(token: String): Boolean = token.trim().startsWith(CLASSIC_PREFIX)

@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.hancekim.mynote.core.designsystem.block.NoteContentState
 import com.hancekim.mynote.core.designsystem.block.rememberNoteContentState
 
-enum class ScrollTarget {
+internal enum class ScrollTarget {
     Home,
     Bookmarks,
     Stats,
@@ -27,7 +27,7 @@ enum class ScrollTarget {
 }
 
 @Stable
-class NotesScrollState(
+class NotesScrollState internal constructor(
     val homeGrid: LazyGridState,
     val bookmarksList: LazyListState,
     val statsList: LazyListState,

@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes
+package com.hancekim.mynote.core.ui
 
 import android.util.Log
 import javax.inject.Inject

@@ -138,7 +138,7 @@ fun DestructiveButton(
 }
 
 @Composable
-fun SolidDestructiveButton(
+internal fun SolidDestructiveButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,

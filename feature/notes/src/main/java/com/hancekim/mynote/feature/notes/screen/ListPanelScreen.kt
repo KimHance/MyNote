@@ -67,6 +67,7 @@ import com.hancekim.mynote.feature.notes.screen.connect.ConnectBand
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.flow.filter
+import com.hancekim.mynote.core.ui.R as UiR
 
 /** 목록 패널이 다른 기능의 상태에서 받는 값 — 셸이 묶어 넘긴다. */
 @Immutable
@@ -242,7 +243,7 @@ private fun SettingsRow(
             modifier = Modifier.size(20.dp),
         )
         Text(
-            text = stringResource(R.string.notes_settings),
+            text = stringResource(UiR.string.ui_settings),
             style = MyNoteTheme.textStyles.treeLabel.copy(fontWeight = FontWeight.W500),
             color = tint,
             modifier = Modifier.weight(1f),
@@ -278,7 +279,7 @@ private fun SettingsProgress(
         StatusRing(progress = fraction, tone = tone, diameter = 16.dp)
         if (fraction != null) {
             Text(
-                text = stringResource(R.string.notes_model_percent, (fraction * 100).toInt()),
+                text = stringResource(UiR.string.ui_model_percent, (fraction * 100).toInt()),
                 style = MyNoteTheme.textStyles.monoSmall.copy(fontWeight = FontWeight.W600),
                 color = colors.text2,
                 maxLines = 1,

@@ -8,12 +8,12 @@ import com.hancekim.mynote.core.domain.ObserveModelStatusUseCase
 import com.hancekim.mynote.core.domain.RecordQuizAttemptUseCase
 import com.hancekim.mynote.core.domain.model.ModelStatus
 import com.hancekim.mynote.core.domain.model.QuizFailure
+import com.hancekim.mynote.core.ui.FailureLog
+import com.hancekim.mynote.core.ui.NotesMessages
 import com.hancekim.mynote.core.ui.element.NotesSignal
 import com.hancekim.mynote.core.ui.element.unseen
 import com.hancekim.mynote.core.ui.signal.FeatureSignals
 import com.hancekim.mynote.core.ui.signal.QuizSetupRequest
-import com.hancekim.mynote.feature.notes.FailureLog
-import com.hancekim.mynote.feature.notes.NotesMessages
 import com.hancekim.mynote.feature.notes.QuizQuestionUi
 import com.hancekim.mynote.feature.notes.mapper.toUi
 import dagger.hilt.android.lifecycle.HiltViewModel

@@ -15,7 +15,7 @@ WORDMARK_SPELLING = re.compile(r"mynote")
 # 홈 상단 바와 읽는 중 화면 — 모듈을 옮겨도 따라가게 파일 이름으로 찾는다(feature-modules FM-12)
 TITLE_USERS = ("NotesShell.kt", "ConnectReading.kt")
 OTHER_TITLES = {
-    "notes_settings": "설정",
+    "ui_settings": "설정",
     "notes_nav_bookmark": "북마크",
     "notes_nav_stats": "통계",
     "notes_stats_history_title": "지난 요약",

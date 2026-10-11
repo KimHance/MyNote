@@ -10,8 +10,8 @@ import com.hancekim.mynote.core.domain.connect.ConnectProgress
 import com.hancekim.mynote.core.domain.connect.ConnectVerification
 import com.hancekim.mynote.core.domain.connect.TemplateRepo
 import com.hancekim.mynote.core.domain.model.ConnectionState
+import com.hancekim.mynote.core.ui.FailureLog
 import com.hancekim.mynote.core.ui.element.TokenReason
-import com.hancekim.mynote.feature.notes.FailureLog
 import com.hancekim.mynote.feature.notes.element.ConfirmUi
 import com.hancekim.mynote.feature.notes.element.ConnectIssue
 import com.hancekim.mynote.feature.notes.element.ConnectNotice

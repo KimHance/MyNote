@@ -31,10 +31,10 @@ import com.hancekim.mynote.core.ui.element.isBusy
 import com.hancekim.mynote.core.ui.element.modelPillUi
 import com.hancekim.mynote.core.ui.screen.ModelPreviewFrame
 import com.hancekim.mynote.core.ui.screen.color
-import com.hancekim.mynote.feature.notes.R
 import com.kyant.backdrop.Backdrop
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
+import com.hancekim.mynote.core.ui.R as UiR
 
 internal const val MODEL_PILL_RESERVE_DP = 54
 
@@ -102,7 +102,7 @@ private fun ModelStatusPill(
     FloatingStatusPill(
         label = stringResource(pill.label),
         tone = pill.tone.color(),
-        trailing = pill.percent?.let { stringResource(R.string.notes_model_percent, it) },
+        trailing = pill.percent?.let { stringResource(UiR.string.ui_model_percent, it) },
         progress = pill.progress,
         icon = pill.icon?.vector(),
         backdrop = backdrop,

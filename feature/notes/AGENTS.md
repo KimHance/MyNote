@@ -71,8 +71,9 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
   접기 · 펴기에 보이던 것을 다시 띄우지 않는다. 되돌리기는 알림을 낸 VM 의 인텐트로 돌아간다(`NoticeUi<E>`).
   기능 화면 안에 스낵바 수집을 두지 않는다.
 - 문구는 ViewModel 이 `getString` 을 직접 부르지 않는다. 인터페이스 `NotesMessages` 를 주입받아 부르고,
-  `getString` 은 구현 `AndroidNotesMessages`(`@ApplicationContext`)에만 있다. 접근성 판정(`QuizAutoAdvancePolicy`) ·
+  `getString` 은 구현 `AndroidNotesMessages`(앱 `Application`)에만 있다. 접근성 판정(`QuizAutoAdvancePolicy`) ·
   통계 기록(`StatsTrace`) · 실패 로그(`FailureLog`)도 같은 패턴이고 구현은 `:app` 의 `NotesModule` 이 묶는다.
+  `NotesMessages` · `FailureLog` 와 그 구현, 알림 `NoticeUi`, 글자 크기 매핑(`FontScaleUi`)은 여러 기능의 VM 이 같이 써서 `:core:ui` 에 있다.
   이 모듈 안의 Hilt 모듈은 하나 — 통계 디스패처 `stats/StatsDispatcher.kt` 의 `StatsDispatcherModule`(`@StatsWork`)이고
   통계 패키지와 같이 옮겨 간다.
   시각은 `:core:common` 의 `Clock`(간격) · `WallClock`(기록 시각)을 주입받는다 — ViewModel 이 JVM 시험에서

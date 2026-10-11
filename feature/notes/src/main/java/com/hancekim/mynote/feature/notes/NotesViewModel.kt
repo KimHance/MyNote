@@ -26,7 +26,10 @@ import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import com.hancekim.mynote.core.navigation.key.activeNoteId
 import com.hancekim.mynote.core.navigation.openReaderCommand
 import com.hancekim.mynote.core.navigation.switchTabCommand
+import com.hancekim.mynote.core.ui.FailureLog
+import com.hancekim.mynote.core.ui.NotesMessages
 import com.hancekim.mynote.core.ui.element.NotesSignal
+import com.hancekim.mynote.core.ui.element.NoticeUi
 import com.hancekim.mynote.core.ui.element.lastSyncOf
 import com.hancekim.mynote.core.ui.element.unseen
 import com.hancekim.mynote.core.ui.signal.FeatureSignals
@@ -36,7 +39,6 @@ import com.hancekim.mynote.core.ui.signal.openSettings
 import com.hancekim.mynote.feature.notes.element.CategoryLoad
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
-import com.hancekim.mynote.feature.notes.element.NoticeUi
 import com.hancekim.mynote.feature.notes.element.ReaderScrollRequest
 import com.hancekim.mynote.feature.notes.element.settledCategories
 import com.hancekim.mynote.feature.notes.mapper.bookmarkedNotes

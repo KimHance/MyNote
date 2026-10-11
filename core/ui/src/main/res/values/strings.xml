@@ -89,4 +89,32 @@
     <string name="ui_repo_kind_format">노트 목록 형식</string>
     <string name="ui_repo_token_none_public">토큰 없음 · 공개 저장소는 토큰 없이 읽습니다</string>
     <string name="ui_repo_token_none_private">토큰 없음 · 비공개 저장소를 읽으려면 토큰이 필요합니다</string>
+
+    <string name="ui_bookmark_added">북마크에 추가했습니다</string>
+    <string name="ui_bookmark_removed">북마크를 해제했습니다</string>
+
+    <string name="ui_sync_failed">노트를 불러오지 못했습니다. 연결을 확인하세요.</string>
+    <string name="ui_sync_applied">노트를 불러왔습니다 · %1$s</string>
+    <string name="ui_sync_changed">%1$d개 바뀜</string>
+    <string name="ui_sync_deleted">%1$d개 지움</string>
+
+    <string name="ui_quiz_abandoned">퀴즈를 그만뒀습니다</string>
+
+    <string name="ui_settings">설정</string>
+
+    <string name="ui_settings_token_saved">토큰을 저장했습니다</string>
+    <string name="ui_settings_token_cleared">토큰을 지웠습니다</string>
+
+    <string name="ui_model_percent">%1$d%%</string>
+    <string name="ui_model_deleted">퀴즈 모델을 삭제했습니다</string>
+    <string name="ui_model_paused_snack">받기를 멈췄습니다. 나중에 이어 받을 수 있습니다</string>
+    <string name="ui_model_cancelled_snack">받기를 취소했습니다</string>
+    <string name="ui_model_discarded_snack">받던 파일을 지웠습니다</string>
+    <string name="ui_settings_studylog_cleared">학습 기록을 지웠습니다</string>
+
+    <string name="ui_token_browser_missing">브라우저를 열지 못했습니다. 브라우저 앱이 있는지 확인하세요.</string>
+    <string name="ui_token_classic_warn">이 토큰은 권한이 넓습니다. 이 저장소 하나만 읽는 세분화된 토큰을 권합니다.</string>
+    <string name="ui_token_verifying">토큰 확인 중</string>
+
+    <string name="ui_repo_disconnect_failed">연결을 끊지 못했습니다. 잠시 뒤 다시 시도하세요.</string>
 </resources>

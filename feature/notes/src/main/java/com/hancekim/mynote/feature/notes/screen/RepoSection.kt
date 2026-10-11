@@ -78,6 +78,7 @@ import com.hancekim.mynote.feature.notes.settings.SettingsIntent
 import com.hancekim.mynote.feature.notes.settings.SettingsUiState
 import kotlinx.coroutines.launch
 import com.hancekim.mynote.core.designsystem.R as DsR
+import com.hancekim.mynote.core.ui.R as UiR
 
 @Composable
 internal fun RepoSection(
@@ -397,7 +398,7 @@ private fun TokenEditor(
     val colors = MyNoteTheme.colors
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val browserMissing = stringResource(R.string.notes_token_browser_missing)
+    val browserMissing = stringResource(UiR.string.ui_token_browser_missing)
     val focusRequester = remember { FocusRequester() }
     val fieldInView = remember { BringIntoViewRequester() }
     val reduceMotion = rememberReduceMotion()
@@ -456,8 +457,8 @@ private fun TokenEditor(
             color = colors.text3,
         )
         edit.failure?.let { NoticeBox(text = stringResource(tokenFailureRes(it))) }
-        if (draft.isClassic) NoticeBox(text = stringResource(R.string.notes_token_classic_warn))
-        if (edit.verifying) VerifyingLine(text = stringResource(R.string.notes_token_verifying))
+        if (draft.isClassic) NoticeBox(text = stringResource(UiR.string.ui_token_classic_warn))
+        if (edit.verifying) VerifyingLine(text = stringResource(UiR.string.ui_token_verifying))
         FlowRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),

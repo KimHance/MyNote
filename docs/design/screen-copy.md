@@ -41,7 +41,7 @@
 | 노트를 다시 불러오라고 누르는 버튼 | 새로고침 | — | — | — | 버튼 이름. 누르면 불러온다 |
 | 퀴즈 모델 파일을 기기로 가져옴 | 받기 · 받는 중 · 이어 받기 · 받던 파일 · 받았습니다 · 받지 못했습니다 | `내려받` | 글자 | `ai_model_download_channel` | model-download 디자인의 `받` 하나. 스낵바 둘도 이번에 맞춘다. 알림 채널 이름은 사용자 알림 설정에 남아 동결 |
 | 받은 모델을 돌림 | 실행 | `모델을 불러오` | 글자 | — | `불러오기` 는 노트 말이다 |
-| 없앰 | 지우기 · 지웁니다 · 지웠습니다 · 지울까요? | `삭제` | 글자 | `notes_model_delete` · `notes_model_delete_title` · `notes_model_deleted` | 지우기가 열네 곳, 삭제가 네 곳이었다. 모델 카드 `삭제` 버튼은 `지우기` 로 바꾸면 한 글자 늘어 SC-6(버튼 글자 수)에 걸린다. 버튼과 같은 일을 말하는 대화상자 제목 · 스낵바도 같이 둔다 |
+| 없앰 | 지우기 · 지웁니다 · 지웠습니다 · 지울까요? | `삭제` | 글자 | `notes_model_delete` · `notes_model_delete_title` · `ui_model_deleted` | 지우기가 열네 곳, 삭제가 네 곳이었다. 모델 카드 `삭제` 버튼은 `지우기` 로 바꾸면 한 글자 늘어 SC-6(버튼 글자 수)에 걸린다. 버튼과 같은 일을 말하는 대화상자 제목 · 스낵바도 같이 둔다 |
 | 북마크에서 뺌 | 해제 (추가 ↔ 해제) | `뺐` | 글자 | — | 버튼 · 통계는 이미 해제 |
 | 퀴즈 한 개 | 문제 | `문항` | 글자 | — | 문제가 열여덟 곳, 문항이 네 곳이었다 |
 | 화면에 나타냄 | 보이다 · 보여 줍니다 | `표시` | 글자 | — | 보이다 · 보여 주다가 네 곳. 표시했습니다는 지난 일처럼 읽힌다 |
@@ -51,7 +51,7 @@
 | 노트를 담은 GitHub 저장소 | 저장소 | `레포` | 글자 | — | repo-connect 디자인 |
 | 앱 이름 | MyNote | `공부 기록` | 글자 | — | brand 디자인 |
 | 토큰 안내 낱말 | 세분화된 토큰 · 이 저장소 하나만 · 콘텐츠 읽기 전용 | — | — | `ui_token_howto_kind` · `ui_token_howto_scope` · `ui_token_howto_perm` | 동결(기능 문서 결정 5). GitHub 화면 이름과 짝이고 템플릿 README 시험이 본다 |
-| 화면 제목 | MyNote · 설정 · 북마크 · 통계 · 지난 요약 | — | — | `ui_app_title` · `app_name` · `notes_settings` · `notes_nav_bookmark` · `notes_nav_stats` · `notes_stats_history_title` | 동결(BR-7) |
+| 화면 제목 | MyNote · 설정 · 북마크 · 통계 · 지난 요약 | — | — | `ui_app_title` · `app_name` · `ui_settings` · `notes_nav_bookmark` · `notes_nav_stats` · `notes_stats_history_title` | 동결(BR-7) |
 | 저장소를 앱에 묶음 | 연결 · 연결 끊기 · 저장소 바꾸기 | — | — | — | 그대로 |
 
 ### 끝말
@@ -87,7 +87,7 @@ SC-1 이 보지 않는 문구다. 이름으로만 뺀다.
 | `notes_settings_preview_text` | 노트 본문 견본이라 노트의 해라체를 그대로 보인다 |
 | `ui_app_title` · `app_name` · `notes_model_name` · `ui_settings_token_placeholder` | 고유명사 · 토큰 머리 견본 |
 | `ui_bookmark_time` · `ui_bookmark_date_this_year` · `ui_bookmark_date_other_year` · `ui_bookmark_date_other_year_short` · `notes_stats_date` · `notes_stats_bucket_week` · `notes_stats_bucket_month` | 날짜 · 시각 형식 문구 |
-| `notes_bookmark_row_sub` · `notes_stats_row_sub` · `notes_stats_row_sub3` · `notes_stats_cell_desc` · `notes_stats_bars_desc` · `notes_stats_summary_desc` · `notes_stats_history_row_desc` · `notes_stats_range` · `notes_stats_retry_value` · `notes_model_bytes` · `notes_model_percent` | 자리만 있는 형식 문구 |
+| `notes_bookmark_row_sub` · `notes_stats_row_sub` · `notes_stats_row_sub3` · `notes_stats_cell_desc` · `notes_stats_bars_desc` · `notes_stats_summary_desc` · `notes_stats_history_row_desc` · `notes_stats_range` · `notes_stats_retry_value` · `notes_model_bytes` · `ui_model_percent` | 자리만 있는 형식 문구 |
 
 ### 쓰지 않는 표현
 
@@ -133,21 +133,21 @@ SC-1 이 보지 않는 문구다. 이름으로만 뺀다.
 
 | 자리 | 파일 | 리소스 | 이번에 바꾼 행 |
 |---|---|---|---|
-| 상단 바 제목 | `shell/NotesTopBar.kt` | `ui_app_title` · `notes_settings` · `notes_nav_bookmark` · `notes_nav_stats` · `notes_stats_history_title` · `notes_connect_change_title` · `notes_connect_attach_title` | 없음 |
+| 상단 바 제목 | `shell/NotesTopBar.kt` | `ui_app_title` · `ui_settings` · `notes_nav_bookmark` · `notes_nav_stats` · `notes_stats_history_title` · `notes_connect_change_title` · `notes_connect_attach_title` | 없음 |
 | 플로팅 내비 라벨(12sp) | ds `FloatingNav.kt` | `notes_nav_home` · `notes_nav_bookmark` · `notes_nav_stats` | 없음 |
-| 상태 알약 | ds `FloatingStatusPill.kt` | `notes_pill_*` 다섯 · `notes_model_percent` | 없음 |
+| 상태 알약 | ds `FloatingStatusPill.kt` | `ui_pill_*` 다섯 · `ui_model_percent` | 없음 |
 | 퀴즈 CTA 부제 | `quiz/component/QuizCtaCard.kt` | `ui_quiz_cta_subtitle` · `ui_quiz_cta_need_model` · `ui_quiz_cta_paused` · `ui_quiz_cta_downloading` · `ui_pill_failed` | 없음 |
 | 퀴즈 설정 부제 | `quiz/component/QuizSetupDialog.kt` | `notes_quiz_setup_subtitle` | `notes_quiz_setup_subtitle` +0 |
 | 모델 카드 상태 · 세부 | `screen/ModelCard.kt` | `ui_model_missing` · `waiting` · `preparing` · `downloading` · `retrying` · `verifying` · `paused` · `ready` · `failed` 와 그 `_desc` · `ui_model_failed_space` · `ui_model_failed_generic` | `ui_model_failed_generic` −2 |
 | 저장소 카드 상태 라벨 | `screen/RepoSection.kt` | `ui_repo_state_none` · `check_token` · `idle` · `token` · `public` | `ui_repo_state_idle` −3 |
-| 버튼(설정 · 연결 · 모델 · 대화상자) | `screen/SettingsScreen.kt` 버튼 라벨 · 퀴즈 설정 버튼 · 연결 띠 | `notes_*` 버튼 문구 스물아홉 · `ds_action_save` · `ds_action_cancel` · `notes_quiz_create` · `notes_home_connect_action` | 없음 — `notes_model_delete` 를 그대로 둔 까닭(용어 표) |
+| 버튼(설정 · 연결 · 모델 · 대화상자) | `screen/SettingsScreen.kt` 버튼 라벨 · 퀴즈 설정 버튼 · 연결 띠 | `notes_*` · `ui_*` 버튼 문구 스물아홉 · `ds_action_save` · `ds_action_cancel` · `notes_quiz_create` · `notes_home_connect_action` | 없음 — `notes_model_delete` 를 그대로 둔 까닭(용어 표) |
 | 통계 머리 기간 · 숫자 칸 · 구역 칩 | `screen/stats/StatsHeader.kt` | `notes_stats_period_*` · `notes_stats_num_*` · `notes_stats_unit_*` · `notes_stats_first_week` · `notes_stats_questions` · `notes_stats_section_*` | `notes_stats_questions` +0 |
 | 통계 차트 제목 · 단위 · 범례 초점 | `screen/stats/StatsSections.kt` | `notes_stats_time_by_*` · `notes_stats_accuracy_by_category` · `notes_stats_bookmark_trend` · `notes_stats_pattern` · `notes_stats_minutes_value` · `notes_stats_generated_*` · `notes_stats_focus` · `notes_stats_retry_value` · `notes_stats_bookmark_age` | 없음 |
 | 정답률 막대 행 부제 | ds `HBarRow.kt` | `notes_stats_questions` · `notes_stats_not_taken` | `notes_stats_not_taken` +0 |
 | 번호 행 부제 | ds `NumberedRow.kt` | `notes_stats_row_sub` · `row_sub3` · `stalled_at` · `retry_count` · `notes_stats_bookmark_last_opened` · `unread` · `unread_since_log` | 없음 |
 | 요약 카드 머리 · 정리 시각 | `screen/stats/SummaryCard.kt` | `notes_stats_summary_*` · `notes_stats_range*` · `notes_stats_generated_*` | 없음 |
-| 북마크 행 · 큰 카드 시각 | `screen/bookmarks/` | `notes_bookmark_row_sub` · `notes_bookmark_added_*` · 날짜 형식 | 없음 |
-| 목록 패널 설정 줄 · 배지 | `screen/ListPanelScreen.kt` | `notes_settings` · `notes_model_badge_*` · `notes_settings_token_check_badge` · `notes_model_percent` | 없음 |
+| 북마크 행 · 큰 카드 시각 | `screen/bookmarks/` | `notes_bookmark_row_sub` · `ui_bookmark_added_*` · 날짜 형식 | 없음 |
+| 목록 패널 설정 줄 · 배지 | `screen/ListPanelScreen.kt` | `ui_settings` · `notes_model_badge_*` · `notes_settings_token_check_badge` · `ui_model_percent` | 없음 |
 | 원문 보기 버튼 | ds `UnsupportedBlock.kt` | `ds_unsupported_show_raw` · `hide_raw` · `more_lines` | 없음 |
 | 주소 · 토큰 칸 힌트 | `screen/connect/ConnectParts.kt` | `notes_connect_link_hint` · `ui_settings_token_placeholder` | 없음 |
 
@@ -164,7 +164,7 @@ copy-apply 가 `strings.xml` 과 한 묶음으로 고친다. 인용 글자가 `s
 
 | # | 갈래 | 파일 · 자리 | 무엇 | 누가 |
 |---|---|---|---|---|
-| ① | 템플릿 README | `public-repos/notes-template/README.md` 앱 용어 일곱 · 문제 해결의 연결 실패 문장 | 바뀌는 값 없음 — 일곱(`notes_entry_create` · `notes_connect_link_label` · `notes_connect_action` · `notes_connect_token_title` · `notes_token_howto_*` 셋)과 `notes_connect_err_no_list` 는 그대로. 확인만 | copy-apply |
+| ① | 템플릿 README | `public-repos/notes-template/README.md` 앱 용어 일곱 · 문제 해결의 연결 실패 문장 | 바뀌는 값 없음 — 일곱(`notes_entry_create` · `notes_connect_link_label` · `notes_connect_action` · `notes_connect_token_title` · `ui_token_howto_*` 셋)과 `notes_connect_err_no_list` 는 그대로. 확인만 | copy-apply |
 | ② | DESIGN.md | 9.2 `ds_unsupported_*` 다섯 · 9.3 권유 끝말 · 9.4 옮긴 문구 표의 ☰ 줄 · 확인 다이얼로그 예 · 실패 예 · 쓰지 않는 표현 머리 | 이 문서와 같은 커밋에서 고쳤다 | 디자인(끝남) |
 | ③ | 공개 규격 | `public-repos/notes-kit/SPEC.md` 와 플러그인 사본 | 인용 낱말(`원문 보기` · `노트 목록` · `노트 저장소`)이 그대로라 고칠 것 없음. 확인만 | copy-apply |
 | ④ | 기능 문서 | `docs/spec/sync.md` SY-6 `노트 변경 반영 — …` → `노트를 불러왔습니다 · …` | 인용 글자만 · 바뀐 기록 `인용 문구만` | copy-spec |
