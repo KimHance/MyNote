@@ -14,6 +14,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -38,6 +40,7 @@ fun NoteRow(
                 .clip(RoundedCornerShape(MyNoteRadius.chip))
                 .then(if (active) Modifier.background(colors.accentSoft) else Modifier)
                 .clickable(onClick = onClick, role = Role.Button)
+                .semantics { selected = active }
                 .padding(start = 29.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

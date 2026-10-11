@@ -351,7 +351,6 @@ private fun NoteFormatSamplePreview(
             note = sample.note,
             categoryName = "Kotlin",
             contentTopPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
-            onQuizAction = {},
         )
     }
 }

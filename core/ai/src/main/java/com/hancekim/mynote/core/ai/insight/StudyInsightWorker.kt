@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeout
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import kotlin.time.Duration.Companion.milliseconds
 
 @HiltWorker
 internal class StudyInsightWorker
@@ -64,7 +65,7 @@ internal class StudyInsightWorker
             val outcome = Outcome()
             val use =
                 try {
-                    withTimeout(InsightWork.TIMEOUT_MILLIS) {
+                    withTimeout(InsightWork.TIMEOUT_MILLIS.milliseconds) {
                         engine.tryUse(shouldRelease = { !visibility.foreground() }) { ready ->
                             generate(ready, plan, input, epoch, outcome)
                         }

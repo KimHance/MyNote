@@ -130,4 +130,11 @@ class MarkdownLimitsTest {
             }
         assertExceeds("이어지는 글로 끊어 보인 들여쓰기 중첩", lazy)
     }
+
+    @Test(timeout = 5_000)
+    fun `NF-8 512KB 안의 표시 한 줄도 줄 길이에 비례한 시간으로 거른다`() {
+        assertExceeds("표시 26만 개 뒤 글", "- ".repeat(262_143) + "x")
+        assertReads("표시 26만 개짜리 구분선", "- ".repeat(262_143).trim())
+        assertExceeds("인용 26만 개 뒤 글", "> ".repeat(262_143) + "x")
+    }
 }

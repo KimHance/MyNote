@@ -1,6 +1,10 @@
 package com.hancekim.mynote.di
 
 import android.util.Log
+import com.hancekim.mynote.core.common.throttle.Clock
+import com.hancekim.mynote.core.common.throttle.SystemClockSource
+import com.hancekim.mynote.core.common.throttle.SystemWallClockSource
+import com.hancekim.mynote.core.common.throttle.WallClock
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,6 +22,12 @@ object AppModule {
     @Singleton
     @ApplicationScope
     fun provideAppScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default + APP_SCOPE_HANDLER)
+
+    @Provides
+    fun provideClock(): Clock = SystemClockSource
+
+    @Provides
+    fun provideWallClock(): WallClock = SystemWallClockSource
 }
 
 private val APP_SCOPE_HANDLER =

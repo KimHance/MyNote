@@ -44,6 +44,10 @@ def isolated_env(home, extra=None):
     return env
 
 
+def note_md(title="알파", date="2026.06.12", body="본문\n"):
+    return f"---\ntitle: {title}\ndate: {date}\n---\n{body}"
+
+
 def note_json(note_id="alpha", date="2026.06.12", title=None, blocks=None):
     return json.dumps(
         {
@@ -137,8 +141,11 @@ class GitWorld(ToolCase):
         self.git(self.tmp, "clone", "-q", str(self.remote), str(path))
         return path
 
-    def add_note_and_push(self, clone, note_id, date="2026.06.12", group="g", branch="main"):
-        self.write(clone, f"notes/{group}/{note_id}.json", note_json(note_id, date))
+    def add_note_and_push(self, clone, note_id, date="2026.06.12", group="g", branch="main", markdown=False):
+        if markdown:
+            self.write(clone, f"notes/{group}/{note_id}.md", note_md(note_id, date))
+        else:
+            self.write(clone, f"notes/{group}/{note_id}.json", note_json(note_id, date))
         self.git(clone, "add", "-A")
         self.git(clone, "commit", "-m", f"note {note_id}")
         self.git(clone, "push", "origin", f"HEAD:refs/heads/{branch}")

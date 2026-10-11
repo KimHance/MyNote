@@ -19,6 +19,11 @@ private val Context.connectionStateDataStore by
         name = "connection_state",
         corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
     )
+private val Context.attemptTokenDataStore by
+    preferencesDataStore(
+        name = "connection_attempt_token",
+        corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
+    )
 private val USED_IDS = stringSetPreferencesKey("used_source_ids")
 private val ATTEMPT_SOURCE = stringPreferencesKey("attempt_source")
 private val ATTEMPT_ID = stringPreferencesKey("attempt_id")
@@ -43,16 +48,20 @@ class DataStoreConnectionStateStore @Inject constructor(
         val prefs = read()
         val source = prefs[ATTEMPT_SOURCE] ?: return null
         val attemptId = prefs[ATTEMPT_ID] ?: return null
-        return AttemptRecord(source, attemptId, prefs[ATTEMPT_TOKEN], prefs[ATTEMPT_CANDIDATE] == true)
+        val token = context.attemptTokenDataStore.data.first()[ATTEMPT_TOKEN] ?: prefs[ATTEMPT_TOKEN]
+        return AttemptRecord(source, attemptId, token, prefs[ATTEMPT_CANDIDATE] == true)
     }
 
     override suspend fun saveAttempt(record: AttemptRecord) {
+        context.attemptTokenDataStore.edit { prefs ->
+            val before = record.tokenBefore
+            if (before == null) prefs.remove(ATTEMPT_TOKEN) else prefs[ATTEMPT_TOKEN] = before
+        }
         context.connectionStateDataStore.edit { prefs ->
             prefs[ATTEMPT_SOURCE] = record.sourceId
             prefs[ATTEMPT_ID] = record.attemptId
             prefs[ATTEMPT_CANDIDATE] = record.candidateToken
-            val before = record.tokenBefore
-            if (before == null) prefs.remove(ATTEMPT_TOKEN) else prefs[ATTEMPT_TOKEN] = before
+            prefs.remove(ATTEMPT_TOKEN)
         }
     }
 
@@ -63,6 +72,7 @@ class DataStoreConnectionStateStore @Inject constructor(
             prefs.remove(ATTEMPT_CANDIDATE)
             prefs.remove(ATTEMPT_TOKEN)
         }
+        context.attemptTokenDataStore.edit { it.remove(ATTEMPT_TOKEN) }
     }
 
     override suspend fun disconnectMarker(): String? = read()[DISCONNECT_MARKER]

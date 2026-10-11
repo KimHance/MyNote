@@ -38,6 +38,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentSetOf
+import com.hancekim.mynote.core.ui.R as UiR
 
 @Composable
 internal fun HomeScreen(
@@ -91,7 +92,7 @@ internal fun HomeScreen(
                     }
                     item(span = { GridItemSpan(maxLineSpan) }) {
                         MyNoteHero(
-                            title = stringResource(R.string.notes_app_title),
+                            title = stringResource(UiR.string.ui_app_title),
                             repoName = repoName,
                             hint =
                                 if (adaptive.useModalDrawer) {

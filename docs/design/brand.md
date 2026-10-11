@@ -5,7 +5,7 @@
 | 기능 | brand |
 | 기능 문서 | docs/spec/brand.md — BR-1 ~ BR-8 |
 | 등급 | 화면 |
-| 마지막 변경 | 2026-10-08 · 승격 — 정한 것 9줄 · 내려감 웜 예외(장부 D51) |
+| 마지막 변경 | 2026-10-12 · 리소스 이름만 — 제목 문구 이름 `ui_app_title`(feature-modules move-core-ui) |
 
 기준: 브랜드 보드 방향 A(`labs/brand-design/` · 장부 D1) · `DESIGN.md` 토큰. 새 UI 토큰 없음 — 로고 전용 색 다섯과 창 바탕 리소스 하나(값은 `bg`)만 더하고, 떠남 곡선에 공용 이름을 붙인다. 그림 원본 · 장 설명은 `labs/brand-design/app/README.md`.
 
@@ -120,7 +120,7 @@ DESIGN.md 6.6: 불 켜짐 450 · 내려감 180 은 대역 안 · 앞 166 은 값
 - 마크는 맨 마크다(타일 아님) — 스플래시 끝 그림과 같아 시작 → 홈이 이어지고, 아이콘 바탕 색을 UI 에 안 들인다. 높이 = `heroLogoSize`.
 - 워드마크 x높이 = `heroTitleSize` 값(dp) — 로고 글자라 글자 배율로 키우지 않는다(WCAG 1.4.5 로고 예외). 선 굵기 2.36 · 2.83 · 3.31dp.
 - 저장소 줄: `mono`(13sp · 400 · ×1.65) · `text2` · 한 줄 · 가운데 말줄임. owner/repo 는 값이라 모노다(DESIGN.md 3.5).
-- 접근성: 워드마크 = 제목(heading) · 이름 MyNote(`notes_app_title` 값) / 마크 = 설명 없음 / 저장소 줄 = 전체 글자. 읽는 차례 워드마크 → 저장소 줄 → 안내(`hero-a11y-portrait`).
+- 접근성: 워드마크 = 제목(heading) · 이름 MyNote(`ui_app_title` 값) / 마크 = 설명 없음 / 저장소 줄 = 전체 글자. 읽는 차례 워드마크 → 저장소 줄 → 안내(`hero-a11y-portrait`).
 
 ## 제목 글꼴
 
@@ -158,7 +158,7 @@ BR-8 시험이 이 절 첫 표의 첫 칸(백틱 이름)을 목록으로 읽는�
 | 저장소 줄 | owner/repo | 확정된 연결의 정식 이름 | 대신하는 말(없으면 줄이 없다) |
 | 문서 말 | 스플래시 · 불 켜짐 · 내려감 · 감속 모션 · 제목 글꼴 스타일 · 로고 전용 색 · 밤 · 주광 | — | 시작 화면(스플래시 뜻) · 모션 감소 · 큰 제목 |
 
-새 문구 리소스 없음 — 제목은 `notes_app_title` 값을 MyNote 로 바꾼 것을 쓴다(BR-7).
+새 문구 리소스 없음 — 제목은 `ui_app_title` 값을 MyNote 로 바꾼 것을 쓴다(BR-7).
 
 ## 기능 문서 항목
 
@@ -225,3 +225,4 @@ BR-8 시험이 이 절 첫 표의 첫 칸(백틱 이름)을 목록으로 읽는�
 | 2026-10-08 | brand-identity · 고침 4 | 빠진 `title` copy 자리 · 통계 숫자 칸은 목록 밖 |
 | 2026-10-08 | brand-identity · 고침 5 | 리더 머리 copy 줄 높이 ×1.25 · 기기 글꼴 차이 꼴 |
 | 2026-10-08 | brand-identity · 승격 | 정한 것 9줄 · 고른 것 A · 내려감 웜 예외(장부 D51 · D54) |
+| 2026-10-12 | feature-modules · move-core-ui | 리소스 이름만 — 제목 문구 `notes_app_title` → `ui_app_title`(문구가 `:core:ui` 로 옮겨 감 · `feature-modules` FM-11 · FM-12). 값 · 뜻은 그대로 |

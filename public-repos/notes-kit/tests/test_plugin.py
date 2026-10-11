@@ -3,6 +3,7 @@ import re
 import unittest
 from pathlib import Path
 
+import helpers
 from helpers import KIT_DIR, SPEC, TOOL
 
 MARKETPLACE = KIT_DIR / ".claude-plugin" / "marketplace.json"
@@ -19,6 +20,21 @@ def read_json(path):
 
 def skill_text(name):
     return (PLUGIN_DIR / "skills" / name / "SKILL.md").read_text(encoding="utf-8")
+
+
+def markdown_example(text):
+    """스킬 `## 예시` 아래 첫 ```markdown 코드 블록."""
+    lines = text.splitlines()
+    start = lines.index("## 예시")
+    body, inside = [], False
+    for line in lines[start + 1:]:
+        if line == "```markdown" and not inside:
+            inside = True
+        elif line == "```" and inside:
+            return "\n".join(body) + "\n"
+        elif inside:
+            body.append(line)
+    raise AssertionError("예시 마크다운 노트가 없습니다")
 
 
 def skill_head(text):
@@ -110,6 +126,22 @@ class PluginTest(unittest.TestCase):
                 self.assertNotIn(kind, text)
         self.assertNotRegex(text, r"\|\s*`(heading|paragraph|code|quote|bulletList|orderedList|divider|spacer)`\s*\|")
 
+    def test_NT_9_스킬은_JSON_노트_경로에_새로_쓰라고_하지_않는다(self):
+        """NT-9 스킬은 JSON 노트 경로에 새로 쓰라고 하지 않는다"""
+        text = skill_text("write-note")
+        head = skill_head(text)
+        for part in (head["description"], text):
+            self.assertIn("notes/<그룹>/<id>.md", part)
+            for key in ("title", "date"):
+                self.assertIn(key, part)
+        self.assertNotIn("notes/<그룹>/<id>.json", text)
+        for line in text.splitlines():
+            if ".json" in line.replace("index.json", ""):
+                with self.subTest(line):
+                    self.assertRegex(line, r"옛|git rm")
+        self.assertIn("형식을 마크다운으로 바꿉니다", text)
+        self.assertRegex(text, r"`\.md` 를 `git add` 하고 옛 `\.json` 은 `git rm`")
+
     def test_NT_10_스킬이_도구를_부르고_파일을_고치지_않는다(self):
         """NT-10 스킬이 도구를 부르고 파일을 고치지 않는다"""
         text = skill_text("check-notes")
@@ -120,6 +152,43 @@ class PluginTest(unittest.TestCase):
         self.assertIn(SPEC_PATH, text)
         self.assertEqual(text.count("SPEC.md"), text.count(SPEC_PATH))
         self.assertNotIn("--no-verify", text)
+
+    def test_NT_10_스킬이_앞머리_오류와_본문_미검사를_말한다(self):
+        """NT-10 스킬이 앞머리 오류와 본문 미검사를 말한다"""
+        text = skill_text("check-notes")
+        self.assertIn("앞머리", text)
+        self.assertIn("도구는 마크다운 본문을 보지 않습니다", text)
+        self.assertIn("글자로만 보이는 문법", text)
+        self.assertIn("## 한도", text)
+        self.assertIn("앞머리에 'date' 가 없습니다", text)
+        _, errors = helpers.load_tool().front_matter_errors(["title: a"])
+        self.assertIn("앞머리에 'date' 가 없습니다", errors)
+
+    def test_NT_10_스킬이_가리키는_규격_절이_실제로_있다(self):
+        """NT-10 스킬이 가리키는 규격 절이 실제로 있다"""
+        headings = set(SPEC.read_text(encoding="utf-8").splitlines())
+        cited = re.findall(r"`(#{2,3} [^`]+)`", skill_text("check-notes"))
+        for must in ("## 앞머리", "## 옛 JSON 노트 (형식 1)", "### 글자로만 보이는 문법", "## 한도"):
+            self.assertIn(must, cited)
+        for heading in cited:
+            with self.subTest(heading):
+                self.assertIn(heading, headings)
+
+
+class SkillExampleTest(helpers.ToolCase):
+    def test_NT_9_스킬의_예시_노트가_검사를_통과한다(self):
+        """NT-9 스킬의 예시 노트가 검사를 통과한다"""
+        example = markdown_example(skill_text("write-note"))
+        tool = helpers.load_tool()
+        head, body = tool.split_front_matter(example)
+        fields, errors = tool.front_matter_errors(head)
+        self.assertEqual(errors, [])
+        self.assertEqual(tuple(fields), tool.FRONT_MATTER_KEYS)
+        self.assertTrue(body.strip())
+        root = self.make_dir()
+        self.write(root, "notes/kotlin/coroutine-dispatchers.md", example)
+        result = self.tool("check", "--root", str(root))
+        self.assertEqual(result.returncode, 0, result.stderr)
 
 
 if __name__ == "__main__":

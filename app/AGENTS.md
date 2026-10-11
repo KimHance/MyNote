@@ -4,12 +4,123 @@
 
 ## 이 모듈의 역할
 
-화면도 상태도 없다. 루트에 `MyNoteApplication`·`MainActivity`·`SplashExit`·`TokenSync`, `di/` 에 모듈 넷,
-`download/` 에 모델 내려받기 배선 둘이 있고 하는 일은 넷이다 — **Hilt 그래프 완성**,
-**`BuildConfig`(debug 시드)/토큰 배선**, **Activity 껍데기**(edge-to-edge + 스플래시 내리기 + 제목 글꼴 첫 프레임 문 + `NotesRoute` 호출),
-**시스템과 닿는 지점**(알림 `PendingIntent`·딥링크·프로세스 라이프사이클). 기능 코드는 여기에 넣지 않는다.
-여기 파일이 늘어나는 건 "앱 전체에 하나뿐인 것" 이거나 "`PendingIntent`/매니페스트 컴포넌트가 필요한 것"이
-생겼을 때뿐이다.
+루트에 `MyNoteApplication`·`MainActivity`·`SplashExit`·`TokenSync`·`InsightScheduleSync`·`StudyLogMaintenance`, `di/` 에 Hilt 모듈 다섯, `download/` 에 모델 내려받기 배선 둘,
+`shell/` 에 셸이 있고 하는 일은 다섯이다 — **Hilt 그래프 완성**, **`BuildConfig`(debug 시드)/토큰 배선**,
+**Activity 껍데기**(edge-to-edge + 스플래시 내리기 + 제목 글꼴 첫 프레임 문 + `NotesRoute` 호출),
+**시스템과 닿는 지점**(알림 `PendingIntent`·딥링크·프로세스 라이프사이클), **셸**(여러 기능을 한 화면에 묶는 것 — 아래 절).
+기능 화면 · 기능 ViewModel 은 여기에 넣지 않는다. 여기 파일이 늘어나는 건 "앱 전체에 하나뿐인 것" 이거나
+"`PendingIntent`/매니페스트 컴포넌트가 필요한 것" 이거나 셸이 바뀔 때뿐이다.
+
+## 셸 — `shell/`
+
+`MainActivity` 가 부르는 `NotesRoute` 부터 셸 전부가 여기 있다(기능 문서 `feature-modules` 결정 2 · FM-5). 시작 분기 · 창 크기 판정 ·
+`MyNoteTheme` · 루트 스낵바 호스트(FM-16) · 알림 권한 요청 · Scaffold · 드로어/고정 패널 틀 · 플로팅 내비 · 모델 알약 · `NavDisplay` ·
+오버레이 자리 · 뒤로가기 7단 · 셸 ViewModel(`ShellViewModel` — 백스택 파생 · 종료 · 시작 분기 · 연결이 바뀔 때 화면 정리)이다.
+셸은 모든 기능 모듈을 알 수 있는 유일한 자리라 여기 산다 — 기능 모듈은 셸을 모르고, 셸이 부르는 것만 공개로 내놓는다.
+기능 ViewModel 과 화면 · 등록 파일은 그 기능 모듈에 있다 — `:feature:{notes, connect, settings, quiz, stats}`(각 `feature/*/AGENTS.md`).
+둘 이상의 기능 · 셸이 같이 쓰는 조각과 셸 틀 계약 · 기능 사이 신호는 `:core:ui`(`core/ui/AGENTS.md`)다.
+
+셸 문구는 `res/values/strings.xml` 의 `shell_*` 다. `:app` 에는 `resourcePrefix` 를 걸지 않는다(걸면 런처 · 테마 · 백업 규칙 리소스
+이름까지 바꿔야 한다 — 결정 16). 접두사는 파이썬 `FM-11 셸 문구는 shell_ 로 시작한다` 가 보고, 셸 파일 자리 · 순서 고정은
+`FM-5 셸은 app 에 살고 순서를 한 파일이 고정한다` 가 본다.
+
+### 뒤로가기 — **컴포즈 순서가 곧 우선순위다**(LIFO, 나중에 컴포즈된 게 이긴다)
+
+파일을 옮기거나 쪼갤 때 가장 쉽게 깨지는 부분이다. 지금 순서는 아래와 같고, 위쪽이 먼저 먹는다.
+
+| 순위 | 핸들러 | 어디서 컴포즈되나 |
+|---|---|---|
+| 1 | 드로어 닫기 (Material3) | `ModalDrawerSheet(drawerState = …)` 의 예측 뒤로가기 핸들러. 드로어가 열려 있는 동안 `NotesShell` 이 Scaffold 내용의 자식 디스패처를 꺼서 이 핸들러가 받는다 |
+| 2 | 퀴즈 오버레이 닫기 | `NotesShell` 의 `QuizOverlay` (`NotesOverlays` 뒤 · Scaffold 내용의 맨 끝) |
+| 3 | 전환 중 삼킴 | `NotesShell` 의 `BackHandler(enabled = !isNavSettled && !drawerEngaged) {}` |
+| 4 | `NavDisplay` 의 pop | `NotesNavDisplay` |
+| 5 | 여는 중인 드로어 닫기 | `NotesShell` 본문 |
+| 6 | 펼친 고정 패널 접기 | `NotesShell` 본문 |
+| 7 | 앱 종료 안내 → 종료 | `NotesShell` 본문 (`enabled = !canPop && !drawerEngaged && !collapsiblePanelOpen`) |
+
+각각 그 자리에 있어야 하는 이유:
+
+- **Scaffold 내용(NavDisplay · 삼킴 · 오버레이)은 자식 디스패처 안에 있다.** `NotesShell` 이
+  `rememberNavigationEventDispatcherOwner(enabled = !(useDrawer && drawerState.isOpen))` 로 감싸고, 같은 값을 `SideEffect` 로
+  자식 디스패처에 바로 넣는다 — 라이브러리는 `LaunchedEffect` 로 넣어 한 프레임 늦고, 그 틈에 열림 직후 pop 이 이기거나 닫힘 직후
+  아무도 받지 않아 앱이 꺼진다(D36). M3 드로어 핸들러는
+  본 컴포지션에서 등록되고 `NavDisplay` 는 Scaffold 내용(서브컴포즈)이라 나중에 등록돼, 셸이 처음부터 쌓인 스택으로
+  만들어지면(접기 · 펴기로 창 등급 가지가 바뀔 때) pop 이 드로어를 이겼다. 드로어가 열려 있는 동안 자식을 통째로 끄면
+  M3 핸들러가 늘림 연출과 함께 닫는다. 여는 중(`isOpen` 거짓)엔 자식이 켜져 있어 ⑤ 는 그대로다. `useDrawer &&` 를 빼면
+  접힌 화면에서 드로어를 연 채 펼쳤을 때 열림으로 남은 상태가 넓은 창의 pop 을 막는다. 순서는 계측
+  `src/androidTest/…/shell/BackOrderTest`(FM-10)가 지킨다 — 상태 없는 셸을 하네스로 띄워 단마다 누른다.
+
+- **삼킴은 `NavDisplay` 호출 뒤에 둔다.** `NavDisplay` 는 예측 뒤로가기 애니메이션을 **이미 커밋한
+  뒤** `onBack` 을 부른다. 앞에 두고 버리면 화면은 닫혔는데 스택은 그대로라 어긋난다.
+  `activity-compose` 의 `BackHandler` 는 `NavigationEventDispatcher` 가 있으면 거기 등록되므로
+  nav3 핸들러와 같은 LIFO 를 탄다.
+- **드로어 판정은 `isOpen` 이 아니라 `drawerEngaged = isOpen || targetValue == Open` 이다.**
+  `isOpen` 은 `currentValue` 이고 그 값은 `AnchoredDraggable` 이 애니메이션이 끝난 뒤에 넣는다.
+  여는 동안은 `false` 인데 Material3 의 핸들러도 `enabled = drawerState.isOpen` 이라 같이 꺼져 있다 —
+  그 틈으로 뒤로가기가 종료 안내로 샌다.
+- **여는 중(`drawerOpening`)은 우리가 받아 닫는다.** 비활성만 시키면 그 구간에 아무도 받지 않아
+  시스템으로 넘어가 앱이 그냥 꺼진다.
+- **펼친 고정 패널도 뒤로가기를 먹는다.** 백스택 엔트리가 아니지만 Compact 의 드로어와 대칭이다.
+  빠뜨리면 홈에서 패널을 펴 둔 채 뒤로가기 했을 때 종료 안내가 먼저 먹는다.
+
+### 파일 — 호스트를 일 단위로 쪼갠 것
+
+`NotesScreen` → `NotesStart`(시작 분기) → `NotesShell` 이고 그 안에서 조립된다. 한 파일이 한 가지만 한다:
+순서가 뜻을 갖는 호출 전부(`NotesShell` — 아래) / 인셋 산수(`NotesLayout`) / 씬 전략(`NotesScenes`) /
+등록 묶음과 `NavDisplay`(`NotesNavDisplay`) / 플로팅 내비·맨 위로·모델 알약(`NotesOverlays`·`ModelPill`).
+스크롤과 "맨 위로" 판정(`NotesScrollState`) · 상단 바(`NotesTopBar`)는 연결 화면 · 등록 파일도 써서 `:core:ui` 의 `shell/` 에 있다.
+
+**`NotesShell.kt` 한 파일이 순서를 고정한다(결정 12 · FM-5).** 시작 분기의 읽는 중 · 연결 루트(`NotesStart`), 모델 확인
+대화상자, 뒤로가기 핸들러, 드로어 · 고정 패널의 목록 패널, 퀴즈 오버레이, 상단 바와 그 행동(헤더 슬롯)을 이 파일에서 컴포즈
+순서대로 직접 부른다. 순서 없는 집합(Hilt `@IntoSet` 같은 멀티바인딩)으로 받지 않는다 — 받으면 퀴즈 오버레이(②)가 삼킴(③)보다
+먼저 컴포즈될 수 있다.
+
+**목적지 키 7개의 화면은 기능별 등록 파일이 등록한다(FM-4).** `:feature:notes` 의 `NotesDestinations.kt`(홈 · 북마크 · 리더) ·
+`:feature:stats` 의 `screen/StatsDestinations.kt`(통계 · 지난 요약) · `:feature:settings` 의 `SettingsDestinations.kt`(설정) ·
+`:feature:connect` 의 `screen/ConnectDestinations.kt`(쌓은 연결 화면). 셸 파일은 목적지 화면을 부르지 않고, `shellDestinations` 가 기능마다
+자기 상태 · 입구만 넘겨 묶는다. 리더 끝 CTA 자리는 노트 등록 파일이 노트 id 를 받는 슬롯으로 내놓고, 셸이 그 슬롯에 `:feature:quiz` 의 `QuizCtaCard` 를 넣는다(노트는 퀴즈 모듈을 모른다 — FM-2). 화면이 셸에게서 받는 틀 값은 셸 틀 계약 `:core:ui` 의 `frame/ShellFrame`(위 · 아래 · 끝 여백 · 두 단 · 쌓이는 씬 ·
+스크롤 홀더 · draft · 스낵바 호스트)뿐이다. 기능 자기 상태 · 입구와 셸이 묶어 넘기는 화면용 값(연결 있음 · 셸 뒤로 · 리더 끝 CTA 슬롯 ·
+알림 설정 열기 같은 것)은 틀 밖의 등록 함수 인자다(기능 문서 `feature-modules` 결정 13 · 18). 등록 틀(`:core:navigation` 의 `registry/`)이 모든 화면을 공유 전환 스코프로 감싸고
+내용 키는 건드리지 않는다. 새 목적지를 더하면 키는 `:core:navigation`, 화면은 그 기능의 등록 파일, 시험은
+`ShellDestinationsTest`(`FM-4 모든 목적지 키에 화면이 하나씩 등록된다`)의 키 목록이다.
+
+- **등록 화면 · 슬롯은 자기 기능 상태만 읽는다.** 셸이 기능 상태마다 `rememberUpdatedState` 로 State 를 만들어 람다로 넘기고,
+  화면은 그 안에서 읽는다. 다른 기능 상태(예: 모델 받기 진행)가 바뀌어도 그 엔트리 · 슬롯은 다시 그리지 않는다.
+  entryProvider 는 `remember` 로 한 번 만든다 — 매 컴포지션 새로 만들면 엔트리가 셸 상태를 통째로 캡처하던 옛 꼴로 돌아간다.
+- **틀 값은 화면 안에서 읽는다.** 등록 함수 본문(묶음을 만들 때 한 번 돈다)에서 읽으면 그때 값에 묶인다.
+  알약 예약 여백은 `animateDpAsState` 의 State 를 틀이 들고 있어 300ms 동안 셸 본문이 아니라 여백을 읽는 화면만 다시 그린다.
+- **목적지별 ViewModel 데코레이터를 넣지 않는다.** `NavDisplay` 에 `entryDecorators` 를 넘기지 않는다(기본값). 모든
+  `hiltViewModel` 은 Activity owner 다(결정 7) — 창 등급이 바뀌어 `NavDisplay` 가 다시 만들어져도 산다.
+
+쪼개거나 옮길 때 깨지는 것:
+
+- **`layerBackdrop` Box 안에는 `NotesNavDisplay` 만.** 그 Box 가 유리의 샘플링 대상이므로
+  오버레이(내비·맨 위로·퀴즈)가 안에 들어가면 유리가 자기를 샘플링한다. 그래서 `NotesOverlays` 와 `QuizOverlay` 는
+  그 Box 의 **형제**다. 반대로 `layerBackdrop` 을 `SharedTransitionLayout` 에 직접 걸면 레이어가
+  비어 효과가 통째로 사라진다.
+- **씬 슬롯(`panel`/`header`/`panelExpanded`)은 `remember` 로 정체성을 고정한다.** 매 컴포지션
+  새 람다가 들어가면 `sceneStrategies` 가 달라진 것으로 보여 씬이 통째로 재생성된다. 안의 값은
+  `rememberUpdatedState` 로 읽는다(`NotesShell.kt` 의 `rememberNotesPanelSlot`/`rememberNotesHeaderSlot` 참조).
+  manifest 에 `configChanges` 가 켜져 있어 Activity 가 재생성되지 않으므로 낡은 캡처는 실제 버그다.
+- `nestedScroll(navScroll.nestedScrollConnection)` 은 `layerBackdrop` Box **바깥**의 Box 에 걸려 있다 —
+  홈 그리드든 리더든 스크롤이 플로팅 내비 숨김 판정으로 올라와야 한다. 노트가 바뀌면
+  `navScroll.reset()` 으로 다시 보여 준다.
+- `NotesScrollState` 의 리더 스크롤은 `key(activeNoteId) { rememberScrollState() }` 다 — 노트마다
+  스크롤 위치가 따로다. 리더 본문의 원문 펼침 상태(`readerContent` = design-system `NoteContentState`)도 같은 자리·같은 키다.
+  **창 등급이 바뀌면(접기·펴기·회전) 셸이 `if (useDrawer) ModalNavigationDrawer(content = scaffold) else scaffold()` 의 다른
+  가지로 옮겨 `NavDisplay` 가 통째로 다시 만들어진다** — 항목 안의 `remember`/`rememberSaveable` 은 키를 명시해도 그때 사라진다.
+  창 등급을 넘어 남아야 하는 리더 상태는 여기(셸, 그 분기 위)에 둔다(관문 2 S1).
+
+### 상단 알약은 콘텐츠를 가리지 않는다
+
+`ModelPill` 이 보이는 동안 홈·리더의 스크롤 `contentTopPadding` 이 +54dp 된다(300ms).
+`NotesShell` 이 `rememberModelPillVisible()` 을 한 번 계산해 **오버레이와 패딩 양쪽에 같은 값**을
+넘긴다. 두 군데서 따로 계산하면 알약이 뜨는데 패딩이 안 밀리는 순간이 생긴다.
+
+`퀴즈 모델 준비됨`(Ready)은 받는 중이던 상태에서 Ready 로 바뀔 때만 3.2초 뜬다(`readyJustArrived`). 처음 본 상태가
+Ready 면(앱을 켬 · 재생성) 띄우지 않는다. VM 의 모델 상태 초깃값은 `Missing` 이다.
+
+---
 
 ## Hilt — 그래프가 완성되는 유일한 자리
 
@@ -47,7 +158,7 @@
   `:core:network`·`:core:data` 가 `BuildConfig` 를 모르게 하는 것이 이 모듈의 존재 이유다.
 
 `:core:design-foundation`/`:core:design-system` 에는 `@Module` 이 없다. `:app` 코드가 참조하는 것은 스플래시 내려감의
-떠남 곡선(`MyNoteExitEasing`)과 제목 글꼴 문(`font/` · `ProvideTitleFontFamily`)이다 — 나머지는 `:feature:notes`(feature convention) → design-system →
+떠남 곡선(`MyNoteExitEasing`)과 제목 글꼴 문(`font/` · `ProvideTitleFontFamily`)이다 — 나머지는 기능 모듈(feature convention) → design-system →
 `api(design-foundation)` 로 이미 들어온다.
 
 ## 토큰 — 저장소에서 OkHttp 로 가는 유일한 길
@@ -82,7 +193,7 @@ DataStore(DataStoreTokenStore) → TokenRepository → ObserveTokenUseCase
 
 ### BuildConfig 필드 — debug 첫 실행 시드 + 템플릿 주소
 
-저장소 연결은 앱 화면(`:feature:notes` 연결 화면)에서 한다. 빌드가 넣는 값은 **둘**이다: **debug 첫 실행 시드**와
+저장소 연결은 앱 화면(`:feature:connect` 연결 화면)에서 한다. 빌드가 넣는 값은 **둘**이다: **debug 첫 실행 시드**와
 **템플릿 저장소 주소**(RC-26). `RemoteConfigModule` 이 시드를 `ConnectionSeed?`(`GITHUB_OWNER`·`GITHUB_REPO` 둘 다 채워졌을 때만),
 템플릿 주소를 `TemplateRepo?`(`parseTemplateRepo(BuildConfig.TEMPLATE_REPO)` — 모양이 틀리거나 비면 `null`)로 만든다.
 필드는 여섯: `GITHUB_OWNER`·`GITHUB_REPO`·`GITHUB_BRANCH`·`GITHUB_TOKEN`·`TEMPLATE_REPO`·`TITLE_FONT_NAME`(아래 제목 글꼴 절).
@@ -114,7 +225,7 @@ DataStore(DataStoreTokenStore) → TokenRepository → ObserveTokenUseCase
 
 `MainActivity` 는 `super.onCreate` 앞에서 `enableEdgeToEdge(SystemBarStyle.dark(TRANSPARENT), …)` 를
 한 번 부르고, 같은 태스크에 이전 화면이 살아 있지 않으면 스플래시 내려감 리스너를 걸고, 설정 딥링크 인텐트를 한 번 소비하고,
-제목 글꼴 첫 프레임 문을 건 뒤 `setContent { ProvideTitleFontFamily(…) { NotesRoute() } }` 만 한다.
+제목 글꼴 첫 프레임 문을 건 뒤 `setContent { ProvideTitleFontFamily(…) { NotesRoute() } }` 만 한다(`NotesRoute` 는 `shell/`).
 `MyNoteTheme` 은 화면에서 시작한다 — Activity 는 Compose 테마를 모른다.
 
 - **시스템바 아이콘 명암을 여기서 고정하는 이유:** 앱은 다크 단일 테마인데 XML `Theme.MyNote` 의 부모는
@@ -126,13 +237,14 @@ DataStore(DataStoreTokenStore) → TokenRepository → ObserveTokenUseCase
 - `android:enableOnBackInvokedCallback="true"` — 예측 뒤로가기용(커밋 `f97d89d`).
 - `android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden"`
   — 회전·분할에서 Activity 가 재생성되지 않는다. 그래서 씬 슬롯의 낡은 캡처가 실제 버그가 되고,
-  `:feature:notes` 가 `remember` + `rememberUpdatedState` 로 막고 있다. 이 속성을 지우면 그쪽 전제가 바뀐다.
+  셸(`shell/NotesShell.kt`)이 `remember` + `rememberUpdatedState` 로 막고 있다. 이 속성을 지우면 그쪽 전제가 바뀐다.
 - **`<uses-native-library>` 두 줄(`libvndksupport.so`·`libOpenCL.so`, `required="false"`)은 LiteRT-LM 의
   GPU 백엔드용이다.** 없으면 예외도 로그도 없이 CPU 로 떨어지고, 판정은 TTFT 로만 가능하다(커밋 `c522d30`).
   매니페스트 정리하다 지우기 쉬운 자리다.
-- **백업 규칙(`res/xml/data_extraction_rules.xml`)은 토큰 DataStore(`datastore/github_token.preferences_pb`)와 모델
-  (`external` 전체 + 외부 저장소가 없을 때 `filesDir` 에 생기는 `gemma-4-E2B-it.litertlm`·`.part`·`.plan`)을 클라우드 백업과
-  기기 이전 **둘 다**에서 뺀다.** `minSdk` 32 라 이 파일만 읽히고 `backup_rules.xml` 은 같은 규칙의 사본이다.
+- **백업 규칙(`res/xml/data_extraction_rules.xml`)은 토큰이 든 DataStore 둘과 모델을 클라우드 백업과 기기 이전 둘 다에서
+  뺀다.** DataStore 는 `datastore/github_token.preferences_pb` 와, 연결 시도 전 토큰을 담는
+  `datastore/connection_attempt_token.preferences_pb` 다. 모델은 `external` 전체와, 외부 저장소가 없을 때 `filesDir` 에
+  생기는 `gemma-4-E2B-it.litertlm`·`.part`·`.plan` 이다. `minSdk` 32 라 이 파일만 읽히고 `backup_rules.xml` 은 같은 규칙의 사본이다.
   `<device-transfer>` 구역이 없으면 그 모드는 전부 옮긴다. 모델이 한 번이라도 클라우드 백업 대상에 들어가면 앱별 한도
   25MB 를 넘어 **그 앱의 백업 전체가 조용히 멈춘다** — 북마크·학습 기록도 같이 안 올라간다(기기 이전 한도는 2GB 라
   모델이 넘는다). `include` 를 하나라도 쓰면 나머지가 전부 빠지므로 `exclude` 만 쓴다. DataStore 이름이나 모델 파일
@@ -285,12 +397,22 @@ APK 85.4MB → 60.6MB. **되돌릴 조건은 하나다: 인텔 맥에서 x86_64 
   고치는 곳은 카탈로그다.
 - Compose BOM·material3·activity-compose·compose lint 는 `.compose` convention 이 넣는다. `:app` 의
   `dependencies` 블록은 모듈 목록 + `core-ktx`·`lifecycle-runtime`·`lifecycle-process`·
-  `work-runtime`·`hilt-work` 뿐이다. `lifecycle-process` 는 `ProcessLifecycleOwner` 때문에,
-  `work-runtime`/`hilt-work` 는 `HiltWorkerFactory` 배선 때문에 여기 있다.
-- `:app` 의 테스트는 계측 넷이다 — `src/androidTest/…/insight/InsightEvalTest`(통계 LLM 평가 하네스 · 인자 없으면 건너뜀),
+  `work-runtime`·`hilt-work` + 셸의 `hilt-navigation-compose`·`lifecycle-runtime-compose` + 시험의 `junit`·`coroutines-test` 다.
+  `lifecycle-process` 는 `ProcessLifecycleOwner` 때문에, `work-runtime`/`hilt-work` 는 `HiltWorkerFactory` 배선 때문에,
+  셸 둘은 Activity owner ViewModel 받기와 상태 수집 때문에 여기 있다.
+- `:app` 의 계측은 여섯이다 — `src/androidTest/…/insight/InsightEvalTest`(통계 LLM 평가 하네스 · 인자 없으면 건너뜀),
   `…/brand/LauncherMaskTest`(`brand` BR-1 — 런처 세 층을 원 · 둥근 사각 · 기기 마스크로 그려 아치가 안 잘리는지 보고 PNG 를
   앱 외부 캐시 `brand-mask/` 에 남긴다), `SplashWaitTest` · `LiveTasksTest`(`brand` BR-4 — 내려가기 기다림 계산과 같은 태스크 판단). 런처 그림은 `:app` 리소스라 라이브러리 계측에서 안 보여 여기 있다. 리소스 값 대조는
-  파이썬(`notes-tests/test_brand_resources.py`)이다. 배선 검증은 여전히 `./gradlew :app:compileDebugKotlin`(= Hilt 그래프 검증)이다.
+  파이썬(`notes-tests/test_brand_resources.py`)이다.
+  `…/shell/BackOrderTest`(FM-10 뒤로가기 7단 · FM-4 창 등급 — 상태 없는 셸에 가짜 상태를 넣어 그린다. 몸통은 하네스 말만 쓰고, 셸이
+  바뀌면 하네스만 고친다) · `…/brand/TitleFontScreensTest`(`brand` BR-8 — 가로 800×360 첫 실행 연결 화면 · 통계 요약 카드를 기기 글꼴과
+  Gothic A1 로 그려 스크롤 없음 · 두 단 · 줄 수를 보고 PNG 를 시험 APK 외부 캐시 `brand-font/` 에 남긴다. Gothic A1 쪽은 글꼴 제공자 ·
+  네트워크가 없으면 건너뛴다)도 여기 있다 — 셸과 여러 기능 화면을 같이 그려서다. 둘 다 Hilt ViewModel 없이 그리지만 앱 계측이라
+  `MyNoteApplication`(Hilt · 토큰 동기 · 워커)이 실제로 뜬 채 돈다.
+- JVM 시험은 `src/test/…/shell/` — 셸 VM(`ShellViewModelTest`) · 등록 묶음(`ShellDestinationsTest`) · 시작 분기(`ConnectStartTest`) ·
+  셸을 지나는 기능 사이 신호(`FeatureSignalsTest` · `NotesViewModelTest` · `HomeBodyTest` 의 셸 쪽 — 같은 클래스 이름이 `:feature:notes`
+  시험에도 있다, FM-13 · `FeatureSignalsTest` 는 `:feature:settings` · `:feature:quiz` 에도). `FeatureFixture` 는 셸 VM 과 기능 VM 셋을 같은 Navigator · 신호 계약 · 홀더로 세우는 `:feature:notes` 시험 도구의 사본이다.
+- 배선 검증은 여전히 `./gradlew :app:compileDebugKotlin`(= Hilt 그래프 검증)이다.
 
 ## 계측 테스트 — 평가 하네스와 "앱이 지워지지 않게"
 

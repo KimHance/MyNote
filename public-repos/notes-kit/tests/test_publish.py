@@ -79,6 +79,26 @@ class PublishTest(helpers.GitWorld):
         self.assertEqual(author, "github-actions[bot] <github-actions[bot]@users.noreply.github.com>")
         self.assertEqual(self.git(work, "rev-parse", "HEAD").stdout, self.git(self.remote, "rev-parse", "main").stdout)
 
+    def test_NT_4_마크다운_노트를_올려도_index_갱신_커밋이_하나_생긴다(self):
+        """NT-4 마크다운 노트를 올려도 index 갱신 커밋이 하나 생긴다"""
+        work = self.clone("work")
+        self.add_note_and_push(work, "alpha", markdown=True)
+        before = self.remote_log("main")
+        result = self.publish(work)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        after = self.remote_log("main")
+        self.assertEqual(len(after), len(before) + 1)
+        self.assertEqual(after[1:], before)
+        changed = self.git(
+            self.remote, "diff-tree", "--no-commit-id", "--name-only", "-r", "main"
+        ).stdout.split()
+        self.assertEqual(changed, ["notes/index.json"])
+        note_bytes = (work / "notes" / "g" / "alpha.md").read_bytes()
+        entry = self.index_at()["g"][0]
+        self.assertEqual(entry["path"], "notes/g/alpha.md")
+        self.assertEqual((entry["id"], entry["title"]), ("alpha", "alpha"))
+        self.assertEqual(entry["hash"], hashlib.sha256(note_bytes).hexdigest())
+
     def test_NT_4_봇_커밋은_index_만_바꾼다(self):
         """NT-4 봇 커밋은 index 만 바꾼다"""
         work = self.clone("work")
@@ -120,6 +140,19 @@ class PublishTest(helpers.GitWorld):
         self.assertEqual(self.remote_log("main"), tip)
         self.assertEqual(self.remote_show("main", "notes/index.json"), good_index)
         self.assertEqual(self.git(work, "rev-parse", "HEAD").stdout, self.git(self.remote, "rev-parse", "main").stdout)
+
+        self.git(work, "rm", "-q", "notes/g/broken.json")
+        self.write(work, "notes/g/no-date.md", "---\ntitle: 날짜 없음\n---\n본문\n")
+        self.git(work, "add", "-A")
+        self.git(work, "commit", "-m", "broken markdown")
+        self.git(work, "push", "origin", "HEAD:refs/heads/main")
+        tip = self.remote_log("main")
+        result = self.publish(work)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("notes/g/no-date.md: ", result.stderr)
+        self.assertIn("::error file=notes/g/no-date.md::", result.stdout)
+        self.assertEqual(self.remote_log("main"), tip)
+        self.assertEqual(self.remote_show("main", "notes/index.json"), good_index)
 
     def test_NT_4_commit_을_끄면_커밋하지_않는다(self):
         """NT-4 commit 을 끄면 커밋하지 않는다"""

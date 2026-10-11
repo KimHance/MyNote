@@ -57,12 +57,12 @@ import com.hancekim.mynote.core.designsystem.motion.MyNoteEasing
 import com.hancekim.mynote.core.designsystem.motion.MyNoteExitEasing
 import com.hancekim.mynote.core.designsystem.motion.rememberReduceMotion
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
+import com.hancekim.mynote.core.navigation.NotesTab
+import com.hancekim.mynote.core.ui.screen.SecondaryButton
 import com.hancekim.mynote.feature.notes.BookmarkUi
 import com.hancekim.mynote.feature.notes.NoteUi
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.NotesIntent
-import com.hancekim.mynote.feature.notes.element.NotesTab
-import com.hancekim.mynote.feature.notes.screen.SecondaryButton
 import com.hancekim.mynote.feature.notes.screen.emptyStateTitle
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf

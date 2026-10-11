@@ -86,6 +86,7 @@ internal class FakeAdapter(
     internal val failOn: String? = null,
     internal val gate: Int = 0,
     override val kind: SourceKind = SourceKind.GitHub,
+    private val onFetch: (suspend () -> Unit)? = null,
 ) : NoteSourceAdapter {
     val fetched: MutableList<String> = Collections.synchronizedList(mutableListOf())
     var lists = 0
@@ -104,6 +105,7 @@ internal class FakeAdapter(
         entry: SourceEntry,
     ): String {
         fetched += entry.docId
+        onFetch?.invoke()
         if (gate > 0) {
             arrived.update { it + 1 }
             withTimeout(2_000) { arrived.first { it >= gate } }
@@ -211,12 +213,19 @@ internal class FakeLocal(
         source: SourceId,
         upserts: List<CachedNote>,
         deleteDocIds: List<String>,
-    ) {
+    ): Boolean {
         applyCalls++
         writeError?.let { throw it }
+        if (source !in rows.value) return false
         store.update { current ->
             current + upserts.associateBy { it.key } - deleteDocIds.map { "${source.value}/$it" }.toSet()
         }
+        publish()
+        return true
+    }
+
+    override suspend fun deleteOrphanNotes() {
+        store.update { current -> current.filterValues { row -> rows.value.keys.any { it.value == row.sourceId } } }
         publish()
     }
 

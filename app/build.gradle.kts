@@ -14,6 +14,9 @@ val localProps =
 
 fun prop(key: String): String = localProps.getProperty(key, "")
 
+// 시드(owner · repo)가 없으면 토큰을 쓸 곳이 없으니 debug APK 에 넣지 않는다.
+val seedToken = if (prop("github.owner").isBlank() || prop("github.repo").isBlank()) "" else prop("github.token")
+
 val templateRepo =
     providers
         .gradleProperty("template.repo")
@@ -64,7 +67,7 @@ android {
             buildConfigField("String", "GITHUB_OWNER", "\"${prop("github.owner")}\"")
             buildConfigField("String", "GITHUB_REPO", "\"${prop("github.repo")}\"")
             buildConfigField("String", "GITHUB_BRANCH", "\"${prop("github.branch")}\"")
-            buildConfigField("String", "GITHUB_TOKEN", "\"${prop("github.token")}\"")
+            buildConfigField("String", "GITHUB_TOKEN", "\"$seedToken\"")
             buildConfigField("String", "TITLE_FONT_NAME", "\"$titleFontName\"")
         }
         release {
@@ -84,6 +87,7 @@ android {
 }
 
 dependencies {
+    implementation(projects.core.common)
     implementation(projects.core.designFoundation)
     implementation(projects.core.designSystem)
     implementation(projects.core.domain)
@@ -92,13 +96,24 @@ dependencies {
     implementation(projects.core.data)
     implementation(projects.core.network)
     implementation(projects.core.database)
+    implementation(projects.core.ui)
     implementation(projects.feature.notes)
+    implementation(projects.feature.connect)
+    implementation(projects.feature.settings)
+    implementation(projects.feature.quiz)
+    implementation(projects.feature.stats)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime)
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.work.runtime)
     implementation(libs.androidx.hilt.work)
+    // 셸(`shell/`) — Activity owner ViewModel 받기 · 상태 수집
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.lifecycle.runtimeCompose)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.ext.junit)

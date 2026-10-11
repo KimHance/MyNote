@@ -6,7 +6,8 @@
 
 ## 이 모듈이 있는 이유
 
-**내비게이션 계약 모듈.** 목적지 키 · 씬/씬 전략 · 전환 모션 · 공유 요소 배선 · 백스택 소유자만 둔다.
+**내비게이션 계약 모듈.** 목적지 키 · 씬/씬 전략 · 전환 모션 · 공유 요소 배선 · 백스택 소유자 · 목적지 등록 틀 ·
+여러 기능이 같이 쓰는 이동 명령(리더 열기 · 탭 전환과 탭 종류)만 둔다.
 
 feature 마다 자기 키를 들면 feature 끼리 서로의 목적지를 몰라 이동할 수 없고, feature ↔ feature
 직접 의존은 모듈 규칙 위반이다. 그래서 **키를 계약 모듈로 올려** 각 feature 가 서로를 모른 채 두고,
@@ -17,7 +18,7 @@ feature 마다 자기 키를 들면 feature 끼리 서로의 목적지를 몰라
 
 `src` 전체에 design-system/design-foundation/domain/data/material3/Hilt import 가 **0건**이다.
 씬은 폭·색·구분선을 스스로 정하지 않고 `panel`/`header` 슬롯에 맡긴다 — 실제로 `paneWidth`·
-`colors.border` 는 feature 쪽 슬롯이 그린다. 여기서 `MyNoteTheme` 를 import 하게 되면 설계가 틀어진 것이다.
+`colors.border` 는 `:app` 셸의 슬롯(`shell/NotesShell.kt`)이 그린다. 여기서 `MyNoteTheme` 를 import 하게 되면 설계가 틀어진 것이다.
 
 의존은 nav3(`api` 로 전파) + compose foundation + kotlinx-serialization + coroutines,
 그리고 **`implementation(projects.core.common)`** — 쓰로틀 판정을 `:core:common` 의 `Throttler`/`Clock` 이
@@ -59,8 +60,12 @@ dispatch: throttle.isIdle() 로 게이트  →  reduce(현재 스택, 명령)  �
 
 ### `dispatchImmediately`
 
-게이트를 우회한다. **사용자 입력이 아닌 이동 전용**(정정·딥링크). 현재 유일한 호출부는 동기화 결과
-삭제된 노트가 열려 있을 때의 `Pop` 이다 — 연타가 아니라 정정이라 막으면 없는 노트 화면이 남는다.
+게이트를 우회한다. **사용자 입력이 아닌 이동 전용**(정정·딥링크). 호출부는 동기화로 지워진 노트가 열려 있을 때의
+`Pop`, 연결이 바뀔 때 스택을 `[Home]` 으로 되돌리는 `ReplaceAll`, 알림이 여는 설정 `Push` 셋이다. 연타가 아니라
+정정이라서, 막으면 지워진 노트의 화면이 남는다.
+
+사용자 입력 하나를 `dispatchImmediately` 와 `dispatch` 로 나눠 부르지 않는다. 앞의 `apply()` 가 창을 열어 뒤의
+`dispatch` 가 `Throttled` 로 버려진다. 바뀔 스택은 한 번에 계산해 `dispatch` 하나로 보낸다.
 
 관찰해 둘 어긋남: `dispatchImmediately` 도 `apply()` 를 공유하므로 `tryAccept()` 를 부르지만, 창이
 열려 있으면 `tryAccept()` 는 `false` 를 돌려주고 기준 시점을 밀지 않는다. 반면 `settleJob` 은 취소·재시작해
@@ -118,8 +123,8 @@ dispatch: throttle.isIdle() 로 게이트  →  reduce(현재 스택, 명령)  �
   거기서 이동을 버리면 화면은 닫혔는데 스택은 그대로라 어긋난다. 그래서 전환 중 뒤로가기를 삼키는
   핸들러는 `NavDisplay` **호출 뒤**에 놓아야 한다(LIFO — 나중에 컴포즈된 핸들러가 이긴다).
   `activity-compose` 의 `BackHandler` 도 `NavigationEventDispatcher` 가 있으면 그쪽에 등록되므로
-  nav3 의 핸들러와 같은 LIFO 를 탄다(activity-compose 1.13.0 소스 확인). 실제 배선은 feature 쪽
-  셸에서 `NotesNavDisplay(...)` 바로 다음 줄의 `BackHandler(enabled = !isNavSettled)` 다.
+  nav3 의 핸들러와 같은 LIFO 를 탄다(activity-compose 1.13.0 소스 확인). 실제 배선은 `:app` 셸
+  `shell/NotesShell.kt` 의 `NotesNavDisplay(...)` 호출(`layerBackdrop` 상자) 바로 뒤의 `BackHandler(enabled = !isNavSettled …)` 다.
 
 ---
 
@@ -149,7 +154,7 @@ nav3 의 `LocalNavAnimatedContentScope` 는 미설정 시 **예외를 던진다*
 화면에서 직접 읽으면 `NavDisplay` 밖(=프리뷰)에서 바로 깨진다.
 
 그래서 nullable 한 `LocalNavAnimatedScope` 를 하나 두는데, **그 CompositionLocal 은 `internal`** 이다.
-화면이 손댈 수 있는 건 `ProvideNavAnimatedScope`(엔트리 래퍼)와 `navSharedElement`/`navSharedBounds` 뿐이고,
+화면이 손댈 수 있는 건 `ProvideNavAnimatedScope`(엔트리 래퍼 — 등록 틀이 모든 목적지에 이미 두른다)와 `navSharedElement`/`navSharedBounds` 뿐이고,
 스코프가 없으면 헬퍼가 받은 `Modifier` 를 그대로 돌려준다. 규율이 아니라 가시성으로 막혀 있으니
 이걸 `public` 으로 열지 말 것.
 
@@ -158,7 +163,7 @@ nav3 의 `LocalNavAnimatedContentScope` 는 미설정 시 **예외를 던진다*
   넓은 창에서는 본문 크로스페이드가, Compact 에서는 `NavDisplay` 의 씬 전환이 공유 요소의 기준이 된다.
 - 그 fallback 때문에 **`ProvideNavAnimatedScope` 자체는 엔트리 블록 안에서만 부른다.** 프리뷰에서 부르면 던진다.
 - `LocalSharedTransitionScope` 는 공개다 — `SharedTransitionLayout` 이 `NavDisplay` 를 감싸고 그 scope 를
-  내려 주는 건 feature 의 일이다.
+  내려 주는 건 `:app` 셸(`shell/NotesNavDisplay.kt`)의 일이다.
 - 키 문자열의 도메인 의미(`chip-`/`date-`/`title-{noteId}`)는 feature 가 정한다. 여기는 배선만.
 
 ---
@@ -176,16 +181,44 @@ nav3 의 `LocalNavAnimatedContentScope` 는 미설정 시 **예외를 던진다*
 - `ListDetailSceneStrategyTest` — 상세가 바뀌어도 씬 키 고정, `entries` 1개, `previousEntries` 파생.
   `SceneStrategyScope()` 를 직접 만들어 Compose 없이 돈다.
 - `NotesNavKeyTest` — `activeNoteId()` 는 맨 위가 `Reader` 일 때만 답한다.
+- `OpenReaderTest` · `TabSwitchTest` — 아래 이동 명령 절.
 
 여기 손대면 **변이 테스트로 확인할 것.** 예: 게이트에서 `tryAccept()` 를 부르게 바꾸면
 "no-op 은 창을 열지 않는다" 가 빨간불이 돼야 한다.
 
 ---
 
+## 이동 명령 — `OpenReader.kt` · `TabSwitch.kt` · `NotesTab.kt`
+
+노트 · 통계 · 퀴즈 · 셸이 같이 쓰는 스택 계산이라 여기 있다(기능 문서 `feature-modules` 모듈 지도). 셋 다 스택을 받아
+`NavCommand` 하나를 돌려주는 순수 함수다 — 바뀔 스택을 한 번에 계산해 `dispatch` 하나로 보내야 쓰로틀에 안 걸린다(위 `dispatchImmediately` 절).
+
+- `openReaderCommand(noteId)` — 설정이 맨 위면 설정을 걷고 그 자리에 리더를 둔다(`ReplaceAll`), 아니면 `Push`.
+- `switchTabCommand(tab)` — 플로팅 내비 칸(`NotesTab`). 홈은 `ReplaceAll([Home])`, 북마크 · 통계는 `[Home]` 에서 `Push` · 그 밖에서
+  `ReplaceAll([Home, 탭])`. 이미 그 자리면 `Navigator` 가 `Ignored` 로 받는다.
+
+## 등록 틀 — `registry/Destinations.kt`
+
+기능 모듈은 자기 목적지 화면을 `DestinationRegistration<F>`(= `DestinationScope.(F) -> Unit`)로 내놓고, 셸이 그 묶음을
+`destinationProvider(frame, registrations)` 로 `NavDisplay` 의 entryProvider 로 만든다. `F` 는 셸이 모든 목적지에 똑같이 넘기는
+틀 값(셸 틀 계약)이다 — 이 모듈은 그 모양을 모른다(제네릭). 기능 이름 · 디자인 시스템 타입이 여기 들어오지 않는다.
+
+- **nav3 `EntryProviderScope` 를 기능에 그대로 열지 않는다.** `DestinationScope.destination<K> { }` 하나만 연다.
+  모든 화면을 `ProvideNavAnimatedScope` 로 감싸고(기능이 빠뜨려도 공유 전환이 꺼지지 않는다), 내용 키 · 메타데이터를 고르지
+  못하게 한다 — 넓은 창 판정이 `Connect` 를 기본 내용 키로 알아본다(RC-14, 위 씬 절).
+- **감싸기는 등록할 때 한 번이다.** provider 가 `NavEntry` 를 만들 때마다 감싸면 매번 새 람다라 `NavEntry` 같음이 깨진다.
+- **같은 목적지를 두 번 등록하면 묶음을 만들 때 멈추고**(nav3 `require`), 아무도 등록하지 않은 목적지는 `fallback` 으로 간다.
+- **멀티바인딩 집합으로 모으지 않는다.** 레시피(modular-hilt)는 Hilt `@IntoSet` 으로 등록을 모으지만, 여기 등록은 셸의 컴포지션 값
+  (기능 상태 · 틀)을 받고 뒤로가기 계측 하네스는 Hilt 없이 셸을 그린다. 순서가 뜻을 갖는 호출(오버레이 · 패널 · 핸들러)은
+  애초에 등록이 아니라 셸 파일의 직접 호출이다(기능 문서 feature-modules 결정 12).
+- **ViewModel 데코레이터를 넣지 않는다.** `entryDecorators` 를 넘기지 않는다 — 넣으면 창 등급이 바뀔 때 목적지 스코프 ViewModel 이
+  새로 생긴다(결정 7). 시험: `DestinationsTest`(`FM-4 …`).
+
 ## 새 목적지를 붙일 때
 
 1. 키를 `MyNoteNavKey` 하위에 추가한다(sealed 이므로 다른 모듈에서 못 만든다).
-2. **feature 이름이 박힌 API 를 만들지 않는다.** 현재 예외는 `NotesNavKey` 와 `activeNoteId()` 뿐이고
+2. **feature 이름이 박힌 API 를 만들지 않는다.** 현재 예외는 `NotesNavKey` · `activeNoteId()` 와 위 이동 명령(`NotesTab` 포함)뿐이고
    그건 계약 자체라 여기 있는 게 맞다. 씬·모션·공유요소 헬퍼는 feature 를 타지 않게 유지한다.
 3. Compose 의존은 foundation 까지. material3 를 끌어오지 않는다.
 4. 화면 조립·슬롯·테마는 feature 가 한다. 이 모듈은 "어디로 갈 수 있는가"와 "어떻게 전환되는가"만 안다.
+5. 화면은 그 기능의 등록 파일에서 `destination<키> { }` 로 등록한다(위 등록 틀).

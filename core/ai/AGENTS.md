@@ -99,7 +99,7 @@ NPU 는 예전 실측에서 `Backend.NPU` 가 예외 없이 CPU 로 폴백했다
 - **greedy** — `SamplerConfig(topK = 1, topP = 1.0, temperature = 0.0)`. 구조화(JSON) 출력이라 온도 0.
   **부수효과가 UX 전제다:** 같은 노트·같은 문항 수로 재시도하면 사실상 같은 출력이 나온다.
   그래서 실패 화면의 실질적 탈출구는 "같은 조건 재시도"가 아니라 **문항 수를 줄인 재시도**
-  (`NotesIntent.RetryQuizWithFewer`)다. 샘플러를 건드리면 그 전제가 바뀐다.
+  (`:feature:quiz` 의 `QuizIntent.RetryWithFewer`)다. 샘플러를 건드리면 그 전제가 바뀐다.
 - **`maxOutputToken = 340 * count`** — 문항당 토큰 예산. **220 으로 잡았을 때 해설이 문장 중간에서
   잘렸다**(커밋 `c522d30` 실측). 한국어는 토큰당 글자 수가 적다. 호출자는 3~5문항을 보내므로
   (`QuizUiState.MIN/DEFAULT/MAX_COUNT` = 3/4/5) 실제 예산은 1,020~1,700 토큰이다.
@@ -143,10 +143,12 @@ NPU 는 예전 실측에서 `Backend.NPU` 가 예외 없이 CPU 로 폴백했다
 - `gemma-4-E2B-it.litertlm`(2.59GB)을 `getExternalFilesDir(null)` 에서 찾는다 →
   `/sdcard/Android/data/com.hancekim.mynote/files/`. `.gitignore` 에 `*.litertlm` 이 등록돼 있다.
 - `applicationIdSuffix` 가 없어 debug/release 가 **같은 경로**를 쓴다. `adb push` 한 번으로 둘 다 된다.
-- **파일이 없으면 예외가 아니라 조용한 비활성이다.** `isAvailable()` = 파일 존재 여부 →
-  `NotesViewModel` 의 `quizAvailable` 이 false → 퀴즈 진입점이 화면에서 사라진다.
-  "퀴즈 버튼이 안 보인다"는 대부분 버그가 아니라 파일이 없는 것이다.
-- `isAvailable()` 은 **존재만** 본다. 깨진 파일이나 다른 모델이면 첫 `use` 에서 `QuizFailure.Engine` 으로 터진다.
+- **파일이 없으면 예외가 아니라 `ModelStatus.Missing` 이다.** 화면은 `isAvailable()` 을 부르지 않고 `ModelDownloads` 가
+  흘리는 `ModelStatus` 를 본다 — 설치 파일이 있으면 `Ready`(`download/decision/DownloadFacts.kt`). `Missing` 이면 리더 끝 퀴즈 CTA 가
+  숨지 않고 흐리게 남아 모델이 필요하다는 부제와 `받기` 칩을 띄우고, 누르면 받기 확인 대화상자로 간다(`:core:ui` 의 `quizCtaUi`).
+  "모델을 넣었는데 CTA 가 `받기` 로 남는다"는 대부분 버그가 아니라 파일 이름 · 위치가 다른 것이다.
+- `isAvailable()`(`ModelEngine` · `QuizGenerator`)도 **존재만** 본다 — 지금 앱 코드에서 부르는 곳은 없고 `:app` 계측 평가 하네스가
+  모델 없는 기기를 건너뛸 때 쓴다. 깨진 파일이나 다른 모델이면 첫 `use` 에서 `QuizFailure.Engine` 으로 터진다.
 
 ## 내려받기 알림 — `download/work/`
 
@@ -170,6 +172,11 @@ NPU 는 예전 실측에서 `Backend.NPU` 가 예외 없이 CPU 로 폴백했다
   `statusOf` 가 준 값이라 같은 비율에서 멈춘다. `InstallResult.Retry` 에 바이트 칸을 다시 넣지 않는다.
 - 워커의 `catch (CancellationException)` 에서 부르는 알림판 호출은 suspend 가 아니다 — 취소된 코루틴에서 suspend 를
   부르면 바로 던진다.
+- **`setForeground` 는 감싼다.** 앱이 뒤에 있을 때 다시 시작된 실행(Wi-Fi 복귀 · 재시도 백오프 · dataSync 시간 소진)에서는
+  포그라운드 서비스를 못 띄워 `IllegalStateException` 이 난다. 잡아서 일반 작업으로 이어 받고, 끊기면 다음 실행이 받은
+  자리부터 잇는다. `CancellationException` 도 `IllegalStateException` 이라 그것만은 다시 던진다.
+- **해시 검증은 IO 에서 덩어리마다 취소를 확인한다**(`ModelInstaller.verified`). 확인 중에 취소해도 검증이 끝까지 돌아 파일을
+  자리에 넣고 `받았습니다` 를 올리면 MD-10 ② 와 어긋난다(`MD-10 파일 확인 중 취소하면 자리에 넣지 않고 조각을 남긴다`).
 - 재시도 작은 아이콘 `res/drawable/ai_stat_download_retrying.xml` 은 **움직이지 않는** 그림이다(기능 문서 결정 12 — 멈춘 막대와 같은
   말). 받는 중 · 대기의 플랫폼 `stat_sys_download` 는 움직인다. 출처: Android Studio Vector Asset 의 Material Icons
   `downloading`(Filled, 24 뷰박스) — Apache License 2.0. `tint` 를 지우고 `fillColor` 를 흰색으로 박았다. Material Symbols
@@ -180,7 +187,7 @@ NPU 는 예전 실측에서 `Backend.NPU` 가 예외 없이 CPU 로 폴백했다
 `Conversation.sendMessage(...)` 는 suspend 가 아니라 **블로킹 JNI 호출**이다(0.17.0 시그니처 확인).
 그래서:
 
-- 호출자(`NotesViewModel`)가 60초 `withTimeoutOrNull` 로 감싸고 `quizJob.cancel()` 도 하지만,
+- 호출자(`:feature:quiz` 의 `QuizViewModel`)가 60초 `withTimeoutOrNull` 로 감싸고 `quizJob.cancel()` 도 하지만,
   그건 **코루틴만 푼다.** 네이티브 디코딩은 끝까지 돌고, 그동안 `ModelEngine` 의 `Mutex` 를
   계속 붙잡고 있다 → 취소 직후 들어온 다음 요청은 앞 생성이 끝날 때까지 **대기**한다.
   "취소했는데 여전히 느리다"의 정체가 이것이다.

@@ -37,6 +37,9 @@
 4. 받을 본문을 `flatMapMerge` 로 **동시** 수신한다. 순차 루프로 되돌리면 테스트 `변경된 노트를 동시에 받는다` 가 타임아웃으로 죽는다(고의적 변이 감지 장치).
 5. 받은 원문마다 `NoteFormat.derive(entry.path, raw)` → `blocks_json`(파생 캐시)·`excerpt`. **형식 해석은 던지지 않는다.**
 6. 지울 것 = **그 소스의** 로컬 docId − 목록 docId. 둘 다 비면 쓰기를 부르지 않고, 아니면 `applySourceSync(source, upserts, deleteDocIds)` 한 번.
+   그 사이 소스 행이 지워졌으면(끊기 · 교체) 아무것도 쓰지 않고 빈 `SyncOutcome` 을 낸다. 그래서 돌던 동기화가 지운 소스의
+   노트를 되살리지 않는다(RC-17 `끊는 동안 돌던 동기화는 지운 소스의 노트를 되살리지 않는다`). 시작 복구(`ConnectionRecovery.run`)는
+   소스 행이 없는 노트를 지운다.
 7. `SyncOutcome`: `added`(로컬에 없던 것)·`updated`(리비전이 바뀐 것)·`deleted`(`NoteKey` 문자열). **원문 채우기 재수신(리비전 같음 + `raw` 없음)은 세지 않는다** — 업데이트 직후 "갱신 22개" 스낵바가 뜨지 않게.
 
 ### 실패 두 층
@@ -139,5 +142,5 @@ M0 에 쓰는 코드가 없어 여기에 없다 — 쓰는 단계에서 더한�
 - `MarkdownSyncTest` — 실제 엔진(`NoteFormat()`)으로 한도 안의 큰 입력이 동기화를 멈추지 않는지(NF-8), 옛 판이 상자로 굳힌 `.md` 행이
   네트워크 없이 다시 만들어지는지(NF-9), 이 레포 노트 22개를 `.md` 로 옮긴 목록으로 동기화하면 추가 0 · 삭제 0 · 갱신 22 이고 북마크가
   그대로인지(NF-16). 노트 사본은 `:core:format` 의 공유 시험 자료(`testFixtures(projects.core.format)` → `ParityNotes`)를 읽는다.
-- `TemplateNotesTest` — 템플릿 JSON 예시가 `NoteFormat` 에서 강등 0 · 동기화로 전부 받아진다(NT-6).
+- `TemplateNotesTest` — 템플릿 마크다운 예시(`public-repos/notes-template` 의 `.md` 둘)가 `NoteFormat` 에서 강등 0 · 앞머리가 블록으로 새지 않음 · 동기화로 전부 받아짐 · 앱이 그리는 모양을 다 씀 · 글자로만 보이는 문법 흔적 없음(NT-6). 템플릿 폴더가 시험 입력이라 한 글자만 바뀌어도 다시 돈다.
 - `ConnectionRepositoryTest` · `ConnectionConfigCodecTest` · `SyncFailureKindTest` · `BookmarkRepositoryImplTest`.

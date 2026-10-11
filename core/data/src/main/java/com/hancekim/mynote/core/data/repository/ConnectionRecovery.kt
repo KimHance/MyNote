@@ -33,6 +33,7 @@ class ConnectionRecovery @Inject constructor(
     suspend fun run() {
         finishDisconnect()
         discardPending()
+        local.deleteOrphanNotes()
         restoreTokenOfUnconfirmedAttempt()
         sweepBookmarks()
     }

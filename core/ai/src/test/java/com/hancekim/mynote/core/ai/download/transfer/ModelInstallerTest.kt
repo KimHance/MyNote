@@ -3,6 +3,8 @@ package com.hancekim.mynote.core.ai.download.transfer
 import com.hancekim.mynote.core.ai.download.decision.ExpectedModel
 import com.hancekim.mynote.core.ai.download.decision.HEADER_CONTENT_RANGE
 import com.hancekim.mynote.core.ai.download.decision.HEADER_RANGE
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import mockwebserver3.Dispatcher
 import mockwebserver3.MockResponse
@@ -301,6 +303,30 @@ class ModelInstallerTest {
 
             assertEquals(listOf(CONTENT_BYTES.size.toLong()), phases)
         }
+
+    @Test
+    fun `MD-10 파일 확인 중 취소하면 자리에 넣지 않고 조각을 남긴다`() =
+        runTest {
+            serve(CONTENT)
+            lateinit var job: Job
+
+            job = launch { install(onVerifying = { job.cancel() }) }
+            job.join()
+
+            assertTrue(job.isCancelled)
+            assertFalse(files.target.exists())
+            assertEquals(CONTENT_BYTES.size.toLong(), files.partBytes())
+        }
+
+    @Test
+    fun `MD-10 해시는 덩어리마다 취소를 확인한다`() {
+        val file = temp.newFile("big").apply { writeBytes(ByteArray(300 * 1024)) }
+        var chunks = 0
+
+        ModelFiles.sha256Of(file) { chunks++ }
+
+        assertTrue(chunks > 1)
+    }
 
     private suspend fun install(
         onVerifying: () -> Unit = {},

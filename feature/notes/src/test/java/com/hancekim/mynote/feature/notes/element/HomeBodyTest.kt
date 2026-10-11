@@ -35,26 +35,12 @@ class HomeBodyTest {
             NotesUiState(
                 connection = ConnectionState.Connected(SourceId("s1"), repo),
                 notesLoaded = true,
-                seedPending = false,
                 isLoading = false,
             )
 
         assertEquals(HomeBody.NoNotes, connected.homeBody)
         assertEquals(HomeBody.Receiving, connected.copy(awaitingNotes = true).homeBody)
         assertEquals(HomeBody.Receiving, connected.copy(isLoading = true).homeBody)
-    }
-
-    @Test
-    fun `RC-1 확정 직후에도 연결 있음 홈은 연결 화면이 아니다`() {
-        val connected =
-            NotesUiState(
-                connection = ConnectionState.Connected(SourceId("s1"), repo),
-                notesLoaded = true,
-                seedPending = false,
-                awaitingNotes = true,
-            )
-
-        assertEquals(StartDestination.Shell, connected.start)
     }
 
     private val repo = RepoConnection("octo-learner", "android-notes", "main", "notes/index.json", isPublic = true)

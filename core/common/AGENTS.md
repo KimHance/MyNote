@@ -8,8 +8,8 @@
 
 | 패키지 | 내용 | 쓰는 곳 |
 |---|---|---|
-| `mvi/` | `MviViewModel<S, E>` · 마커 `MviState` / `MviEvent` | `:feature:notes` 의 `NotesViewModel` |
-| `throttle/` | `Throttler` · `fun interface Clock` · `SystemClockSource` | `:core:navigation` 의 `Navigator`, `:core:design-system` 의 `throttledProcess` |
+| `mvi/` | `MviViewModel<S, E>` · 마커 `MviState` / `MviEvent` | 기능 ViewModel 전부(`:feature:*`) · `:app` 의 `ShellViewModel` |
+| `throttle/` | `Throttler` · `Clock.kt`(단조 `fun interface Clock` · `SystemClockSource`, 벽시계 `fun interface WallClock` · `SystemWallClockSource`) | `:core:navigation` 의 `Navigator`, `:core:design-system` 의 `throttledProcess`, 기능 · 셸 ViewModel(주입받음 · `:app` 의 `AppModule` 이 묶음) |
 | `result/` | `runCatchingCancellable` | `:core:data` 의 `NotesRepositoryImpl`, `:core:ai` 의 `LiteRtLmQuizGenerator` |
 
 **leaf 다.** `build.gradle.kts` 의 구현 의존은 `androidx.lifecycle.viewmodel` 과
@@ -18,10 +18,11 @@
 `:core:design-system` 으로 보낸다.**
 
 `:core:common` 을 가져다 쓰는 쪽은 `projects.core.common` 을 직접 선언하고
-(`:core:navigation` · `:core:design-system` · `:core:data` · `:core:ai`),
+(`:core:navigation` · `:core:design-system` · `:core:data` · `:core:ai` · `:app`),
 `:feature:*` 는 `AndroidFeatureConventionPlugin` 이 자동으로 넣는다.
 
-> **경계의 유일한 예외:** `Throttler.kt` 가 `android.os.SystemClock.elapsedRealtime()` 을 쓴다.
+> **경계의 유일한 예외:** `Clock.kt` 의 `SystemClockSource` 가 `android.os.SystemClock.elapsedRealtime()` 을 쓴다
+> (옆의 `SystemWallClockSource` 는 `System.currentTimeMillis()`).
 > UI 는 아니지만 안드로이드 SDK 다 — 그래서 이 모듈은 순수 JVM 모듈이 아니라 안드로이드
 > 라이브러리이고, 아래 "Throttler" 절의 테스트 제약이 여기서 나온다.
 
@@ -99,7 +100,7 @@ class NotesViewModel @Inject constructor(
 ```
 
 화면 쪽 배선은 `XxxRoute` 가 `hiltViewModel()` 과 `collectAsStateWithLifecycle()` 로 상태를 모아
-`XxxScreen(uiState, onIntent)`(ViewModel 없이 프리뷰되는 stateless)을 부르는 모양이다. 화면별 규칙은 `feature/notes/AGENTS.md`.
+`XxxScreen(uiState, onIntent)`(ViewModel 없이 프리뷰되는 stateless)을 부르는 모양이다. 화면별 규칙은 각 기능 모듈의 `feature/*/AGENTS.md`.
 
 ---
 
@@ -190,6 +191,9 @@ Room/DataStore 처럼 변경 시에만 방출하는 옵저버는 살려두는 �
 `exitHintId` / `quizUndoId` 를 `LaunchedEffect(uiState.errorId)` 가 받는다. base 에 이벤트
 채널을 새로 만들기 전에 이 패턴을 먼저 고려하라.
 
+id 만 두면 Activity 가 다시 만들어질 때 새 컴포지션의 `LaunchedEffect` 가 같은 id 로 다시 발동한다.
+화면이 효과를 끝낸 뒤 "봤음" 인텐트를 보내고 VM 이 그 id 를 지우게 한다(노트 · 설정 · 퀴즈 · 셸 VM 의 `SignalShown`).
+
 ---
 
 ## Throttler
@@ -225,6 +229,8 @@ apply(next)                                             // 여기서 throttle.tr
 
 `currentTimeMillis` 가 아니라 `elapsedRealtime` 인 것도 의도다 — 단조 증가라 사용자가
 시계를 돌려도 창이 뒤틀리지 않는다.
+저장에 남는 시각(에포크 밀리초 — 읽기 세션 · 퀴즈 결과 · 북마크 이벤트)은 따로 `WallClock` 으로 받는다.
+`WallClock` 으로 간격을 재지 않는다.
 
 ---
 

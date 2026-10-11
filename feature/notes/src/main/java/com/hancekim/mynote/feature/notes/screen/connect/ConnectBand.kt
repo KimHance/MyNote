@@ -27,6 +27,7 @@ import com.hancekim.mynote.core.designsystem.component.MyNoteIcons
 import com.hancekim.mynote.core.designsystem.component.PressIndication
 import com.hancekim.mynote.core.designsystem.component.throttledProcess
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
+import com.hancekim.mynote.core.ui.screen.connect.KeepWordsText
 import com.hancekim.mynote.feature.notes.R
 
 @Composable

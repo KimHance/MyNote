@@ -1,55 +1,49 @@
-import json
+import os
 import re
 import shutil
 import subprocess
 import sys
 import unittest
 import xml.etree.ElementTree as ElementTree
+from pathlib import Path
 
 import support
 
 TEMPLATE = support.PUBLIC / "notes-template"
 WORKFLOWS = TEMPLATE / ".github" / "workflows"
 README = TEMPLATE / "README.md"
-APP_STRINGS = support.REPO_ROOT / "feature" / "notes" / "src" / "main" / "res" / "values" / "strings.xml"
+# 앱 문구는 모듈을 옮겨도 따라가게 모든 모듈의 strings.xml 에서 이름으로 찾는다(feature-modules FM-12)
+APP_MODULES = ("app", "core", "feature")
+SKIPPED_DIRS = {"build", ".gradle", ".kotlin"}
 KIT_TOOL = support.load_module("kit_tool_for_template", support.KIT_TOOL)
 
 README_SECTIONS = ["시작하기", "노트 추가", "비공개로 만들었다면", "형식", "문제 해결"]
 APP_TERMS = [
-    "notes_entry_create",
-    "notes_connect_link_label",
-    "notes_connect_action",
-    "notes_connect_token_title",
-    "notes_token_howto_kind",
-    "notes_token_howto_scope",
-    "notes_token_howto_perm",
+    "connect_entry_create",
+    "connect_link_label",
+    "connect_action",
+    "connect_token_title",
+    "ui_token_howto_kind",
+    "ui_token_howto_scope",
+    "ui_token_howto_perm",
 ]
 
 
-def template_notes():
-    return sorted((TEMPLATE / "notes").glob("*/*.json"))
-
-
-def used_blocks_and_styles():
-    blocks, styles = set(), set()
-
-    def walk_spans(spans):
-        for span in spans:
-            styles.add(span.get("style", "text"))
-
-    for path in template_notes():
-        for block in json.loads(path.read_text(encoding="utf-8"))["blocks"]:
-            blocks.add(block["type"])
-            walk_spans(block.get("spans", []))
-            for item in block.get("items", []):
-                walk_spans(item["spans"])
-    return blocks, styles
+def template_files():
+    return sorted(
+        path.relative_to(TEMPLATE / "notes").as_posix()
+        for path in (TEMPLATE / "notes").rglob("*")
+        if path.is_file()
+    )
 
 
 def readme_sections(text):
-    sections, current = {}, None
+    """`## ` 절 이름 → 본문. 코드 블록 안의 `## ` 줄은 절이 아니다."""
+    sections, current, fenced = {}, None, False
     for line in text.splitlines():
-        if line.startswith("## "):
+        if line.startswith("```"):
+            fenced = not fenced
+        if line.startswith("## ") and not fenced:
             current = line[3:].strip()
             sections[current] = []
         elif current is not None:
@@ -57,9 +51,26 @@ def readme_sections(text):
     return {name: "\n".join(lines) for name, lines in sections.items()}
 
 
+def app_strings_files():
+    """모든 모듈의 `src/main/res/values/strings.xml` — 빌드 폴더는 내려가지 않고 걷는다."""
+    for top in APP_MODULES:
+        for directory, children, files in os.walk(support.REPO_ROOT / top):
+            children[:] = sorted(child for child in children if child not in SKIPPED_DIRS)
+            path = Path(directory) / "strings.xml"
+            if "strings.xml" in files and path.relative_to(support.REPO_ROOT).parts[-5:-1] == ("src", "main", "res", "values"):
+                yield path
+
+
 def app_string(name):
-    root = ElementTree.parse(APP_STRINGS).getroot()
-    return next(node.text for node in root.iter("string") if node.get("name") == name)
+    found = [
+        node.text
+        for path in app_strings_files()
+        for node in ElementTree.parse(path).getroot().iter("string")
+        if node.get("name") == name
+    ]
+    if len(found) != 1:
+        raise AssertionError(f"{name}: 정의 {len(found)}개")
+    return found[0]
 
 
 class TemplateTest(support.TempCase):
@@ -90,15 +101,22 @@ class TemplateTest(support.TempCase):
             (copy / "notes" / "index.json").read_bytes(),
             (TEMPLATE / "notes" / "index.json").read_bytes(),
         )
-        self.assertEqual((TEMPLATE / ".mynote-format").read_text(encoding="utf-8"), "1\n")
+        self.assertEqual((TEMPLATE / ".mynote-format").read_text(encoding="utf-8"), "2\n")
 
-    def test_NT_5_예시가_8블록_3스타일을_다_쓴다(self):
-        """NT-5 예시가 8블록 3스타일을 다 쓴다"""
-        blocks, styles = used_blocks_and_styles()
-        self.assertEqual(blocks, set(KIT_TOOL.BLOCK_TYPES))
-        self.assertEqual(styles, set(KIT_TOOL.SPAN_STYLES))
-        titles = [json.loads(path.read_text(encoding="utf-8"))["title"] for path in template_notes()]
-        self.assertIn("시작하기", titles)
+    def test_NT_5_예시는_마크다운_노트_둘이다(self):
+        """NT-5 예시는 마크다운 노트 둘이다"""
+        self.assertEqual(
+            template_files(),
+            ["index.json", "start/getting-started.md", "start/note-format.md"],
+        )
+        self.assertEqual([p for p in template_files() if p.endswith(".json") and p != "index.json"], [])
+        self.assertEqual((TEMPLATE / ".mynote-format").read_text(encoding="utf-8"), "2\n")
+        groups, count = KIT_TOOL.collect(TEMPLATE, "notes")
+        self.assertEqual(count, 2)
+        self.assertEqual(
+            [(e["id"], e["title"], e["date"]) for e in groups["start"]],
+            [("getting-started", "시작하기", "2026.10.06"), ("note-format", "노트 형식 둘러보기", "2026.10.06")],
+        )
 
     def test_NT_5_템플릿에_스크립트가_없다(self):
         """NT-5 템플릿에 스크립트가 없다"""
@@ -144,10 +162,17 @@ class TemplateTest(support.TempCase):
         for way in ("웹", "로컬", "플러그인"):
             self.assertIn(f"**{way}**", sections["노트 추가"])
         self.assertRegex(sections["노트 추가"], r"git pull.*한 번")
+        self.assertIn("`notes/<그룹>/<id>.md`", sections["노트 추가"])
+        for key in KIT_TOOL.FRONT_MATTER_KEYS:
+            self.assertIn(f"`{key}`", sections["노트 추가"])
+        self.assertNotRegex(text, r"<id>\.json")
         self.assertIn("앱", sections["비공개로 만들었다면"])
         self.assertIn("SPEC.md", sections["형식"])
-        self.assertIn("지원 앱 형식: `1`", sections["형식"])
+        self.assertIn("지원 앱 형식: `2`", sections["형식"])
+        self.assertIn("글자로 보이", sections["형식"])
+        self.assertIn("마크다운을 읽는 앱 판", sections["형식"])
         self.assertIn("Actions", sections["문제 해결"])
+        self.assertIn("앞머리", sections["문제 해결"])
         self.assertIn("목록이 없습니다", sections["문제 해결"])
         self.assertIn("쓰기 권한", sections["문제 해결"])
         self.assertIn("브랜치 보호 규칙", sections["문제 해결"])

@@ -423,6 +423,43 @@ class ConnectionRepositoryTest {
         }
 
     @Test
+    fun `RC-17 끊는 동안 돌던 동기화는 지운 소스의 노트를 되살리지 않는다`() =
+        runTest {
+            lateinit var h: Harness
+            h =
+                Harness(
+                    local = FakeLocal(initial = listOf(cached("a", "h1"))),
+                    adapter =
+                        FakeAdapter(
+                            listOf(entry("a", "h2"), entry("b", "h1")),
+                            onFetch = { h.connections().disconnect().getOrThrow() },
+                        ),
+                )
+
+            val outcome = h.notes().sync().getOrThrow()
+
+            assertEquals(SyncOutcome(), outcome)
+            assertTrue(h.keys().isEmpty())
+            assertEquals(ConnectionState.None, h.connection())
+        }
+
+    @Test
+    fun `RC-17 시작 복구는 소스 행이 없는 노트를 지운다`() =
+        runTest {
+            val h =
+                Harness(
+                    local =
+                        FakeLocal(
+                            initial = listOf(cached("a", "h1"), cached("x", "r1", source = SourceId("gone"))),
+                        ),
+                )
+
+            h.connections().recover()
+
+            assertEquals(setOf("s0/a"), h.keys())
+        }
+
+    @Test
     fun `RC-17 북마크 삭제는 화면 없이도 끝난다`() =
         runTest {
             val h = Harness(bookmarks = FakeBookmarkStore(mapOf("s0/a" to 1L, "s0/b" to 2L)))
@@ -622,6 +659,7 @@ class ConnectionRepositoryTest {
                     local =
                         FakeLocal(
                             initial = listOf(cached("a", "h1"), cached("b", "h1"), cached("c", "h1")),
+                            sources = listOf(SourceRecord(S0, SourceKind.GitHub, null)),
                             connected = false,
                         ),
                 )

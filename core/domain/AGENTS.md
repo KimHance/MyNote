@@ -86,10 +86,11 @@ debug 내장 토큰은 시드 연결(`ConsumeSeedUseCase`)이 저장 칸에 쓰�
 
 경계 두 가지:
 
-- **timeout 은 여기 없다.** `NotesViewModel` 의 `withTimeoutOrNull(60초)` 가 감싼다. 그래서 UI 쪽
+- **timeout 은 여기 없다.** `:feature:quiz` 의 `QuizViewModel` 이 `withTimeoutOrNull(60초)` 로 감싼다. 그래서 UI 쪽
   `QuizUiState.Failed.Kind` 에는 `Timeout` 이 있는데 `QuizFailure` 에는 없다 — 불일치가 아니라 소유자가 다르다.
-- `isAvailable()` 은 UseCase 를 거치지 않는다. feature 가 `QuizGenerator` 를 직접 주입받아 부른다
-  (도메인 인터페이스라 경계 위반은 아니다). 모델 파일 존재 여부를 묻는 것뿐이라 감싸도 얻는 게 없다.
+- 퀴즈를 쓸 수 있는지는 `isAvailable()` 이 아니라 모델 상태로 판단한다. 기능 모듈은 `QuizGenerator` 를 주입받지 않고
+  `ObserveModelStatusUseCase` 로 `ModelStatus` 를 읽는다(`Ready` = 설치 파일이 있음 — `:core:ai` 의 `ModelDownloads`).
+  `isAvailable()` 은 모델 파일 존재만 묻는 인터페이스 메서드로 남아 있고, 지금 앱 코드에서 부르는 곳은 없다.
 
 ## 학습 기록과 통계 — 규칙은 전부 여기 있는 순수 함수다
 
@@ -121,8 +122,8 @@ debug 내장 토큰은 시드 연결(`ConsumeSeedUseCase`)이 저장 칸에 쓰�
 `sealed class QuizFailure : Exception` — `Parse`/`Empty`/`Engine`. 메시지는 전부 영어 진단 문구다
 (`"parse: no JSON array in output"`, `"engine failed to load or run"`). **화면 문구가 아니다.**
 
-경로: `:core:ai` 가 실패를 만들고 → `NotesViewModel.toFailKind()` 가 `QuizUiState.Failed.Kind` 로 바꾸고
-→ `QuizFailedScreen` 이 `Kind` → `R.string.notes_quiz_failed_*` 로 그린다.
+경로: `:core:ai` 가 실패를 만들고 → `:feature:quiz` 의 `QuizViewModel.toFailKind()` 가 `QuizUiState.Failed.Kind` 로 바꾸고
+→ `QuizFailedScreen` 이 `Kind` → `R.string.quiz_failed_*` 로 그린다.
 
 여기에 한국어 안내 문장을 쓰면 안 되는 이유 셋:
 
