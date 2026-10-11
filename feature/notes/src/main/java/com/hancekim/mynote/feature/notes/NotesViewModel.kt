@@ -55,7 +55,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
@@ -133,6 +132,7 @@ class NotesViewModel @Inject constructor(
 
     private var removedBookmark: Bookmark? = null
     private var removedEventId: Long? = null
+    private var clearsAtRemoval = 0
 
     private val readerScrollRequest = trigger<ReaderScrollRequest?>(null)
     private var scrollRequestSeq = 0
@@ -188,10 +188,6 @@ class NotesViewModel @Inject constructor(
             .filterNotNull()
             .filter { it.id > seenOpen }
             .onEach { onReaderOpened(it) }
-            .launchIn(viewModelScope)
-        signals.studyLogClears
-            .drop(1)
-            .onEach { removedEventId = null }
             .launchIn(viewModelScope)
     }
 
@@ -281,6 +277,7 @@ class NotesViewModel @Inject constructor(
                 val entry = bookmarkEntries.value.firstOrNull { it.noteId == event.noteId } ?: return
                 removedBookmark = entry
                 removedEventId = null
+                clearsAtRemoval = signals.studyLogClears.value
                 launchSafely {
                     removeBookmarks(listOf(entry.noteId))
                     announce(messages.bookmarkRemoved(), undo = NotesIntent.UndoRemoveBookmark)
@@ -292,7 +289,8 @@ class NotesViewModel @Inject constructor(
 
             NotesIntent.UndoRemoveBookmark -> {
                 val entry = removedBookmark ?: return
-                val eventId = removedEventId
+                // 해제 뒤 학습 기록을 지웠으면 그 이벤트 행은 이미 없다 — 같은 id 의 새 행을 지우지 않는다
+                val eventId = removedEventId.takeIf { signals.studyLogClears.value == clearsAtRemoval }
                 removedBookmark = null
                 removedEventId = null
                 if (categoryLoad.value.list.none { c -> c.notes.any { it.id == entry.noteId } }) return

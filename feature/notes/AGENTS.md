@@ -73,6 +73,8 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
 - 문구는 ViewModel 이 `getString` 을 직접 부르지 않는다. 인터페이스 `NotesMessages` 를 주입받아 부르고,
   `getString` 은 구현 `AndroidNotesMessages`(`@ApplicationContext`)에만 있다. 접근성 판정(`QuizAutoAdvancePolicy`) ·
   통계 기록(`StatsTrace`) · 실패 로그(`FailureLog`)도 같은 패턴이고 구현은 `:app` 의 `NotesModule` 이 묶는다.
+  이 모듈 안의 Hilt 모듈은 하나 — 통계 디스패처 `stats/StatsDispatcher.kt` 의 `StatsDispatcherModule`(`@StatsWork`)이고
+  통계 패키지와 같이 옮겨 간다.
   시각은 `:core:common` 의 `Clock`(간격) · `WallClock`(기록 시각)을 주입받는다 — ViewModel 이 JVM 시험에서
   가상 시간으로 만들어지게 하려는 것이다(FM-8 · `NotesViewModelTest`).
 
@@ -84,7 +86,8 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
 `signal/FeatureSignals`(상태 흐름 + 증가 id)로만 보낸다. 컴포지션을 거쳐 나르면 한 프레임 늦는다(결정 13).
 화면만 쓰는 값(오버레이의 노트 제목 · 목록 패널의 설정 배지 · 맨 위로의 토큰 편집 중)은 셸이 VM 상태를 묶어 넘긴다(`shell/ShellFeatures.kt`).
 
-- 받는 VM 은 만들어질 때의 id 를 이미 본 것으로 잡는다. 계약은 싱글턴이라 Activity 가 다시 열려도 옛 요청이 남아 있다.
+- 받는 VM 은 만들어질 때의 id 를 이미 본 것으로 잡는다. 계약은 싱글턴이라 Activity 가 다시 열려도 옛 요청이 남아 있다
+  (`FM-6 새로 만든 … ViewModel 은 지난 … 다시 처리하지 않는다`). 학습 기록 지우기는 노트 VM 이 해제할 때의 횟수와 되돌릴 때의 횟수를 비교한다.
 - **퀴즈 덮음(⑦)** 은 퀴즈 VM 이 상태를 바꾸는 `setQuiz` 한 자리에서 같이 쓴다. 노트 VM 은 흐름으로 받아 읽기 세션을 멈춘다.
 - **연결이 바뀌면(⑨)** 셸 VM 의 `onConnectionChanged` 한 호출이 스택 `[Home]` · 계약 `closeQuiz()` · `LastSyncHolder` 를 동기로 쓴다.
   퀴즈 VM 은 Main.immediate 수집기로 받아 같은 메인 스레드 메시지 안에서 닫는다.

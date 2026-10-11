@@ -1,11 +1,13 @@
 package com.hancekim.mynote.feature.notes.signal
 
+import com.hancekim.mynote.core.domain.model.Bookmark
 import com.hancekim.mynote.core.domain.model.ConnectionState
 import com.hancekim.mynote.core.domain.model.ModelStatus
 import com.hancekim.mynote.core.domain.model.SourceId
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import com.hancekim.mynote.feature.notes.FeatureFixture
 import com.hancekim.mynote.feature.notes.FeatureFixture.Companion.CATEGORY
+import com.hancekim.mynote.feature.notes.FeatureFixture.Companion.EVENT_ID
 import com.hancekim.mynote.feature.notes.FeatureFixture.Companion.NOTE_ID
 import com.hancekim.mynote.feature.notes.FeatureFixture.Companion.REPO
 import com.hancekim.mynote.feature.notes.FeatureFixture.Companion.UNREADABLE_ID
@@ -26,6 +28,7 @@ import com.hancekim.mynote.feature.notes.stats.StatsIntent
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
@@ -35,6 +38,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -232,5 +236,75 @@ class FeatureSignalsTest {
             settings.onIntent(SettingsIntent.StartTokenEdit)
 
             assertFalse(scrollToTopVisible(true, false, false, settings.state.value.tokenEditing))
+        }
+
+    @Test
+    fun `FM-6 새로 만든 노트 ViewModel 은 지난 리더 열기를 다시 처리하지 않는다`() =
+        runTest {
+            val fixture = FeatureFixture(this)
+            fixture.signals.reportReaderOpened(NOTE_ID, resumeAt = 0.4f, quiz = true)
+
+            val notes = fixture.notes()
+            val quiz = fixture.quiz()
+            fixture.subscribe(notes, quiz)
+
+            assertNull(notes.state.value.readerScrollRequest)
+            assertNull(fixture.signals.quizSetup.value)
+            assertEquals(QuizUiState.Idle, quiz.state.value.quiz)
+        }
+
+    /** 메인이 바로 돌지 않으면 만들 때 띄운 수집기가 첫 인텐트 뒤에 돈다 — 그때 지난 신호를 처리하면 보인다. */
+    @Test
+    fun `FM-6 새로 만든 퀴즈 ViewModel 은 지난 설정 요청과 닫기를 다시 처리하지 않는다`() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            val fixture = FeatureFixture(this)
+            fixture.signals.requestQuizSetup(UNREADABLE_ID, CATEGORY)
+            fixture.signals.closeQuiz()
+
+            val quiz = fixture.quiz()
+            quiz.onIntent(QuizIntent.OpenSetup(NOTE_ID, CATEGORY))
+            runCurrent()
+
+            assertEquals(QuizUiState.Setup(NOTE_ID), quiz.state.value.quiz)
+        }
+
+    @Test
+    fun `FM-6 새로 만든 설정 ViewModel 은 지난 설정 열기로 편집을 정리하지 않는다`() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            val fixture = FeatureFixture(this)
+            fixture.signals.enterSettings()
+
+            val settings = fixture.settings()
+            settings.onIntent(SettingsIntent.StartTokenEdit)
+            runCurrent()
+
+            assertTrue(settings.state.value.tokenEditing)
+        }
+
+    @Test
+    fun `FM-6 학습 기록을 지운 뒤 북마크 되돌리기는 기록을 건드리지 않는다`() =
+        runTest {
+            val fixture = FeatureFixture(this, bookmarks = listOf(Bookmark(NOTE_ID, addedAt = 100L)))
+            fixture.signals.studyLogCleared()
+            val notes = fixture.notes()
+            val settings = fixture.settings()
+            fixture.subscribe(notes, settings)
+
+            notes.onIntent(NotesIntent.RemoveBookmark(NOTE_ID))
+            runCurrent()
+            notes.onIntent(NotesIntent.UndoRemoveBookmark)
+            runCurrent()
+            assertEquals(listOf(EVENT_ID), fixture.studyLog.cancelledEvents)
+
+            notes.onIntent(NotesIntent.RemoveBookmark(NOTE_ID))
+            runCurrent()
+            settings.onIntent(SettingsIntent.ClearStudyLog)
+            notes.onIntent(NotesIntent.UndoRemoveBookmark)
+            runCurrent()
+
+            assertEquals(listOf(EVENT_ID), fixture.studyLog.cancelledEvents)
+            assertEquals(listOf(Bookmark(NOTE_ID, addedAt = 100L)), fixture.bookmarks.entries.value)
         }
 }
