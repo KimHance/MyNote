@@ -337,7 +337,7 @@ ANDROID_SERIAL=<기기 serial> ./gradlew :feature:notes:connectedDebugAndroidTes
 
 `ModelStatus.Failed(reason)` 의 `reason` 은 WorkManager output data 를 타고 오는 **문자열**이라
 타입이 지켜 주지 않는다. `:core:domain` 의 `ModelFailure.NO_SPACE` 를 양쪽이 같이 본다.
-UI 에 `"no-space"` 를 다시 적으면 값이 어긋나는 순간 **공간 부족인데 "잠시 뒤 다시 시도해 주세요"
+UI 에 `"no-space"` 를 다시 적으면 값이 어긋나는 순간 **공간 부족인데 "잠시 뒤 다시 시도하세요"
 로 조용히 떨어진다.** 실제로 한 번 그렇게 만들었다가 고쳤다.
 
 ### `isQuizAvailable` 은 더 이상 한 번 읽고 마는 값이 아니다
