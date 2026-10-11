@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="notes_app_title">MyNote</string>
-    <string name="notes_home_hint_compact">읽고 싶은 노트를 고르세요. 왼쪽 위 ☰ 를 누르면 전체 목록이 열립니다.</string>
+    <string name="notes_home_hint_compact">읽고 싶은 노트를 고르세요. 왼쪽 위 ☰를 누르면 전체 목록이 열립니다.</string>
     <string name="notes_home_hint_wide">왼쪽 목록에서 읽고 싶은 노트를 고르세요.</string>
     <string name="notes_home_recent">최근 노트</string>
 
@@ -19,7 +19,7 @@
     <string name="notes_bookmark_state_on">북마크됨</string>
     <string name="notes_bookmark_state_off">북마크 안 됨</string>
     <string name="notes_bookmark_added">북마크에 추가했습니다</string>
-    <string name="notes_bookmark_removed">북마크에서 뺐습니다</string>
+    <string name="notes_bookmark_removed">북마크를 해제했습니다</string>
     <string name="notes_bookmark_remove">북마크 해제</string>
     <string name="notes_bookmark_latest">가장 최근</string>
     <string name="notes_bookmark_earlier">그전에 모은 노트</string>
@@ -40,16 +40,16 @@
 
     <string name="notes_exit_hint">한 번 더 누르면 종료합니다</string>
     <string name="notes_sync_failed">노트를 불러오지 못했습니다. 연결을 확인하세요.</string>
-    <string name="notes_sync_applied">노트 변경 반영 — %1$s</string>
-    <string name="notes_sync_changed">갱신 %1$d개</string>
-    <string name="notes_sync_deleted">삭제 %1$d개</string>
+    <string name="notes_sync_applied">노트를 불러왔습니다 · %1$s</string>
+    <string name="notes_sync_changed">%1$d개 바뀜</string>
+    <string name="notes_sync_deleted">%1$d개 지움</string>
 
     <string name="notes_quiz_cta_title">이 노트로 퀴즈 풀기</string>
     <string name="notes_quiz_cta_subtitle">최대 %1$d문제</string>
 
     <string name="notes_quiz_setup_title">퀴즈 만들기</string>
-    <string name="notes_quiz_setup_subtitle">%1$s · 기기 안에서 생성</string>
-    <string name="notes_quiz_setup_count_label">최대 문항 수</string>
+    <string name="notes_quiz_setup_subtitle">%1$s · 기기 안에서 만듦</string>
+    <string name="notes_quiz_setup_count_label">최대 문제 수</string>
     <string name="notes_quiz_setup_count_max">최대 %1$d문제</string>
     <string name="notes_quiz_setup_hint">노트가 짧으면 이보다 적게 나올 수 있습니다. 물어볼 것이 없는 내용으로는 문제를 만들지 않습니다.</string>
     <string name="notes_quiz_count">%1$d문제</string>
@@ -59,9 +59,9 @@
     <string name="notes_quiz_generating_stop">그만두기</string>
     <string-array name="notes_quiz_generating_steps">
         <item>노트를 읽는 중</item>
-        <item>핵심 개념을 고르는 중</item>
-        <item>문제를 다듬는 중</item>
-        <item>선택지를 섞는 중</item>
+        <item>문제를 만드는 중</item>
+        <item>계속 만드는 중</item>
+        <item>아직 만드는 중</item>
     </string-array>
 
     <string name="notes_quiz_close">퀴즈 닫기</string>
@@ -77,8 +77,8 @@
     <string name="notes_quiz_abandoned">퀴즈를 그만뒀습니다</string>
 
     <string name="notes_quiz_result_perfect_title">다 맞혔습니다</string>
-    <string name="notes_quiz_result_perfect_body">이 노트는 충분히 소화한 것 같습니다.</string>
-    <string name="notes_quiz_result_good_title">거의 잡았습니다</string>
+    <string name="notes_quiz_result_perfect_body">다른 노트로 퀴즈를 풀어 보세요.</string>
+    <string name="notes_quiz_result_good_title">거의 다 맞혔습니다</string>
     <string name="notes_quiz_result_retry_title">한 번 더 읽어 보세요</string>
     <string name="notes_quiz_result_review_body">틀린 문제의 해설은 방금 본 그 자리에 있습니다. 노트를 다시 한 번 훑어보세요.</string>
     <string name="notes_quiz_result_score">%1$d문제 중 %2$d문제 정답</string>
@@ -87,8 +87,8 @@
     <string name="notes_quiz_failed_title">문제를 만들지 못했습니다</string>
     <string name="notes_quiz_failed_parse">모델이 형식에 맞지 않게 답해서 문제를 읽어내지 못했습니다.\n한 번 더 시도하면 대개 성공합니다.</string>
     <string name="notes_quiz_failed_empty">노트에서 문제로 낼 만한 내용을 찾지 못했습니다.\n노트가 너무 짧을 수 있습니다.</string>
-    <string name="notes_quiz_failed_engine">모델을 불러오지 못했습니다.\n모델 파일을 다시 내려받아야 할 수 있습니다.</string>
-    <string name="notes_quiz_failed_timeout">시간이 너무 오래 걸려서 멈췄습니다.\n문항 수를 줄이면 빨라집니다.</string>
+    <string name="notes_quiz_failed_engine">퀴즈 모델을 실행하지 못했습니다.\n모델 파일을 다시 받아야 할 수 있습니다.</string>
+    <string name="notes_quiz_failed_timeout">시간이 너무 오래 걸려서 멈췄습니다.\n문제 수를 줄이면 빨라집니다.</string>
     <string name="notes_quiz_retry">다시 만들기</string>
     <string name="notes_quiz_retry_fewer">최대 %1$d문제로 줄여서 다시</string>
 
@@ -133,7 +133,7 @@
     <string name="notes_model_ready_desc">2.6GB 사용 중</string>
     <string name="notes_model_failed">받지 못함</string>
     <string name="notes_model_failed_space">저장 공간이 부족합니다</string>
-    <string name="notes_model_failed_generic">잠시 뒤 다시 시도해 주세요</string>
+    <string name="notes_model_failed_generic">잠시 뒤 다시 시도하세요</string>
     <string name="notes_model_bytes">%1$s / %2$s GB</string>
     <string name="notes_model_percent">%1$d%%</string>
     <string name="notes_model_download">받기</string>
@@ -151,10 +151,10 @@
     <string name="notes_model_confirm_body">Gemma 4 E2B, 2.6GB입니다. Wi-Fi에 연결됐을 때만 받고, 받는 동안 앱을 계속 써도 됩니다.</string>
     <string name="notes_model_confirm_later">나중에</string>
     <string name="notes_model_delete_title">퀴즈 모델을 삭제할까요?</string>
-    <string name="notes_model_delete_body">저장 공간 2.6GB가 비워집니다. 퀴즈를 다시 만들려면 새로 받아야 합니다.</string>
+    <string name="notes_model_delete_body">저장 공간 2.6GB를 비웁니다. 퀴즈를 다시 만들려면 모델을 새로 받아야 합니다.</string>
     <string name="notes_model_deleted">퀴즈 모델을 삭제했습니다</string>
-    <string name="notes_model_paused_snack">내려받기를 멈췄습니다. 나중에 이어 받을 수 있습니다</string>
-    <string name="notes_model_cancelled_snack">내려받기를 취소했습니다</string>
+    <string name="notes_model_paused_snack">받기를 멈췄습니다. 나중에 이어 받을 수 있습니다</string>
+    <string name="notes_model_cancelled_snack">받기를 취소했습니다</string>
     <string name="notes_model_discarded_snack">받던 파일을 지웠습니다</string>
     <string name="notes_model_badge_missing">모델 없음</string>
     <string name="notes_model_badge_failed">모델 오류</string>
@@ -168,14 +168,14 @@
     <string name="notes_quiz_cta_paused">%1$sGB 받다가 멈췄습니다</string>
     <string name="notes_settings_section_studylog">학습 기록</string>
     <string name="notes_settings_studylog_title">학습 기록 남기기</string>
-    <string name="notes_settings_studylog_desc">읽은 시간·퀴즈 결과·북마크를 이 기기에만 저장합니다</string>
-    <string name="notes_settings_studylog_help">통계 화면이 이 기록으로 만들어집니다. 365일이 지난 기록은 자동으로 지웁니다.</string>
+    <string name="notes_settings_studylog_desc">읽은 시간, 퀴즈 결과, 북마크를 이 기기에만 저장합니다</string>
+    <string name="notes_settings_studylog_help">통계 화면은 이 기록으로 만듭니다. 365일이 지난 기록은 자동으로 지웁니다.</string>
     <string name="notes_settings_studylog_clear">기록 지우기</string>
     <string name="notes_settings_studylog_clear_title">학습 기록을 지울까요?</string>
-    <string name="notes_settings_studylog_clear_body">읽은 기록·퀴즈 결과·북마크 기록과 주간 요약이 모두 지워집니다. 되돌릴 수 없습니다.</string>
+    <string name="notes_settings_studylog_clear_body">읽은 기록, 퀴즈 결과, 북마크 기록과 주간 요약을 모두 지웁니다. 되돌릴 수 없습니다.</string>
     <string name="notes_settings_studylog_clear_confirm">지우기</string>
     <string name="notes_settings_studylog_cleared">학습 기록을 지웠습니다</string>
-    <string name="notes_stats_intro_empty">노트를 읽거나 퀴즈를 풀면 이곳에 기록이 쌓입니다.</string>
+    <string name="notes_stats_intro_empty">노트를 읽거나 퀴즈를 풀면 여기에 기록이 쌓입니다.</string>
     <string name="notes_stats_log_off">학습 기록이 꺼져 있습니다. 설정에서 다시 켤 수 있습니다.</string>
     <string name="notes_stats_date">M월 d일</string>
     <string name="notes_stats_bucket_week">M/d</string>
@@ -193,7 +193,7 @@
     <string name="notes_stats_unit_minutes">분</string>
     <string name="notes_stats_unit_times">회</string>
     <string name="notes_stats_first_week">첫 주</string>
-    <string name="notes_stats_questions">%1$d문항</string>
+    <string name="notes_stats_questions">%1$d문제</string>
     <string name="notes_stats_compare_week">지난주 월–%1$s 대비</string>
     <string name="notes_stats_compare_month">지난달 1–%1$d일 대비</string>
     <string name="notes_stats_compare_since">%1$s부터</string>
@@ -224,10 +224,10 @@
     <string name="notes_stats_row_sub3">%1$s · %2$s · %3$s</string>
     <string name="notes_stats_row_desc">%1$d번째, %2$s, %3$s</string>
     <string name="notes_stats_accuracy_by_category">카테고리별 정답률</string>
-    <string name="notes_stats_not_taken">응시 없음</string>
-    <string name="notes_stats_accuracy_row_desc">%1$s, %2$d문항, 정답률 %3$d%%</string>
+    <string name="notes_stats_not_taken">풀지 않음</string>
+    <string name="notes_stats_accuracy_row_desc">%1$s, %2$d문제, 정답률 %3$d%%</string>
     <string name="notes_stats_lowest">가장 낮음</string>
-    <string name="notes_stats_retry">재도전 추이</string>
+    <string name="notes_stats_retry">다시 푼 퀴즈</string>
     <string name="notes_stats_retry_hint">첫 시도 → 최근</string>
     <string name="notes_stats_retry_count">%1$d회째</string>
     <string name="notes_stats_retry_value">%1$d → %2$d%%</string>
@@ -242,7 +242,7 @@
     <string name="notes_stats_bookmark_unread">아직 안 읽음</string>
     <string name="notes_stats_bookmark_unread_since_log">기록 시작 뒤 연 적 없음</string>
     <string name="notes_stats_bookmark_age">%1$d일</string>
-    <string name="notes_stats_bookmark_old_empty">오래 묵은 북마크가 없습니다.</string>
+    <string name="notes_stats_bookmark_old_empty">오래 안 본 북마크가 없습니다.</string>
     <string name="notes_stats_summary_this_week">이번 주 요약</string>
     <string name="notes_stats_summary_last_week">지난주 요약</string>
     <string name="notes_stats_summary_range">%1$s 요약</string>
@@ -277,18 +277,18 @@
     <string name="notes_connect_found">저장소 %1$s · 브랜치 %2$s · 노트 위치 %3$s</string>
     <string name="notes_connect_found_default">저장소 %1$s · 기본 브랜치 · 노트 위치 %2$s</string>
     <string name="notes_connect_probing">저장소 확인 중</string>
-    <string name="notes_connect_syncing_title">노트 가져오는 중</string>
-    <string name="notes_connect_syncing_desc">끝나면 연결이 완료됩니다. 지금은 닫을 수 없습니다.</string>
+    <string name="notes_connect_syncing_title">노트 불러오는 중</string>
+    <string name="notes_connect_syncing_desc">끝나면 연결됩니다. 지금은 닫을 수 없습니다.</string>
     <string name="notes_connect_change_title">저장소 바꾸기</string>
     <string name="notes_connect_attach_title">저장소 연결</string>
     <string name="notes_connect_token_title">토큰이 필요합니다</string>
-    <string name="notes_connect_token_desc">비공개 저장소이거나 주소를 확인해야 할 수 있습니다. 비공개라면 읽기 전용 토큰을 입력하세요.</string>
+    <string name="notes_connect_token_desc">비공개 저장소이거나 주소가 틀렸을 수 있습니다. 비공개라면 읽기 전용 토큰을 입력하세요.</string>
     <string name="notes_connect_token_label">액세스 토큰</string>
     <string name="notes_connect_err_transient">GitHub 응답이 늦거나 불안정합니다. 잠시 뒤 다시 시도하세요.</string>
     <string name="notes_connect_err_no_list">이 저장소에는 노트 목록이 없습니다. 이 앱은 노트 목록이 있는 저장소만 읽을 수 있습니다.</string>
     <string name="notes_connect_err_no_list_fresh">방금 템플릿으로 만들었다면 잠시 뒤 다시 연결하세요.</string>
     <string name="notes_connect_err_bad_list">노트 목록을 읽을 수 없습니다. 파일 형식이 맞지 않습니다.</string>
-    <string name="notes_connect_err_offline">인터넷에 연결되어 있지 않습니다. 연결을 확인한 뒤 다시 시도하세요.</string>
+    <string name="notes_connect_err_offline">인터넷 연결이 없습니다. 연결을 확인한 뒤 다시 시도하세요.</string>
 
     <string name="notes_token_howto_kind_label">종류</string>
     <string name="notes_token_howto_kind">세분화된 토큰</string>
@@ -299,9 +299,9 @@
     <string name="notes_token_create">토큰 만들기</string>
     <string name="notes_token_create_a11y">토큰 만들기, 외부 브라우저에서 열립니다</string>
     <string name="notes_token_browser_missing">브라우저를 열지 못했습니다. 브라우저 앱이 있는지 확인하세요.</string>
-    <string name="notes_entry_title">저장소가 아직 없나요?</string>
+    <string name="notes_entry_title">저장소가 아직 없다면</string>
     <string name="notes_entry_desc">템플릿으로 내 노트 저장소를 만들 수 있습니다.</string>
-    <string name="notes_entry_step_1">GitHub 에서 템플릿으로 저장소를 만듭니다.</string>
+    <string name="notes_entry_step_1">GitHub에서 템플릿으로 저장소를 만듭니다.</string>
     <string name="notes_entry_step_2">만든 저장소의 주소를 복사합니다.</string>
     <string name="notes_entry_step_3">이 앱의 주소 칸에 붙여 넣고 연결합니다.</string>
     <string name="notes_entry_private">비공개로 만들면 연결할 때 토큰이 필요합니다.</string>
@@ -310,29 +310,29 @@
     <string name="notes_entry_guide">형식 안내 보기</string>
     <string name="notes_entry_guide_a11y">형식 안내 보기, 외부 브라우저에서 열립니다</string>
     <string name="notes_entry_or">또는</string>
-    <string name="notes_token_classic_warn">이 토큰은 넓은 권한을 가집니다. 이 저장소 하나만 읽는 세분화된 토큰을 권합니다.</string>
+    <string name="notes_token_classic_warn">이 토큰은 권한이 넓습니다. 이 저장소 하나만 읽는 세분화된 토큰을 권합니다.</string>
     <string name="notes_token_verifying">토큰 확인 중</string>
     <string name="notes_token_verifying_action">확인 중</string>
-    <string name="notes_token_err_rejected">토큰이 거부됐습니다. 만료됐거나 잘못 복사됐을 수 있습니다.</string>
+    <string name="notes_token_err_rejected">GitHub가 토큰을 거부했습니다. 만료됐거나 잘못 복사됐을 수 있습니다.</string>
     <string name="notes_token_err_not_visible">이 토큰으로는 저장소가 보이지 않습니다. 토큰의 저장소 범위에 이 저장소가 있는지 확인하세요.</string>
     <string name="notes_token_err_no_list">저장소는 열렸지만 노트 목록을 읽지 못했습니다. 토큰의 콘텐츠 읽기 권한을 확인하세요.</string>
-    <string name="notes_token_err_limit_title">요청 한도에 도달했습니다</string>
+    <string name="notes_token_err_limit_title">요청 한도를 넘었습니다</string>
     <string name="notes_token_err_limit_desc">토큰을 입력하면 한도가 늘어납니다. 입력한 뒤 다시 연결하세요.</string>
 
     <string name="notes_link_reason_empty">저장소 주소를 붙여 넣으세요.</string>
-    <string name="notes_link_reason_scheme">https 로 시작하는 주소만 받을 수 있습니다.</string>
+    <string name="notes_link_reason_scheme">https로 시작하는 주소만 연결할 수 있습니다.</string>
     <string name="notes_link_reason_host">GitHub 저장소 주소가 아닙니다.</string>
-    <string name="notes_link_reason_gist">Gist 는 아직 연결할 수 없습니다.</string>
+    <string name="notes_link_reason_gist">Gist는 연결할 수 없습니다.</string>
     <string name="notes_link_reason_pages">웹 페이지 주소는 연결할 수 없습니다. 저장소 주소를 붙여 넣으세요.</string>
     <string name="notes_link_reason_file">파일 하나를 가리키는 주소입니다. 저장소 주소나 노트 목록 주소를 붙여 넣으세요.</string>
-    <string name="notes_link_reason_no_repo">저장소 이름까지 적어 주세요. 예: octo-learner/android-notes</string>
+    <string name="notes_link_reason_no_repo">저장소 이름까지 적으세요. 예: octo-learner/android-notes</string>
 
-    <string name="notes_home_receiving_title">노트를 받는 중입니다</string>
+    <string name="notes_home_receiving_title">노트를 불러오는 중입니다</string>
     <string name="notes_home_receiving_desc">처음 한 번은 시간이 걸릴 수 있습니다.</string>
     <string name="notes_home_none_title">저장소에 노트가 없습니다</string>
     <string name="notes_home_none_desc">저장소에 노트를 올리면 새로고침할 때 여기에 나타납니다.</string>
     <string name="notes_home_connect_title">저장소를 연결하세요</string>
-    <string name="notes_home_connect_desc">지금 노트는 이 기기에만 있습니다. 연결하면 저장소의 노트를 받습니다.</string>
+    <string name="notes_home_connect_desc">지금 노트는 이 기기에만 있습니다. 연결하면 저장소의 노트를 불러옵니다.</string>
     <string name="notes_home_connect_action">연결하기</string>
 
     <string name="notes_repo_card_title">노트 저장소</string>
@@ -343,14 +343,14 @@
     <string name="notes_repo_state_check_token_desc">저장된 토큰으로 저장소를 읽지 못합니다. 토큰을 바꾸세요.</string>
     <string name="notes_repo_state_none">연결 없음</string>
     <string name="notes_repo_state_none_desc">노트 저장소를 연결하세요.</string>
-    <string name="notes_repo_state_idle">동기화 결과 없음</string>
+    <string name="notes_repo_state_idle">불러오기 전</string>
     <string name="notes_repo_state_idle_desc">앱을 켠 뒤 아직 노트를 불러오지 않았습니다.</string>
     <string name="notes_repo_connect">저장소 연결</string>
     <string name="notes_repo_label">저장소</string>
     <string name="notes_repo_value">%1$s · 브랜치 %2$s · 노트 위치 %3$s</string>
     <string name="notes_repo_value_default">%1$s · 기본 브랜치 · 노트 위치 %2$s</string>
-    <string name="notes_repo_last_ok">마지막 동기화 성공</string>
-    <string name="notes_repo_last_fail">마지막 동기화 실패 · %1$s</string>
+    <string name="notes_repo_last_ok">최근 불러오기 성공</string>
+    <string name="notes_repo_last_fail">최근 불러오기 실패 · %1$s</string>
     <string name="notes_repo_kind_offline">인터넷 연결</string>
     <string name="notes_repo_kind_token">토큰 거부</string>
     <string name="notes_repo_kind_access">접근 불가</string>
@@ -364,14 +364,14 @@
     <string name="notes_repo_disconnect_failed">연결을 끊지 못했습니다. 잠시 뒤 다시 시도하세요.</string>
 
     <string name="notes_dialog_switch_title">저장소를 바꿀까요?</string>
-    <string name="notes_dialog_switch_body">이 기기의 노트 %1$d개와 북마크 %2$d개가 지워지고 새 저장소의 노트로 바뀝니다. 학습 기록은 남습니다.</string>
-    <string name="notes_dialog_switch_token">저장된 토큰이 지워집니다.</string>
+    <string name="notes_dialog_switch_body">이 기기의 노트 %1$d개와 북마크 %2$d개를 지우고 새 저장소의 노트로 바꿉니다. 학습 기록은 남습니다.</string>
+    <string name="notes_dialog_switch_token">저장된 토큰도 지웁니다.</string>
     <string name="notes_dialog_switch_confirm">바꾸기</string>
     <string name="notes_dialog_adopt_title">저장소를 연결할까요?</string>
-    <string name="notes_dialog_adopt_body">이 기기의 노트 %1$d개 중 새 저장소에 없는 노트와 그 북마크가 지워집니다. 같은 노트의 북마크는 남습니다. 학습 기록도 남습니다.</string>
+    <string name="notes_dialog_adopt_body">이 기기의 노트 %1$d개 중 새 저장소에 없는 노트와 그 북마크를 지웁니다. 새 저장소에도 있는 노트의 북마크와 학습 기록은 남습니다.</string>
     <string name="notes_dialog_adopt_confirm">연결</string>
     <string name="notes_dialog_disconnect_title">연결을 끊을까요?</string>
-    <string name="notes_dialog_disconnect_body">이 기기의 노트 %1$d개와 북마크 %2$d개, 저장된 토큰이 지워집니다. 학습 기록은 남습니다.</string>
-    <string name="notes_dialog_disconnect_empty">지울 노트와 북마크가 없습니다. 저장된 토큰이 지워집니다. 학습 기록은 남습니다.</string>
+    <string name="notes_dialog_disconnect_body">이 기기의 노트 %1$d개와 북마크 %2$d개, 저장된 토큰을 지웁니다. 학습 기록은 남습니다.</string>
+    <string name="notes_dialog_disconnect_empty">지울 노트와 북마크가 없습니다. 저장된 토큰만 지웁니다. 학습 기록은 남습니다.</string>
     <string name="notes_dialog_disconnect_confirm">끊기</string>
 </resources>
