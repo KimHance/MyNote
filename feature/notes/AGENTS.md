@@ -175,8 +175,9 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
 **목적지 키 7개의 화면은 기능별 등록 파일이 등록한다(FM-4).** `NotesDestinations.kt`(홈 · 북마크 · 리더) ·
 `screen/stats/StatsDestinations.kt`(통계 · 지난 요약) · `settings/SettingsDestinations.kt`(설정) ·
 `screen/connect/ConnectDestinations.kt`(쌓은 연결 화면). 셸 파일은 목적지 화면을 부르지 않고, `shellDestinations` 가 기능마다
-자기 상태 · 입구만 넘겨 묶는다. 화면이 셸에게서 받는 값은 셸 틀 계약 `frame/ShellFrame`(위 · 아래 · 끝 여백 · 두 단 · 쌓이는 씬 ·
-스크롤 홀더 · draft · 스낵바 호스트)뿐이다. 등록 틀(`:core:navigation` 의 `registry/`)이 모든 화면을 공유 전환 스코프로 감싸고
+자기 상태 · 입구만 넘겨 묶는다. 화면이 셸에게서 받는 틀 값은 셸 틀 계약 `frame/ShellFrame`(위 · 아래 · 끝 여백 · 두 단 · 쌓이는 씬 ·
+스크롤 홀더 · draft · 스낵바 호스트)뿐이다. 기능 자기 상태 · 입구와 셸이 묶어 넘기는 화면용 값(연결 있음 · 셸 뒤로 · 리더 CTA 의
+모델 상태 · 행동 · 알림 설정 열기 같은 것)은 틀 밖의 등록 함수 인자다(기능 문서 `feature-modules` 결정 13 · 18). 등록 틀(`:core:navigation` 의 `registry/`)이 모든 화면을 공유 전환 스코프로 감싸고
 내용 키는 건드리지 않는다. 새 목적지를 더하면 키는 `:core:navigation`, 화면은 그 기능의 등록 파일, 시험은
 `ShellDestinationsTest`(`FM-4 모든 목적지 키에 화면이 하나씩 등록된다`)의 키 목록이다.
 
