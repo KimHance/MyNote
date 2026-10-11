@@ -1,10 +1,10 @@
 package com.hancekim.mynote.feature.notes
 
-import android.os.SystemClock
-import android.util.Log
 import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.viewModelScope
 import com.hancekim.mynote.core.common.mvi.MviViewModel
+import com.hancekim.mynote.core.common.throttle.Clock
+import com.hancekim.mynote.core.common.throttle.WallClock
 import com.hancekim.mynote.core.designfoundation.token.MyNoteFontScale
 import com.hancekim.mynote.core.domain.AddBookmarkUseCase
 import com.hancekim.mynote.core.domain.CancelModelDownloadUseCase
@@ -157,6 +157,9 @@ class NotesViewModel @Inject constructor(
     private val autoAdvancePolicy: QuizAutoAdvancePolicy,
     private val messages: NotesMessages,
     private val navigator: Navigator,
+    private val clock: Clock,
+    private val wallClock: WallClock,
+    private val failureLog: FailureLog,
 ) : MviViewModel<NotesUiState, NotesIntent>() {
     private val navStack = navigator.stack.triggerIn(navigator.stack.value)
     private val navSettled = navigator.isSettled.triggerIn(true)
@@ -172,7 +175,7 @@ class NotesViewModel @Inject constructor(
     private val exitHints = trigger(0)
     private val shownSignals = trigger(persistentMapOf<NotesSignal, Int>())
     private val exitRequests = trigger(0)
-    private var lastRootBackMillis = 0L
+    private var lastRootBackMillis: Long? = null
     private val query = trigger("")
     private val expanded = trigger(persistentMapOf<String, Boolean>())
     private val fontScale =
@@ -341,7 +344,7 @@ class NotesViewModel @Inject constructor(
         )
 
     override fun onFailure(cause: Throwable) {
-        Log.e(TAG, "인텐트 처리 실패", cause)
+        failureLog.failed(TAG, "인텐트 처리 실패", cause)
     }
 
     override fun handleIntent(event: NotesIntent) {
@@ -408,7 +411,7 @@ class NotesViewModel @Inject constructor(
                 disconnectDialog.value = null
                 launchSafely {
                     disconnect().onFailure {
-                        Log.e(TAG, "연결 끊기 실패", it)
+                        failureLog.failed(TAG, "연결 끊기 실패", it)
                         announce(messages.disconnectFailed())
                     }
                 }
@@ -458,8 +461,9 @@ class NotesViewModel @Inject constructor(
 
             NotesIntent.Back -> {
                 if (navigator.pop() == NavResult.Ignored) {
-                    val now = SystemClock.elapsedRealtime()
-                    if (now - lastRootBackMillis < EXIT_WINDOW_MILLIS) {
+                    val now = clock.elapsedMillis()
+                    val last = lastRootBackMillis
+                    if (last != null && now - last < EXIT_WINDOW_MILLIS) {
                         exitRequests.update { it + 1 }
                     } else {
                         lastRootBackMillis = now
@@ -616,7 +620,7 @@ class NotesViewModel @Inject constructor(
                         onSuccess = { questions -> solvingOrEmpty(questions.map { it.toUi() }, noteId, maxCount) },
                         onFailure = { QuizUiState.Failed(it.toFailKind(), maxCount, noteId) },
                     ) ?: QuizUiState.Failed(QuizUiState.Failed.Kind.Timeout, maxCount, noteId)
-                if (next is QuizUiState.Solving) quizMeta = QuizMeta(noteId, System.currentTimeMillis())
+                if (next is QuizUiState.Solving) quizMeta = QuizMeta(noteId, wallClock.nowMillis())
                 quiz.value = next
             }
     }
@@ -669,7 +673,7 @@ class NotesViewModel @Inject constructor(
         quizJob?.cancel()
     }
 
-    private fun moment(): Moment = Moment(System.currentTimeMillis(), SystemClock.elapsedRealtime())
+    private fun moment(): Moment = Moment(wallClock.nowMillis(), clock.elapsedMillis())
 
     private fun categoryOf(noteId: String?): String? {
         if (noteId == null) return null
@@ -707,7 +711,7 @@ class NotesViewModel @Inject constructor(
                 after = after,
                 meta = meta,
                 category = categoryOf(meta.noteId).orEmpty(),
-                finishedAt = System.currentTimeMillis(),
+                finishedAt = wallClock.nowMillis(),
             ) ?: return
         launchSafely { withContext(NonCancellable) { recordQuizAttempt(attempt) } }
     }
@@ -717,7 +721,7 @@ class NotesViewModel @Inject constructor(
         kind: BookmarkEventKind,
         onRecorded: (Long) -> Unit = {},
     ) {
-        val event = BookmarkEvent(noteId, categoryOf(noteId).orEmpty(), kind, System.currentTimeMillis())
+        val event = BookmarkEvent(noteId, categoryOf(noteId).orEmpty(), kind, wallClock.nowMillis())
         launchSafely {
             val id = withContext(NonCancellable) { recordBookmarkEvent(event) }
             if (id != null) onRecorded(id)
@@ -849,7 +853,7 @@ class NotesViewModel @Inject constructor(
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (failure: Exception) {
-                    Log.e(TAG, "토큰 확인 실패", failure)
+                    failureLog.failed(TAG, "토큰 확인 실패", failure)
                     applyTokenEdit(TokenEditEvent.VerifyFailed(TokenFailureKind.Transient))
                 }
             }

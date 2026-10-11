@@ -1,8 +1,9 @@
 package com.hancekim.mynote.feature.notes.stats
 
-import android.os.SystemClock
 import androidx.lifecycle.SavedStateHandle
 import com.hancekim.mynote.core.common.mvi.MviViewModel
+import com.hancekim.mynote.core.common.throttle.Clock
+import com.hancekim.mynote.core.common.throttle.WallClock
 import com.hancekim.mynote.core.domain.ObserveInsightsUseCase
 import com.hancekim.mynote.core.domain.ObserveModelStatusUseCase
 import com.hancekim.mynote.core.domain.ObserveStudyLogEnabledUseCase
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import javax.inject.Inject
@@ -41,6 +43,8 @@ class StatsViewModel @Inject constructor(
     observeModelStatus: ObserveModelStatusUseCase,
     private val navigator: Navigator,
     private val trace: StatsTrace,
+    private val clock: Clock,
+    private val wallClock: WallClock,
 ) : MviViewModel<StatsUiState, StatsIntent>() {
     private val periodSaved = savedStateHandle.getMutableStateFlow(KEY_PERIOD, StatsPeriod.Week)
     private val sectionSaved = savedStateHandle.getMutableStateFlow(KEY_SECTION, StatsSection.Reading)
@@ -128,10 +132,10 @@ class StatsViewModel @Inject constructor(
         var startedAt = 0L
         return observeStudyStats(period, now)
             .onStart {
-                startedAt = SystemClock.elapsedRealtime()
+                startedAt = clock.elapsedMillis()
                 trace.started(period)
             }.map { stats ->
-                stats.toUi().also { trace.computed(period, SystemClock.elapsedRealtime() - startedAt) }
+                stats.toUi().also { trace.computed(period, clock.elapsedMillis() - startedAt) }
             }
     }
 
@@ -140,10 +144,10 @@ class StatsViewModel @Inject constructor(
         val modelReady: Boolean,
     )
 
+    private fun nowZoned(): ZonedDateTime = Instant.ofEpochMilli(wallClock.nowMillis()).atZone(ZoneId.systemDefault())
+
     private companion object {
         const val KEY_PERIOD = "stats_period"
         const val KEY_SECTION = "stats_section"
-
-        fun nowZoned(): ZonedDateTime = ZonedDateTime.now(ZoneId.systemDefault())
     }
 }

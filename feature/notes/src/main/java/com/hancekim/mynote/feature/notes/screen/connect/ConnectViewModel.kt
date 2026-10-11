@@ -1,6 +1,5 @@
 package com.hancekim.mynote.feature.notes.screen.connect
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.hancekim.mynote.core.common.mvi.MviViewModel
@@ -11,6 +10,7 @@ import com.hancekim.mynote.core.domain.connect.ConnectProgress
 import com.hancekim.mynote.core.domain.connect.ConnectVerification
 import com.hancekim.mynote.core.domain.connect.TemplateRepo
 import com.hancekim.mynote.core.domain.model.ConnectionState
+import com.hancekim.mynote.feature.notes.FailureLog
 import com.hancekim.mynote.feature.notes.element.ConfirmUi
 import com.hancekim.mynote.feature.notes.element.ConnectIssue
 import com.hancekim.mynote.feature.notes.element.ConnectNotice
@@ -44,6 +44,7 @@ class ConnectViewModel @Inject constructor(
     private val connectRepository: ConnectRepositoryUseCase,
     observeConnection: ObserveConnectionUseCase,
     private val template: TemplateRepo?,
+    private val failureLog: FailureLog,
 ) : MviViewModel<ConnectUiState, ConnectIntent>() {
     private val link = trigger(savedState.get<String>(KEY_LINK).orEmpty())
     private val linkCheck = link.map(::linkCheckOf).triggerIn(linkCheckOf(link.value))
@@ -85,7 +86,7 @@ class ConnectViewModel @Inject constructor(
         )
 
     override fun onFailure(cause: Throwable) {
-        Log.e(TAG, "연결 처리 실패", cause)
+        failureLog.failed(TAG, "연결 처리 실패", cause)
         job = null
         if (step.value != ConnectStep.Done) {
             pending = null

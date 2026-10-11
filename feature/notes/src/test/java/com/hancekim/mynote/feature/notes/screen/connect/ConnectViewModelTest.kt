@@ -145,7 +145,14 @@ class ConnectViewModelTest {
         val verify = VerifyConnectLinkUseCase(probe, FakeTokens, connections, FakeTokens)
         val connect =
             ConnectRepositoryUseCase(connections, SyncPendingConnectionUseCase(connections, FakeTokens, FakeTokens))
-        return ConnectViewModel(SavedStateHandle(), verify, connect, ObserveConnectionUseCase(connections), template)
+        return ConnectViewModel(
+            SavedStateHandle(),
+            verify,
+            connect,
+            ObserveConnectionUseCase(connections),
+            template,
+            failureLog = { _, _, _ -> },
+        )
     }
 
     @Test
