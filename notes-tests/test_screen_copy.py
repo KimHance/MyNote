@@ -7,13 +7,26 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 DESIGN = REPO_ROOT / "docs" / "design" / "screen-copy.md"
 ROWS = REPO_ROOT / "docs" / "design" / "screen-copy-rows.md"
 TEMPLATE_README = REPO_ROOT / "public-repos" / "notes-template" / "README.md"
-# 대상 문구 — screen-copy 기능 문서 머리말의 strings.xml 넷
-STRINGS = (
-    REPO_ROOT / "feature" / "notes" / "src" / "main" / "res" / "values" / "strings.xml",
-    REPO_ROOT / "core" / "design-system" / "src" / "main" / "res" / "values" / "strings.xml",
-    REPO_ROOT / "app" / "src" / "main" / "res" / "values" / "strings.xml",
-    REPO_ROOT / "core" / "ai" / "src" / "main" / "res" / "values" / "strings.xml",
-)
+SOURCE_ROOTS = ("app", "core", "feature")
+SKIPPED_DIRS = {"build", ".gradle", ".kotlin"}
+# 문구를 기능 모듈로 옮겨도(feature-modules FM-11) 검사 밖으로 빠지지 않게 하는 하한 — screen-copy 기준 커밋은 395개
+MIN_COPY_COUNT = 390
+
+
+def strings_files():
+    """대상 문구 — 모든 모듈의 `src/main/res/values/strings.xml`(app · core/x · feature/x · 빌드 폴더 제외)."""
+    files = []
+    for top in SOURCE_ROOTS:
+        for path in (REPO_ROOT / top).rglob("strings.xml"):
+            rel = path.relative_to(REPO_ROOT)
+            if SKIPPED_DIRS.intersection(rel.parts):
+                continue
+            if rel.parts[-5:-1] == ("src", "main", "res", "values"):
+                files.append(path)
+    return tuple(sorted(files))
+
+
+STRINGS = strings_files()
 TAG = re.compile(r"<[^>]+>")
 PLACEHOLDER = re.compile(r"%(?:\d+\$)?[-#+ 0,(]*\d*(?:\.\d+)?[a-zA-Z%]")
 BACKTICK = re.compile(r"`([^`]*)`")
@@ -114,6 +127,9 @@ class ScreenCopyTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.values = copy_values()
+
+    def test_SC_1_대상_문구를_모든_모듈의_strings_xml_에서_읽는다(self):
+        self.assertGreaterEqual(len(self.values), MIN_COPY_COUNT, [str(path.relative_to(REPO_ROOT)) for path in STRINGS])
 
     def test_SC_1_화면_문구의_끝말은_허용_목록에_있다(self):
         endings = first_table(DESIGN, "### 끝말")
