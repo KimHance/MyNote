@@ -28,7 +28,7 @@ import com.hancekim.mynote.core.designsystem.theme.ProvideTitleFontFamily
 import com.hancekim.mynote.core.navigation.NavCommand
 import com.hancekim.mynote.core.navigation.Navigator
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
-import com.hancekim.mynote.feature.notes.NotesRoute
+import com.hancekim.mynote.shell.NotesRoute
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers

@@ -5,7 +5,7 @@ import com.hancekim.mynote.core.ui.frame.ShellDestinations
 import com.hancekim.mynote.core.ui.frame.sceneEdgeModifier
 
 /** 통계 기능의 목적지 — 통계 · 지난 요약. 상태는 화면이 자기 ViewModel(Activity owner)에서 받는다. */
-internal fun statsDestinations(): ShellDestinations =
+fun statsDestinations(): ShellDestinations =
     { frame ->
         destination<NotesNavKey.Stats> {
             val modifier = frame.sceneEdgeModifier()

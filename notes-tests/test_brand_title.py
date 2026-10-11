@@ -16,9 +16,9 @@ WORDMARK_SPELLING = re.compile(r"mynote")
 TITLE_USERS = ("NotesShell.kt", "ConnectReading.kt")
 OTHER_TITLES = {
     "ui_settings": "설정",
-    "notes_nav_bookmark": "북마크",
-    "notes_nav_stats": "통계",
-    "notes_stats_history_title": "지난 요약",
+    "shell_nav_bookmark": "북마크",
+    "shell_nav_stats": "통계",
+    "shell_stats_history_title": "지난 요약",
 }
 
 

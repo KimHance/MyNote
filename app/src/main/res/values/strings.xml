@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">MyNote</string>
+
+    <!-- 셸 문구 — 셸만 쓴다(결정 15 · 16). :app 에는 resourcePrefix 가 없어 접두사는 파이썬 FM-11 시험이 본다 -->
+    <string name="shell_nav_home">홈</string>
+    <string name="shell_nav_bookmark">북마크</string>
+    <string name="shell_nav_stats">통계</string>
+    <string name="shell_stats_history_title">지난 요약</string>
+
+    <string name="shell_exit_hint">한 번 더 누르면 종료합니다</string>
 </resources>

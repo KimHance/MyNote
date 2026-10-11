@@ -10,7 +10,7 @@ import com.hancekim.mynote.feature.notes.element.ConnectPlace
  * [hasConnection] 은 셸 상태에서 묶어 오고, [onShellBack] 은 셸의 뒤로가기다(결정 13).
  * 내용 키는 기본값 그대로다 — 넓은 창 판정이 그 키로 알아본다(RC-14).
  */
-internal fun connectDestinations(
+fun connectDestinations(
     hasConnection: () -> Boolean,
     onShellBack: () -> Unit,
 ): ShellDestinations =

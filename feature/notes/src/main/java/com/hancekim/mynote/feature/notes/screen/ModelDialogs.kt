@@ -23,7 +23,7 @@ import com.hancekim.mynote.core.designsystem.R as DsR
 import com.hancekim.mynote.core.ui.R as UiR
 
 @Composable
-internal fun ModelConfirmDialog(
+fun ModelConfirmDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
     backdrop: Backdrop? = null,

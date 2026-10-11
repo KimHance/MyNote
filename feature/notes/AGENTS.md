@@ -2,10 +2,10 @@
 
 이 파일은 이 모듈에서 작업하는 에이전트를 위한 안내다.
 
-앱의 UI 는 전부 여기 있다. `MainActivity` 는 `NotesRoute()` 하나만 부르고, 그 아래에
-기능 ViewModel 넷(셸 · 노트 · 설정 · 퀴즈, + 통계 `StatsViewModel` · 연결 `ConnectViewModel`) · `NavDisplay` 하나 · `MyNoteTheme` 하나가 있고 그 안에서 화면 11개
-(Home · Bookmarks · Stats · StatsHistory · ListPanel · NoteReader · Settings · 퀴즈 4개)가 돈다. "새 화면을 추가한다" 는 대개 새 모듈이
-아니라 이 구조 안에 끼우는 일이다.
+셸을 뺀 앱 화면이 여기 있다. `MainActivity` 가 부르는 `NotesRoute()` 와 셸(`NavDisplay` 하나 · `MyNoteTheme` 하나 · 셸 ViewModel)은
+`:app` 의 `shell/` 이고, 셸이 이 모듈의 ViewModel 셋(노트 · 설정 · 퀴즈, + 통계 `StatsViewModel` · 연결 `ConnectViewModel`)과 등록 파일 넷을 불러
+화면 11개(Home · Bookmarks · Stats · StatsHistory · ListPanel · NoteReader · Settings · 퀴즈 4개)를 그린다. "새 화면을 추가한다" 는 대개
+새 모듈이 아니라 이 구조 안에 끼우는 일이다.
 
 의존은 컨벤션(`hancenote.android.feature`)이 `:core:common` · `:core:design-system` ·
 `:core:domain` · `:core:navigation` + Hilt + lifecycle + coroutines 를 자동으로 넣는다.
@@ -19,14 +19,14 @@ UseCase 와 `QuizGenerator` 인터페이스로만 들어온다.
 
 | 어디 | 무엇 | 왜 거기 |
 |---|---|---|
-| `shell/ShellViewModel` | 백스택 파생 · 두 번 눌러 종료 · 시작 분기의 연결 · 시드 · 테마 글자 크기 · 알약 모델 상태 · 연결이 바뀔 때 화면 정리 | 여러 기능을 동시에 보는 셸 몫. 노트 목록 · 퀴즈 · 토큰은 들지 않는다 |
+| `:app` 의 `shell/ShellViewModel` | 백스택 파생 · 두 번 눌러 종료 · 시작 분기의 연결 · 시드 · 테마 글자 크기 · 알약 모델 상태 · 연결이 바뀔 때 화면 정리 | 여러 기능을 동시에 보는 셸 몫. 노트 목록 · 퀴즈 · 토큰은 들지 않는다 |
 | `NotesViewModel` | 노트 목록 · 검색 · 북마크 · 동기화 · 읽기 기록 · 리더 스크롤 요청 | 동기화를 구독하는 곳은 여기 하나다(SY-1 · FM-7) |
 | `settings/SettingsViewModel` | 토큰 편집 · 글자 크기 바꾸기 · 학습 기록 켜기 · 지우기 · 모델 받기 조작 · 끊기 | 마지막 동기화는 홀더에서 읽기만 한다 |
 | `quiz/QuizViewModel` | 퀴즈 상태 · 자동 진행 타이머 · 그만두기 되돌리기 · 결과 기록 | 오버레이 · CTA 의 모델 상태 |
 | `:core:ui` 의 `signal/`(`FeatureSignals` · `LastSyncHolder`, `@Singleton`) | 기능 사이에서 ViewModel 이 받는 신호 · 마지막 동기화 값 | 결정 8 · 13. 둘 이상의 기능이 보므로 `:core:ui` 에 산다 |
 | `Navigator`(`:core:navigation`, `@Singleton`) | **백스택** | 소유자가 하나여야 하고, 입구가 하나라 거기서 쓰로틀을 건다 |
 | 컴포지션 로컬(`rememberSaveable`) | 드로어 열림 · 고정 패널 펼침 · 모델 확인 다이얼로그 | 목적지가 아니고 레이아웃 상태다. 백스택 엔트리가 아니다 |
-| `NotesDrafts`(`NotesScreen` 의 `remember`, 셸 분기 위) | **토큰 입력 draft · 보기 여부**(연결 화면 · 설정 편집기 각각) | 저장하지 않는다 — 상태 복원 번들에 원문이 안 들어가고(결정 16), 접기·펴기·회전에는 셸 분기가 바뀌어도 남는다. `toString` 에 원문이 없다(`TokenDraft`) |
+| `NotesDrafts`(`:app` 셸 `NotesScreen` 의 `remember`, 셸 분기 위) | **토큰 입력 draft · 보기 여부**(연결 화면 · 설정 편집기 각각) | 저장하지 않는다 — 상태 복원 번들에 원문이 안 들어가고(결정 16), 접기·펴기·회전에는 셸 분기가 바뀌어도 남는다. `toString` 에 원문이 없다(`TokenDraft`) |
 | `ConnectViewModel`(Activity 스코프) | 연결 화면 흐름(확인 중 · 토큰 갈래 · 첫 동기화 · 확인 대화상자). 링크 draft 만 `SavedStateHandle` | 루트와 쌓은 화면이 같은 상태를 쓴다 |
 
 플로팅 내비의 선택은 이 셋 어디에도 없다 — `ShellUiState.selectedTab`(`Reader`·`Settings` 를 건너뛴 가장 위의
@@ -66,7 +66,7 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
   (`notice` 는 null 로) 낸다. 판정은 `:core:ui` 의 `element/NotesSignal.kt` 에 있는 `unseen` 이 한다. 그래서 `configChanges` 밖의 재생성
   (글꼴 · 다크 · 언어)에서 새 컴포지션의 `LaunchedEffect` 가 지난 스낵바와 오래된 `되돌리기` 를 다시 띄우지 않는다.
   `exitRequestId` 는 소비하지 않는다. 종료하면 다시 그릴 화면이 없다.
-- **스낵바는 루트 한 곳이 받는다(FM-16).** `SnackbarHostState` 는 `NotesScreen` 의 `remember` 하나이고, 네 VM 의 신호를
+- **스낵바는 루트 한 곳이 받는다(FM-16).** `SnackbarHostState` 는 `:app` 셸 `NotesScreen` 의 `remember` 하나이고, 네 VM 의 신호를
   받는 `LaunchedEffect` 가 전부 거기(시작 분기 · 창 등급 분기 위)에 있다 — 설정이 맨 위일 때 난 동기화 실패도 바로 뜨고,
   접기 · 펴기에 보이던 것을 다시 띄우지 않는다. 되돌리기는 알림을 낸 VM 의 인텐트로 돌아간다(`NoticeUi<E>`).
   기능 화면 안에 스낵바 수집을 두지 않는다.
@@ -85,7 +85,7 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
 
 다른 기능의 화면으로 가는 것은 `Navigator` 에 목적지 키로 한다. 이동이 아닌 신호 가운데 ViewModel 이 받는 것은
 `signal/FeatureSignals`(상태 흐름 + 증가 id)로만 보낸다. 컴포지션을 거쳐 나르면 한 프레임 늦는다(결정 13).
-화면만 쓰는 값(오버레이의 노트 제목 · 목록 패널의 설정 배지 · 맨 위로의 토큰 편집 중)은 셸이 VM 상태를 묶어 넘긴다(`shell/ShellFeatures.kt`).
+화면만 쓰는 값(오버레이의 노트 제목 · 목록 패널의 설정 배지 · 맨 위로의 토큰 편집 중)은 셸이 VM 상태를 묶어 넘긴다(`:app` 의 `shell/ShellFeatures.kt`).
 
 - 받는 VM 은 만들어질 때의 id 를 이미 본 것으로 잡는다. 계약은 싱글턴이라 Activity 가 다시 열려도 옛 요청이 남아 있다
   (`FM-6 새로 만든 … ViewModel 은 지난 … 다시 처리하지 않는다`). 학습 기록 지우기는 노트 VM 이 해제할 때의 횟수와 되돌릴 때의 횟수를 비교한다.
@@ -122,98 +122,23 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
 
 ---
 
-## 뒤로가기 — **컴포즈 순서가 곧 우선순위다**(LIFO, 나중에 컴포즈된 게 이긴다)
+## 셸은 `:app` 에 있다
 
-파일을 옮기거나 쪼갤 때 가장 쉽게 깨지는 부분이다. 지금 순서는 아래와 같고, 위쪽이 먼저 먹는다.
+시작 분기 · Scaffold · 드로어/고정 패널 틀 · `NavDisplay` · 오버레이 자리 · 뒤로가기 7단 순서 · 루트 스낵바 · 모델 알약 · 셸 ViewModel 은
+`:app` 의 `shell/` 이다(기능 문서 `feature-modules` 결정 2 · FM-5). 뒤로가기 순위 표와 셸 파일 나눔은 `app/AGENTS.md` 에 있다.
+이 모듈은 셸이 부르는 것 — 등록 파일 넷(`notesDestinations` · `statsDestinations` · `settingsDestinations` · `connectDestinations`) ·
+목록 패널(`ListPanelScreen` · `ListPanelChrome`) · 퀴즈 오버레이(`QuizOverlay`) · 모델 확인 대화상자(`ModelConfirmDialog`) ·
+연결 루트(`ConnectRoute`) · 읽는 중 화면(`ConnectReadingScreen`) · ViewModel 셋 — 만 공개로 내놓고 셸을 import 하지 않는다.
+BR-8 계측이 그리는 연결 화면(`ConnectScreen`) · 요약 카드(`SummaryCard` · `SummaryForm` · `rememberStatsFormats`)도 그래서 공개다.
 
-| 순위 | 핸들러 | 어디서 컴포즈되나 |
-|---|---|---|
-| 1 | 드로어 닫기 (Material3) | `ModalDrawerSheet(drawerState = …)` 의 예측 뒤로가기 핸들러. 드로어가 열려 있는 동안 `NotesShell` 이 Scaffold 내용의 자식 디스패처를 꺼서 이 핸들러가 받는다 |
-| 2 | 퀴즈 오버레이 닫기 | `NotesShell` 의 `QuizOverlay` (`NotesOverlays` 뒤 · Scaffold 내용의 맨 끝) |
-| 3 | 전환 중 삼킴 | `NotesShell` 의 `BackHandler(enabled = !isNavSettled && !drawerEngaged) {}` |
-| 4 | `NavDisplay` 의 pop | `NotesNavDisplay` |
-| 5 | 여는 중인 드로어 닫기 | `NotesShell` 본문 |
-| 6 | 펼친 고정 패널 접기 | `NotesShell` 본문 |
-| 7 | 앱 종료 안내 → 종료 | `NotesShell` 본문 (`enabled = !canPop && !drawerEngaged && !collapsiblePanelOpen`) |
-
-각각 그 자리에 있어야 하는 이유:
-
-- **Scaffold 내용(NavDisplay · 삼킴 · 오버레이)은 자식 디스패처 안에 있다.** `NotesShell` 이
-  `rememberNavigationEventDispatcherOwner(enabled = !(useDrawer && drawerState.isOpen))` 로 감싼다. M3 드로어 핸들러는
-  본 컴포지션에서 등록되고 `NavDisplay` 는 Scaffold 내용(서브컴포즈)이라 나중에 등록돼, 셸이 처음부터 쌓인 스택으로
-  만들어지면(접기 · 펴기로 창 등급 가지가 바뀔 때) pop 이 드로어를 이겼다. 드로어가 열려 있는 동안 자식을 통째로 끄면
-  M3 핸들러가 늘림 연출과 함께 닫는다. 여는 중(`isOpen` 거짓)엔 자식이 켜져 있어 ⑤ 는 그대로다. `useDrawer &&` 를 빼면
-  접힌 화면에서 드로어를 연 채 펼쳤을 때 열림으로 남은 상태가 넓은 창의 pop 을 막는다. 순서는 계측
-  `BackOrderTest`(FM-10)가 지킨다 — 상태 없는 셸을 하네스로 띄워 단마다 누른다.
-
-- **삼킴은 `NavDisplay` 호출 뒤에 둔다.** `NavDisplay` 는 예측 뒤로가기 애니메이션을 **이미 커밋한
-  뒤** `onBack` 을 부른다. 앞에 두고 버리면 화면은 닫혔는데 스택은 그대로라 어긋난다.
-  `activity-compose` 의 `BackHandler` 는 `NavigationEventDispatcher` 가 있으면 거기 등록되므로
-  nav3 핸들러와 같은 LIFO 를 탄다.
-- **드로어 판정은 `isOpen` 이 아니라 `drawerEngaged = isOpen || targetValue == Open` 이다.**
-  `isOpen` 은 `currentValue` 이고 그 값은 `AnchoredDraggable` 이 애니메이션이 끝난 뒤에 넣는다.
-  여는 동안은 `false` 인데 Material3 의 핸들러도 `enabled = drawerState.isOpen` 이라 같이 꺼져 있다 —
-  그 틈으로 뒤로가기가 종료 안내로 샌다.
-- **여는 중(`drawerOpening`)은 우리가 받아 닫는다.** 비활성만 시키면 그 구간에 아무도 받지 않아
-  시스템으로 넘어가 앱이 그냥 꺼진다.
-- **펼친 고정 패널도 뒤로가기를 먹는다.** 백스택 엔트리가 아니지만 Compact 의 드로어와 대칭이다.
-  빠뜨리면 홈에서 패널을 펴 둔 채 뒤로가기 했을 때 종료 안내가 먼저 먹는다.
-
----
-
-## `shell/` — 호스트를 일 단위로 쪼갠 것
-
-`NotesScreen` → `NotesStart`(시작 분기) → `NotesShell` 이고 그 안에서 조립된다. 한 파일이 한 가지만 한다:
-순서가 뜻을 갖는 호출 전부(`NotesShell` — 아래) / 인셋 산수(`NotesLayout`) / 씬 전략(`NotesScenes`) /
-등록 묶음과 `NavDisplay`(`NotesNavDisplay`) / 플로팅 내비·맨 위로·모델 알약(`NotesOverlays`·`ModelPill`).
-스크롤과 "맨 위로" 판정(`NotesScrollState`) · 상단 바(`NotesTopBar`)는 연결 화면 · 등록 파일도 써서 `:core:ui` 의 `shell/` 에 있다.
-
-**`NotesShell.kt` 한 파일이 순서를 고정한다(결정 12 · FM-5).** 시작 분기의 읽는 중 · 연결 루트(`NotesStart`), 모델 확인
-대화상자, 뒤로가기 핸들러, 드로어 · 고정 패널의 목록 패널, 퀴즈 오버레이, 상단 바와 그 행동(헤더 슬롯)을 이 파일에서 컴포즈
-순서대로 직접 부른다. 순서 없는 집합(Hilt `@IntoSet` 같은 멀티바인딩)으로 받지 않는다 — 받으면 퀴즈 오버레이(②)가 삼킴(③)보다
-먼저 컴포즈될 수 있다.
-
-**목적지 키 7개의 화면은 기능별 등록 파일이 등록한다(FM-4).** `NotesDestinations.kt`(홈 · 북마크 · 리더) ·
-`screen/stats/StatsDestinations.kt`(통계 · 지난 요약) · `settings/SettingsDestinations.kt`(설정) ·
-`screen/connect/ConnectDestinations.kt`(쌓은 연결 화면). 셸 파일은 목적지 화면을 부르지 않고, `shellDestinations` 가 기능마다
-자기 상태 · 입구만 넘겨 묶는다. 화면이 셸에게서 받는 틀 값은 셸 틀 계약 `:core:ui` 의 `frame/ShellFrame`(위 · 아래 · 끝 여백 · 두 단 · 쌓이는 씬 ·
-스크롤 홀더 · draft · 스낵바 호스트)뿐이다. 기능 자기 상태 · 입구와 셸이 묶어 넘기는 화면용 값(연결 있음 · 셸 뒤로 · 리더 CTA 의
-모델 상태 · 행동 · 알림 설정 열기 같은 것)은 틀 밖의 등록 함수 인자다(기능 문서 `feature-modules` 결정 13 · 18). 등록 틀(`:core:navigation` 의 `registry/`)이 모든 화면을 공유 전환 스코프로 감싸고
-내용 키는 건드리지 않는다. 새 목적지를 더하면 키는 `:core:navigation`, 화면은 그 기능의 등록 파일, 시험은
-`ShellDestinationsTest`(`FM-4 모든 목적지 키에 화면이 하나씩 등록된다`)의 키 목록이다.
-
-- **등록 화면 · 슬롯은 자기 기능 상태만 읽는다.** 셸이 기능 상태마다 `rememberUpdatedState` 로 State 를 만들어 람다로 넘기고,
-  화면은 그 안에서 읽는다. 다른 기능 상태(예: 모델 받기 진행)가 바뀌어도 그 엔트리 · 슬롯은 다시 그리지 않는다.
-  entryProvider 는 `remember` 로 한 번 만든다 — 매 컴포지션 새로 만들면 엔트리가 셸 상태를 통째로 캡처하던 옛 꼴로 돌아간다.
-- **틀 값은 화면 안에서 읽는다.** 등록 함수 본문(묶음을 만들 때 한 번 돈다)에서 읽으면 그때 값에 묶인다.
-  알약 예약 여백은 `animateDpAsState` 의 State 를 틀이 들고 있어 300ms 동안 셸 본문이 아니라 여백을 읽는 화면만 다시 그린다.
-- **목적지별 ViewModel 데코레이터를 넣지 않는다.** `NavDisplay` 에 `entryDecorators` 를 넘기지 않는다(기본값). 모든
-  `hiltViewModel` 은 Activity owner 다(결정 7) — 창 등급이 바뀌어 `NavDisplay` 가 다시 만들어져도 산다.
-
-쪼개거나 옮길 때 깨지는 것:
-
-- **`layerBackdrop` Box 안에는 `NotesNavDisplay` 만.** 그 Box 가 유리의 샘플링 대상이므로
-  오버레이(내비·맨 위로·퀴즈)가 안에 들어가면 유리가 자기를 샘플링한다. 그래서 `NotesOverlays` 와 `QuizOverlay` 는
-  그 Box 의 **형제**다. 반대로 `layerBackdrop` 을 `SharedTransitionLayout` 에 직접 걸면 레이어가
-  비어 효과가 통째로 사라진다.
-- **씬 슬롯(`panel`/`header`/`panelExpanded`)은 `remember` 로 정체성을 고정한다.** 매 컴포지션
-  새 람다가 들어가면 `sceneStrategies` 가 달라진 것으로 보여 씬이 통째로 재생성된다. 안의 값은
-  `rememberUpdatedState` 로 읽는다(`NotesShell.kt` 의 `rememberNotesPanelSlot`/`rememberNotesHeaderSlot` 참조).
-  manifest 에 `configChanges` 가 켜져 있어 Activity 가 재생성되지 않으므로 낡은 캡처는 실제 버그다.
-- `nestedScroll(navScroll.nestedScrollConnection)` 은 `layerBackdrop` Box **바깥**의 Box 에 걸려 있다 —
-  홈 그리드든 리더든 스크롤이 플로팅 내비 숨김 판정으로 올라와야 한다. 노트가 바뀌면
-  `navScroll.reset()` 으로 다시 보여 준다.
-- `NotesScrollState` 의 리더 스크롤은 `key(activeNoteId) { rememberScrollState() }` 다 — 노트마다
-  스크롤 위치가 따로다. 리더 본문의 원문 펼침 상태(`readerContent` = design-system `NoteContentState`)도 같은 자리·같은 키다.
-  **창 등급이 바뀌면(접기·펴기·회전) 셸이 `if (useDrawer) ModalNavigationDrawer(content = scaffold) else scaffold()` 의 다른
-  가지로 옮겨 `NavDisplay` 가 통째로 다시 만들어진다** — 항목 안의 `remember`/`rememberSaveable` 은 키를 명시해도 그때 사라진다.
-  창 등급을 넘어 남아야 하는 리더 상태는 여기(셸, 그 분기 위)에 둔다(관문 2 S1).
+엔트리 안 핸들러(설정의 토큰 편집 취소 · 쌓은 연결 화면의 뒤로)는 이 모듈 화면에 있다. `NavDisplay` 뒤에 컴포즈되어 pop 보다
+먼저 받는다 — 7단 밖이고 `:app` 의 `BackOrderTest`(`FM-10 토큰 편집 중 뒤로가기는 편집을 취소한다`)가 지킨다.
 
 ---
 
 ## 폼팩터 — 분기하는 곳은 딱 두 군데다
 
-판정은 `NotesScreen` 이 `containerDpSize` 로 **너비와 높이 둘 다** 보고 `MyNoteTheme` 에 넣는다.
+판정은 `:app` 셸의 `NotesScreen` 이 `containerDpSize` 로 **너비와 높이 둘 다** 보고 `MyNoteTheme` 에 넣는다.
 그 뒤 화면 코드는 분기하지 않는다. 갈리는 건:
 
 1. `sceneStrategies` — Compact(`useModalDrawer`)면 **빈 리스트**라 기본 `SinglePaneSceneStrategy` 로
@@ -264,8 +189,8 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
 ### 학습 기록 배선 (통계 0단계)
 
 `NotesViewModel` 이 `:core:domain` 의 `ReadSessionTracker` 를 들고 네 입력을 먹인다 — `init` 의 수집기 둘
-(스택 top 의 `activeNoteId`, 계약의 퀴즈 덮음 `quizCoversReader`)과 인텐트 둘(`ForegroundChanged` = `NotesRoute` 의 라이프사이클
-옵저버가 `ON_START`/`ON_STOP` 에 보냄, `ReaderProgress` = 셸 `ReaderScrollEffects.kt` 가 **지금 본 비율이 바뀔
+(스택 top 의 `activeNoteId`, 계약의 퀴즈 덮음 `quizCoversReader`)과 인텐트 둘(`ForegroundChanged` = `:app` `NotesRoute` 의 라이프사이클
+옵저버가 `ON_START`/`ON_STOP` 에 보냄, `ReaderProgress` = `:app` 셸 `ReaderScrollEffects.kt` 가 **지금 본 비율이 바뀔
 때마다** 보냄). **세션 안 최댓값은 트래커만 든다** — 셸이 최댓값을 들면 `ON_STOP`→`ON_START` 로 열린 새 세션이
 0% 로 저장된다(셸 효과는 다시 시작되지 않아 같은 비율을 다시 보내지 않는다). 그래서 트래커가 top 노트의 마지막
 비율을 기억해 새 세션을 거기서 시작한다(PRD D39, 검수 blocker #1). 닫힌 세션·퀴즈 결과·북마크 이벤트는 `launchSafely { withContext(NonCancellable) { … } }` 로 쓴다 —
@@ -278,7 +203,7 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
 ## 퀴즈 — 내비게이션 목적지가 아니다
 
 진입점은 헤더가 아니라 리더 본문 **맨 끝 CTA**(`QuizCtaCard`)다. 모델이 없어도 숨기지 않고
-흐리게 두고, 누르면 상태에 따라 갈 곳이 갈린다 — 순수 함수 `shell/ShellFeatures.kt:ctaTarget`(준비됨 → 퀴즈 VM 설정 · 없음 → 받기 확인
+흐리게 두고, 누르면 상태에 따라 갈 곳이 갈린다 — 순수 함수 `:app` 의 `shell/ShellFeatures.kt:ctaTarget`(준비됨 → 퀴즈 VM 설정 · 없음 → 받기 확인
 대화상자 · 그 밖 → 설정 VM 받기). 알림 권한은 루트가 받기 전에 묻는다.
 
 **예외 하나 — 노트 전체를 읽지 못한 노트(`NoteBlock.Unsupported` 의 `BrokenNote` · `LimitExceeded` 가 있는 노트)는 CTA 를
@@ -321,7 +246,7 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
 - `quiz/screen/` 은 화면(한 화면을 다 차지하고 `Surface` 로 배경을 갖는다), `quiz/component/` 는
   조각이다. `QuizSolveScreen` 은 화면이고 `QuizOrb` 는 아니다.
 - `element/`(상태·인텐트) · `mapper/`(도메인 → UI 단방향) · `navigation/`(노트 전용 공유 요소 키) ·
-  `shell/`(호스트) · `screen/`(본 화면 3개) · 루트(진입점·UI 모델·VM·문구).
+  `screen/`(본 화면 3개) · 루트(등록 파일 · UI 모델 · VM). 호스트(`shell/`)는 `:app` 에 있다.
 - 같은 패키지라 공짜로 보이던 참조가 import 로 드러나는 게 이 배치의 실익이다. 새 파일을 넣을 때
   "이게 화면인가 조각인가" 를 먼저 답하고 자리를 정하라.
 - **목적지 키·씬·모션·공유요소 배선은 여기 없다 — `:core:navigation` 에 있다.** 여기는 쓰는 쪽이다.
@@ -338,7 +263,7 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
   design-system 의 `ds_*`.
 - 말투는 **합니다체** — 서술 `~합니다`/`~습니다`, 권유·지시 `~하세요`. 다국어는 하지 않는다.
   리소스로 모으는 이유는 번역이 아니라 한 곳에 모으는 것이다.
-- **프로덕션 트리에 `MyNoteTheme { }` 는 `NotesRoute.kt` 한 군데뿐이다.** 그래서 안쪽 화면들은
+- **프로덕션 트리에 `MyNoteTheme { }` 는 `:app` 의 `shell/NotesRoute.kt` 한 군데뿐이다.** 그래서 안쪽 화면들은
   테마를 감싸지 않고, 대신 **각 화면의 `@Preview` 가 스스로 `MyNoteTheme` 을 두르고 폼팩터를
   넘긴다**(`windowClass`/`heightClass`). 화면을 추가하면 프리뷰도 같은 방식으로 붙인다.
 - 화면 단위는 `Surface(color = …)` 로 배경을 갖는다. `Surface` 는 `propagateMinConstraints = true`
@@ -362,9 +287,7 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
 ```bash
 ./gradlew :feature:notes:testDebugUnitTest   # QuizGradingTest (순수 JVM, 13건)
 ./gradlew :app:compileDebugKotlin            # 이 모듈 변경 검증은 :app 컴파일로
-ANDROID_SERIAL=<기기 serial> ./gradlew :feature:notes:connectedDebugAndroidTest
-# TitleFontScreensTest(brand BR-8) — 가로 800×360 첫 실행 연결 화면 · 통계 요약 카드를 기기 글꼴과 Gothic A1 로 그려 스크롤 없음 · 두 단 ·
-# 줄 수를 보고 PNG 를 시험 APK 외부 캐시 brand-font/ 에 남긴다. Gothic A1 쪽은 글꼴 제공자 · 네트워크가 없으면 건너뛴다
+# 이 모듈 화면을 그리는 계측(BR-8 TitleFontScreensTest · 뒤로가기 BackOrderTest)은 셸과 같이 :app 으로 갔다 — app/AGENTS.md
 ```
 
 ---
@@ -427,26 +350,17 @@ Column(fillMaxSize) {
 페이드는 새로 만들지 않고 design-system 의 `Modifier.fadingEdges(top, bottom)` 에
 `animateDpAsState` 로 0↔16/52dp 를 먹인다. `listState.canScrollBackward/Forward` 가 조건이다.
 
-## 상단 알약은 콘텐츠를 가리지 않는다
-
-`ModelPill` 이 보이는 동안 홈·리더의 스크롤 `contentTopPadding` 이 +54dp 된다(300ms).
-`NotesShell` 이 `rememberModelPillVisible()` 을 한 번 계산해 **오버레이와 패딩 양쪽에 같은 값**을
-넘긴다. 두 군데서 따로 계산하면 알약이 뜨는데 패딩이 안 밀리는 순간이 생긴다.
-
-`퀴즈 모델 준비됨`(Ready)은 받는 중이던 상태에서 Ready 로 바뀔 때만 3.2초 뜬다(`readyJustArrived`). 처음 본 상태가
-Ready 면(앱을 켬 · 재생성) 띄우지 않는다. VM 의 모델 상태 초깃값은 `Missing` 이다.
-
 ---
 
 ## 저장소 연결 — 시작 분기 · 연결 화면 · 설정 카드
 
-- **시작 분기는 `NotesStart`(`shell/NotesShell.kt`)가 한다.** `shell/ShellUiState.kt:startOf(셸, 노트)`(순수 함수 `element/ConnectStart.kt:startDestination`)가 셸의 연결 · 시드와 노트의 읽음 · 노트 수를 같은 프레임에 묶어 읽는 중 / 연결 루트 / `NotesShell` 을 가른다.
+- **시작 분기는 `:app` 셸의 `NotesStart`(`shell/NotesShell.kt`)가 한다.** `shell/ShellUiState.kt:startOf(셸, 노트)`(순수 함수 `shell/ConnectStart.kt:startDestination`)가 셸의 연결 · 시드와 노트의 읽음 · 노트 수를 같은 프레임에 묶어 읽는 중 / 연결 루트 / `NotesShell` 을 가른다.
   연결 루트는 셸 밖이라 인셋을 직접 갖고 스낵바는 루트 호스트를 받는다. 루트의 뒤로가기는 콜백(`onShellBack`)으로 셸 VM 에 간다. `NotesExitEffects`(셸 파일의 `internal`)는 `NotesRoute` 가 분기 위에서
   한 번 부른다. 분기마다 두면 연결 루트와 셸을 오갈 때 종료 안내가 다시 뜬다. 연결을 읽기 전(`connection == null`) · 노트를 읽기 전(`notesLoaded`) · 시드 소비 전(`seedPending`)에는 연결 화면도 홈도 그리지 않는다.
-- **화면 정리는 연결 상태 전이가 한다.** `ShellViewModel.onConnectionChanged` 가 (이전 → 다음 연결) 을 `element/ScreenCleanup.kt:screenCleanupOf` 에 넘겨 스택 `[Home]` · 퀴즈 닫기 · 마지막 동기화를 같은 틱에 정한다(FM-6 ⑨). 시드 · 확정 · 끊기 어느 길이든 한 곳이고, 화면이 따로 discard 를 부르지 않는다.
+- **화면 정리는 연결 상태 전이가 한다.** `:app` 의 `ShellViewModel.onConnectionChanged` 가 (이전 → 다음 연결) 을 `shell/ScreenCleanup.kt:screenCleanupOf` 에 넘겨 스택 `[Home]` · 퀴즈 닫기 · 마지막 동기화를 같은 틱에 정한다(FM-6 ⑨). 시드 · 확정 · 끊기 어느 길이든 한 곳이고, 화면이 따로 discard 를 부르지 않는다.
 - **연결 화면 자리는 둘**: 첫 실행 루트(`ConnectPlace.Root`) · 쌓은 화면(`ConnectPlace.Stacked`, `NotesNavKey.Connect` entry + 자체 `NotesTopBar`). 셸은 `Connect` 가 top 이면 topBar · 플로팅 내비 · 알약 · 맨 위로 · 드로어 제스처를 숨긴다.
   뒤로가기는 엔트리 안 `BackHandler`(NavDisplay 뒤에 컴포즈되어 이긴다) — 판정은 순수 함수 `connectBackAction`.
-- **판정 로직은 순수 함수**(`element/`)다: `startDestination` · `screenCleanupOf` · `connectBackAction` · `repoCardUi`(RC-13) · `reduceTokenEdit`(RC-18 전이표 + D37 · D39) · `homeBodyOf`(RC-21) · `issueOfProbe`/`issueOfSync` · `linkCheckOf` · `confirmUiOf`. 시험 이름에 항목 ID.
+- **판정 로직은 순수 함수**(`element/` — 시작 분기 둘 `startDestination` · `screenCleanupOf` 는 `:app` `shell/`)다: `startDestination` · `screenCleanupOf` · `connectBackAction` · `repoCardUi`(RC-13) · `reduceTokenEdit`(RC-18 전이표 + D37 · D39) · `homeBodyOf`(RC-21) · `issueOfProbe`/`issueOfSync` · `linkCheckOf` · `confirmUiOf`. 시험 이름에 항목 ID.
 - **입구 구역(RC-25) · 목록 없음 상자의 길(RC-9)** 은 `TemplateRepo?`(앱이 제공, `ConnectViewModel` 생성자 → `ConnectUiState.template`)가 있을 때만 그려진다. 보임·위계·두 단·길 판정은 순수 함수 `element/ConnectEntry.kt`(`entryVisible` · `entryEmphasis` · `twoColumnsOf` · `noticeWays`)이고, 확인 대화상자는 입력이 아니다.
   링크 구역(안내·칸·알림·토큰·`연결`)은 `movableContentOf` 한 벌이라 가로 두 단 ↔ 한 단에서 칸이 새로 만들어지지 않는다 — **이 구역을 `Row`/`Column` 에 두 번 쓰지 말 것**(포커스·키보드가 날아간다). 입구 버튼은 VM 을 거치지 않고 `openExternal` 로 외부 브라우저만 연다.
   `openExternal` 은 브라우저 패키지(기본 → Chrome → 처음 찾은 것)를 골라 열어 주소를 맡겠다고 한 다른 앱을 거치지 않는다. `openExternal` 은 `:core:ui` 에 있고, 브라우저를 찾는 데 그 모듈 manifest 의 `<queries>` 가 필요하다 — 지우면 조용히 일반 열기로 돌아간다.

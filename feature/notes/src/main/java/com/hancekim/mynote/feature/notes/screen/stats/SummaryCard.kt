@@ -72,7 +72,7 @@ import com.hancekim.mynote.feature.notes.stats.SummaryCardUi
 import com.hancekim.mynote.feature.notes.stats.SummaryLabel
 import java.time.LocalDate
 
-internal enum class SummaryForm {
+enum class SummaryForm {
     Regular,
     Wide,
     Short,
@@ -162,7 +162,7 @@ internal fun SummaryCardSlot(
 }
 
 @Composable
-internal fun SummaryCard(
+fun SummaryCard(
     summary: SummaryCardUi,
     form: SummaryForm,
     formats: StatsFormats,

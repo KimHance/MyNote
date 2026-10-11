@@ -102,7 +102,7 @@ import com.hancekim.mynote.core.designsystem.R as DsR
 import com.hancekim.mynote.core.ui.R as UiR
 
 @Composable
-internal fun ConnectRoute(
+fun ConnectRoute(
     place: ConnectPlace,
     hasConnection: Boolean,
     drafts: com.hancekim.mynote.core.ui.element.NotesDrafts,
@@ -197,7 +197,7 @@ internal fun ConnectRoute(
 }
 
 @Composable
-internal fun ConnectScreen(
+fun ConnectScreen(
     state: ConnectUiState,
     place: ConnectPlace,
     title: String,

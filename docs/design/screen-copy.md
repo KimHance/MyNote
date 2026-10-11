@@ -6,7 +6,7 @@
 | 기능 문서 | docs/spec/screen-copy.md |
 | 등급 | 문구만 |
 | 바꾼 문구 표 | docs/design/screen-copy-rows.md (이 문서가 20 KB 를 넘지 않게 나눴다) |
-| 마지막 변경 | 2026-10-11 · 끝말 막음 8 · 9 넓히고 10 더함(copy-apply 검수) |
+| 마지막 변경 | 2026-10-12 · 셸 문구 넷의 리소스 이름을 `shell_` 로(shell-to-app — 값 그대로) |
 
 ## 문구
 
@@ -51,7 +51,7 @@
 | 노트를 담은 GitHub 저장소 | 저장소 | `레포` | 글자 | — | repo-connect 디자인 |
 | 앱 이름 | MyNote | `공부 기록` | 글자 | — | brand 디자인 |
 | 토큰 안내 낱말 | 세분화된 토큰 · 이 저장소 하나만 · 콘텐츠 읽기 전용 | — | — | `ui_token_howto_kind` · `ui_token_howto_scope` · `ui_token_howto_perm` | 동결(기능 문서 결정 5). GitHub 화면 이름과 짝이고 템플릿 README 시험이 본다 |
-| 화면 제목 | MyNote · 설정 · 북마크 · 통계 · 지난 요약 | — | — | `ui_app_title` · `app_name` · `ui_settings` · `notes_nav_bookmark` · `notes_nav_stats` · `notes_stats_history_title` | 동결(BR-7) |
+| 화면 제목 | MyNote · 설정 · 북마크 · 통계 · 지난 요약 | — | — | `ui_app_title` · `app_name` · `ui_settings` · `shell_nav_bookmark` · `shell_nav_stats` · `shell_stats_history_title` | 동결(BR-7) |
 | 저장소를 앱에 묶음 | 연결 · 연결 끊기 · 저장소 바꾸기 | — | — | — | 그대로 |
 
 ### 끝말
@@ -133,8 +133,8 @@ SC-1 이 보지 않는 문구다. 이름으로만 뺀다.
 
 | 자리 | 파일 | 리소스 | 이번에 바꾼 행 |
 |---|---|---|---|
-| 상단 바 제목 | `shell/NotesTopBar.kt` | `ui_app_title` · `ui_settings` · `notes_nav_bookmark` · `notes_nav_stats` · `notes_stats_history_title` · `notes_connect_change_title` · `notes_connect_attach_title` | 없음 |
-| 플로팅 내비 라벨(12sp) | ds `FloatingNav.kt` | `notes_nav_home` · `notes_nav_bookmark` · `notes_nav_stats` | 없음 |
+| 상단 바 제목 | `shell/NotesTopBar.kt` | `ui_app_title` · `ui_settings` · `shell_nav_bookmark` · `shell_nav_stats` · `shell_stats_history_title` · `notes_connect_change_title` · `notes_connect_attach_title` | 없음 |
+| 플로팅 내비 라벨(12sp) | ds `FloatingNav.kt` | `shell_nav_home` · `shell_nav_bookmark` · `shell_nav_stats` | 없음 |
 | 상태 알약 | ds `FloatingStatusPill.kt` | `ui_pill_*` 다섯 · `ui_model_percent` | 없음 |
 | 퀴즈 CTA 부제 | `quiz/component/QuizCtaCard.kt` | `ui_quiz_cta_subtitle` · `ui_quiz_cta_need_model` · `ui_quiz_cta_paused` · `ui_quiz_cta_downloading` · `ui_pill_failed` | 없음 |
 | 퀴즈 설정 부제 | `quiz/component/QuizSetupDialog.kt` | `notes_quiz_setup_subtitle` | `notes_quiz_setup_subtitle` +0 |
@@ -211,3 +211,4 @@ copy-apply 가 `strings.xml` 과 한 묶음으로 고친다. 인용 글자가 `s
 |---|---|---|
 | 2026-10-11 | feature-modules | 처음 — 395개 전수, 바꾼 문구 56행(screen-copy-rows.md) |
 | 2026-10-11 | feature-modules | 끝말 막음 8 · 9 넓히고 10 더함 — 검수가 `맞지?` · `다시 해` 거짓 통과를 찾았다 |
+| 2026-10-12 | feature-modules | 리소스 이름만 — 셸이 `:app` 으로 가며 셸만 쓰는 내비 · 제목 문구 넷이 `notes_` 에서 `shell_` 로(값 그대로 · feature-modules 결정 15 · 16) |
