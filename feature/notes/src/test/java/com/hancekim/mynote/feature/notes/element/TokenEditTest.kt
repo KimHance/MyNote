@@ -1,5 +1,6 @@
 package com.hancekim.mynote.feature.notes.element
 
+import com.hancekim.mynote.core.ui.element.TokenFailureKind
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

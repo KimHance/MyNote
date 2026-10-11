@@ -1,5 +1,7 @@
 package com.hancekim.mynote.feature.notes.element
 
+import com.hancekim.mynote.core.ui.element.TokenFailureKind
+
 data class TokenEditState(
     val editing: Boolean = false,
     val verifying: Boolean = false,

@@ -47,33 +47,38 @@ import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.domain.model.ConnectionState
 import com.hancekim.mynote.core.domain.model.RepoConnection
 import com.hancekim.mynote.core.domain.model.SourceId
+import com.hancekim.mynote.core.ui.element.LastSync
+import com.hancekim.mynote.core.ui.element.NotesDrafts
+import com.hancekim.mynote.core.ui.element.RepoCardUi
+import com.hancekim.mynote.core.ui.element.RepoDot
+import com.hancekim.mynote.core.ui.element.SyncFailureKind
+import com.hancekim.mynote.core.ui.element.TokenDraft
+import com.hancekim.mynote.core.ui.element.TokenFailureKind
+import com.hancekim.mynote.core.ui.element.syncFailureKindRes
+import com.hancekim.mynote.core.ui.element.tokenFailureRes
+import com.hancekim.mynote.core.ui.screen.DestructiveButton
+import com.hancekim.mynote.core.ui.screen.PrimaryButton
+import com.hancekim.mynote.core.ui.screen.QuietButton
+import com.hancekim.mynote.core.ui.screen.SecondaryButton
+import com.hancekim.mynote.core.ui.screen.connect.ConnectIcons
+import com.hancekim.mynote.core.ui.screen.connect.KeepWordsText
+import com.hancekim.mynote.core.ui.screen.connect.NoticeBox
+import com.hancekim.mynote.core.ui.screen.connect.TOKEN_PAGE_URL
+import com.hancekim.mynote.core.ui.screen.connect.TokenCreateButton
+import com.hancekim.mynote.core.ui.screen.connect.TokenField
+import com.hancekim.mynote.core.ui.screen.connect.TokenHowTo
+import com.hancekim.mynote.core.ui.screen.connect.VerifyingLine
+import com.hancekim.mynote.core.ui.screen.connect.monoAnnotated
+import com.hancekim.mynote.core.ui.screen.connect.openExternal
 import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.element.LastSync
-import com.hancekim.mynote.feature.notes.element.NotesDrafts
-import com.hancekim.mynote.feature.notes.element.RepoCardUi
-import com.hancekim.mynote.feature.notes.element.RepoDot
-import com.hancekim.mynote.feature.notes.element.SyncFailureKind
-import com.hancekim.mynote.feature.notes.element.TokenDraft
 import com.hancekim.mynote.feature.notes.element.TokenEditState
-import com.hancekim.mynote.feature.notes.element.TokenFailureKind
 import com.hancekim.mynote.feature.notes.element.maskedTokenTail
-import com.hancekim.mynote.feature.notes.element.syncFailureKindRes
-import com.hancekim.mynote.feature.notes.element.tokenFailureRes
-import com.hancekim.mynote.feature.notes.screen.connect.ConnectIcons
 import com.hancekim.mynote.feature.notes.screen.connect.DisconnectDialog
-import com.hancekim.mynote.feature.notes.screen.connect.KeepWordsText
-import com.hancekim.mynote.feature.notes.screen.connect.NoticeBox
-import com.hancekim.mynote.feature.notes.screen.connect.TOKEN_PAGE_URL
-import com.hancekim.mynote.feature.notes.screen.connect.TokenCreateButton
-import com.hancekim.mynote.feature.notes.screen.connect.TokenField
-import com.hancekim.mynote.feature.notes.screen.connect.TokenHowTo
-import com.hancekim.mynote.feature.notes.screen.connect.VerifyingLine
-import com.hancekim.mynote.feature.notes.screen.connect.monoAnnotated
-import com.hancekim.mynote.feature.notes.screen.connect.openExternal
 import com.hancekim.mynote.feature.notes.settings.SettingsIntent
 import com.hancekim.mynote.feature.notes.settings.SettingsUiState
 import kotlinx.coroutines.launch
 import com.hancekim.mynote.core.designsystem.R as DsR
+import com.hancekim.mynote.core.ui.R as UiR
 
 @Composable
 internal fun RepoSection(
@@ -393,7 +398,7 @@ private fun TokenEditor(
     val colors = MyNoteTheme.colors
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val browserMissing = stringResource(R.string.notes_token_browser_missing)
+    val browserMissing = stringResource(UiR.string.ui_token_browser_missing)
     val focusRequester = remember { FocusRequester() }
     val fieldInView = remember { BringIntoViewRequester() }
     val reduceMotion = rememberReduceMotion()
@@ -452,8 +457,8 @@ private fun TokenEditor(
             color = colors.text3,
         )
         edit.failure?.let { NoticeBox(text = stringResource(tokenFailureRes(it))) }
-        if (draft.isClassic) NoticeBox(text = stringResource(R.string.notes_token_classic_warn))
-        if (edit.verifying) VerifyingLine(text = stringResource(R.string.notes_token_verifying))
+        if (draft.isClassic) NoticeBox(text = stringResource(UiR.string.ui_token_classic_warn))
+        if (edit.verifying) VerifyingLine(text = stringResource(UiR.string.ui_token_verifying))
         FlowRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),

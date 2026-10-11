@@ -37,11 +37,11 @@ import com.hancekim.mynote.core.domain.model.RepoConnection
 import com.hancekim.mynote.core.domain.model.SourceId
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import com.hancekim.mynote.core.navigation.key.activeNoteId
+import com.hancekim.mynote.core.ui.element.NotesDrafts
 import com.hancekim.mynote.feature.notes.CategoryUi
 import com.hancekim.mynote.feature.notes.NoteUi
 import com.hancekim.mynote.feature.notes.QuizQuestionUi
 import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.element.NotesDrafts
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.element.TokenEditState
 import com.hancekim.mynote.feature.notes.quiz.QuizIntent
@@ -59,6 +59,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.CopyOnWriteArrayList
 import com.hancekim.mynote.core.designsystem.R as DsR
+import com.hancekim.mynote.core.ui.R as UiR
 
 /**
  * 뒤로가기 7단(FM-10)과 창 등급 전환(FM-4)을 상태 없는 셸로 지킨다.
@@ -288,14 +289,14 @@ internal class ShellHarness(
     fun clearRecorded() = calls.clear()
 
     fun openDrawer() {
-        rule.onNodeWithContentDescription(activity.getString(R.string.notes_action_note_list)).performClick()
+        rule.onNodeWithContentDescription(activity.getString(UiR.string.ui_action_note_list)).performClick()
         rule.waitForIdle()
     }
 
     /** 드로어 여는 애니메이션의 첫 프레임에서 멈춘다 — 목표는 열림, 현재는 아직 닫힘. */
     fun startOpeningDrawer() {
         rule.mainClock.autoAdvance = false
-        rule.onNodeWithContentDescription(activity.getString(R.string.notes_action_note_list)).performClick()
+        rule.onNodeWithContentDescription(activity.getString(UiR.string.ui_action_note_list)).performClick()
         repeat(OPENING_FRAMES) { rule.mainClock.advanceTimeByFrame() }
     }
 
@@ -354,7 +355,7 @@ internal class ShellHarness(
         rule
             .onNode(hasSetTextAction() and SemanticsMatcher.keyIsDefined(SemanticsProperties.Password))
             .performTextInput(text)
-        rule.onNodeWithText(activity.getString(R.string.notes_settings_token_show)).performClick()
+        rule.onNodeWithText(activity.getString(UiR.string.ui_settings_token_show)).performClick()
         rule.waitForIdle()
     }
 

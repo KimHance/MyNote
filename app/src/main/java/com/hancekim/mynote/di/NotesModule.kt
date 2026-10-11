@@ -1,9 +1,9 @@
 package com.hancekim.mynote.di
 
-import com.hancekim.mynote.feature.notes.AndroidFailureLog
-import com.hancekim.mynote.feature.notes.AndroidNotesMessages
-import com.hancekim.mynote.feature.notes.FailureLog
-import com.hancekim.mynote.feature.notes.NotesMessages
+import com.hancekim.mynote.core.ui.AndroidFailureLog
+import com.hancekim.mynote.core.ui.AndroidNotesMessages
+import com.hancekim.mynote.core.ui.FailureLog
+import com.hancekim.mynote.core.ui.NotesMessages
 import com.hancekim.mynote.feature.notes.quiz.AccessibilityAutoAdvancePolicy
 import com.hancekim.mynote.feature.notes.quiz.QuizAutoAdvancePolicy
 import com.hancekim.mynote.feature.notes.stats.LogStatsTrace

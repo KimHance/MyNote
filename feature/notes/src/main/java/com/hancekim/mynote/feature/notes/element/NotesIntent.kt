@@ -1,6 +1,8 @@
 package com.hancekim.mynote.feature.notes.element
 
 import com.hancekim.mynote.core.common.mvi.MviEvent
+import com.hancekim.mynote.core.navigation.NotesTab
+import com.hancekim.mynote.core.ui.element.NotesSignal
 
 sealed interface NotesIntent : MviEvent {
     data class SelectNote(

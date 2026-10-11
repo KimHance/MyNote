@@ -6,13 +6,13 @@ import com.hancekim.mynote.core.common.mvi.MviEvent
 import com.hancekim.mynote.core.common.mvi.MviState
 import com.hancekim.mynote.core.domain.connect.ConnectLinkRejection
 import com.hancekim.mynote.core.domain.connect.TemplateRepo
+import com.hancekim.mynote.core.ui.element.SecretText
+import com.hancekim.mynote.core.ui.element.TokenFailureKind
+import com.hancekim.mynote.core.ui.element.TokenReason
 import com.hancekim.mynote.feature.notes.element.ConfirmUi
 import com.hancekim.mynote.feature.notes.element.ConnectNotice
 import com.hancekim.mynote.feature.notes.element.ConnectStep
 import com.hancekim.mynote.feature.notes.element.LinkCheck
-import com.hancekim.mynote.feature.notes.element.SecretText
-import com.hancekim.mynote.feature.notes.element.TokenFailureKind
-import com.hancekim.mynote.feature.notes.element.TokenReason
 import com.hancekim.mynote.feature.notes.element.entryVisible
 
 @Immutable

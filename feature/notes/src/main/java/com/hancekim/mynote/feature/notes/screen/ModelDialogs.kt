@@ -14,9 +14,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.hancekim.mynote.core.designsystem.component.GlassSurface
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
+import com.hancekim.mynote.core.ui.screen.DestructiveButton
+import com.hancekim.mynote.core.ui.screen.PrimaryButton
+import com.hancekim.mynote.core.ui.screen.SecondaryButton
 import com.hancekim.mynote.feature.notes.R
 import com.kyant.backdrop.Backdrop
 import com.hancekim.mynote.core.designsystem.R as DsR
+import com.hancekim.mynote.core.ui.R as UiR
 
 @Composable
 internal fun ModelConfirmDialog(
@@ -28,7 +32,7 @@ internal fun ModelConfirmDialog(
         title = stringResource(R.string.notes_model_confirm_title),
         body = stringResource(R.string.notes_model_confirm_body),
         dismissLabel = stringResource(R.string.notes_model_confirm_later),
-        confirmLabel = stringResource(R.string.notes_model_download),
+        confirmLabel = stringResource(UiR.string.ui_model_download),
         destructive = false,
         onDismiss = onDismiss,
         onConfirm = onConfirm,

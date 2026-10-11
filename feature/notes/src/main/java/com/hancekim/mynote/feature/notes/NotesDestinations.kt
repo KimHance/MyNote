@@ -3,11 +3,11 @@ package com.hancekim.mynote.feature.notes
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.domain.model.ModelStatus
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
-import com.hancekim.mynote.feature.notes.element.CtaAction
+import com.hancekim.mynote.core.ui.element.CtaAction
+import com.hancekim.mynote.core.ui.frame.ShellDestinations
+import com.hancekim.mynote.core.ui.frame.sceneEdgeModifier
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
-import com.hancekim.mynote.feature.notes.frame.ShellDestinations
-import com.hancekim.mynote.feature.notes.frame.sceneEdgeModifier
 import com.hancekim.mynote.feature.notes.screen.HomeScreen
 import com.hancekim.mynote.feature.notes.screen.NoteReaderScreen
 import com.hancekim.mynote.feature.notes.screen.bookmarks.BookmarksScreen

@@ -7,12 +7,12 @@ import com.hancekim.mynote.core.designfoundation.token.MyNoteFontScale
 import com.hancekim.mynote.core.domain.model.ConnectionState
 import com.hancekim.mynote.core.domain.model.ModelStatus
 import com.hancekim.mynote.core.domain.model.RepoConnection
+import com.hancekim.mynote.core.navigation.NotesTab
 import com.hancekim.mynote.core.navigation.key.MyNoteNavKey
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
+import com.hancekim.mynote.core.ui.element.NotesSignal
 import com.hancekim.mynote.feature.notes.element.ConnectionKnown
 import com.hancekim.mynote.feature.notes.element.NotesKnown
-import com.hancekim.mynote.feature.notes.element.NotesSignal
-import com.hancekim.mynote.feature.notes.element.NotesTab
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.element.StartDestination
 import com.hancekim.mynote.feature.notes.element.startDestination

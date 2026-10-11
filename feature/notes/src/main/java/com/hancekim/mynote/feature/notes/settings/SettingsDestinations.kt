@@ -1,8 +1,8 @@
 package com.hancekim.mynote.feature.notes.settings
 
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
-import com.hancekim.mynote.feature.notes.frame.ShellDestinations
-import com.hancekim.mynote.feature.notes.frame.sceneEdgeModifier
+import com.hancekim.mynote.core.ui.frame.ShellDestinations
+import com.hancekim.mynote.core.ui.frame.sceneEdgeModifier
 import com.hancekim.mynote.feature.notes.screen.SettingsScreen
 
 /**

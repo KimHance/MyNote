@@ -15,7 +15,7 @@ WORDMARK_SPELLING = re.compile(r"mynote")
 # 홈 상단 바와 읽는 중 화면 — 모듈을 옮겨도 따라가게 파일 이름으로 찾는다(feature-modules FM-12)
 TITLE_USERS = ("NotesShell.kt", "ConnectReading.kt")
 OTHER_TITLES = {
-    "notes_settings": "설정",
+    "ui_settings": "설정",
     "notes_nav_bookmark": "북마크",
     "notes_nav_stats": "통계",
     "notes_stats_history_title": "지난 요약",
@@ -66,10 +66,10 @@ def app_sources():
 
 class BrandTitleTest(unittest.TestCase):
     def test_BR_7_홈과_읽는_중_화면_제목은_MyNote_다(self):
-        self.assertEqual(defined_strings("notes_app_title"), APP_TITLE)
+        self.assertEqual(defined_strings("ui_app_title"), APP_TITLE)
         for file_name in TITLE_USERS:
             with self.subTest(file_name):
-                self.assertIn("R.string.notes_app_title", main_source(file_name).read_text(encoding="utf-8"))
+                self.assertIn("R.string.ui_app_title", main_source(file_name).read_text(encoding="utf-8"))
 
     def test_BR_7_앱_소스에_임시_이름이_없다(self):
         sources = list(app_sources())

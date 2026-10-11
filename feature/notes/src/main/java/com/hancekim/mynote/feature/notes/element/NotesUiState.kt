@@ -5,6 +5,7 @@ import androidx.compose.runtime.Stable
 import com.hancekim.mynote.core.common.mvi.MviState
 import com.hancekim.mynote.core.domain.model.ConnectionState
 import com.hancekim.mynote.core.domain.model.RepoConnection
+import com.hancekim.mynote.core.ui.element.NoticeUi
 import com.hancekim.mynote.feature.notes.BookmarkUi
 import com.hancekim.mynote.feature.notes.CategoryUi
 import com.hancekim.mynote.feature.notes.NoteUi
@@ -15,14 +16,6 @@ import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.persistentSetOf
-
-/** 스낵바 알림. 되돌리기는 알림을 낸 기능의 인텐트로 돌아간다. */
-@Stable
-data class NoticeUi<out E>(
-    val message: String,
-    val undo: E?,
-    val id: Int,
-)
 
 @Stable
 data class ReaderScrollRequest(

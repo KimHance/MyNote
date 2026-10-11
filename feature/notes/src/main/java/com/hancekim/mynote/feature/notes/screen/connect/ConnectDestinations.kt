@@ -1,9 +1,9 @@
 package com.hancekim.mynote.feature.notes.screen.connect
 
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
+import com.hancekim.mynote.core.ui.frame.ShellDestinations
+import com.hancekim.mynote.core.ui.frame.sceneEdgeModifier
 import com.hancekim.mynote.feature.notes.element.ConnectPlace
-import com.hancekim.mynote.feature.notes.frame.ShellDestinations
-import com.hancekim.mynote.feature.notes.frame.sceneEdgeModifier
 
 /**
  * 연결 기능의 목적지 — 쌓은 연결 화면. 상태는 화면이 자기 ViewModel(Activity owner)에서 받는다.

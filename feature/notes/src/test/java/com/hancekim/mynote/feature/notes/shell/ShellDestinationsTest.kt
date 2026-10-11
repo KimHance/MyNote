@@ -6,9 +6,10 @@ import androidx.navigation3.runtime.NavEntry
 import com.hancekim.mynote.core.domain.model.ModelStatus
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import com.hancekim.mynote.core.navigation.registry.destinationProvider
-import com.hancekim.mynote.feature.notes.element.NotesDrafts
+import com.hancekim.mynote.core.ui.element.NotesDrafts
+import com.hancekim.mynote.core.ui.frame.ShellFrame
+import com.hancekim.mynote.core.ui.shell.NotesScrollState
 import com.hancekim.mynote.feature.notes.element.NotesUiState
-import com.hancekim.mynote.feature.notes.frame.ShellFrame
 import com.hancekim.mynote.feature.notes.settings.SettingsUiState
 import org.junit.Assert.assertEquals
 import org.junit.Test

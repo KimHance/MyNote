@@ -37,9 +37,9 @@ import com.hancekim.mynote.core.designsystem.font.googleTitleFontSource
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.designsystem.theme.ProvideTitleFontFamily
 import com.hancekim.mynote.core.domain.connect.TemplateRepo
+import com.hancekim.mynote.core.ui.element.TokenDraft
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.ConnectPlace
-import com.hancekim.mynote.feature.notes.element.TokenDraft
 import com.hancekim.mynote.feature.notes.screen.connect.ConnectScreen
 import com.hancekim.mynote.feature.notes.screen.connect.ConnectUiState
 import com.hancekim.mynote.feature.notes.screen.stats.SummaryCard

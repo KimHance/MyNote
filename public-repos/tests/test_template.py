@@ -24,9 +24,9 @@ APP_TERMS = [
     "notes_connect_link_label",
     "notes_connect_action",
     "notes_connect_token_title",
-    "notes_token_howto_kind",
-    "notes_token_howto_scope",
-    "notes_token_howto_perm",
+    "ui_token_howto_kind",
+    "ui_token_howto_scope",
+    "ui_token_howto_perm",
 ]
 
 

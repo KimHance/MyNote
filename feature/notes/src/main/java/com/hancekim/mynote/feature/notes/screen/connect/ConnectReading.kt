@@ -18,7 +18,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
+import com.hancekim.mynote.core.ui.screen.connect.KeepWordsText
+import com.hancekim.mynote.core.ui.screen.connect.ProgressRing
 import com.hancekim.mynote.feature.notes.R
+import com.hancekim.mynote.core.ui.R as UiR
 
 @Composable
 internal fun ConnectReadingScreen(modifier: Modifier = Modifier) {
@@ -34,7 +37,7 @@ internal fun ConnectReadingScreen(modifier: Modifier = Modifier) {
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 KeepWordsText(
-                    text = stringResource(R.string.notes_app_title),
+                    text = stringResource(UiR.string.ui_app_title),
                     style = MyNoteTheme.textStyles.sectionTitle,
                     color = colors.text,
                 )

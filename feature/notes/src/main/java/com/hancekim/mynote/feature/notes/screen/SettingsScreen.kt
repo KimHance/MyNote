@@ -1,10 +1,7 @@
 package com.hancekim.mynote.feature.notes.screen
 
-import androidx.activity.compose.BackHandler
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,23 +10,15 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.relocation.BringIntoViewRequester
-import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -39,7 +28,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,46 +35,31 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.fromHtml
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.hancekim.mynote.core.designfoundation.token.MyNoteFontScale
 import com.hancekim.mynote.core.designfoundation.token.MyNoteRadius
-import com.hancekim.mynote.core.designsystem.component.MyNoteIcons
-import com.hancekim.mynote.core.designsystem.component.PressIndication
-import com.hancekim.mynote.core.designsystem.component.riseIn
-import com.hancekim.mynote.core.designsystem.motion.rememberReduceMotion
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.domain.model.ConnectionState
 import com.hancekim.mynote.core.domain.model.RepoConnection
 import com.hancekim.mynote.core.domain.model.SourceId
+import com.hancekim.mynote.core.ui.element.LastSync
+import com.hancekim.mynote.core.ui.element.NotesDrafts
+import com.hancekim.mynote.core.ui.element.modelCardUi
+import com.hancekim.mynote.core.ui.screen.CONTENT_MAX_WIDTH
+import com.hancekim.mynote.core.ui.screen.SecondaryButton
 import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.element.LastSync
-import com.hancekim.mynote.feature.notes.element.NotesDrafts
-import com.hancekim.mynote.feature.notes.element.maskedTokenTail
-import com.hancekim.mynote.feature.notes.element.modelCardUi
 import com.hancekim.mynote.feature.notes.settings.SettingsIntent
 import com.hancekim.mynote.feature.notes.settings.SettingsUiState
-import com.hancekim.mynote.core.designsystem.R as DsR
 
 @Composable
 internal fun SettingsScreen(
@@ -358,212 +331,7 @@ internal fun IconBox(
     }
 }
 
-@Composable
-internal fun PrimaryButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-) {
-    val colors = MyNoteTheme.colors
-    val shape = RoundedCornerShape(12.dp)
-    val indication =
-        remember(colors, shape) { PressIndication(shape, colors.accent, colors.accentPressed, scale = 0.98f) }
-    Box(
-        modifier =
-            modifier
-                .height(BUTTON_HEIGHT)
-                .alpha(if (enabled) 1f else DISABLED_ALPHA)
-                .clip(shape)
-                .background(colors.accent)
-                .clickable(
-                    enabled = enabled,
-                    interactionSource = null,
-                    indication = indication,
-                    role = Role.Button,
-                    onClick = onClick,
-                ).padding(horizontal = 18.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        ButtonLabel(text = text, color = colors.bg, weight = FontWeight.W700)
-    }
-}
-
-@Composable
-internal fun SecondaryButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    trailingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
-) {
-    val colors = MyNoteTheme.colors
-    val shape = RoundedCornerShape(12.dp)
-    val indication = remember(colors, shape) { PressIndication(shape, pressColor = colors.border) }
-    Box(
-        modifier =
-            modifier
-                .height(BUTTON_HEIGHT)
-                .alpha(if (enabled) 1f else DISABLED_ALPHA)
-                .clip(shape)
-                .background(colors.surface2)
-                .border(1.dp, colors.border, shape)
-                .clickable(
-                    enabled = enabled,
-                    interactionSource = null,
-                    indication = indication,
-                    role = Role.Button,
-                    onClick = onClick,
-                ).padding(horizontal = 16.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            ButtonLabel(text = text, color = colors.text, weight = FontWeight.W500)
-            if (trailingIcon != null) {
-                Icon(
-                    imageVector = trailingIcon,
-                    contentDescription = null,
-                    tint = colors.text2,
-                    modifier = Modifier.size(15.dp),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-internal fun DestructiveButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-) {
-    val colors = MyNoteTheme.colors
-    val shape = RoundedCornerShape(12.dp)
-    val indication =
-        remember(colors, shape) { PressIndication(shape, pressColor = colors.wrong.copy(alpha = 0.10f)) }
-    Box(
-        modifier =
-            modifier
-                .height(BUTTON_HEIGHT)
-                .alpha(if (enabled) 1f else DISABLED_ALPHA)
-                .clip(shape)
-                .clickable(
-                    enabled = enabled,
-                    interactionSource = null,
-                    indication = indication,
-                    role = Role.Button,
-                    onClick = onClick,
-                ).padding(horizontal = 14.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        ButtonLabel(text = text, color = colors.wrong, weight = FontWeight.W500)
-    }
-}
-
-@Composable
-internal fun SolidDestructiveButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val colors = MyNoteTheme.colors
-    val shape = RoundedCornerShape(12.dp)
-    val indication =
-        remember(
-            colors,
-            shape,
-        ) { PressIndication(shape, colors.wrong, colors.wrong.copy(alpha = 0.82f), scale = 0.98f) }
-    Box(
-        modifier =
-            modifier
-                .height(BUTTON_HEIGHT)
-                .clip(shape)
-                .background(colors.wrong)
-                .clickable(interactionSource = null, indication = indication, role = Role.Button, onClick = onClick)
-                .padding(horizontal = 18.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        ButtonLabel(text = text, color = colors.bg, weight = FontWeight.W700)
-    }
-}
-
-@Composable
-internal fun QuietButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    contentDescription: String? = null,
-    enabled: Boolean = true,
-    trailingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
-) {
-    val colors = MyNoteTheme.colors
-    val shape = RoundedCornerShape(10.dp)
-    val indication = remember(colors, shape) { PressIndication(shape, pressColor = colors.border) }
-    Box(
-        modifier =
-            modifier
-                .height(36.dp)
-                .alpha(if (enabled) 1f else DISABLED_ALPHA)
-                .clip(shape)
-                .clickable(
-                    enabled = enabled,
-                    interactionSource = null,
-                    indication = indication,
-                    role = Role.Button,
-                    onClick = onClick,
-                ).padding(horizontal = 12.dp)
-                .then(
-                    if (contentDescription != null) {
-                        Modifier.semantics { this.contentDescription = contentDescription }
-                    } else {
-                        Modifier
-                    },
-                ),
-        contentAlignment = Alignment.Center,
-    ) {
-        if (trailingIcon == null) {
-            ButtonLabel(text = text, color = colors.text2, weight = FontWeight.W500)
-        } else {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                ButtonLabel(text = text, color = colors.text2, weight = FontWeight.W500)
-                Icon(
-                    imageVector = trailingIcon,
-                    contentDescription = null,
-                    tint = colors.text3,
-                    modifier = Modifier.size(15.dp),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-internal fun ButtonLabel(
-    text: String,
-    color: Color,
-    weight: FontWeight,
-) {
-    Text(
-        text = text,
-        style = MyNoteTheme.textStyles.button.copy(fontWeight = weight),
-        color = color,
-        maxLines = 1,
-        softWrap = false,
-        overflow = TextOverflow.Clip,
-    )
-}
-
-internal val CONTENT_MAX_WIDTH: Dp = 560.dp
 private val SECTION_GAP: Dp = 28.dp
-private val BUTTON_HEIGHT: Dp = 40.dp
-internal const val DISABLED_ALPHA = 0.4f
 
 @Preview(name = "설정 · 공개 저장소", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 400, heightDp = 1100)
 @Composable

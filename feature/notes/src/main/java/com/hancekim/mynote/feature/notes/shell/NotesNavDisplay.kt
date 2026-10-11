@@ -13,11 +13,11 @@ import com.hancekim.mynote.core.navigation.motion.scenePredictivePopTransitionSp
 import com.hancekim.mynote.core.navigation.motion.sceneTransitionSpec
 import com.hancekim.mynote.core.navigation.registry.destinationProvider
 import com.hancekim.mynote.core.navigation.shared.LocalSharedTransitionScope
-import com.hancekim.mynote.feature.notes.element.CtaAction
+import com.hancekim.mynote.core.ui.element.CtaAction
+import com.hancekim.mynote.core.ui.frame.ShellDestinations
+import com.hancekim.mynote.core.ui.frame.ShellFrame
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
-import com.hancekim.mynote.feature.notes.frame.ShellDestinations
-import com.hancekim.mynote.feature.notes.frame.ShellFrame
 import com.hancekim.mynote.feature.notes.notesDestinations
 import com.hancekim.mynote.feature.notes.screen.connect.connectDestinations
 import com.hancekim.mynote.feature.notes.screen.stats.statsDestinations

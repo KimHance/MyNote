@@ -4,7 +4,7 @@ import androidx.compose.runtime.Stable
 import com.hancekim.mynote.core.common.mvi.MviEvent
 import com.hancekim.mynote.core.common.mvi.MviState
 import com.hancekim.mynote.core.domain.model.ModelStatus
-import com.hancekim.mynote.feature.notes.element.NotesSignal
+import com.hancekim.mynote.core.ui.element.NotesSignal
 
 /** 퀴즈 ViewModel 이 내는 상태 — 오버레이 · 그만두기 되돌리기 · CTA 의 모델 상태. */
 @Stable
