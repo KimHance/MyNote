@@ -1,10 +1,12 @@
 import json
+import os
 import re
 import shutil
 import subprocess
 import sys
 import unittest
 import xml.etree.ElementTree as ElementTree
+from pathlib import Path
 
 import support
 
@@ -13,6 +15,7 @@ WORKFLOWS = TEMPLATE / ".github" / "workflows"
 README = TEMPLATE / "README.md"
 # 앱 문구는 모듈을 옮겨도 따라가게 모든 모듈의 strings.xml 에서 이름으로 찾는다(feature-modules FM-12)
 APP_MODULES = ("app", "core", "feature")
+SKIPPED_DIRS = {"build", ".gradle", ".kotlin"}
 KIT_TOOL = support.load_module("kit_tool_for_template", support.KIT_TOOL)
 
 README_SECTIONS = ["시작하기", "노트 추가", "비공개로 만들었다면", "형식", "문제 해결"]
@@ -59,10 +62,12 @@ def readme_sections(text):
 
 
 def app_strings_files():
+    """모든 모듈의 `src/main/res/values/strings.xml` — 빌드 폴더는 내려가지 않고 걷는다."""
     for top in APP_MODULES:
-        for path in (support.REPO_ROOT / top).rglob("strings.xml"):
-            parts = path.relative_to(support.REPO_ROOT).parts
-            if "build" not in parts and parts[-5:-1] == ("src", "main", "res", "values"):
+        for directory, children, files in os.walk(support.REPO_ROOT / top):
+            children[:] = sorted(child for child in children if child not in SKIPPED_DIRS)
+            path = Path(directory) / "strings.xml"
+            if "strings.xml" in files and path.relative_to(support.REPO_ROOT).parts[-5:-1] == ("src", "main", "res", "values"):
                 yield path
 
 

@@ -1,3 +1,5 @@
+import functools
+import os
 import re
 import unittest
 import xml.etree.ElementTree as ET
@@ -20,6 +22,7 @@ OTHER_TITLES = {
 }
 
 
+@functools.cache
 def strings_of(path):
     root = ET.parse(path).getroot()
     return {node.get("name"): "".join(node.itertext()) for node in root.iter("string")}
@@ -45,14 +48,20 @@ def main_source(file_name):
     return found[0]
 
 
+@functools.cache
 def app_sources():
+    """모든 모듈의 Kotlin 소스와 리소스 XML — 빌드 폴더는 내려가지 않고 걷는다. 한 번 만들어 같이 쓴다."""
+    found = []
     for top in SOURCE_ROOTS:
-        for path in (REPO_ROOT / top).rglob("*"):
-            rel = path.relative_to(REPO_ROOT)
-            if not path.is_file() or SKIPPED_DIRS.intersection(rel.parts) or "src" not in rel.parts:
+        for directory, children, files in os.walk(REPO_ROOT / top):
+            children[:] = sorted(child for child in children if child not in SKIPPED_DIRS)
+            rel = Path(directory).relative_to(REPO_ROOT)
+            if "src" not in rel.parts:
                 continue
-            if path.suffix == ".kt" or (path.suffix == ".xml" and "res" in rel.parts):
-                yield path
+            for name in sorted(files):
+                if name.endswith(".kt") or (name.endswith(".xml") and "res" in rel.parts):
+                    found.append(Path(directory) / name)
+    return tuple(found)
 
 
 class BrandTitleTest(unittest.TestCase):

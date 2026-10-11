@@ -1,3 +1,5 @@
+import functools
+import os
 import re
 import unittest
 import xml.etree.ElementTree as ET
@@ -165,13 +167,16 @@ def resource_names(directory):
     return names
 
 
+@functools.cache
 def kotlin_main_sources():
+    """모든 모듈 `main` 의 Kotlin 소스 — 빌드 폴더는 내려가지 않고 걷는다. 한 번 만들어 같이 쓴다."""
+    found = []
     for top in SOURCE_ROOTS:
-        for path in (REPO_ROOT / top).rglob("*.kt"):
-            rel = path.relative_to(REPO_ROOT)
-            if SKIPPED_DIRS.intersection(rel.parts) or "main" not in rel.parts:
-                continue
-            yield path
+        for directory, children, files in os.walk(REPO_ROOT / top):
+            children[:] = sorted(child for child in children if child not in SKIPPED_DIRS)
+            if "main" in Path(directory).relative_to(REPO_ROOT).parts:
+                found += [Path(directory) / name for name in sorted(files) if name.endswith(".kt")]
+    return tuple(found)
 
 
 def call_arguments(text, name):
@@ -189,12 +194,7 @@ def call_arguments(text, name):
 
 
 def view_model_sources():
-    for top in SOURCE_ROOTS:
-        for path in (REPO_ROOT / top).rglob("*ViewModel.kt"):
-            rel = path.relative_to(REPO_ROOT)
-            if SKIPPED_DIRS.intersection(rel.parts) or "main" not in rel.parts:
-                continue
-            yield path
+    return [path for path in kotlin_main_sources() if path.name.endswith("ViewModel.kt")]
 
 
 class FeatureModulesTest(unittest.TestCase):
