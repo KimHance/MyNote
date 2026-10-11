@@ -5,7 +5,7 @@ import com.hancekim.mynote.core.ui.element.TokenFailureKind
 import com.hancekim.mynote.feature.connect.element.ConnectIssue
 import com.hancekim.mynote.feature.connect.element.ConnectNotice
 import com.hancekim.mynote.feature.connect.element.issueOfProbe
-import com.hancekim.mynote.feature.notes.element.tokenFailureOfProbe
+import com.hancekim.mynote.feature.settings.element.tokenFailureOfProbe
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

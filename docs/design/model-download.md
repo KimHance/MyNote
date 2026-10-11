@@ -5,7 +5,7 @@
 | 기능 | model-download |
 | 기능 문서 | docs/spec/model-download.md (기준 3b73a58 · 구현 babe07d) |
 | 등급 | 화면 |
-| 마지막 변경 | 2026-10-12 · 리소스 이름만 — 재시도 문구 이름 셋 `ui_` 접두사(feature-modules move-core-ui) |
+| 마지막 변경 | 2026-10-12 · 리소스 이름만 — 알림 꺼짐 안내 문구 이름 `settings_` 접두사(feature-modules move-settings) |
 
 > **옛 핸드오프를 덮는다.** 설정 핸드오프 ST(`docs/design_handoff_settings/README.md`, gitignore) §10.2 의 Retrying 행 · 알림 거부 안내 줄, §10.4 의 재시도 알약, §10.7 의 알림 표 · 제목 · 아이콘은 **이 문서가 덮는다** — 둘이 다르면 이 문서가 맞다. ST 의 나머지 행은 그대로다.
 > 기준: `DESIGN.md` 토큰 · §2.3 · §6.6 · §9.4. 새 색 · 새 모션 없음 · 새 그림은 재시도 작은 아이콘 하나. 안 하는 것: 퀴즈 CTA 문구(열린 질문 4) · DESIGN §2.3 의 '곧'(plan F2).
@@ -115,7 +115,7 @@
 | 카드 재시도 세부 | 이어서 받습니다 | `ui_model_retrying_desc` (인자 없음) | N초 뒤 다시 시도 · 연결되면 · 곧 |
 | 알약 재시도 라벨 | 받기가 끊겨 기다리는 중 | `ui_pill_retrying` | 연결이 끊겨 다시 시도(버튼 말) |
 | 알약 재시도 보조 글자 | 없음 | (`notes_pill_seconds` 지움) | 초 · 4초 |
-| 알림 꺼짐 안내 | 알림이 꺼져 있어 앱을 나가면 진행 상황이 보이지 않습니다. | `notes_model_notif_off` | |
+| 알림 꺼짐 안내 | 알림이 꺼져 있어 앱을 나가면 진행 상황이 보이지 않습니다. | `settings_model_notif_off` | |
 | 진행 알림 제목 | 퀴즈 모델 받기 | `ai_model_download_title` (진행 계열 다섯 공통) | 받고 있습니다 · 내려받고 있습니다 |
 | 받는 중 알림 본문 | `42% 받았습니다 · 1.09 / 2.59GB` | `ai_model_download_progress_bytes` | 내려받았습니다 |
 | 재시도 알림 본문 | 받기가 끊겼습니다. 이어서 받습니다 | `ai_model_download_retrying` | 곧 다시 시도합니다 · 연결되면 |
@@ -211,3 +211,4 @@
 | 2026-10-07 | model-download-slim · ⑨ | 숫자 = 규칙 + 에뮬 실측 예(F4) · 접힌 진행 알림 = 제목 + 막대 · 아이콘 판(D18) · 확인 결과 · 정한 것 4–7 · 문구 대안 → README §7 |
 | 2026-10-08 | brand-identity | 문서 위생(`brand` 결정 7): 확인 칸 · 정한 것의 run 사진 경로와 세션 맥락(기기 이름 · 일련번호)을 걷음. 확인 내용 · 결정은 그대로 |
 | 2026-10-12 | feature-modules · move-core-ui | 리소스 이름만 — `notes_model_retrying` · `notes_model_retrying_desc` · `notes_pill_retrying` → `ui_` 접두사(문구가 `:core:ui` 로 옮겨 감 · `feature-modules` FM-11 · FM-12). 값 · 뜻은 그대로 |
+| 2026-10-12 | feature-modules · move-settings | 리소스 이름만 — `notes_model_notif_off` → `settings_model_notif_off`(문구가 `:feature:settings` 로 옮겨 감 · `feature-modules` FM-11 · FM-12). 값 · 뜻은 그대로 |

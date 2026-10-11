@@ -1,6 +1,5 @@
 package com.hancekim.mynote.feature.notes.element
 
-import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import com.hancekim.mynote.core.common.mvi.MviState
 import com.hancekim.mynote.core.domain.model.ConnectionState
@@ -22,12 +21,6 @@ data class ReaderScrollRequest(
     val noteId: String,
     val fraction: Float,
     val id: Int,
-)
-
-@Immutable
-data class DisconnectDialogUi(
-    val notes: Int,
-    val bookmarks: Int,
 )
 
 @Stable

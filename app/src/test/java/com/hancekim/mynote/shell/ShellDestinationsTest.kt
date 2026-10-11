@@ -10,7 +10,7 @@ import com.hancekim.mynote.core.ui.element.NotesDrafts
 import com.hancekim.mynote.core.ui.frame.ShellFrame
 import com.hancekim.mynote.core.ui.shell.NotesScrollState
 import com.hancekim.mynote.feature.notes.element.NotesUiState
-import com.hancekim.mynote.feature.notes.settings.SettingsUiState
+import com.hancekim.mynote.feature.settings.SettingsUiState
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

@@ -1,6 +1,5 @@
-package com.hancekim.mynote.feature.notes.settings
+package com.hancekim.mynote.feature.settings
 
-import com.hancekim.mynote.feature.notes.FeatureFixture
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher

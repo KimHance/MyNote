@@ -15,7 +15,7 @@
 
 `:app` 셸이 연결 루트 · 읽는 중 화면을 시작 분기에서 직접 부르고(`shell/NotesShell.kt`) 등록 파일을 묶는다(`shell/NotesNavDisplay.kt`).
 BR-8 계측(`:app` 의 `TitleFontScreensTest`)이 연결 화면(`ConnectScreen` · `ConnectUiState` · `ConnectPlace`)을 그려서 그 셋은 공개다.
-남은 연결 조각 — 홈 · 목록 패널의 연결 띠(`ConnectBand`)와 설정의 끊기 대화상자(`DisconnectDialog`) · 설정 토큰 확인 판정(`tokenFailureOfProbe`) · 연결 주소 만들기(`connectionLinkOf`) — 는 그것을 쓰는 노트 · 설정 쪽에 있다.
+남은 연결 조각 — 홈 · 목록 패널의 연결 띠(`ConnectBand`)는 `:feature:notes`, 설정의 끊기 대화상자(`DisconnectDialog`) · 설정 토큰 확인 판정(`tokenFailureOfProbe`) · 연결 주소 만들기(`connectionLinkOf`)는 `:feature:settings` 에 있다.
 
 ## 경계
 

@@ -61,8 +61,8 @@ import com.hancekim.mynote.feature.notes.quiz.QuizOverlay
 import com.hancekim.mynote.feature.notes.quiz.QuizUiState
 import com.hancekim.mynote.feature.notes.screen.ListPanelChrome
 import com.hancekim.mynote.feature.notes.screen.ListPanelScreen
-import com.hancekim.mynote.feature.notes.screen.ModelConfirmDialog
-import com.hancekim.mynote.feature.notes.settings.SettingsIntent
+import com.hancekim.mynote.feature.settings.SettingsIntent
+import com.hancekim.mynote.feature.settings.screen.ModelConfirmDialog
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import kotlinx.coroutines.launch

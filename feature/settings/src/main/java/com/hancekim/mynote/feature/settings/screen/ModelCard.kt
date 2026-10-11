@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen
+package com.hancekim.mynote.feature.settings.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -45,8 +45,8 @@ import com.hancekim.mynote.core.ui.screen.PrimaryButton
 import com.hancekim.mynote.core.ui.screen.SecondaryButton
 import com.hancekim.mynote.core.ui.screen.color
 import com.hancekim.mynote.core.ui.screen.connect.KeepWordsText
-import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.settings.SettingsIntent
+import com.hancekim.mynote.feature.settings.R
+import com.hancekim.mynote.feature.settings.SettingsIntent
 import com.hancekim.mynote.core.ui.R as UiR
 
 @Composable
@@ -57,7 +57,7 @@ internal fun ModelSection(
     onEnableNotifications: () -> Unit,
 ) {
     val colors = MyNoteTheme.colors
-    SettingsSection(label = stringResource(R.string.notes_settings_section_model)) {
+    SettingsSection(label = stringResource(R.string.settings_section_model)) {
         SettingsCard {
             Row(
                 modifier = Modifier.padding(16.dp),
@@ -66,7 +66,7 @@ internal fun ModelSection(
                 IconBox(icon = MyNoteIcons.Sparkle, tint = colors.accent)
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
-                        text = stringResource(R.string.notes_model_name),
+                        text = stringResource(R.string.settings_model_name),
                         style = MyNoteTheme.textStyles.cardTitle.copy(fontWeight = FontWeight.W500),
                         color = colors.text,
                     )
@@ -170,7 +170,7 @@ private fun ModelProgress(progress: ModelProgressUi) {
                 Text(
                     text =
                         stringResource(
-                            R.string.notes_model_bytes,
+                            R.string.settings_model_bytes,
                             gigabytes(progress.received),
                             gigabytes(progress.total),
                         ),
@@ -205,13 +205,13 @@ private fun NotificationHint(onEnable: () -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         KeepWordsText(
-            text = stringResource(R.string.notes_model_notif_off),
+            text = stringResource(R.string.settings_model_notif_off),
             style = MyNoteTheme.textStyles.caption,
             color = colors.warnText,
             modifier = Modifier.weight(1f),
         )
         Text(
-            text = stringResource(R.string.notes_model_notif_enable),
+            text = stringResource(R.string.settings_model_notif_enable),
             style = MyNoteTheme.textStyles.caption.copy(fontWeight = FontWeight.W700),
             color = colors.warn,
             modifier =
@@ -261,21 +261,21 @@ private fun ModelActions(
 
                 ModelAction.Cancel -> {
                     SecondaryButton(
-                        text = stringResource(R.string.notes_model_cancel),
+                        text = stringResource(R.string.settings_model_cancel),
                         onClick = { onIntent(SettingsIntent.CancelModelDownload) },
                     )
                 }
 
                 ModelAction.DiscardPartial -> {
                     DestructiveButton(
-                        text = stringResource(R.string.notes_model_discard_partial),
+                        text = stringResource(R.string.settings_model_discard_partial),
                         onClick = { onIntent(SettingsIntent.DiscardPartialModel) },
                     )
                 }
 
                 ModelAction.Delete -> {
                     DestructiveButton(
-                        text = stringResource(R.string.notes_model_delete),
+                        text = stringResource(R.string.settings_model_delete),
                         onClick = { onIntent(SettingsIntent.DeleteModel) },
                     )
                 }

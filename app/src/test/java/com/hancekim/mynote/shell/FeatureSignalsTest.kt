@@ -1,26 +1,31 @@
 package com.hancekim.mynote.shell
 
+import com.hancekim.mynote.core.domain.model.Bookmark
 import com.hancekim.mynote.core.domain.model.ConnectionState
 import com.hancekim.mynote.core.domain.model.ModelStatus
 import com.hancekim.mynote.core.domain.model.SourceId
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import com.hancekim.mynote.core.ui.element.LastSync
+import com.hancekim.mynote.core.ui.element.SecretText
 import com.hancekim.mynote.core.ui.element.SyncFailureKind
 import com.hancekim.mynote.core.ui.element.quizCtaUi
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.ReaderScrollRequest
 import com.hancekim.mynote.feature.notes.quiz.QuizIntent
 import com.hancekim.mynote.feature.notes.quiz.QuizUiState
-import com.hancekim.mynote.feature.notes.settings.SettingsIntent
+import com.hancekim.mynote.feature.settings.SettingsIntent
 import com.hancekim.mynote.feature.stats.StatsIntent
 import com.hancekim.mynote.shell.FeatureFixture.Companion.CATEGORY
+import com.hancekim.mynote.shell.FeatureFixture.Companion.EVENT_ID
 import com.hancekim.mynote.shell.FeatureFixture.Companion.NOTE_ID
 import com.hancekim.mynote.shell.FeatureFixture.Companion.REPO
 import com.hancekim.mynote.shell.FeatureFixture.Companion.UNREADABLE_ID
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -31,7 +36,7 @@ import org.junit.Before
 import org.junit.Test
 
 /**
- * 기능 사이 신호(FM-6) 가운데 셸 ViewModel · 셸 판정을 지나는 것과 통계에서 노트 · 퀴즈로 가는 것 —
+ * 기능 사이 신호(FM-6) 가운데 셸 ViewModel · 셸 판정을 지나는 것과 통계에서 노트 · 퀴즈로 가는 것 · 노트와 설정 ViewModel 이 같이 보는 것 —
  * 셸 · 여러 기능 모듈을 같이 보는 자리가 `:app` 이라 여기 산다(FM-13 같은 클래스 이름).
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -169,5 +174,59 @@ class FeatureSignalsTest {
             settings.onIntent(SettingsIntent.StartTokenEdit)
 
             assertFalse(scrollToTopVisible(true, false, false, settings.state.value.tokenEditing))
+        }
+
+    @Test
+    fun `FM-6 연결 확인 중에는 연결 화면을 열지 않는다`() =
+        runTest {
+            val gate = CompletableDeferred<Unit>()
+            val fixture = FeatureFixture(this, probeGate = gate)
+            val notes = fixture.notes()
+            val settings = fixture.settings()
+            fixture.subscribe(notes, settings)
+
+            settings.onIntent(SettingsIntent.StartTokenEdit)
+            settings.onIntent(SettingsIntent.SaveToken(SecretText("ghp_checking0000")))
+            runCurrent()
+            assertTrue(settings.state.value.tokenEdit.verifying)
+
+            notes.onIntent(NotesIntent.OpenConnect)
+            settings.onIntent(SettingsIntent.OpenConnect)
+            fixture.settle()
+            assertEquals(listOf(NotesNavKey.Home), fixture.navigator.stack.value)
+
+            gate.complete(Unit)
+            runCurrent()
+            notes.onIntent(NotesIntent.OpenConnect)
+            assertEquals(
+                NotesNavKey.Connect,
+                fixture.navigator.stack.value
+                    .last(),
+            )
+        }
+
+    @Test
+    fun `FM-6 학습 기록을 지운 뒤 북마크 되돌리기는 기록을 건드리지 않는다`() =
+        runTest {
+            val fixture = FeatureFixture(this, bookmarks = listOf(Bookmark(NOTE_ID, addedAt = 100L)))
+            fixture.signals.studyLogCleared()
+            val notes = fixture.notes()
+            val settings = fixture.settings()
+            fixture.subscribe(notes, settings)
+
+            notes.onIntent(NotesIntent.RemoveBookmark(NOTE_ID))
+            runCurrent()
+            notes.onIntent(NotesIntent.UndoRemoveBookmark)
+            runCurrent()
+            assertEquals(listOf(EVENT_ID), fixture.studyLog.cancelledEvents)
+
+            notes.onIntent(NotesIntent.RemoveBookmark(NOTE_ID))
+            runCurrent()
+            settings.onIntent(SettingsIntent.ClearStudyLog)
+            notes.onIntent(NotesIntent.UndoRemoveBookmark)
+            runCurrent()
+
+            assertEquals(listOf(EVENT_ID), fixture.studyLog.cancelledEvents)
+            assertEquals(listOf(Bookmark(NOTE_ID, addedAt = 100L)), fixture.bookmarks.entries.value)
         }
 }

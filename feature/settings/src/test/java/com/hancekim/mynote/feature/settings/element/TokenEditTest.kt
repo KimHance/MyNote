@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.element
+package com.hancekim.mynote.feature.settings.element
 
 import com.hancekim.mynote.core.ui.element.TokenFailureKind
 import org.junit.Assert.assertEquals

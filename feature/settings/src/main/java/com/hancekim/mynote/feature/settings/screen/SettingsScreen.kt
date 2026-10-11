@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen
+package com.hancekim.mynote.feature.settings.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -57,9 +57,9 @@ import com.hancekim.mynote.core.ui.element.NotesDrafts
 import com.hancekim.mynote.core.ui.element.modelCardUi
 import com.hancekim.mynote.core.ui.screen.CONTENT_MAX_WIDTH
 import com.hancekim.mynote.core.ui.screen.SecondaryButton
-import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.settings.SettingsIntent
-import com.hancekim.mynote.feature.notes.settings.SettingsUiState
+import com.hancekim.mynote.feature.settings.R
+import com.hancekim.mynote.feature.settings.SettingsIntent
+import com.hancekim.mynote.feature.settings.SettingsUiState
 
 @Composable
 internal fun SettingsScreen(
@@ -129,7 +129,7 @@ private fun ReadingSection(
     uiState: SettingsUiState,
     onIntent: (SettingsIntent) -> Unit,
 ) {
-    SettingsSection(label = stringResource(R.string.notes_settings_section_reading)) {
+    SettingsSection(label = stringResource(R.string.settings_section_reading)) {
         SettingsCard {
             FontScaleRow(
                 large = uiState.fontScale == MyNoteFontScale.Large,
@@ -156,8 +156,8 @@ private fun FontScaleRow(
     onChange: (Boolean) -> Unit,
 ) {
     SettingsSwitchRow(
-        title = stringResource(R.string.notes_settings_font_title),
-        description = stringResource(R.string.notes_settings_font_desc),
+        title = stringResource(R.string.settings_font_title),
+        description = stringResource(R.string.settings_font_desc),
         checked = large,
         onChange = onChange,
     )
@@ -178,11 +178,11 @@ private fun StudyLogSection(
             },
         )
     }
-    SettingsSection(label = stringResource(R.string.notes_settings_section_studylog)) {
+    SettingsSection(label = stringResource(R.string.settings_section_studylog)) {
         SettingsCard {
             SettingsSwitchRow(
-                title = stringResource(R.string.notes_settings_studylog_title),
-                description = stringResource(R.string.notes_settings_studylog_desc),
+                title = stringResource(R.string.settings_studylog_title),
+                description = stringResource(R.string.settings_studylog_desc),
                 checked = enabled,
                 onChange = { onIntent(SettingsIntent.SetStudyLogEnabled(it)) },
             )
@@ -192,13 +192,13 @@ private fun StudyLogSection(
             )
             Box(Modifier.padding(16.dp)) {
                 SecondaryButton(
-                    text = stringResource(R.string.notes_settings_studylog_clear),
+                    text = stringResource(R.string.settings_studylog_clear),
                     onClick = { confirmClear = true },
                 )
             }
         }
         Text(
-            text = stringResource(R.string.notes_settings_studylog_help),
+            text = stringResource(R.string.settings_studylog_help),
             style = MyNoteTheme.textStyles.caption,
             color = MyNoteTheme.colors.text3,
             modifier = Modifier.padding(horizontal = 4.dp, vertical = 10.dp),
@@ -261,12 +261,12 @@ private fun PreviewBlock() {
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
-            text = stringResource(R.string.notes_settings_preview),
+            text = stringResource(R.string.settings_preview),
             style = MyNoteTheme.textStyles.overline,
             color = colors.text3,
         )
         Text(
-            text = AnnotatedString.fromHtml(stringResource(R.string.notes_settings_preview_text)),
+            text = AnnotatedString.fromHtml(stringResource(R.string.settings_preview_text)),
             style = MyNoteTheme.textStyles.body,
             color = colors.bodyText,
         )

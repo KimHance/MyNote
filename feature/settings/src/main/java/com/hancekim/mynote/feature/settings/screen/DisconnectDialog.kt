@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.screen.connect
+package com.hancekim.mynote.feature.settings.screen
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
@@ -7,7 +7,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.ui.screen.connect.ActionDialog
-import com.hancekim.mynote.feature.notes.R
+import com.hancekim.mynote.feature.settings.R
 
 @Composable
 internal fun DisconnectDialog(
@@ -32,14 +32,14 @@ internal fun DisconnectDialogContent(
     onConfirm: () -> Unit,
 ) {
     ActionDialog(
-        title = stringResource(R.string.notes_dialog_disconnect_title),
+        title = stringResource(R.string.settings_dialog_disconnect_title),
         body =
             if (notes == 0 && bookmarks == 0) {
-                stringResource(R.string.notes_dialog_disconnect_empty)
+                stringResource(R.string.settings_dialog_disconnect_empty)
             } else {
-                stringResource(R.string.notes_dialog_disconnect_body, notes, bookmarks)
+                stringResource(R.string.settings_dialog_disconnect_body, notes, bookmarks)
             },
-        confirmLabel = stringResource(R.string.notes_dialog_disconnect_confirm),
+        confirmLabel = stringResource(R.string.settings_dialog_disconnect_confirm),
         destructive = true,
         onDismiss = onDismiss,
         onConfirm = onConfirm,

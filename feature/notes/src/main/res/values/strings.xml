@@ -64,46 +64,9 @@
     <string name="notes_quiz_retry_fewer">최대 %1$d문제로 줄여서 다시</string>
 
     <string name="notes_settings_token_check_badge">토큰 확인</string>
-    <string name="notes_settings_token_change_a11y">토큰 바꾸기</string>
-    <string name="notes_settings_token_tail_a11y">끝자리 %1$s</string>
 
-    <string name="notes_settings_section_reading">읽기</string>
-    <string name="notes_settings_font_title">본문 글자 크게</string>
-    <string name="notes_settings_font_desc">노트 본문을 16에서 18로 키웁니다</string>
-    <string name="notes_settings_preview">미리보기</string>
-    <string name="notes_settings_preview_text">갱신 함수에 &lt;b&gt;함수를 전달&lt;/b&gt;하면 항상 최신 상태를 기준으로 계산한다.</string>
-
-    <string name="notes_settings_token_title">액세스 토큰</string>
-    <string name="notes_settings_token_change">바꾸기</string>
-    <string name="notes_settings_token_clear">지우기</string>
-    <string name="notes_settings_token_enter">토큰 입력</string>
-    <string name="notes_settings_token_local_only">이 기기에만 저장됩니다.</string>
-
-    <string name="notes_settings_section_model">퀴즈 모델</string>
-    <string name="notes_model_name">Gemma 4 E2B</string>
-    <string name="notes_model_bytes">%1$s / %2$s GB</string>
-    <string name="notes_model_cancel">취소</string>
-    <string name="notes_model_discard_partial">받던 파일 지우기</string>
-    <string name="notes_model_delete">삭제</string>
-    <string name="notes_model_notif_off">알림이 꺼져 있어 앱을 나가면 진행 상황이 보이지 않습니다.</string>
-    <string name="notes_model_notif_enable">켜기</string>
-    <string name="notes_model_confirm_title">퀴즈 모델을 받을까요?</string>
-    <string name="notes_model_confirm_body">Gemma 4 E2B, 2.6GB입니다. Wi-Fi에 연결됐을 때만 받고, 받는 동안 앱을 계속 써도 됩니다.</string>
-    <string name="notes_model_confirm_later">나중에</string>
-    <string name="notes_model_delete_title">퀴즈 모델을 삭제할까요?</string>
-    <string name="notes_model_delete_body">저장 공간 2.6GB를 비웁니다. 퀴즈를 다시 만들려면 모델을 새로 받아야 합니다.</string>
     <string name="notes_model_badge_missing">모델 없음</string>
     <string name="notes_model_badge_failed">모델 오류</string>
-    <string name="notes_settings_section_studylog">학습 기록</string>
-    <string name="notes_settings_studylog_title">학습 기록 남기기</string>
-    <string name="notes_settings_studylog_desc">읽은 시간, 퀴즈 결과, 북마크를 이 기기에만 저장합니다</string>
-    <string name="notes_settings_studylog_help">통계 화면은 이 기록으로 만듭니다. 365일이 지난 기록은 자동으로 지웁니다.</string>
-    <string name="notes_settings_studylog_clear">기록 지우기</string>
-    <string name="notes_settings_studylog_clear_title">학습 기록을 지울까요?</string>
-    <string name="notes_settings_studylog_clear_body">읽은 기록, 퀴즈 결과, 북마크 기록과 주간 요약을 모두 지웁니다. 되돌릴 수 없습니다.</string>
-    <string name="notes_settings_studylog_clear_confirm">지우기</string>
-
-    <string name="notes_token_verifying_action">확인 중</string>
 
     <string name="notes_home_receiving_title">노트를 불러오는 중입니다</string>
     <string name="notes_home_receiving_desc">처음 한 번은 시간이 걸릴 수 있습니다.</string>
@@ -113,18 +76,4 @@
     <string name="notes_home_connect_desc">지금 노트는 이 기기에만 있습니다. 연결하면 저장소의 노트를 불러옵니다.</string>
     <string name="notes_home_connect_action">연결하기</string>
 
-    <string name="notes_repo_card_title">노트 저장소</string>
-    <string name="notes_repo_connect">저장소 연결</string>
-    <string name="notes_repo_label">저장소</string>
-    <string name="notes_repo_value">%1$s · 브랜치 %2$s · 노트 위치 %3$s</string>
-    <string name="notes_repo_value_default">%1$s · 기본 브랜치 · 노트 위치 %2$s</string>
-    <string name="notes_repo_last_ok">최근 불러오기 성공</string>
-    <string name="notes_repo_last_fail">최근 불러오기 실패 · %1$s</string>
-    <string name="notes_repo_change">저장소 바꾸기</string>
-    <string name="notes_repo_disconnect">연결 끊기</string>
-
-    <string name="notes_dialog_disconnect_title">연결을 끊을까요?</string>
-    <string name="notes_dialog_disconnect_body">이 기기의 노트 %1$d개와 북마크 %2$d개, 저장된 토큰을 지웁니다. 학습 기록은 남습니다.</string>
-    <string name="notes_dialog_disconnect_empty">지울 노트와 북마크가 없습니다. 저장된 토큰만 지웁니다. 학습 기록은 남습니다.</string>
-    <string name="notes_dialog_disconnect_confirm">끊기</string>
 </resources>

@@ -6,7 +6,7 @@
 | 기능 문서 | docs/spec/screen-copy.md |
 | 등급 | 문구만 |
 | 바꾼 문구 표 | docs/design/screen-copy-rows.md (이 문서가 20 KB 를 넘지 않게 나눴다) |
-| 마지막 변경 | 2026-10-12 · 연결 문구의 리소스 이름을 `connect_` 로 · 한 줄 고정 자리 파일 칸을 연결 모듈 경로로(move-connect — 값 그대로) |
+| 마지막 변경 | 2026-10-12 · 설정 문구의 리소스 이름을 `settings_` 로 · 한 줄 고정 자리 파일 칸을 설정 모듈 경로로(move-settings — 값 그대로) |
 
 ## 문구
 
@@ -41,7 +41,7 @@
 | 노트를 다시 불러오라고 누르는 버튼 | 새로고침 | — | — | — | 버튼 이름. 누르면 불러온다 |
 | 퀴즈 모델 파일을 기기로 가져옴 | 받기 · 받는 중 · 이어 받기 · 받던 파일 · 받았습니다 · 받지 못했습니다 | `내려받` | 글자 | `ai_model_download_channel` | model-download 디자인의 `받` 하나. 스낵바 둘도 이번에 맞춘다. 알림 채널 이름은 사용자 알림 설정에 남아 동결 |
 | 받은 모델을 돌림 | 실행 | `모델을 불러오` | 글자 | — | `불러오기` 는 노트 말이다 |
-| 없앰 | 지우기 · 지웁니다 · 지웠습니다 · 지울까요? | `삭제` | 글자 | `notes_model_delete` · `notes_model_delete_title` · `ui_model_deleted` | 지우기가 열네 곳, 삭제가 네 곳이었다. 모델 카드 `삭제` 버튼은 `지우기` 로 바꾸면 한 글자 늘어 SC-6(버튼 글자 수)에 걸린다. 버튼과 같은 일을 말하는 대화상자 제목 · 스낵바도 같이 둔다 |
+| 없앰 | 지우기 · 지웁니다 · 지웠습니다 · 지울까요? | `삭제` | 글자 | `settings_model_delete` · `settings_model_delete_title` · `ui_model_deleted` | 지우기가 열네 곳, 삭제가 네 곳이었다. 모델 카드 `삭제` 버튼은 `지우기` 로 바꾸면 한 글자 늘어 SC-6(버튼 글자 수)에 걸린다. 버튼과 같은 일을 말하는 대화상자 제목 · 스낵바도 같이 둔다 |
 | 북마크에서 뺌 | 해제 (추가 ↔ 해제) | `뺐` | 글자 | — | 버튼 · 통계는 이미 해제 |
 | 퀴즈 한 개 | 문제 | `문항` | 글자 | — | 문제가 열여덟 곳, 문항이 네 곳이었다 |
 | 화면에 나타냄 | 보이다 · 보여 줍니다 | `표시` | 글자 | — | 보이다 · 보여 주다가 네 곳. 표시했습니다는 지난 일처럼 읽힌다 |
@@ -84,10 +84,10 @@ SC-1 이 보지 않는 문구다. 이름으로만 뺀다.
 
 | 이름 | 왜 |
 |---|---|
-| `notes_settings_preview_text` | 노트 본문 견본이라 노트의 해라체를 그대로 보인다 |
-| `ui_app_title` · `app_name` · `notes_model_name` · `ui_settings_token_placeholder` | 고유명사 · 토큰 머리 견본 |
+| `settings_preview_text` | 노트 본문 견본이라 노트의 해라체를 그대로 보인다 |
+| `ui_app_title` · `app_name` · `settings_model_name` · `ui_settings_token_placeholder` | 고유명사 · 토큰 머리 견본 |
 | `ui_bookmark_time` · `ui_bookmark_date_this_year` · `ui_bookmark_date_other_year` · `ui_bookmark_date_other_year_short` · `stats_date` · `stats_bucket_week` · `stats_bucket_month` | 날짜 · 시각 형식 문구 |
-| `notes_bookmark_row_sub` · `stats_row_sub` · `stats_row_sub3` · `stats_cell_desc` · `stats_bars_desc` · `stats_summary_desc` · `stats_history_row_desc` · `stats_range` · `stats_retry_value` · `notes_model_bytes` · `ui_model_percent` | 자리만 있는 형식 문구 |
+| `notes_bookmark_row_sub` · `stats_row_sub` · `stats_row_sub3` · `stats_cell_desc` · `stats_bars_desc` · `stats_summary_desc` · `stats_history_row_desc` · `stats_range` · `stats_retry_value` · `settings_model_bytes` · `ui_model_percent` | 자리만 있는 형식 문구 |
 
 ### 쓰지 않는 표현
 
@@ -138,9 +138,9 @@ SC-1 이 보지 않는 문구다. 이름으로만 뺀다.
 | 상태 알약 | ds `FloatingStatusPill.kt` | `ui_pill_*` 다섯 · `ui_model_percent` | 없음 |
 | 퀴즈 CTA 부제 | `quiz/component/QuizCtaCard.kt` | `ui_quiz_cta_subtitle` · `ui_quiz_cta_need_model` · `ui_quiz_cta_paused` · `ui_quiz_cta_downloading` · `ui_pill_failed` | 없음 |
 | 퀴즈 설정 부제 | `quiz/component/QuizSetupDialog.kt` | `notes_quiz_setup_subtitle` | `notes_quiz_setup_subtitle` +0 |
-| 모델 카드 상태 · 세부 | `screen/ModelCard.kt` | `ui_model_missing` · `waiting` · `preparing` · `downloading` · `retrying` · `verifying` · `paused` · `ready` · `failed` 와 그 `_desc` · `ui_model_failed_space` · `ui_model_failed_generic` | `ui_model_failed_generic` −2 |
-| 저장소 카드 상태 라벨 | `screen/RepoSection.kt` | `ui_repo_state_none` · `check_token` · `idle` · `token` · `public` | `ui_repo_state_idle` −3 |
-| 버튼(설정 · 연결 · 모델 · 대화상자) | `screen/SettingsScreen.kt` 버튼 라벨 · 퀴즈 설정 버튼 · 연결 띠 | `notes_*` · `ui_*` 버튼 문구 스물아홉 · `ds_action_save` · `ds_action_cancel` · `notes_quiz_create` · `notes_home_connect_action` | 없음 — `notes_model_delete` 를 그대로 둔 까닭(용어 표) |
+| 모델 카드 상태 · 세부 | settings `screen/ModelCard.kt` | `ui_model_missing` · `waiting` · `preparing` · `downloading` · `retrying` · `verifying` · `paused` · `ready` · `failed` 와 그 `_desc` · `ui_model_failed_space` · `ui_model_failed_generic` | `ui_model_failed_generic` −2 |
+| 저장소 카드 상태 라벨 | settings `screen/RepoSection.kt` | `ui_repo_state_none` · `check_token` · `idle` · `token` · `public` | `ui_repo_state_idle` −3 |
+| 버튼(설정 · 연결 · 모델 · 대화상자) | settings `screen/SettingsScreen.kt` 버튼 라벨 · 퀴즈 설정 버튼 · 연결 띠 | `notes_*` · `settings_*` · `ui_*` 버튼 문구 스물아홉 · `ds_action_save` · `ds_action_cancel` · `notes_quiz_create` · `notes_home_connect_action` | 없음 — `settings_model_delete` 를 그대로 둔 까닭(용어 표) |
 | 통계 머리 기간 · 숫자 칸 · 구역 칩 | stats `screen/StatsHeader.kt` | `stats_period_*` · `stats_num_*` · `stats_unit_*` · `stats_first_week` · `stats_questions` · `stats_section_*` | `stats_questions` +0 |
 | 통계 차트 제목 · 단위 · 범례 초점 | stats `screen/StatsSections.kt` | `stats_time_by_*` · `stats_accuracy_by_category` · `stats_bookmark_trend` · `stats_pattern` · `stats_minutes_value` · `stats_generated_*` · `stats_focus` · `stats_retry_value` · `stats_bookmark_age` | 없음 |
 | 정답률 막대 행 부제 | ds `HBarRow.kt` | `stats_questions` · `stats_not_taken` | `stats_not_taken` +0 |
@@ -214,3 +214,4 @@ copy-apply 가 `strings.xml` 과 한 묶음으로 고친다. 인용 글자가 `s
 | 2026-10-12 | feature-modules | 리소스 이름만 — 셸이 `:app` 으로 가며 셸만 쓰는 내비 · 제목 문구 넷이 `notes_` 에서 `shell_` 로(값 그대로 · feature-modules 결정 15 · 16) |
 | 2026-10-12 | feature-modules | 리소스 이름 · 경로만 — 통계가 `:feature:stats` 로 가며 통계만 쓰는 문구가 `notes_stats_` 에서 `stats_` 로(값 그대로 · feature-modules 결정 15) · 한 줄 고정 자리 통계 세 행의 파일 칸이 통계 모듈 안 경로로 |
 | 2026-10-12 | feature-modules | 리소스 이름 · 경로만 — 연결 화면이 `:feature:connect` 로 가며 연결만 쓰는 문구가 `notes_connect_` · `notes_entry_` · `notes_link_reason_` · 바꾸기 · 받아들이기 대화상자에서 `connect_` 로(값 그대로 · feature-modules 결정 15) · 한 줄 고정 자리 주소 칸 힌트 행의 파일 칸이 연결 모듈 안 경로로 |
+| 2026-10-12 | feature-modules | 리소스 이름 · 경로만 — 설정 화면이 `:feature:settings` 로 가며 설정만 쓰는 문구가 `notes_settings_` · `notes_repo_` · 모델 카드 · 모델 대화상자 · 끊기 대화상자에서 `settings_` 로(값 그대로 · feature-modules 결정 15) · 한 줄 고정 자리 모델 카드 · 저장소 카드 · 버튼 행의 파일 칸이 설정 모듈 안 경로로 |

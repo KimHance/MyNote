@@ -3,8 +3,8 @@
 이 파일은 이 모듈에서 작업하는 에이전트를 위한 안내다.
 
 셸을 뺀 앱 화면이 여기 있다. `MainActivity` 가 부르는 `NotesRoute()` 와 셸(`NavDisplay` 하나 · `MyNoteTheme` 하나 · 셸 ViewModel)은
-`:app` 의 `shell/` 이고, 셸이 이 모듈의 ViewModel 셋(노트 · 설정 · 퀴즈)과 등록 파일 둘을 불러
-화면 9개(Home · Bookmarks · ListPanel · NoteReader · Settings · 퀴즈 4개)를 그린다. 통계 · 지난 요약은 `:feature:stats`(`feature/stats/AGENTS.md`), 연결 화면은 `:feature:connect`(`feature/connect/AGENTS.md`)에 있다. "새 화면을 추가한다" 는 대개
+`:app` 의 `shell/` 이고, 셸이 이 모듈의 ViewModel 둘(노트 · 퀴즈)과 등록 파일 하나를 불러
+화면 8개(Home · Bookmarks · ListPanel · NoteReader · 퀴즈 4개)를 그린다. 통계 · 지난 요약은 `:feature:stats`(`feature/stats/AGENTS.md`), 연결 화면은 `:feature:connect`(`feature/connect/AGENTS.md`), 설정 화면은 `:feature:settings`(`feature/settings/AGENTS.md`)에 있다. "새 화면을 추가한다" 는 대개
 새 모듈이 아니라 이 구조 안에 끼우는 일이다.
 
 의존은 컨벤션(`hancenote.android.feature`)이 `:core:common` · `:core:design-system` ·
@@ -21,7 +21,7 @@ UseCase 와 `QuizGenerator` 인터페이스로만 들어온다.
 |---|---|---|
 | `:app` 의 `shell/ShellViewModel` | 백스택 파생 · 두 번 눌러 종료 · 시작 분기의 연결 · 시드 · 테마 글자 크기 · 알약 모델 상태 · 연결이 바뀔 때 화면 정리 | 여러 기능을 동시에 보는 셸 몫. 노트 목록 · 퀴즈 · 토큰은 들지 않는다 |
 | `NotesViewModel` | 노트 목록 · 검색 · 북마크 · 동기화 · 읽기 기록 · 리더 스크롤 요청 | 동기화를 구독하는 곳은 여기 하나다(SY-1 · FM-7) |
-| `settings/SettingsViewModel` | 토큰 편집 · 글자 크기 바꾸기 · 학습 기록 켜기 · 지우기 · 모델 받기 조작 · 끊기 | 마지막 동기화는 홀더에서 읽기만 한다 |
+| `:feature:settings` 의 `SettingsViewModel` | 토큰 편집 · 글자 크기 바꾸기 · 학습 기록 켜기 · 지우기 · 모델 받기 조작 · 끊기 | 마지막 동기화는 홀더에서 읽기만 한다 |
 | `quiz/QuizViewModel` | 퀴즈 상태 · 자동 진행 타이머 · 그만두기 되돌리기 · 결과 기록 | 오버레이 · CTA 의 모델 상태 |
 | `:core:ui` 의 `signal/`(`FeatureSignals` · `LastSyncHolder`, `@Singleton`) | 기능 사이에서 ViewModel 이 받는 신호 · 마지막 동기화 값 | 결정 8 · 13. 둘 이상의 기능이 보므로 `:core:ui` 에 산다 |
 | `Navigator`(`:core:navigation`, `@Singleton`) | **백스택** | 소유자가 하나여야 하고, 입구가 하나라 거기서 쓰로틀을 건다 |
@@ -119,12 +119,11 @@ UseCase 와 `QuizGenerator` 인터페이스로만 들어온다.
 
 시작 분기 · Scaffold · 드로어/고정 패널 틀 · `NavDisplay` · 오버레이 자리 · 뒤로가기 7단 순서 · 루트 스낵바 · 모델 알약 · 셸 ViewModel 은
 `:app` 의 `shell/` 이다(기능 문서 `feature-modules` 결정 2 · FM-5). 뒤로가기 순위 표와 셸 파일 나눔은 `app/AGENTS.md` 에 있다.
-이 모듈은 셸이 부르는 것 — 등록 파일 둘(`notesDestinations` · `settingsDestinations`) ·
-목록 패널(`ListPanelScreen` · `ListPanelChrome`) · 퀴즈 오버레이(`QuizOverlay`) · 모델 확인 대화상자(`ModelConfirmDialog`) ·
-ViewModel 셋 — 만 공개로 내놓고 셸을 import 하지 않는다. 연결 루트 · 읽는 중 화면은 `:feature:connect` 에 있다.
+이 모듈은 셸이 부르는 것 — 등록 파일(`notesDestinations`) ·
+목록 패널(`ListPanelScreen` · `ListPanelChrome`) · 퀴즈 오버레이(`QuizOverlay`) ·
+ViewModel 둘 — 만 공개로 내놓고 셸을 import 하지 않는다. 연결 루트 · 읽는 중 화면은 `:feature:connect`, 모델 확인 대화상자(`ModelConfirmDialog`)는 `:feature:settings` 에 있다.
 
-엔트리 안 핸들러(설정의 토큰 편집 취소)는 이 모듈 화면에 있다(쌓은 연결 화면의 뒤로는 `:feature:connect`). `NavDisplay` 뒤에 컴포즈되어 pop 보다
-먼저 받는다 — 7단 밖이고 `:app` 의 `BackOrderTest`(`FM-10 토큰 편집 중 뒤로가기는 편집을 취소한다`)가 지킨다.
+엔트리 안 핸들러(7단 밖)는 이 모듈에 없다 — 설정의 토큰 편집 취소는 `:feature:settings`, 쌓은 연결 화면의 뒤로는 `:feature:connect`.
 
 ---
 
@@ -271,16 +270,9 @@ ViewModel 셋 — 만 공개로 내놓고 셸을 import 하지 않는다. 연결
 
 ---
 
-## 설정 화면과 퀴즈 모델 상태
+## 퀴즈 모델 상태
 
-### 토큰 원문은 ViewModel 밖으로 나가지 않는다
-
-`SettingsUiState` 에 있는 건 `maskedToken`(`ghp_••••••••a3F9`)뿐이다. 입력 중인 draft 와 보기/숨기기는
-`NotesDrafts`(저장 안 되는 홀더)다. 비밀값을 상태로 올리면 로그·스크린샷 테스트·
-`toString()` 에 흘러나온다. `maskToken()` 은 **길이도 드러내지 않는다** — 원본이 20자든 200자든
-가린 결과가 같다.
-
-되돌리기용 이전 토큰은 `SettingsViewModel` 의 **메모리 필드**다. 디스크에 백업을 남기지 않는다.
+설정 모델 카드 · 토큰 편집은 `:feature:settings`(`feature/settings/AGENTS.md`)다. 아래는 모델 상태를 읽는 모든 기능(셸 알약 · 설정 카드 · 퀴즈 CTA)에 같다.
 
 ### `ModelStatus` 는 `:core:domain` 에 있다 — `:core:ai` 가 아니다
 
@@ -331,14 +323,14 @@ Column(fillMaxSize) {
 
 ---
 
-## 저장소 연결 — 시작 분기 · 연결 화면 · 설정 카드
+## 저장소 연결 — 시작 분기 · 연결 화면 · 연결 띠
 
 - **시작 분기는 `:app` 셸의 `NotesStart`(`shell/NotesShell.kt`)가 한다.** `shell/ShellUiState.kt:startOf(셸, 노트)`(순수 함수 `shell/ConnectStart.kt:startDestination`)가 셸의 연결 · 시드와 노트의 읽음 · 노트 수를 같은 프레임에 묶어 읽는 중 / 연결 루트 / `NotesShell` 을 가른다.
   연결 루트는 셸 밖이라 인셋을 직접 갖고 스낵바는 루트 호스트를 받는다. 루트의 뒤로가기는 콜백(`onShellBack`)으로 셸 VM 에 간다. `NotesExitEffects`(셸 파일의 `internal`)는 `NotesRoute` 가 분기 위에서
   한 번 부른다. 분기마다 두면 연결 루트와 셸을 오갈 때 종료 안내가 다시 뜬다. 연결을 읽기 전(`connection == null`) · 노트를 읽기 전(`notesLoaded`) · 시드 소비 전(`seedPending`)에는 연결 화면도 홈도 그리지 않는다.
 - **화면 정리는 연결 상태 전이가 한다.** `:app` 의 `ShellViewModel.onConnectionChanged` 가 (이전 → 다음 연결) 을 `shell/ScreenCleanup.kt:screenCleanupOf` 에 넘겨 스택 `[Home]` · 퀴즈 닫기 · 마지막 동기화를 같은 틱에 정한다(FM-6 ⑨). 시드 · 확정 · 끊기 어느 길이든 한 곳이고, 화면이 따로 discard 를 부르지 않는다.
-- **연결 화면(첫 실행 루트 · 쌓은 화면 · 입구 구역 · 확인 대화상자)은 `:feature:connect` 다** — `feature/connect/AGENTS.md`. 이 모듈에는 홈 · 목록 패널의 연결 띠(`screen/connect/ConnectBand.kt`)와 설정의 끊기 대화상자(`screen/connect/DisconnectDialog.kt`)만 남았다.
-- **판정 로직은 순수 함수**(`element/` — 시작 분기 둘 `startDestination` · `screenCleanupOf` 는 `:app` `shell/`, 연결 화면 판정은 `:feature:connect`)다: `startDestination` · `screenCleanupOf` · `repoCardUi`(RC-13 · `:core:ui`) · `reduceTokenEdit`(RC-18 전이표 + D37 · D39) · `homeBodyOf`(RC-21) · `tokenFailureOfProbe`(설정 토큰 확인). 시험 이름에 항목 ID.
+- **연결 화면(첫 실행 루트 · 쌓은 화면 · 입구 구역 · 확인 대화상자)은 `:feature:connect` 다** — `feature/connect/AGENTS.md`. 이 모듈에는 홈 · 목록 패널의 연결 띠(`screen/connect/ConnectBand.kt`)만 남았다. 설정의 저장소 카드 · 끊기 대화상자 · 토큰 편집은 `:feature:settings` 다.
+- **판정 로직은 순수 함수**(`element/` — 시작 분기 둘 `startDestination` · `screenCleanupOf` 는 `:app` `shell/`, 연결 화면 판정은 `:feature:connect`, 토큰 편집 판정은 `:feature:settings`)다: `startDestination` · `screenCleanupOf` · `repoCardUi`(RC-13 · `:core:ui`) · `homeBodyOf`(RC-21). 시험 이름에 항목 ID.
 - **홈 히어로의 저장소 줄은 확정된 연결의 정식 이름 그대로다**(`NotesUiState.heroRepoName` = `connectedRepo?.fullName`, BR-6). 바꾸는 중의
   대상(확인 · 첫 동기화)은 `ConnectViewModel` 에만 있어 홈에 안 보이고, 확정되면 `observeConnection` 이 새 이름을 흘린다. 연결이 없으면 줄이 없다.
   히어로 그림 · 배치는 design-system `MyNoteHero` 이고 제목 이름은 `ui_app_title`(MyNote — 상단 바 · 읽는 중 화면과 같은 문자열)이다.
