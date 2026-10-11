@@ -87,6 +87,17 @@ class BackOrderTest {
     }
 
     @Test
+    fun `FM-10 예측 뒤로가기로 열린 드로어가 닫힌다`() {
+        shell.show(ShellScene(stack = READER_STACK))
+        shell.openDrawer()
+
+        shell.predictiveBack()
+
+        assertFalse("드로어가 닫혀야 한다", shell.listPanelShown())
+        assertEquals(emptyList<Recorded>(), shell.recorded())
+    }
+
+    @Test
     fun `FM-10 퀴즈 오버레이가 닫힌다`() {
         for (quiz in listOf(ShellQuiz.Setup, ShellQuiz.Solving)) {
             shell.show(ShellScene(stack = READER_STACK, quiz = quiz))
