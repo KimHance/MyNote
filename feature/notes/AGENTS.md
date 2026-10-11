@@ -3,7 +3,7 @@
 이 파일은 이 모듈에서 작업하는 에이전트를 위한 안내다.
 
 앱의 UI 는 전부 여기 있다. `MainActivity` 는 `NotesRoute()` 하나만 부르고, 그 아래에
-ViewModel 하나(+ 통계 `StatsViewModel`) · `NavDisplay` 하나 · `MyNoteTheme` 하나가 있고 그 안에서 화면 11개
+기능 ViewModel 넷(셸 · 노트 · 설정 · 퀴즈, + 통계 `StatsViewModel` · 연결 `ConnectViewModel`) · `NavDisplay` 하나 · `MyNoteTheme` 하나가 있고 그 안에서 화면 11개
 (Home · Bookmarks · Stats · StatsHistory · ListPanel · NoteReader · Settings · 퀴즈 4개)가 돈다. "새 화면을 추가한다" 는 대개 새 모듈이
 아니라 이 구조 안에 끼우는 일이다.
 
@@ -19,21 +19,29 @@ UseCase 와 `QuizGenerator` 인터페이스로만 들어온다.
 
 | 어디 | 무엇 | 왜 거기 |
 |---|---|---|
-| `NotesViewModel` | 화면이 그리는 거의 전부 + 퀴즈 진행 + 스낵바 호스트 | 재조립형 MVI 단일 상태 |
+| `shell/ShellViewModel` | 백스택 파생 · 두 번 눌러 종료 · 시작 분기의 연결 · 시드 · 테마 글자 크기 · 알약 모델 상태 · 연결이 바뀔 때 화면 정리 | 여러 기능을 동시에 보는 셸 몫. 노트 목록 · 퀴즈 · 토큰은 들지 않는다 |
+| `NotesViewModel` | 노트 목록 · 검색 · 북마크 · 동기화 · 읽기 기록 · 리더 스크롤 요청 | 동기화를 구독하는 곳은 여기 하나다(SY-1 · FM-7) |
+| `settings/SettingsViewModel` | 토큰 편집 · 글자 크기 바꾸기 · 학습 기록 켜기 · 지우기 · 모델 받기 조작 · 끊기 | 마지막 동기화는 홀더에서 읽기만 한다 |
+| `quiz/QuizViewModel` | 퀴즈 상태 · 자동 진행 타이머 · 그만두기 되돌리기 · 결과 기록 | 오버레이 · CTA 의 모델 상태 |
+| `signal/`(`FeatureSignals` · `LastSyncHolder`, `@Singleton`) | 기능 사이에서 ViewModel 이 받는 신호 · 마지막 동기화 값 | 결정 8 · 13. `:core:ui` 로 패키지째 옮겨 갈 자리 |
 | `Navigator`(`:core:navigation`, `@Singleton`) | **백스택** | 소유자가 하나여야 하고, 입구가 하나라 거기서 쓰로틀을 건다 |
 | 컴포지션 로컬(`rememberSaveable`) | 드로어 열림 · 고정 패널 펼침 · 모델 확인 다이얼로그 | 목적지가 아니고 레이아웃 상태다. 백스택 엔트리가 아니다 |
 | `NotesDrafts`(`NotesScreen` 의 `remember`, 셸 분기 위) | **토큰 입력 draft · 보기 여부**(연결 화면 · 설정 편집기 각각) | 저장하지 않는다 — 상태 복원 번들에 원문이 안 들어가고(결정 16), 접기·펴기·회전에는 셸 분기가 바뀌어도 남는다. `toString` 에 원문이 없다(`TokenDraft`) |
 | `ConnectViewModel`(Activity 스코프) | 연결 화면 흐름(확인 중 · 토큰 갈래 · 첫 동기화 · 확인 대화상자). 링크 draft 만 `SavedStateHandle` | 루트와 쌓은 화면이 같은 상태를 쓴다 |
 
-플로팅 내비의 선택은 이 셋 어디에도 없다 — `NotesUiState.selectedTab`(`Reader`·`Settings` 를 건너뛴 가장 위의
+플로팅 내비의 선택은 이 셋 어디에도 없다 — `ShellUiState.selectedTab`(`Reader`·`Settings` 를 건너뛴 가장 위의
 `Home`/`Bookmarks`/`Stats`)으로 **백스택에서 파생**한다. 선택 상태를 따로 두면 화면과 어긋난다.
 
-통계 화면만 예외로 ViewModel 이 하나 더 있다 — `stats/StatsViewModel`. **Activity 스코프를 명시해서**
-(`hiltViewModel(viewModelStoreOwner = activity)`) 얻고, 기간·섹션은 `SavedStateHandle` 에 둔다. 집계 Flow 는
+**모든 ViewModel 은 Activity 를 owner 로 명시해** (`hiltViewModel(viewModelStoreOwner = activity)`) 얻는다 — 창 등급이 바뀌면
+`NavDisplay` 가 통째로 다시 만들어지므로 목적지 스코프면 그때 새로 생기고, 셸과 목적지가 같은 VM 을 다른 인스턴스로 받는다(결정 7).
+목적지별 ViewModel 데코레이터를 넣지 않는다. 파이썬 `FM-7 기능 ViewModel 은 Activity 를 owner 로 받는다` 가 지킨다.
+
+통계 ViewModel `stats/StatsViewModel` 은 기간·섹션은 `SavedStateHandle` 에 둔다. 집계 Flow 는
 `navigator.stack` 의 top 이 `Stats` 일 때만 `flatMapLatest` 로 붙고 아니면 `emptyFlow()` 라 리더에 가 있는 동안
 Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `SharingStarted.Lazily` 로 바꾸면 한 번 연 뒤
-앱이 끝날 때까지 집계가 돈다 — 쓰지 말 것. 리더·퀴즈 진입은 `NotesIntent`(`SelectNote(id, resumeAt)`·
-`OpenQuizFor`)로 넘긴다.
+앱이 끝날 때까지 집계가 돈다 — 쓰지 말 것. 집계 · 지난 요약의 `flowOn` 디스패처는 주입한다(`@StatsWork`). 리더 · 퀴즈 진입은
+통계 VM 이 목적지 키로 리더를 열고(`StatsIntent.OpenNote` · `RetryQuiz`) 이어 읽을 위치 · 퀴즈 설정은 계약
+`FeatureSignals.reportReaderOpened` 로 노트 VM 에 넘긴다 — 노트 VM 이 읽을 수 있는 노트면 퀴즈 VM 에 설정을 요청한다(FM-6 ① ②).
 
 세 번째를 ViewModel 로 올리려는 충동을 참아라. 드로어/패널은 창 크기에 따라 존재 자체가
 사라지는 값이라 상태로 올리면 폼팩터 전환 때 의미가 없어진다. 대신 **뒤로가기는 먹는다**
@@ -43,7 +51,7 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
 
 ## MVI — `build()` 하나가 상태를 통째로 만든다
 
-`NotesViewModel` 은 `:core:common` 의 `MviViewModel<NotesUiState, NotesIntent>` 를 상속한다.
+기능 ViewModel 은 모두 `:core:common` 의 `MviViewModel<S, E>` 를 상속한다(예: `NotesViewModel` 은 `<NotesUiState, NotesIntent>`).
 `trigger(initial)` / `Flow.triggerIn(initial)` 로 등록한 값이 하나라도 바뀌면 `build()` 가
 다시 돌아 `NotesUiState` 를 새로 만든다. 등록 기준은 하나 — **`build()` 가 그 값을 읽는가.**
 
@@ -54,22 +62,47 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
   `exitRequestId`/`quizUndoId`. `StateFlow` 는 conflate 하므로 "횟수"나 "이벤트"를 상태로
   흘리면 한 프레임에 묶여 조용히 씹힌다(0→1→2 가 2 만 보인다). 화면은 `LaunchedEffect(id)`
   로 받아 실행만 한다.
-- **화면은 스낵바를 다 보여 준 뒤 `NotesIntent.SignalShown(signal, id)` 를 보낸다.** VM 은 본 id 를 `build()` 에서 0 으로
+- **화면은 스낵바를 다 보여 준 뒤 신호를 낸 VM 에 `SignalShown(signal, id)` 를 보낸다.** VM 은 본 id 를 `build()` 에서 0 으로
   (`notice` 는 null 로) 낸다. 판정은 `element/NotesSignal.kt` 의 `unseen` 이 한다. 그래서 `configChanges` 밖의 재생성
   (글꼴 · 다크 · 언어)에서 새 컴포지션의 `LaunchedEffect` 가 지난 스낵바와 오래된 `되돌리기` 를 다시 띄우지 않는다.
   `exitRequestId` 는 소비하지 않는다. 종료하면 다시 그릴 화면이 없다.
-- `SnackbarHostState` 인스턴스는 ViewModel 이 들고 `build()` 는 넘기기만 한다.
+- **스낵바는 루트 한 곳이 받는다(FM-16).** `SnackbarHostState` 는 `NotesScreen` 의 `remember` 하나이고, 네 VM 의 신호를
+  받는 `LaunchedEffect` 가 전부 거기(시작 분기 · 창 등급 분기 위)에 있다 — 설정이 맨 위일 때 난 동기화 실패도 바로 뜨고,
+  접기 · 펴기에 보이던 것을 다시 띄우지 않는다. 되돌리기는 알림을 낸 VM 의 인텐트로 돌아간다(`NoticeUi<E>`).
+  기능 화면 안에 스낵바 수집을 두지 않는다.
 - 문구는 ViewModel 이 `getString` 을 직접 부르지 않는다. 인터페이스 `NotesMessages` 를 주입받아 부르고,
   `getString` 은 구현 `AndroidNotesMessages`(`@ApplicationContext`)에만 있다. 접근성 판정(`QuizAutoAdvancePolicy`) ·
   통계 기록(`StatsTrace`) · 실패 로그(`FailureLog`)도 같은 패턴이고 구현은 `:app` 의 `NotesModule` 이 묶는다.
+  이 모듈 안의 Hilt 모듈은 하나 — 통계 디스패처 `stats/StatsDispatcher.kt` 의 `StatsDispatcherModule`(`@StatsWork`)이고
+  통계 패키지와 같이 옮겨 간다.
   시각은 `:core:common` 의 `Clock`(간격) · `WallClock`(기록 시각)을 주입받는다 — ViewModel 이 JVM 시험에서
   가상 시간으로 만들어지게 하려는 것이다(FM-8 · `NotesViewModelTest`).
 
 ---
 
+## 기능 사이 신호 — 이동은 목적지 키로, 그 밖은 계약으로
+
+다른 기능의 화면으로 가는 것은 `Navigator` 에 목적지 키로 한다. 이동이 아닌 신호 가운데 ViewModel 이 받는 것은
+`signal/FeatureSignals`(상태 흐름 + 증가 id)로만 보낸다. 컴포지션을 거쳐 나르면 한 프레임 늦는다(결정 13).
+화면만 쓰는 값(오버레이의 노트 제목 · 목록 패널의 설정 배지 · 맨 위로의 토큰 편집 중)은 셸이 VM 상태를 묶어 넘긴다(`shell/ShellFeatures.kt`).
+
+- 받는 VM 은 만들어질 때의 id 를 이미 본 것으로 잡는다. 계약은 싱글턴이라 Activity 가 다시 열려도 옛 요청이 남아 있다
+  (`FM-6 새로 만든 … ViewModel 은 지난 … 다시 처리하지 않는다`). 학습 기록 지우기는 노트 VM 이 해제할 때의 횟수와 되돌릴 때의 횟수를 비교한다.
+- **퀴즈 덮음(⑦)** 은 퀴즈 VM 이 상태를 바꾸는 `setQuiz` 한 자리에서 같이 쓴다. 노트 VM 은 흐름으로 받아 읽기 세션을 멈춘다.
+- **연결이 바뀌면(⑨)** 셸 VM 의 `onConnectionChanged` 한 호출이 스택 `[Home]` · 계약 `closeQuiz()` · `LastSyncHolder` 를 동기로 쓴다.
+  퀴즈 VM 은 Main.immediate 수집기로 받아 같은 메인 스레드 메시지 안에서 닫는다.
+- **설정 열기(④)** 는 `Navigator.openSettings(signals)` — 설정 VM 이 토큰 편집을 정리하게 알린 뒤 push 한다.
+- **연결 화면 열기(③)** 는 설정 VM 이 토큰 확인 중 잠금을 계약에 동기로 쓰고, 노트 VM 이 그 값을 읽어 막는다.
+- **마지막 동기화** 는 `LastSyncHolder` 하나 — 노트 VM 이 쓰고(셸 VM 은 연결 전이 때 비운다) 설정이 읽는다. 동기화 UseCase 를
+  다른 VM 이 받으면 구독마다 동기화가 돈다(파이썬 `FM-7 동기화 UseCase 를 받는 클래스는 NotesViewModel 하나다`).
+
+시험은 `FeatureFixture`(시험 소스)가 VM 들을 같은 Navigator · 계약 · 홀더로 세우고 `FeatureSignalsTest` 가 열 갈래를 본다.
+
+---
+
 ## 백스택 — `Navigator` 가 소유하고 ViewModel 은 읽어 나른다
 
-`navigator.stack`/`isSettled` 를 `triggerIn` 하고, `backStack`·`activeNoteId`·`canPop`·
+셸 VM 이 `navigator.stack`/`isSettled` 를 `triggerIn` 하고, `backStack`·`activeNoteId`·`canPop`·
 `isNavSettled` 는 전부 거기서 파생된다. `rememberNavBackStack` 도, VM 의 `activeNoteId` trigger 도
 쓰지 않는다 — 상태가 두 군데가 되면 깨진다.
 
@@ -79,7 +112,7 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
   이어진다. 플로팅 내비의 `SwitchTab(Home)` 은 `ReplaceAll([Home])`, `SwitchTab(Bookmarks)` 는
   `[Home]` 에서 `Push(Bookmarks)` / 그 외 `ReplaceAll([Home, Bookmarks])` 이고(`navigation/TabSwitch.kt`),
   이미 그 자리면 `Ignored` 로 아무 일도 없어야 한다. 종료 판단은 화면이 아니라 `pop() == NavResult.Ignored` 가 내린다.
-- 두 번 누르기(`EXIT_WINDOW_MILLIS`)는 ViewModel 이 주입받은 `Clock`(단조 시계)으로 센다. 상태로 나가는 건
+- 두 번 누르기(`EXIT_WINDOW_MILLIS`)는 셸 VM 이 주입받은 `Clock`(단조 시계)으로 센다. 상태로 나가는 건
   `exitHintId`/`exitRequestId` 뿐이고 `finish()` 는 화면이 부른다.
 - 사용자 입력이 아닌 정정은 게이트를 우회한다 — 동기화 중 열린 노트가 삭제되면
   `dispatchImmediately(NavCommand.Pop)`.
@@ -208,12 +241,12 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
 ### 학습 기록 배선 (통계 0단계)
 
 `NotesViewModel` 이 `:core:domain` 의 `ReadSessionTracker` 를 들고 네 입력을 먹인다 — `init` 의 수집기 둘
-(스택 top 의 `activeNoteId`, 퀴즈 `coversReader`)과 인텐트 둘(`ForegroundChanged` = `NotesRoute` 의 라이프사이클
+(스택 top 의 `activeNoteId`, 계약의 퀴즈 덮음 `quizCoversReader`)과 인텐트 둘(`ForegroundChanged` = `NotesRoute` 의 라이프사이클
 옵저버가 `ON_START`/`ON_STOP` 에 보냄, `ReaderProgress` = 셸 `ReaderScrollEffects.kt` 가 **지금 본 비율이 바뀔
 때마다** 보냄). **세션 안 최댓값은 트래커만 든다** — 셸이 최댓값을 들면 `ON_STOP`→`ON_START` 로 열린 새 세션이
 0% 로 저장된다(셸 효과는 다시 시작되지 않아 같은 비율을 다시 보내지 않는다). 그래서 트래커가 top 노트의 마지막
 비율을 기억해 새 세션을 거기서 시작한다(PRD D39, 검수 blocker #1). 닫힌 세션·퀴즈 결과·북마크 이벤트는 `launchSafely { withContext(NonCancellable) { … } }` 로 쓴다 —
-`ON_STOP` 직후 스코프가 취소돼도 한 행은 끝까지 간다. 퀴즈 결과 → `QuizAttempt` 변환은 순수 함수
+`ON_STOP` 직후 스코프가 취소돼도 한 행은 끝까지 간다. 퀴즈 결과는 퀴즈 VM 이 쓰고 범주는 설정을 연 쪽이 넘긴다. 변환은 순수 함수
 `quiz/QuizAttemptRecord.kt` 의 `completedAttempt()` 이고 `QuizAttemptRecordTest` 가 "결과까지 간 것만" 을 지킨다.
 북마크 화면 해제의 되돌리기는 `added` 를 새로 쓰지 않고 그 해제 이벤트 행을 지운다(`removedEventId`).
 
@@ -222,7 +255,8 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
 ## 퀴즈 — 내비게이션 목적지가 아니다
 
 진입점은 헤더가 아니라 리더 본문 **맨 끝 CTA**(`QuizCtaCard`)다. 모델이 없어도 숨기지 않고
-흐리게 두고, 누르면 왜 안 되는지 스낵바로 말해 준다(`NotesShell` 의 `onOpenQuiz`).
+흐리게 두고, 누르면 상태에 따라 갈 곳이 갈린다 — 순수 함수 `shell/ShellFeatures.kt:ctaTarget`(준비됨 → 퀴즈 VM 설정 · 없음 → 받기 확인
+대화상자 · 그 밖 → 설정 VM 받기). 알림 권한은 루트가 받기 전에 묻는다.
 
 **예외 하나 — 노트 전체를 읽지 못한 노트(`NoteBlock.Unsupported` 의 `BrokenNote` · `LimitExceeded` 가 있는 노트)는 CTA 를
 아예 그리지 않는다.** 퀴즈에 넣을 평문이 없어서다. 판정은 `NotesUiMapper` 가 파생하는 `NoteUi.readable` 하나이고(`NotesUiMapperTest`),
@@ -230,8 +264,8 @@ Room 쿼리가 돌지 않는다(debug 에서 `MyNoteStats` 로그로 확인). `S
 빈 평문으로 `QuizFailure.Empty`). 블록 몇 개만 못 그린 노트(`UnknownType`·`BrokenBlock`)는 평소대로다. 그 블록은
 `NoteBlockMapper` 가 빈 `text`·`raw` 를 `null` 로 바꿔 design-system `NoteContentBlock.Unsupported` 로 넘긴다(`NoteBlockMapperTest`).
 
-`QuizUiState`(sealed)는 `NotesUiState.quiz` 한 칸에 들어가고, `QuizOverlay` 가 리더 **위에 덮인다**.
-`Navigator` 를 건드리지 않으므로 백스택에 없고, 뒤로가기는 오버레이가 한 번 받아 `DismissQuiz` 를 쏜다.
+`QuizUiState`(sealed)는 퀴즈 VM 상태 `QuizOverlayState.quiz` 한 칸에 들어가고, `QuizOverlay` 가 리더 **위에 덮인다**.
+`Navigator` 를 건드리지 않으므로 백스택에 없고, 뒤로가기는 오버레이가 한 번 받아 `QuizIntent.Dismiss` 를 쏜다.
 
 - `coversReader` 인 상태(Loading/Solving/Result/Failed)는 `matchParentSize()` 로 콘텐츠 영역을 덮고,
   Compact 에서는 `Scaffold` 의 topBar 도 같이 숨긴다. 넓은 창에서 패널이 펴져 있으면
@@ -316,12 +350,12 @@ ANDROID_SERIAL=<기기 serial> ./gradlew :feature:notes:connectedDebugAndroidTes
 
 ### 토큰 원문은 ViewModel 밖으로 나가지 않는다
 
-`NotesUiState` 에 있는 건 `maskedToken`(`ghp_••••••••a3F9`)뿐이다. 입력 중인 draft 와 보기/숨기기는
+`SettingsUiState` 에 있는 건 `maskedToken`(`ghp_••••••••a3F9`)뿐이다. 입력 중인 draft 와 보기/숨기기는
 `NotesDrafts`(저장 안 되는 홀더)다. 비밀값을 상태로 올리면 로그·스크린샷 테스트·
 `toString()` 에 흘러나온다. `maskToken()` 은 **길이도 드러내지 않는다** — 원본이 20자든 200자든
 가린 결과가 같다.
 
-되돌리기용 이전 토큰은 `NotesViewModel` 의 **메모리 필드**다. 디스크에 백업을 남기지 않는다.
+되돌리기용 이전 토큰은 `SettingsViewModel` 의 **메모리 필드**다. 디스크에 백업을 남기지 않는다.
 
 ### `ModelStatus` 는 `:core:domain` 에 있다 — `:core:ai` 가 아니다
 
@@ -383,10 +417,10 @@ Ready 면(앱을 켬 · 재생성) 띄우지 않는다. VM 의 모델 상태 초
 
 ## 저장소 연결 — 시작 분기 · 연결 화면 · 설정 카드
 
-- **시작 분기는 `NotesScreen` 이 한다.** `NotesUiState.start`(순수 함수 `element/ConnectStart.kt:startDestination`)가 읽는 중 / 연결 루트 / `NotesShell` 을 가른다.
-  연결 루트는 셸 밖이라 스낵바 · 인셋을 직접 갖는다. `NotesExitEffects`(셸 파일의 `internal`)는 `NotesRoute` 가 분기 위에서
+- **시작 분기는 `NotesScreen` 이 한다.** `shell/ShellUiState.kt:startOf(셸, 노트)`(순수 함수 `element/ConnectStart.kt:startDestination`)가 셸의 연결 · 시드와 노트의 읽음 · 노트 수를 같은 프레임에 묶어 읽는 중 / 연결 루트 / `NotesShell` 을 가른다.
+  연결 루트는 셸 밖이라 인셋을 직접 갖고 스낵바는 루트 호스트를 받는다. 루트의 뒤로가기는 콜백(`onShellBack`)으로 셸 VM 에 간다. `NotesExitEffects`(셸 파일의 `internal`)는 `NotesRoute` 가 분기 위에서
   한 번 부른다. 분기마다 두면 연결 루트와 셸을 오갈 때 종료 안내가 다시 뜬다. 연결을 읽기 전(`connection == null`) · 노트를 읽기 전(`notesLoaded`) · 시드 소비 전(`seedPending`)에는 연결 화면도 홈도 그리지 않는다.
-- **화면 정리는 연결 상태 전이가 한다.** `NotesViewModel.onConnectionChanged` 가 (이전 → 다음 연결) 을 `element/ScreenCleanup.kt:screenCleanupOf` 에 넘겨 스택 `[Home]` · 퀴즈 닫기를 정한다. 시드 · 확정 · 끊기 어느 길이든 한 곳이고, 화면이 따로 discard 를 부르지 않는다.
+- **화면 정리는 연결 상태 전이가 한다.** `ShellViewModel.onConnectionChanged` 가 (이전 → 다음 연결) 을 `element/ScreenCleanup.kt:screenCleanupOf` 에 넘겨 스택 `[Home]` · 퀴즈 닫기 · 마지막 동기화를 같은 틱에 정한다(FM-6 ⑨). 시드 · 확정 · 끊기 어느 길이든 한 곳이고, 화면이 따로 discard 를 부르지 않는다.
 - **연결 화면 자리는 둘**: 첫 실행 루트(`ConnectPlace.Root`) · 쌓은 화면(`ConnectPlace.Stacked`, `NotesNavKey.Connect` entry + 자체 `NotesTopBar`). 셸은 `Connect` 가 top 이면 topBar · 플로팅 내비 · 알약 · 맨 위로 · 드로어 제스처를 숨긴다.
   뒤로가기는 엔트리 안 `BackHandler`(NavDisplay 뒤에 컴포즈되어 이긴다) — 판정은 순수 함수 `connectBackAction`.
 - **판정 로직은 순수 함수**(`element/`)다: `startDestination` · `screenCleanupOf` · `connectBackAction` · `repoCardUi`(RC-13) · `reduceTokenEdit`(RC-18 전이표 + D37 · D39) · `homeBodyOf`(RC-21) · `issueOfProbe`/`issueOfSync` · `linkCheckOf` · `confirmUiOf`. 시험 이름에 항목 ID.
@@ -396,7 +430,7 @@ Ready 면(앱을 켬 · 재생성) 띄우지 않는다. VM 의 모델 상태 초
 - **홈 히어로의 저장소 줄은 확정된 연결의 정식 이름 그대로다**(`NotesUiState.heroRepoName` = `connectedRepo?.fullName`, BR-6). 바꾸는 중의
   대상(확인 · 첫 동기화)은 `ConnectViewModel` 에만 있어 홈에 안 보이고, 확정되면 `observeConnection` 이 새 이름을 흘린다. 연결이 없으면 줄이 없다.
   히어로 그림 · 배치는 design-system `MyNoteHero` 이고 제목 이름은 `notes_app_title`(MyNote — 상단 바 · 읽는 중 화면과 같은 문자열)이다.
-- 동기화 트리거는 `ObserveSyncRunsUseCase` 다. 연결 직후 동기화는 `announce` 가 꺼져 스낵바가 없고(SY-6), 새로고침에만 반영 알림이 뜬다.
+- 동기화 트리거는 `ObserveSyncRunsUseCase` 다. 생성자로 받는 클래스는 `NotesViewModel` 하나다. 연결 직후 동기화는 `announce` 가 꺼져 스낵바가 없고(SY-6), 새로고침에만 반영 알림이 뜬다.
   VM 의 `sync` 는 `triggerIn(…, started = SharingStarted.Lazily)` 다. 기본값(`WhileSubscribed(0)`)이면 `state` 구독이 5초 넘게
   끊겼다 돌아올 때 상류가 새로 시작해 동기화가 다시 돈다. SY-1 위반이고, 오프라인이면 돌아올 때마다 실패 스낵바가 뜬다.
   `Lazily` 라서 동기화 중에 화면을 떠나도 동기화는 마저 돌고 뒤처리(`afterSyncRun`)도 한다.

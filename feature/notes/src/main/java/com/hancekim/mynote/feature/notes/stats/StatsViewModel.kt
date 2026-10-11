@@ -12,10 +12,13 @@ import com.hancekim.mynote.core.domain.ObserveWeeklyHistoryUseCase
 import com.hancekim.mynote.core.domain.model.InsightSnapshot
 import com.hancekim.mynote.core.domain.model.ModelStatus
 import com.hancekim.mynote.core.domain.stats.StatsPeriod
+import com.hancekim.mynote.core.navigation.NavResult
 import com.hancekim.mynote.core.navigation.Navigator
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
+import com.hancekim.mynote.feature.notes.navigation.openReaderCommand
+import com.hancekim.mynote.feature.notes.signal.FeatureSignals
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,6 +45,8 @@ class StatsViewModel @Inject constructor(
     observeHistory: ObserveWeeklyHistoryUseCase,
     observeModelStatus: ObserveModelStatusUseCase,
     private val navigator: Navigator,
+    private val signals: FeatureSignals,
+    @param:StatsWork private val work: CoroutineDispatcher,
     private val trace: StatsTrace,
     private val clock: Clock,
     private val wallClock: WallClock,
@@ -85,7 +90,7 @@ class StatsViewModel @Inject constructor(
         combine(historyVisible, today) { visible, now -> visible to now }
             .flatMapLatest { (visible, now) ->
                 if (visible) observeHistory(now).map { it.toHistoryUi(now) } else emptyFlow()
-            }.flowOn(Dispatchers.Default)
+            }.flowOn(work)
             .catch { trace.failed(it) }
             .triggerIn(null)
 
@@ -98,7 +103,7 @@ class StatsViewModel @Inject constructor(
         combine(statsVisible, periodSaved, today) { visible, selected, now -> Triple(visible, selected, now) }
             .flatMapLatest { (visible, selected, now) ->
                 if (visible) aggregate(observeStudyStats, selected, now) else emptyFlow()
-            }.flowOn(Dispatchers.Default)
+            }.flowOn(work)
             .catch { trace.failed(it) }
             .triggerIn(null)
 
@@ -119,7 +124,19 @@ class StatsViewModel @Inject constructor(
             is StatsIntent.SelectSection -> sectionSaved.value = event.section
             StatsIntent.Entered -> today.value = nowZoned()
             StatsIntent.OpenHistory -> navigator.push(NotesNavKey.StatsHistory)
+            is StatsIntent.OpenNote -> openReader(event.noteId, event.resumeAt, quiz = false)
+            is StatsIntent.RetryQuiz -> openReader(event.noteId, resumeAt = null, quiz = true)
         }
+    }
+
+    /** 리더는 목적지 키로 열고, 이어 읽을 위치 · 퀴즈 설정은 계약으로 노트에 넘긴다(FM-6 ① ②). */
+    private fun openReader(
+        noteId: String,
+        resumeAt: Float?,
+        quiz: Boolean,
+    ) {
+        if (navigator.dispatch(navigator.stack.value.openReaderCommand(noteId)) == NavResult.Throttled) return
+        signals.reportReaderOpened(noteId, resumeAt, quiz)
     }
 
     override fun onFailure(cause: Throwable) = trace.failed(cause)

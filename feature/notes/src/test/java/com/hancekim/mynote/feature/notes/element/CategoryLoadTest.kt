@@ -28,7 +28,6 @@ class CategoryLoadTest {
         NotesUiState(
             connection = connected,
             notesLoaded = load.loaded,
-            seedPending = false,
             categories = load.list,
             isLoading = false,
             awaitingNotes = load.settling,
@@ -121,7 +120,6 @@ class CategoryLoadTest {
             NotesUiState(
                 connection = connected,
                 notesLoaded = true,
-                seedPending = false,
                 isLoading = false,
                 categories = notes,
                 recentNotes = persistentListOf(),

@@ -28,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -67,9 +68,19 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.flow.filter
 
+/** 목록 패널이 다른 기능의 상태에서 받는 값 — 셸이 묶어 넘긴다. */
+@Immutable
+internal data class ListPanelChrome(
+    val activeNoteId: String? = null,
+    val settingsOpen: Boolean = false,
+    val tokenCheck: Boolean = false,
+    val modelStatus: ModelStatus = ModelStatus.Missing,
+)
+
 @Composable
 internal fun ListPanelScreen(
     uiState: NotesUiState,
+    chrome: ListPanelChrome,
     onIntent: (NotesIntent) -> Unit,
     modifier: Modifier = Modifier,
     inFixedPanel: Boolean = false,
@@ -163,7 +174,7 @@ internal fun ListPanelScreen(
                                 items(category.notes, key = { "note-${it.id}" }) { note ->
                                     NoteRow(
                                         title = note.title,
-                                        active = note.id == uiState.activeNoteId,
+                                        active = note.id == chrome.activeNoteId,
                                         onClick = { dispatch(NotesIntent.SelectNote(note.id)) },
                                         bookmarked = note.id in uiState.bookmarkedIds,
                                     )
@@ -175,9 +186,9 @@ internal fun ListPanelScreen(
             }
 
             SettingsRow(
-                selected = inFixedPanel && uiState.isSettingsOpen,
-                tokenCheck = uiState.repoCard.showBadge,
-                modelStatus = uiState.modelStatus,
+                selected = inFixedPanel && chrome.settingsOpen,
+                tokenCheck = chrome.tokenCheck,
+                modelStatus = chrome.modelStatus,
                 onClick = { dispatch(NotesIntent.OpenSettings) },
                 modifier =
                     Modifier
@@ -316,7 +327,6 @@ private val previewState =
                 CategoryUi("Android", persistentListOf(NoteUi("a", "Compose 상태 관리 정리", "2026.06.12"))),
                 CategoryUi("Kotlin", persistentListOf(NoteUi("b", "코루틴 디스패처 메모", "2026.05.30"))),
             ),
-        activeNoteId = "a",
         expanded = persistentMapOf("Android" to true),
         isLoading = false,
     )
@@ -325,7 +335,7 @@ private val previewState =
 @Composable
 private fun ListPanelScreenPreview() {
     MyNoteTheme {
-        ListPanelScreen(uiState = previewState, onIntent = {})
+        ListPanelScreen(uiState = previewState, chrome = ListPanelChrome(activeNoteId = "a"), onIntent = {})
     }
 }
 
@@ -352,8 +362,8 @@ private fun ListPanelScreenManyPreview() {
                     categories = persistentListOf(*many.toTypedArray()),
                     visibleCategories = persistentListOf(*many.toTypedArray()),
                     expanded = persistentMapOf(*many.map { it.name to true }.toTypedArray()),
-                    hasToken = true,
                 ),
+            chrome = ListPanelChrome(activeNoteId = "a"),
             onIntent = {},
         )
     }

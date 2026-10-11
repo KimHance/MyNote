@@ -63,7 +63,7 @@ import com.hancekim.mynote.core.designsystem.motion.rememberReduceMotion
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.QuizQuestionUi
 import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.element.NotesIntent
+import com.hancekim.mynote.feature.notes.quiz.QuizIntent
 import com.hancekim.mynote.feature.notes.quiz.QuizUiState
 import com.hancekim.mynote.feature.notes.quiz.component.QuizCloseButton
 import com.hancekim.mynote.feature.notes.quiz.component.QuizPrimaryButton
@@ -72,7 +72,7 @@ import kotlinx.collections.immutable.persistentListOf
 @Composable
 internal fun QuizSolveScreen(
     state: QuizUiState.Solving,
-    onIntent: (NotesIntent) -> Unit,
+    onIntent: (QuizIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = MyNoteTheme.colors
@@ -136,7 +136,7 @@ internal fun QuizSolveScreen(
                                     index = index,
                                     text = choice,
                                     state = state,
-                                    onPick = { onIntent(NotesIntent.PickChoice(index)) },
+                                    onPick = { onIntent(QuizIntent.PickChoice(index)) },
                                 )
                             }
                         }
@@ -153,7 +153,7 @@ internal fun QuizSolveScreen(
                             stringResource(
                                 if (state.isLast) R.string.notes_quiz_see_result else R.string.notes_quiz_next,
                             ),
-                        onClick = throttledProcess { onIntent(NotesIntent.NextQuestion()) },
+                        onClick = throttledProcess { onIntent(QuizIntent.NextQuestion()) },
                         height = 52.dp,
                         modifier =
                             Modifier
@@ -170,7 +170,7 @@ internal fun QuizSolveScreen(
 @Composable
 private fun SolveTopBar(
     state: QuizUiState.Solving,
-    onIntent: (NotesIntent) -> Unit,
+    onIntent: (QuizIntent) -> Unit,
     compact: Boolean,
     modifier: Modifier = Modifier,
 ) {
@@ -224,7 +224,7 @@ private fun SolveTopBar(
             softWrap = false,
         )
         QuizCloseButton(
-            onClick = { onIntent(NotesIntent.DismissQuiz) },
+            onClick = { onIntent(QuizIntent.Dismiss) },
             size = 34.dp,
             iconSize = 17.dp,
         )

@@ -17,9 +17,7 @@ import com.hancekim.mynote.core.designsystem.component.MyNoteIcons
 import com.hancekim.mynote.core.designsystem.component.ScrollToTopButton
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesTab
-import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.quiz.QuizOverlay
 import com.hancekim.mynote.feature.notes.quiz.QuizUiState
 import com.kyant.backdrop.Backdrop
@@ -33,8 +31,8 @@ internal const val NAV_STATS = "stats"
 
 @Composable
 internal fun BoxScope.NotesOverlays(
-    uiState: NotesUiState,
-    onIntent: (NotesIntent) -> Unit,
+    states: FeatureStates,
+    intents: FeatureIntents,
     layout: NotesLayout,
     scroll: NotesScrollState,
     navScroll: FloatingNavScrollState,
@@ -44,38 +42,46 @@ internal fun BoxScope.NotesOverlays(
 ) {
     val adaptive = MyNoteTheme.adaptive
     val scope = rememberCoroutineScope()
-    val quizOpen = uiState.quiz != QuizUiState.Idle
+    val shell = states.shell
+    val quiz = states.quiz.quiz
+    val quizOpen = quiz != QuizUiState.Idle
 
     ModelPill(
-        status = uiState.modelStatus,
+        status = shell.modelStatus,
         visible = pillVisible,
         hidden = navScroll.hidden || quizOpen,
         topOffset = layout.headerOffset,
         backdrop = backdrop,
-        onClick = { onIntent(NotesIntent.OpenSettings) },
+        onClick = { intents.shell(ShellIntent.OpenSettings) },
     )
 
     FloatingNav(
         selectedId =
-            when (uiState.selectedTab) {
+            when (shell.selectedTab) {
                 NotesTab.Home -> NAV_HOME
                 NotesTab.Bookmarks -> NAV_BOOKMARK
                 NotesTab.Stats -> NAV_STATS
             },
         onSelect = { id ->
             when (id) {
-                NAV_HOME -> onIntent(NotesIntent.SwitchTab(NotesTab.Home))
-                NAV_BOOKMARK -> onIntent(NotesIntent.SwitchTab(NotesTab.Bookmarks))
-                NAV_STATS -> onIntent(NotesIntent.SwitchTab(NotesTab.Stats))
+                NAV_HOME -> intents.shell(ShellIntent.SwitchTab(NotesTab.Home))
+                NAV_BOOKMARK -> intents.shell(ShellIntent.SwitchTab(NotesTab.Bookmarks))
+                NAV_STATS -> intents.shell(ShellIntent.SwitchTab(NotesTab.Stats))
             }
         },
-        hidden = navScroll.hidden || quizOpen || uiState.isSettingsOpen || uiState.isConnectOpen,
+        hidden = navScroll.hidden || quizOpen || shell.isSettingsOpen || shell.isConnectOpen,
         layout = layout,
         backdrop = backdrop,
     )
 
     ScrollToTopButton(
-        visible = scroll.showScrollToTop && !quizOpen && !uiState.isConnectOpen && !uiState.tokenEditing,
+        visible =
+            scrollToTopVisible(
+                scrolled = scroll.showScrollToTop,
+                quizOpen = quizOpen,
+                connectOpen = shell.isConnectOpen,
+                tokenEditing = states.settings.tokenEditing,
+            ),
         onClick = {
             navScroll.reset()
             scope.launch { scroll.scrollToTop() }
@@ -91,9 +97,9 @@ internal fun BoxScope.NotesOverlays(
     )
 
     QuizOverlay(
-        state = uiState.quiz,
-        noteTitle = uiState.activeNote?.title.orEmpty(),
-        onIntent = onIntent,
+        state = quiz,
+        noteTitle = states.activeNote?.title.orEmpty(),
+        onIntent = intents.quiz,
         startInset = quizStartInset,
         backdrop = backdrop,
     )

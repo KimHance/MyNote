@@ -33,7 +33,6 @@ import com.hancekim.mynote.core.designsystem.component.flip
 import com.hancekim.mynote.core.designsystem.component.rememberFlipState
 import com.hancekim.mynote.core.designsystem.motion.MyNoteEasing
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
-import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.quiz.QuizUiState
 import com.hancekim.mynote.feature.notes.quiz.component.QuizSetupDialog
 import com.hancekim.mynote.feature.notes.quiz.screen.QuizFailedScreen
@@ -47,7 +46,7 @@ import com.hancekim.mynote.core.designsystem.R as DsR
 internal fun BoxScope.QuizOverlay(
     state: QuizUiState,
     noteTitle: String,
-    onIntent: (NotesIntent) -> Unit,
+    onIntent: (QuizIntent) -> Unit,
     modifier: Modifier = Modifier,
     startInset: Dp = 0.dp,
     backdrop: Backdrop? = null,
@@ -55,7 +54,7 @@ internal fun BoxScope.QuizOverlay(
     var lastSetup by remember { mutableStateOf<QuizUiState.Setup?>(null) }
     if (state is QuizUiState.Setup) lastSetup = state
 
-    BackHandler(enabled = state != QuizUiState.Idle) { onIntent(NotesIntent.DismissQuiz) }
+    BackHandler(enabled = state != QuizUiState.Idle) { onIntent(QuizIntent.Dismiss) }
 
     if (state.coversReader) {
         Box(
@@ -94,7 +93,7 @@ internal fun BoxScope.QuizOverlay(
                     indication = null,
                     role = Role.Button,
                     onClickLabel = stringResource(DsR.string.ds_action_close),
-                ) { onIntent(NotesIntent.DismissQuiz) },
+                ) { onIntent(QuizIntent.Dismiss) },
         )
     }
 

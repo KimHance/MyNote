@@ -28,6 +28,15 @@ sealed interface StatsIntent : MviEvent {
     data object Entered : StatsIntent
 
     data object OpenHistory : StatsIntent
+
+    data class OpenNote(
+        val noteId: String,
+        val resumeAt: Float? = null,
+    ) : StatsIntent
+
+    data class RetryQuiz(
+        val noteId: String,
+    ) : StatsIntent
 }
 
 @Immutable

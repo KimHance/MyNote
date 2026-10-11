@@ -39,11 +39,9 @@ import com.hancekim.mynote.core.designsystem.component.rememberFloatingNavScroll
 import com.hancekim.mynote.core.designsystem.motion.MyNoteEasing
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.feature.notes.R
-import com.hancekim.mynote.feature.notes.element.CtaAction
 import com.hancekim.mynote.feature.notes.element.NotesDrafts
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesSignal
-import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.screen.ListPanelScreen
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
@@ -51,8 +49,8 @@ import kotlinx.coroutines.launch
 
 @Composable
 internal fun NotesShell(
-    uiState: NotesUiState,
-    onIntent: (NotesIntent) -> Unit,
+    states: FeatureStates,
+    intents: FeatureIntents,
     snackbarHostState: SnackbarHostState,
     drafts: NotesDrafts,
     onConfirmDownload: () -> Unit,
@@ -61,6 +59,7 @@ internal fun NotesShell(
     val adaptive = MyNoteTheme.adaptive
     val colors = MyNoteTheme.colors
     val useDrawer = adaptive.useModalDrawer
+    val shell = states.shell
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -68,7 +67,7 @@ internal fun NotesShell(
 
     val backdrop = rememberLayerBackdrop()
     val navScroll = rememberFloatingNavScrollState()
-    LaunchedEffect(uiState.backStack.lastOrNull()) { navScroll.reset() }
+    LaunchedEffect(shell.backStack.lastOrNull()) { navScroll.reset() }
 
     val focusManager = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
@@ -90,14 +89,14 @@ internal fun NotesShell(
     val collapsiblePanelOpen = !useDrawer && panelExpanded
 
     BackHandler(
-        enabled = !uiState.canPop && !drawerEngaged && !collapsiblePanelOpen,
-    ) { onIntent(NotesIntent.Back) }
+        enabled = !shell.canPop && !drawerEngaged && !collapsiblePanelOpen,
+    ) { intents.shell(ShellIntent.Back) }
 
     BackHandler(enabled = collapsiblePanelOpen && !drawerEngaged) { panelExpanded = false }
 
     BackHandler(enabled = drawerOpening) { scope.launch { drawerState.close() } }
 
-    val pillVisible = rememberModelPillVisible(uiState.modelStatus, uiState.isSettingsOpen || uiState.isConnectOpen)
+    val pillVisible = rememberModelPillVisible(shell.modelStatus, shell.isSettingsOpen || shell.isConnectOpen)
     val contentTopPadding by animateDpAsState(
         targetValue = if (pillVisible) MODEL_PILL_RESERVE else 0.dp,
         animationSpec = tween(PILL_RESERVE_MILLIS, easing = MyNoteEasing),
@@ -107,23 +106,23 @@ internal fun NotesShell(
     val layout = rememberNotesLayout(panelOpen = collapsiblePanelOpen)
     val scroll =
         rememberNotesScrollState(
-            uiState.activeNoteId,
-            uiState.isBookmarksTop,
-            uiState.isStatsTop,
-            uiState.isStatsHistoryTop,
+            shell.activeNoteId,
+            shell.isBookmarksTop,
+            shell.isStatsTop,
+            shell.isStatsHistoryTop,
         )
-    ReaderProgressEffect(noteId = uiState.activeNoteId, reader = scroll.reader, onIntent = onIntent)
+    ReaderProgressEffect(noteId = shell.activeNoteId, reader = scroll.reader, onIntent = intents.notes)
     ReaderScrollRequestEffect(
-        request = uiState.readerScrollRequest,
-        activeNoteId = uiState.activeNoteId,
+        request = states.notes.readerScrollRequest,
+        activeNoteId = shell.activeNoteId,
         scroll = scroll,
     )
 
-    val panelSlot = rememberNotesPanelSlot(uiState, onIntent)
+    val panelSlot = rememberNotesPanelSlot(states, intents)
     val headerSlot =
         rememberNotesHeaderSlot(
-            uiState = uiState,
-            onIntent = onIntent,
+            states = states,
+            intents = intents,
             onMenu = {
                 if (useDrawer) scope.launch { drawerState.open() } else panelExpanded = !panelExpanded
             },
@@ -142,7 +141,7 @@ internal fun NotesShell(
                         modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars),
                     )
                 },
-                topBar = { if (useDrawer && !uiState.quiz.coversReader && !uiState.isConnectOpen) headerSlot() },
+                topBar = { if (useDrawer && !states.quiz.quiz.coversReader && !shell.isConnectOpen) headerSlot() },
             ) { padding ->
                 Box(
                     Modifier
@@ -160,8 +159,9 @@ internal fun NotesShell(
                                 .layerBackdrop(backdrop),
                         ) {
                             NotesNavDisplay(
-                                uiState = uiState,
-                                onIntent = onIntent,
+                                states = states,
+                                intents = intents,
+                                snackbarHostState = snackbarHostState,
                                 sceneStrategies = sceneStrategies,
                                 stackedScenes = useDrawer,
                                 contentBottomPadding = layout.contentBottomPadding,
@@ -172,21 +172,17 @@ internal fun NotesShell(
                                 scroll = scroll,
                                 drafts = drafts,
                                 onQuizAction = { noteId, action ->
-                                    when (action) {
-                                        CtaAction.OpenSetup -> onIntent(NotesIntent.OpenQuizSetup(noteId))
-                                        CtaAction.ConfirmDownload -> onConfirmDownload()
-                                        CtaAction.OpenSettings -> onIntent(NotesIntent.OpenSettings)
-                                        CtaAction.StartDownload -> onIntent(NotesIntent.StartModelDownload)
-                                    }
+                                    val category = states.notes.categoryNameOf(noteId).orEmpty()
+                                    intents.send(ctaTarget(noteId, category, action), onConfirmDownload)
                                 },
                             )
                         }
 
-                        BackHandler(enabled = !uiState.isNavSettled && !drawerEngaged) {}
+                        BackHandler(enabled = !shell.isNavSettled && !drawerEngaged) {}
 
                         NotesOverlays(
-                            uiState = uiState,
-                            onIntent = onIntent,
+                            states = states,
+                            intents = intents,
                             layout = layout,
                             scroll = scroll,
                             navScroll = navScroll,
@@ -202,7 +198,7 @@ internal fun NotesShell(
     if (useDrawer) {
         ModalNavigationDrawer(
             drawerState = drawerState,
-            gesturesEnabled = !uiState.isConnectOpen,
+            gesturesEnabled = !shell.isConnectOpen,
             drawerContent = {
                 ModalDrawerSheet(
                     drawerState = drawerState,
@@ -210,9 +206,10 @@ internal fun NotesShell(
                     modifier = Modifier.width(adaptive.paneWidth),
                 ) {
                     ListPanelScreen(
-                        uiState = uiState,
+                        uiState = states.notes,
+                        chrome = states.listPanel,
                         onIntent = { intent ->
-                            onIntent(intent)
+                            intents.notes(intent)
                             if (intent is NotesIntent.SelectNote || intent is NotesIntent.OpenSettings) {
                                 scope.launch { drawerState.close() }
                             }
@@ -229,24 +226,24 @@ internal fun NotesShell(
 
 @Composable
 internal fun NotesExitEffects(
-    uiState: NotesUiState,
+    shell: ShellUiState,
     snackbarHostState: SnackbarHostState,
-    onIntent: (NotesIntent) -> Unit,
+    onIntent: (ShellIntent) -> Unit,
     onExit: () -> Unit,
 ) {
     val exitHint = stringResource(R.string.notes_exit_hint)
     val currentOnIntent by rememberUpdatedState(onIntent)
     val currentOnExit by rememberUpdatedState(onExit)
-    LaunchedEffect(uiState.exitHintId) {
-        val id = uiState.exitHintId
+    LaunchedEffect(shell.exitHintId) {
+        val id = shell.exitHintId
         if (id > 0) {
             snackbarHostState.currentSnackbarData?.dismiss()
             snackbarHostState.showSnackbar(exitHint, duration = SnackbarDuration.Short)
-            currentOnIntent(NotesIntent.SignalShown(NotesSignal.ExitHint, id))
+            currentOnIntent(ShellIntent.SignalShown(NotesSignal.ExitHint, id))
         }
     }
-    LaunchedEffect(uiState.exitRequestId) {
-        if (uiState.exitRequestId > 0) currentOnExit()
+    LaunchedEffect(shell.exitRequestId) {
+        if (shell.exitRequestId > 0) currentOnExit()
     }
 }
 

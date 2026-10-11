@@ -42,7 +42,6 @@ import com.hancekim.mynote.core.designsystem.motion.rememberReduceMotion
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.domain.stats.BucketState
 import com.hancekim.mynote.core.domain.stats.StatsPeriod
-import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.stats.AccuracyRowUi
 import com.hancekim.mynote.feature.notes.stats.BookmarkBucketUi
 import com.hancekim.mynote.feature.notes.stats.BookmarkStatsUi
@@ -72,7 +71,6 @@ import java.time.LocalDate
 @Composable
 internal fun StatsRoute(
     twoPane: Boolean,
-    onNotesIntent: (NotesIntent) -> Unit,
     listState: LazyListState,
     sideState: LazyListState,
     modifier: Modifier = Modifier,
@@ -87,7 +85,6 @@ internal fun StatsRoute(
         state = state,
         twoPane = twoPane,
         onIntent = viewModel::onIntent,
-        onNotesIntent = onNotesIntent,
         modifier = modifier,
         contentBottomPadding = contentBottomPadding,
         contentTopPadding = contentTopPadding,
@@ -102,7 +99,6 @@ internal fun StatsScreen(
     state: StatsUiState,
     twoPane: Boolean,
     onIntent: (StatsIntent) -> Unit,
-    onNotesIntent: (NotesIntent) -> Unit,
     modifier: Modifier = Modifier,
     contentBottomPadding: Dp = 0.dp,
     contentTopPadding: Dp = 0.dp,
@@ -128,7 +124,7 @@ internal fun StatsScreen(
                 contentAlignment = Alignment.TopCenter,
                 label = "statsPanes",
             ) { two ->
-                val scope = StatsScope(state, content, onIntent, onNotesIntent)
+                val scope = StatsScope(state, content, onIntent)
                 if (two) {
                     StatsTwoPane(scope, listState, sideState, padding)
                 } else {
@@ -151,7 +147,6 @@ private class StatsScope(
     val state: StatsUiState,
     val content: StatsContentUi,
     val onIntent: (StatsIntent) -> Unit,
-    val onNotesIntent: (NotesIntent) -> Unit,
 )
 
 @Composable
@@ -341,15 +336,15 @@ private fun LazyListScope.listsItem(
             Column(Modifier.fillMaxWidth()) {
                 when (section) {
                     StatsSection.Reading -> {
-                        ReadingList(content.reading, compactHeight, first, scope.onNotesIntent)
+                        ReadingList(content.reading, compactHeight, first, scope.onIntent)
                     }
 
                     StatsSection.Quiz -> {
-                        QuizList(content.quiz, scope.state.pattern, formats, compactHeight, first, scope.onNotesIntent)
+                        QuizList(content.quiz, scope.state.pattern, formats, compactHeight, first, scope.onIntent)
                     }
 
                     StatsSection.Bookmarks -> {
-                        BookmarkList(content.bookmarks, compactHeight, first, scope.onNotesIntent)
+                        BookmarkList(content.bookmarks, compactHeight, first, scope.onIntent)
                     }
                 }
             }
@@ -501,7 +496,7 @@ private val previewShort =
 @Composable
 private fun StatsCompactPreview() {
     MyNoteTheme {
-        StatsScreen(state = StatsUiState(content = previewContent), twoPane = false, onIntent = {}, onNotesIntent = {})
+        StatsScreen(state = StatsUiState(content = previewContent), twoPane = false, onIntent = {})
     }
 }
 
@@ -509,7 +504,7 @@ private fun StatsCompactPreview() {
 @Composable
 private fun StatsIntroPreview() {
     MyNoteTheme {
-        StatsScreen(state = StatsUiState(content = previewIntro), twoPane = false, onIntent = {}, onNotesIntent = {})
+        StatsScreen(state = StatsUiState(content = previewIntro), twoPane = false, onIntent = {})
     }
 }
 
@@ -521,7 +516,6 @@ private fun StatsShortPreview() {
             state = StatsUiState(period = StatsPeriod.Month, logEnabled = false, content = previewShort),
             twoPane = false,
             onIntent = {},
-            onNotesIntent = {},
         )
     }
 }
@@ -534,7 +528,6 @@ private fun StatsQuizPreview() {
             state = StatsUiState(section = StatsSection.Quiz, content = previewContent),
             twoPane = false,
             onIntent = {},
-            onNotesIntent = {},
         )
     }
 }
@@ -543,7 +536,7 @@ private fun StatsQuizPreview() {
 @Composable
 private fun StatsTwoPanePreview() {
     MyNoteTheme(windowClass = MyNoteWindowClass.Expanded) {
-        StatsScreen(state = StatsUiState(content = previewContent), twoPane = true, onIntent = {}, onNotesIntent = {})
+        StatsScreen(state = StatsUiState(content = previewContent), twoPane = true, onIntent = {})
     }
 }
 
@@ -551,6 +544,6 @@ private fun StatsTwoPanePreview() {
 @Composable
 private fun StatsLandscapePreview() {
     MyNoteTheme(windowClass = MyNoteWindowClass.Expanded, heightClass = MyNoteHeightClass.Compact) {
-        StatsScreen(state = StatsUiState(content = previewContent), twoPane = true, onIntent = {}, onNotesIntent = {})
+        StatsScreen(state = StatsUiState(content = previewContent), twoPane = true, onIntent = {})
     }
 }

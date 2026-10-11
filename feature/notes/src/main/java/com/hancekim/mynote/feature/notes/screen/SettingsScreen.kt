@@ -33,6 +33,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -81,17 +82,18 @@ import com.hancekim.mynote.core.domain.model.SourceId
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.element.LastSync
 import com.hancekim.mynote.feature.notes.element.NotesDrafts
-import com.hancekim.mynote.feature.notes.element.NotesIntent
-import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.element.maskedTokenTail
 import com.hancekim.mynote.feature.notes.element.modelCardUi
+import com.hancekim.mynote.feature.notes.settings.SettingsIntent
+import com.hancekim.mynote.feature.notes.settings.SettingsUiState
 import com.hancekim.mynote.core.designsystem.R as DsR
 
 @Composable
 internal fun SettingsScreen(
-    uiState: NotesUiState,
-    onIntent: (NotesIntent) -> Unit,
+    uiState: SettingsUiState,
+    onIntent: (SettingsIntent) -> Unit,
     drafts: NotesDrafts,
+    snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
     onEnableNotifications: () -> Unit = {},
 ) {
@@ -105,7 +107,7 @@ internal fun SettingsScreen(
             onDismiss = { confirmDelete = false },
             onConfirm = {
                 confirmDelete = false
-                onIntent(NotesIntent.DeleteModel)
+                onIntent(SettingsIntent.DeleteModel)
             },
         )
     }
@@ -134,7 +136,7 @@ internal fun SettingsScreen(
                     card = modelCardUi(uiState.modelStatus),
                     notificationsEnabled = uiState.notificationsEnabled,
                     onIntent = { intent ->
-                        if (intent == NotesIntent.DeleteModel) confirmDelete = true else onIntent(intent)
+                        if (intent == SettingsIntent.DeleteModel) confirmDelete = true else onIntent(intent)
                     },
                     onEnableNotifications = onEnableNotifications,
                 )
@@ -142,6 +144,7 @@ internal fun SettingsScreen(
                     uiState = uiState,
                     onIntent = onIntent,
                     drafts = drafts,
+                    snackbarHostState = snackbarHostState,
                 )
             }
         }
@@ -150,8 +153,8 @@ internal fun SettingsScreen(
 
 @Composable
 private fun ReadingSection(
-    uiState: NotesUiState,
-    onIntent: (NotesIntent) -> Unit,
+    uiState: SettingsUiState,
+    onIntent: (SettingsIntent) -> Unit,
 ) {
     SettingsSection(label = stringResource(R.string.notes_settings_section_reading)) {
         SettingsCard {
@@ -159,7 +162,7 @@ private fun ReadingSection(
                 large = uiState.fontScale == MyNoteFontScale.Large,
                 onChange = { large ->
                     onIntent(
-                        NotesIntent.SetFontScale(
+                        SettingsIntent.SetFontScale(
                             if (large) MyNoteFontScale.Large else MyNoteFontScale.Normal,
                         ),
                     )
@@ -190,7 +193,7 @@ private fun FontScaleRow(
 @Composable
 private fun StudyLogSection(
     enabled: Boolean,
-    onIntent: (NotesIntent) -> Unit,
+    onIntent: (SettingsIntent) -> Unit,
 ) {
     var confirmClear by rememberSaveable { mutableStateOf(false) }
     if (confirmClear) {
@@ -198,7 +201,7 @@ private fun StudyLogSection(
             onDismiss = { confirmClear = false },
             onConfirm = {
                 confirmClear = false
-                onIntent(NotesIntent.ClearStudyLog)
+                onIntent(SettingsIntent.ClearStudyLog)
             },
         )
     }
@@ -208,7 +211,7 @@ private fun StudyLogSection(
                 title = stringResource(R.string.notes_settings_studylog_title),
                 description = stringResource(R.string.notes_settings_studylog_desc),
                 checked = enabled,
-                onChange = { onIntent(NotesIntent.SetStudyLogEnabled(it)) },
+                onChange = { onIntent(SettingsIntent.SetStudyLogEnabled(it)) },
             )
             HorizontalDivider(
                 color = MyNoteTheme.colors.border,
@@ -568,13 +571,13 @@ private fun SettingsScreenPreview() {
     MyNoteTheme {
         SettingsScreen(
             uiState =
-                NotesUiState(
+                SettingsUiState(
                     connection = previewConnection,
                     lastSync = LastSync.Succeeded,
-                    isLoading = false,
                 ),
             onIntent = {},
             drafts = NotesDrafts(),
+            snackbarHostState = remember { SnackbarHostState() },
         )
     }
 }
@@ -585,15 +588,15 @@ private fun SettingsScreenTokenPreview() {
     MyNoteTheme {
         SettingsScreen(
             uiState =
-                NotesUiState(
+                SettingsUiState(
                     connection = previewConnection,
                     hasToken = true,
                     maskedToken = "github_pat_••••••••a1b2",
                     lastSync = LastSync.Succeeded,
-                    isLoading = false,
                 ),
             onIntent = {},
             drafts = NotesDrafts(),
+            snackbarHostState = remember { SnackbarHostState() },
         )
     }
 }
@@ -603,9 +606,10 @@ private fun SettingsScreenTokenPreview() {
 private fun SettingsScreenNoConnectionPreview() {
     MyNoteTheme {
         SettingsScreen(
-            uiState = NotesUiState(connection = ConnectionState.None, isLoading = false),
+            uiState = SettingsUiState(connection = ConnectionState.None),
             onIntent = {},
             drafts = NotesDrafts(),
+            snackbarHostState = remember { SnackbarHostState() },
         )
     }
 }
