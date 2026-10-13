@@ -93,3 +93,24 @@ copy-apply 가 이 표대로 `strings.xml` 값만 바꾼다. 리소스 이름 ·
 | `ds_unsupported_broken_text` | 읽지 못한 블록 상자 | `형식이 맞지 않아 글자만 표시했습니다.` | `형식이 맞지 않아 글자만 보여 줍니다.` | +0 | 용어(표시 → 보이기) · 시제 | 없음 |
 | `ds_unsupported_broken_empty` | 읽지 못한 블록 상자 | `형식이 맞지 않아 표시하지 못했습니다.` | `형식이 맞지 않아 보여 줄 수 없습니다.` | +1 | 용어(표시 → 보이기) | 없음 |
 | `ds_unsupported_truncated` | 읽지 못한 블록 상자 | `앞 %1$d줄만 표시했습니다.` | `앞 %1$d줄만 보여 줍니다.` | +0 | 용어(표시 → 보이기) · 시제 | 없음 |
+
+## 같이 바뀔 것 (feature-modules · copy-apply)
+
+2026-10-14 에 `screen-copy.md` 가 20 KB 를 넘지 않게 이 파일로 옮겼다. 내용은 그때 그대로다.
+
+copy-apply 가 `strings.xml` 과 한 묶음으로 고친다. 인용 글자가 `strings.xml` 값과 다르면 SC-8 이 걸린다.
+
+| # | 갈래 | 파일 · 자리 | 무엇 | 누가 |
+|---|---|---|---|---|
+| ① | 템플릿 README | `public-repos/notes-template/README.md` 앱 용어 일곱 · 문제 해결의 연결 실패 문장 | 바뀌는 값 없음 — 일곱(`connect_entry_create` · `connect_link_label` · `connect_action` · `connect_token_title` · `ui_token_howto_*` 셋)과 `connect_err_no_list` 는 그대로. 확인만 | copy-apply |
+| ② | DESIGN.md | 9.2 `ds_unsupported_*` 다섯 · 9.3 권유 끝말 · 9.4 옮긴 문구 표의 ☰ 줄 · 확인 다이얼로그 예 · 실패 예 · 쓰지 않는 표현 머리 | 이 문서와 같은 커밋에서 고쳤다 | 디자인(끝남) |
+| ③ | 공개 규격 | `public-repos/notes-kit/SPEC.md` 와 플러그인 사본 | 인용 낱말(`원문 보기` · `노트 목록` · `노트 저장소`)이 그대로라 고칠 것 없음. 확인만 | copy-apply |
+| ④ | 기능 문서 | `docs/spec/sync.md` SY-6 `노트 변경 반영 — …` → `노트를 불러왔습니다 · …` | 인용 글자만 · 바뀐 기록 `인용 문구만` | copy-spec |
+| ④ | 기능 문서 | `docs/spec/model-download.md` 열린 질문 1 `내려받기를 취소했습니다` → `받기를 취소했습니다` | 같음 | copy-spec |
+| ④ | 기능 문서 | `docs/spec/repo-connect.md` 결정 30 "저장된 토큰이 지워집니다" 한 줄 → `저장된 토큰도 지웁니다` | 같음. RC-15 · RC-17 은 인용이 아니라 풀어 쓴 말이라 그대로 | copy-spec |
+| ⑤ | 디자인 문서 | `docs/design/repo-connect.md` 입구 제목 · 단계 ① | 이 문서와 같은 커밋에서 고쳤다 | 디자인(끝남) |
+| ⑤ | 디자인 문서 | `docs/design/model-download.md` 용어 줄(스낵바도 `받`) · 알림 표 받지 못함 본문 | 이 문서와 같은 커밋에서 고쳤다 | 디자인(끝남) |
+| ⑤ | 디자인 문서 | `docs/design/note-format.md` · `docs/design/brand.md` | 문구표의 값이 바뀌지 않는다(낭독 낱말 · 한도 상자 · 제목) | 없음 |
+| ⑥ | 모듈 문서 | `feature/notes/AGENTS.md` 실패 이유 절의 "잠시 뒤 다시 시도해 주세요" | `잠시 뒤 다시 시도하세요` 로 | copy-apply |
+| ⑦ | 시험 | 값을 단언하는 파이썬 둘(`public-repos/tests/test_template.py` 일곱 · `notes-tests/test_brand_title.py` 다섯) | 값이 그대로라 고칠 것 없음. Kotlin 시험은 `R.string` 으로 읽어 안 깨진다 — 글자로 적은 `MyNoteHeroTest` 의 안내는 견본이고 바뀌지 않는 앞 문장이다 | copy-apply(돌려 확인) |
+| — | 시안 기록 | `labs/repo-connect-design/r1` · `r2` README 문구표 · `labs/brand-design` 생성기 | 그때의 시안 기록이라 고치지 않는다. 정본은 `strings.xml` 과 이 문서 | 없음 |
