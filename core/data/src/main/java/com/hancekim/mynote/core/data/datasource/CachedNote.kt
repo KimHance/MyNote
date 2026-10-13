@@ -49,3 +49,38 @@ data class RederivedNote(
     val excerpt: String?,
     val parserVersion: Int,
 )
+
+/** 새 기기 노트 행. 키는 기기 소스 id 와 [docId] 로 만든다. */
+data class DeviceNoteInsert(
+    val docId: String,
+    val path: String,
+    val group: String,
+    val title: String,
+    val date: String,
+    val epochDay: Long,
+    val firstSeenAt: Long,
+    val parserVersion: Int,
+    val raw: String,
+    val blocksJson: String,
+    val excerpt: String?,
+)
+
+/** 기기 노트를 고쳐 바꿀 열. */
+data class DeviceNoteEdit(
+    val key: String,
+    val group: String,
+    val title: String,
+    val raw: String,
+    val blocksJson: String,
+    val excerpt: String?,
+    val parserVersion: Int,
+)
+
+/** 고치기용으로 읽은 기기 노트. */
+data class DeviceNoteRow(
+    val key: String,
+    val group: String,
+    val title: String,
+    val date: String?,
+    val raw: String,
+)

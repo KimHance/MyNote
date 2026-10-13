@@ -11,7 +11,7 @@
 의존은 `:core:domain` 과 마크다운 엔진(`org.jetbrains:markdown`, 판은 `libs.versions.toml`)이고, 이 모듈을 아는 것은 `:core:data` 뿐이다.
 network · database · feature 는 모른다. `org.intellij.markdown` import 는 이 모듈 밖에 두지 않는다.
 
-공개 API 는 넷이고 나머지(DTO · `BlockJson` · 캐시 코덱 `BlockCache` · 매퍼 · 한도 · 마크다운 변환기)는 전부 `internal` 이다.
+공개 API 는 아래 표이고 나머지(DTO · `BlockJson` · 캐시 코덱 `BlockCache` · 매퍼 · 한도 · 마크다운 변환기)는 전부 `internal` 이다.
 
 | 이름 | 하는 일 |
 |---|---|
@@ -19,6 +19,8 @@ network · database · feature 는 모른다. `org.intellij.markdown` import 는
 | `MarkdownConverter` | 한도 안의 마크다운 원문 → 도메인 블록. `NoteFormat(markdown)` 으로 바꿔 끼운다 |
 | `DerivedNote` | 캐시에 두는 값 — `blocksJson` · `excerpt` |
 | `PARSER_VERSION` | 해석 판 번호. 이보다 낮은 판의 캐시 행은 원문에서 다시 만든다 |
+| `DeviceNoteMarkdown` | domain `DeviceNoteText` 구현 — 기기 노트 크기 경계 · 가져오기 규칙(LN-6). 앞머리 경계 · 줄 끝은 `MarkdownSource` 와 같은 코드 |
+| `deviceNotePath` · `deviceNoteRaw` · `deviceNoteBody` | 기기 노트 저장 모양 — 경로 `<docId>.md` · 원문 = 빈 앞머리(8 바이트) + 본문 |
 
 ## 형식은 진입점 하나가 고른다
 
@@ -184,6 +186,7 @@ JVM 모듈이라 태스크가 `:core:format:test` 다(`testDebugUnitTest` 없음
 | `CacheCompatTest` | NF-12 형식 1 밖 type · 필드 · 캐시 바이트 · 옛 캐시 행 |
 | `EngineVersionTest` | NF-9 카탈로그의 엔진 판 = `PARSER_ENGINE`(엔진만 올리고 판 번호를 잊지 않게) |
 | `BlockCacheTest` | NF-4 · 5 · 6 새 모양의 캐시 왕복 · 바이트, 32단 하위 블록, NF-8 한도 넘음 종류 · 거르기가 도메인 한도 값을 씀, NF-12 변환기 길의 지금 블록 바이트 |
+| `DeviceNoteMarkdownTest` | LN-6 가져오기 규칙 표 · 경계 묶음 · LN-3 크기 경계(저장 원문 = 리더 한도) · 첫 줄 `---` 본문 |
 | `ResultLimitsTest` | NF-8 결과 한도 — 넓은 표 증폭 · 표 칸 누적 · 캐시 상한 경계(JSON · 마크다운) · 한도 안 병적 입력의 캐시 크기 · 노트 전체 상자의 원문 자리 |
 
 동기화를 지나는 시험은 `:core:data` 의 `NoteFormatSyncTest`(가짜 변환기) · `MarkdownSyncTest`(실제 엔진)다.
@@ -193,7 +196,7 @@ JVM 모듈이라 태스크가 `:core:format:test` 다(`testDebugUnitTest` 없음
 | 자리 | 무엇 | 누가 읽나 |
 |---|---|---|
 | `src/testFixtures/resources/parity/` | `index.json`(기준 커밋 `d15883f` 의 `notes/index.json` 바이트) · `json/<그룹>/<id>.json`(같은 커밋의 노트 바이트) · `md/<그룹>/<id>.md`(그 JSON 을 옮긴 마크다운) | `ParityNotes`(`src/testFixtures`) — 이 모듈 시험과 `:core:data` 시험(`testFixtures(projects.core.format)`), 파이썬 시험은 경로로 |
-| 루트 `notes-tests/fixtures/front-matter/` | 앞머리 경계 묶음 — 생성기 시험과 같은 파일. `cases.json` 이 파일마다 바이트 `sha256` 을 들어 편집기가 줄 끝 · BOM 을 바꾸면 두 시험이 빨강 | `MarkdownConverterTest` |
+| 루트 `notes-tests/fixtures/front-matter/` | 앞머리 경계 묶음 — 생성기 시험과 같은 파일. `cases.json` 이 파일마다 바이트 `sha256` 을 들어 편집기가 줄 끝 · BOM 을 바꾸면 두 시험이 빨강 | `MarkdownConverterTest` · `DeviceNoteMarkdownTest` |
 | 루트 `notes/` | 레포의 지금 노트 | `ParityTest` |
 
 - 사본은 고정 값이다. 살아 있는 `notes/` 와 비교하지 않는다 — 다음 노트 쓰기부터 시험이 거짓이 된다(note-format 결정 19).

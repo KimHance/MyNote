@@ -44,6 +44,7 @@ Room 에서 나온다(`observeCategories()` → `LocalNotesDataSource.observeNot
 - **삭제는 `WHERE source_id = :sourceId AND doc_id IN (:docIds)` 이고 900개씩 나눠 부른다**(SQLite 바인드 한도 999).
   `source_id` 조건이 "소스는 자기 소유 노트만 지운다" 의 마지막 방어선이다. 계측 `NoteDaoTest` 가 지킨다.
 - **`replaceDerived` 는 `blocks_json`·`excerpt`·`parser_version` 만 바꾼다**(재변환). 원문·리비전·처음 본 시각은 건드리지 않는다.
+  쓰기는 `parser_version < :새 판` 인 행만이다 — 읽은 뒤 기기 노트를 고쳐 현재 판으로 쓴 행을 옛 원문의 해석이 덮지 않게(LN-9).
   `loadStale` 은 판이 낮고 원문이 있는 행만 읽는다. 둘을 실제 Room 으로 보는 것은 계측 `NF-9 재변환은 낡은 판의 원문 있는 행만 읽고
   파생 열만 바꾼다` 다 — `:core:data` 의 NF-9 시험은 가짜 로컬 위라 SQL 을 안 본다.
 - **노트 행을 읽는 질의는 쓰는 열만 읽는다 — `SELECT *` 로 되돌리지 않는다.** 한 행은 커서 창(2MB) 하나로 읽혀서 창보다 큰 행이
@@ -52,6 +53,9 @@ Room 에서 나온다(`observeCategories()` → `LocalNotesDataSource.observeNot
   `length(CAST(raw AS BLOB)) <= :max` 로 상한을 넘는 원문을 거른다(바이트로 재야 해서 `length(raw)` 가 아니다). 한도 안 노트의
   최악 행(원문 512KB + 캐시 1MB, `:core:format` 결과 한도)은 계측 `NF-8 한도 안 최악 크기 행도 목록 원문 재변환 행 전체 읽기를 지난다` ·
   `NF-8 커서 창보다 큰 원문은 읽지 않고 목록과 재변환은 그대로 돈다` 와 JVM `NoteRowBudgetTest` 가 지킨다.
+- **기기 노트 질의(`insertDeviceNote` · `updateDeviceNote` · `deleteDeviceNote` · `loadDeviceNote`)는 `source_id = 'local'` 을 질의 글자에 박는다**
+  (`SourceId.DEVICE_ID`). 소스 id 를 인자로 받으면 호출부가 저장소 소스를 넘길 수 있다. 고침은 열 지정 UPDATE 라 날짜 · 처음 본 시각 ·
+  자리만 둔 열이 그대로다. 계측 `DeviceNoteDaoTest` 가 지킨다.
 - **본문을 정규화하지 않는다.** `raw` 는 받은 노트 파일 원문, `blocks_json` 은 그것을 변환한 블록 배열 JSON 한 칸(파생 캐시)이다.
   블록 스키마가 바뀌어도 DB 마이그레이션이 필요 없고 `parser_version` 만 올리면 `:core:data` 가 `raw` 에서 다시 만든다.
   블록을 테이블로 펼치려는 리팩터링은 이 트레이드오프를 뒤집는 것이다.
@@ -187,5 +191,6 @@ room3-testing 의 `MigrationTestHelper` 는 Android 변형이 `Instrumentation` 
 `@Before` 에서 `deleteDatabase` 한다. v2→v3→v4(기록 보존 + 요약 upsert 덮어쓰기 + 패턴), v4→v5(노트 이동·`s0` 소스·
 학습 기록 접두와 답·요약·패턴 보존·CASCADE·`epoch_day`·같은 날짜 순서 보존), v1→v5 한 번에 케이스가 있다.
 `NoteDaoTest`(in-memory Room) 가 `applySourceSync` 의 한 번 반영·900개 넘는 삭제 청크·다른 소스의 같은 docId 보존·정렬·소스 상태를 본다.
+`DeviceNoteDaoTest` 가 기기 노트 질의(소스 행과 한 트랜잭션 · 고침 열 · 지움 · 저장소 쪽 삭제가 기기 행을 안 지움 · 재변환 경합)를 본다.
 이 모듈의 계측 테스트는 라이브러리 테스트 APK 만 깔고 앱(`com.hancekim.mynote`)의 DB 를 건드리지 않는다.
 `DataStoreBookmarkStore` 자체(Context 가 필요한 부분)에는 테스트가 없다 — 이전 로직은 `BookmarkKeyMigration` 으로 떼어 JVM 에서 본다.

@@ -40,6 +40,9 @@
 | `ConnectProbe` | 후보 목록 + 후보 토큰으로 저장소 · 목록 확인 → `ConnectProbeResult`(Verified · Failed 9종) | `GithubConnectProbe` (`:core:network`) |
 | `AppliedTokenSource` | 지금 **실제로 먹은** 토큰 | `GithubTokenHolder` (`:core:network`) |
 | `QuizGenerator` | `isAvailable()` + `generate(title, text, count)` | `LiteRtLmQuizGenerator` (`:core:ai`) |
+| `DeviceNotesRepository` | 기기 노트 저장 · 고침 · 지움(노트 + 북마크) · 고치기용 원문 읽기 · 미리보기 | `DeviceNotesRepositoryImpl` (`:core:data`) |
+| `DeviceNoteText` | 기기 노트 원문 규칙 — 크기 경계(`fits` · `rawFits`) · 가져오기 규칙(`imported`). 순수 함수 | `DeviceNoteMarkdown` (`:core:format`, `DataModule` 이 `@Provides`) |
+| `NoteFileReader` | 고른 파일의 표시 이름 · 엄격한 UTF-8 읽기(512KB + 1 바이트에서 멈춤) | `ContentNoteFileReader` (`:core:data`) |
 
 domain 은 전부 구현을 모른다. 그래프는 `:app` 이 구현 모듈을 다 포함해 완성한다.
 
@@ -59,6 +62,14 @@ design-foundation 은 Compose 를 들고 있어서 domain 이 그걸 의존하�
 `:app` 의 `TokenSync` 가 연결 복구(`RecoverConnectionUseCase`)를 기다린 뒤 저장값을 관찰해 holder 에 밀어넣는다. 폴백은 없다 —
 debug 내장 토큰은 시드 연결(`ConsumeSeedUseCase`)이 저장 칸에 쓰고, 저장된 토큰이 이미 있으면 덮어쓰지 않는다.
 `ObserveAppliedTokenUseCase` 는 holder 에 실제로 꽂힌 값을 보는 판정용이고, `SyncPendingConnectionUseCase` 가 "저장값 = 적용값" 을 기다린 뒤 첫 동기화를 시작한다.
+
+### 기기 노트 UseCase
+
+`SaveDeviceNote`(id 없으면 새 노트 · 있으면 고침) · `DeleteDeviceNote` · `LoadDeviceNote` · `PreviewDeviceNote` · `CheckDeviceNoteDraft`(`저장` 켜짐 —
+글자마다 불러도 된다)와 `ImportNoteUseCase`(글 공유 · 붙여넣기는 `text`, 파일은 `file`). 거절 5종 판정(`ImportRejection`)은 `ImportNoteUseCase`
+한 곳이고, 가져오기 규칙 · 크기 경계는 `DeviceNoteText` 를 부른다 — 앞머리 경계(NF-1)를 domain 에 다시 쓰지 않는다. 제목 · 그룹 한 줄 200자는
+`DeviceNoteFields` 하나(편집기 칸 · 가져오기 제목 · 저장이 같이 쓴다). 기본 그룹 이름은 화면 문구라 호출부가 `defaultGroup` 으로 넘긴다.
+시험: `DeviceNoteTest` · `:core:data` 의 `DeviceNotesTest` · `NoteImportTest`.
 
 ## UseCase 가 어디까지 하는가
 
@@ -154,6 +165,9 @@ debug 내장 토큰은 시드 연결(`ConsumeSeedUseCase`)이 저장 칸에 쓰�
   `SyncOutcome.deleted`·내비 키가 전부 이 문자열로 맞물린다. 소비자는 id 를 불투명하게 다룬다(쪼개거나 파싱하지 않는다).
   `NoteKey.parse` 는 **첫 `/`** 에서 자른다 — `SourceId` 에는 `/` 가 없고 `docId` 에는 있을 수 있다(M1 의 경로 기반 id).
   `s0` 는 레포 좌표를 담지 않는다 — 노트 레포를 옮겨도 키가 바뀌지 않게(`NoteKeyTest`).
+- **기기 노트의 소스는 `SourceId.Device`(`"local"`) 하나다.** 저장 값이라 북마크 · 학습 기록 키 접두가 된다 — 바꾸면 이미 쓴 기기 노트가 끊긴다.
+  출처 `Note.origin`(`Repository` · `Device`)은 키 접두에서 파생하고 새 칸이 아니다. 연결 안내 띠의 개수는 `connectBandNoteCount(connection)` —
+  연결이 없을 때 저장소 출처 노트만 센다(RC-1).
 - **`NoteBlock.Unsupported(reason, type, text, raw)`** 는 앱 내부 전용 블록이다(와이어에 없는 타입). `reason` =
   `UnknownType`(앱이 모르는 type)·`BrokenBlock`(아는 type 인데 필드 누락·타입 오류, type 없음)·`BrokenNote`(노트 파일 전체를
   못 읽음 — 이때 `blocks` 는 이 블록 하나)·`LimitExceeded`(한도를 넘어 읽지 않음 — `BrokenNote` 처럼 노트 전체

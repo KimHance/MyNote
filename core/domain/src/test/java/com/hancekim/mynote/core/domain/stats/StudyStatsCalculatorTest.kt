@@ -308,4 +308,24 @@ class StudyStatsCalculatorTest {
 
         assertEquals(scenario("").toString(), scenario("s0/").toString().replace("s0/", ""))
     }
+
+    @Test
+    fun `LN-11 지운 노트는 통계 목록에 안 나온다`() {
+        val sessions = listOf(session("local/gone", "메모", "2026-09-30", 10, percent = 20))
+        val attempts =
+            listOf(
+                attempt("local/gone", "메모", "2026-09-29", 4, 1),
+                attempt("local/gone", "메모", "2026-09-30", 4, 3),
+            )
+        val kept = notes + NoteRef("local/gone", "기기 노트", "메모")
+
+        val before = compute(sessions = sessions, attempts = attempts, noteRefs = kept)
+        val after = compute(sessions = sessions, attempts = attempts)
+
+        assertEquals(listOf("local/gone"), before.stalled.map { it.note.id })
+        assertEquals(listOf("local/gone"), before.retries.map { it.note.id })
+        assertTrue(after.stalled.isEmpty())
+        assertTrue(after.retries.isEmpty())
+        assertEquals(before.current, after.current)
+    }
 }

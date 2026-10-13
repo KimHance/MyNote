@@ -60,4 +60,29 @@ interface LocalNotesDataSource {
     ): List<StaleNote>
 
     suspend fun replaceDerived(rows: List<RederivedNote>)
+
+    /**
+     * 기기 노트 하나를 넣는다. 기기 소스 행(종류 local)이 없으면 같은 트랜잭션에서 만든다 — 소스 행 없이 노트가 먼저 들어가면
+     * 시작 복구([deleteOrphanNotes])가 지운다.
+     */
+    suspend fun insertDeviceNote(note: DeviceNoteInsert)
+
+    /**
+     * 기기 노트의 제목 · 그룹 · 원문 · 파생 열만 바꾼다. 키 · 날짜 · 처음 본 시각과 다른 열은 그대로다.
+     * 기기 소스의 행만 바뀐다. 바꿨으면 true.
+     */
+    suspend fun updateDeviceNote(edit: DeviceNoteEdit): Boolean
+
+    /** 기기 소스의 노트 하나를 지운다. 지웠으면 true. */
+    suspend fun deleteDeviceNote(key: String): Boolean
+
+    /**
+     * 기기 소스의 노트 하나를 고치기용으로 읽는다.
+     *
+     * @param maxRawBytes 읽을 원문의 UTF-8 크기 상한. 넘거나 없으면 null
+     */
+    suspend fun loadDeviceNote(
+        key: String,
+        maxRawBytes: Int,
+    ): DeviceNoteRow?
 }

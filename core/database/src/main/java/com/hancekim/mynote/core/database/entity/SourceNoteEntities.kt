@@ -70,3 +70,11 @@ internal data class SourceNoteStateRow(
     @ColumnInfo(name = "has_raw") val hasRaw: Boolean,
     @ColumnInfo(name = "first_seen_at") val firstSeenAt: Long,
 )
+
+internal data class SourceNoteDeviceRow(
+    @ColumnInfo(name = "note_key") val key: String,
+    @ColumnInfo(name = "group_name") val group: String,
+    val title: String,
+    val date: String?,
+    val raw: String,
+)

@@ -3,6 +3,9 @@ package com.hancekim.mynote.core.database.datasource
 import com.hancekim.mynote.core.data.connection.ConnectionConfigCodec
 import com.hancekim.mynote.core.data.datasource.CachedNote
 import com.hancekim.mynote.core.data.datasource.CachedNoteState
+import com.hancekim.mynote.core.data.datasource.DeviceNoteEdit
+import com.hancekim.mynote.core.data.datasource.DeviceNoteInsert
+import com.hancekim.mynote.core.data.datasource.DeviceNoteRow
 import com.hancekim.mynote.core.data.datasource.ListedNote
 import com.hancekim.mynote.core.data.datasource.LocalNotesDataSource
 import com.hancekim.mynote.core.data.datasource.RederivedNote
@@ -12,7 +15,9 @@ import com.hancekim.mynote.core.database.dao.NoteDao
 import com.hancekim.mynote.core.database.entity.SourceEntity
 import com.hancekim.mynote.core.database.entity.SourceNoteDerivedRow
 import com.hancekim.mynote.core.database.entity.SourceNoteEntity
+import com.hancekim.mynote.core.domain.model.NoteKey
 import com.hancekim.mynote.core.domain.model.SourceId
+import com.hancekim.mynote.core.domain.model.SourceKind
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -81,6 +86,52 @@ class LocalNotesDataSourceImpl @Inject internal constructor(
 
     override suspend fun replaceDerived(rows: List<RederivedNote>) =
         dao.replaceDerived(rows.map { SourceNoteDerivedRow(it.key, it.blocksJson, it.excerpt, it.parserVersion) })
+
+    override suspend fun insertDeviceNote(note: DeviceNoteInsert) =
+        dao.insertDeviceNote(
+            SourceEntity(
+                id = SourceId.Device.value,
+                kind = SourceKind.Local.toColumn(),
+                configJson = null,
+                addedAt = note.firstSeenAt,
+            ),
+            SourceNoteEntity(
+                key = NoteKey(SourceId.Device, note.docId).value,
+                sourceId = SourceId.Device.value,
+                docId = note.docId,
+                path = note.path,
+                group = note.group,
+                title = note.title,
+                date = note.date,
+                epochDay = note.epochDay,
+                firstSeenAt = note.firstSeenAt,
+                revision = null,
+                fetchedAt = null,
+                parserVersion = note.parserVersion,
+                raw = note.raw,
+                blocksJson = note.blocksJson,
+                excerpt = note.excerpt,
+            ),
+        )
+
+    override suspend fun updateDeviceNote(edit: DeviceNoteEdit): Boolean =
+        dao.updateDeviceNote(
+            key = edit.key,
+            group = edit.group,
+            title = edit.title,
+            raw = edit.raw,
+            blocksJson = edit.blocksJson,
+            excerpt = edit.excerpt,
+            parserVersion = edit.parserVersion,
+        ) > 0
+
+    override suspend fun deleteDeviceNote(key: String): Boolean = dao.deleteDeviceNote(key) > 0
+
+    override suspend fun loadDeviceNote(
+        key: String,
+        maxRawBytes: Int,
+    ): DeviceNoteRow? =
+        dao.loadDeviceNote(key, maxRawBytes)?.let { DeviceNoteRow(it.key, it.group, it.title, it.date, it.raw) }
 }
 
 private fun SourceEntity.toRecord(): SourceRecord? =
