@@ -12,6 +12,7 @@ import support
 TEMPLATE = support.PUBLIC / "notes-template"
 WORKFLOWS = TEMPLATE / ".github" / "workflows"
 README = TEMPLATE / "README.md"
+TEMPLATE_TOOL_REL = "tools/note_tool.py"
 # 앱 문구는 모듈을 옮겨도 따라가게 모든 모듈의 strings.xml 에서 이름으로 찾는다(feature-modules FM-12)
 APP_MODULES = ("app", "core", "feature")
 SKIPPED_DIRS = {"build", ".gradle", ".kotlin"}
@@ -118,13 +119,22 @@ class TemplateTest(support.TempCase):
             [("getting-started", "시작하기", "2026.10.06"), ("note-format", "노트 형식 둘러보기", "2026.10.06")],
         )
 
-    def test_NT_5_템플릿에_스크립트가_없다(self):
-        """NT-5 템플릿에 스크립트가 없다"""
-        found = [path.relative_to(TEMPLATE).as_posix() for path in TEMPLATE.rglob("*") if path.is_file()]
+    def test_NT_5_템플릿의_스크립트는_도구_사본_하나다(self):
+        """NT-5 템플릿의 스크립트는 도구 사본 하나다"""
+        found = [
+            path.relative_to(TEMPLATE).as_posix()
+            for path in TEMPLATE.rglob("*")
+            if path.is_file() and not support.SKIPPED_DIRS & set(path.relative_to(TEMPLATE).parts)
+        ]
         self.assertTrue(found)
-        self.assertEqual([p for p in found if p.endswith((".py", ".sh"))], [])
+        self.assertEqual([p for p in found if p.endswith((".py", ".sh"))], [TEMPLATE_TOOL_REL])
         self.assertEqual([p for p in found if ".githooks" in p.split("/")], [])
         self.assertFalse((TEMPLATE / ".githooks").exists())
+
+    def test_NT_5_템플릿의_도구_규격_사본이_정본과_같다(self):
+        """NT-5 템플릿의 도구 · 규격 사본이 정본과 같다"""
+        self.assertEqual((TEMPLATE / TEMPLATE_TOOL_REL).read_bytes(), support.KIT_TOOL.read_bytes())
+        self.assertEqual((TEMPLATE / "SPEC.md").read_bytes(), support.KIT_SPEC.read_bytes())
 
     def test_NT_5_workflow_줄_구조(self):
         """NT-5 workflow 줄 구조"""
@@ -132,14 +142,13 @@ class TemplateTest(support.TempCase):
         text = "\n".join(lines)
         self.assertLessEqual(len(lines), 35)
 
-        kit = [i for i, line in enumerate(lines) if re.fullmatch(r"\s*-?\s*uses:\s*<([A-Z][A-Z0-9_]*)>@v1\s*", line)]
+        run = [i for i, line in enumerate(lines) if re.fullmatch(rf"\s*run:\s*python3 {re.escape(TEMPLATE_TOOL_REL)} publish\s*", line)]
+        uses = [i for i, line in enumerate(lines) if re.match(r"\s*-?\s*uses:", line)]
         checkout = [i for i, line in enumerate(lines) if re.fullmatch(r"\s*-?\s*uses:\s*actions/checkout@v\d+\s*", line)]
-        self.assertEqual(len(kit), 1)
+        self.assertEqual(len(run), 1)
         self.assertEqual(len(checkout), 1)
-        self.assertLess(checkout[0], kit[0])
-        placeholder = re.search(r"<[A-Z][A-Z0-9_]*>(?=@v1)", lines[kit[0]]).group(0)
-        table = support.table_firsts(support.PLACEHOLDERS.read_text(encoding="utf-8"), "# 자리표시자")
-        self.assertIn(placeholder, table)
+        self.assertEqual(uses, checkout)
+        self.assertLess(checkout[0], run[0])
 
         self.assertRegex(text, r"(?m)^permissions:\n  contents: write$")
         self.assertRegex(text, r"(?m)^on:\n  push:\n    branches:\n      - '\*\*'$")
@@ -159,7 +168,7 @@ class TemplateTest(support.TempCase):
         self.assertRegex(sections["시작하기"], r"저장소.*주소.*복사")
         self.assertIn("붙여 넣", sections["시작하기"])
         self.assertIn("Use this template", sections["시작하기"])
-        for way in ("웹", "로컬", "플러그인"):
+        for way in ("웹", "로컬"):
             self.assertIn(f"**{way}**", sections["노트 추가"])
         self.assertRegex(sections["노트 추가"], r"git pull.*한 번")
         self.assertIn("`notes/<그룹>/<id>.md`", sections["노트 추가"])
@@ -167,7 +176,8 @@ class TemplateTest(support.TempCase):
             self.assertIn(f"`{key}`", sections["노트 추가"])
         self.assertNotRegex(text, r"<id>\.json")
         self.assertIn("앱", sections["비공개로 만들었다면"])
-        self.assertIn("SPEC.md", sections["형식"])
+        self.assertIn("[`SPEC.md`](SPEC.md)", sections["형식"])
+        self.assertNotRegex(text, r"<[A-Z][A-Z0-9_]+>")
         self.assertIn("지원 앱 형식: `2`", sections["형식"])
         self.assertIn("글자로 보이", sections["형식"])
         self.assertIn("마크다운을 읽는 앱 판", sections["형식"])

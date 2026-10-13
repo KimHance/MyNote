@@ -191,13 +191,13 @@ ktlint·Compose 의존·Hilt 는 컨벤션이 자동으로 넣는다. (`build-lo
 
 ## 공개 자산 (`public-repos/`)
 
-남이 쓸 규격 · 도구 · Action · 플러그인(`notes-kit/`)과 템플릿 저장소(`notes-template/`)의 **원본**이다.
-폴더 하나가 공개 레포 하나가 될 예정이고 아직 공개하지 않았다(`DECISIONS-TO-REVISIT.md` 17).
+남이 쓸 템플릿 저장소(`notes-template/`)와 그 정본인 규격 · 도구 · 플러그인(`notes-kit/`)의 **원본**이다.
+공개하는 것은 템플릿 하나다 — 템플릿이 도구 · 규격 사본을 들고 workflow 가 그 도구를 직접 실행한다(사용자 결정 · 기능 문서 note-template 결정 31). 아직 공개하지 않았다(`DECISIONS-TO-REVISIT.md` 17).
 
 - **폴더만 떼어 내도 서 있어야 한다.** 상위 경로 참조 · 이 레포 소유자 · 비공개 저장소 주소 · 토큰을 넣지 않는다.
   `public-repos/tests/` 가 누출과 단독성을 검사한다(공개본에는 안 들어간다).
-- 규격 · 도구의 정본은 `notes-kit/SPEC.md` · `notes-kit/tools/note_tool.py` 하나다. 플러그인 안 사본은 시험이
-  바이트 같음으로 묶으니 정본을 고치면 사본도 고친다.
+- 규격 · 도구의 정본은 `notes-kit/SPEC.md` · `notes-kit/tools/note_tool.py` 하나다. 플러그인 안 사본과 템플릿 안 사본(`notes-template/tools/note_tool.py` · `notes-template/SPEC.md`)은
+  시험이 바이트 같음으로 묶으니 정본을 고치면 사본도 고친다.
 - 템플릿 README 는 앱 문구(`connect_entry_*` 등)에 시험으로 묶여 있다. 앱 문구를 바꾸면 README 시험이 깨진다(의도).
 - 템플릿 예시 노트를 바꾸면 `:core:data` 의 NT-6 시험이 앱 파서로 다시 읽어 본다.
 - 앱의 `저장소 만들기` 입구는 루트 `gradle.properties` 의 `template.repo` 가 있을 때만 보인다(지금 빈 값).

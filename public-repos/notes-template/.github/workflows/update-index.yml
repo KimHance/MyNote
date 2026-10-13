@@ -16,4 +16,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: <KIT_REPO>@v1
+      - name: 노트 검사 · 목록 갱신
+        run: python3 tools/note_tool.py publish
