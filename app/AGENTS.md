@@ -200,7 +200,7 @@ DataStore(DataStoreTokenStore) → TokenRepository → ObserveTokenUseCase
 
 - **`TEMPLATE_REPO` 는 `local.properties` 가 아니라 커밋되는 루트 `gradle.properties` 의 `template.repo` 에서 온다**(결정 54).
   `defaultConfig` 에서 한 번만 넣는다 — `debug{}`·`release{}` 에 쓰지 않으므로 둘이 같은 값이고 release 의 시드 비우기와 겹치지 않는다.
-  공개 전에는 빈 값(= 입구 없음). 허용 문자 `[A-Za-z0-9._/-]` 밖(따옴표·역슬래시·공백·개행)이 든 값은 빌드가 깨지지 않고 빈 값으로
+  빈 값이면 입구가 없다. 지금은 템플릿 주소가 들어 있다(템플릿은 아직 비공개 — `DECISIONS-TO-REVISIT.md` 18). 허용 문자 `[A-Za-z0-9._/-]` 밖(따옴표·역슬래시·공백·개행)이 든 값은 빌드가 깨지지 않고 빈 값으로
   내려간다 — 이건 `BuildConfig` 문자열을 깨지 않게 하는 안전판일 뿐이고 모양 판정은 `:core:domain` 의 `parseTemplateRepo` 한 곳이다.
   `-Ptemplate.repo=…` 로 한 번만 덮어 쓸 수도 있다.
 
