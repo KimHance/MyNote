@@ -67,6 +67,23 @@ object ConnectIcons {
         }
     }
 
+    // 펼침 단추의 꺾쇠 — 접혔을 때 아래, 펼쳤을 때 위
+    val ChevronDown: ImageVector by lazy {
+        strokeIcon("chevron-down") {
+            moveTo(6f, 9f)
+            lineTo(12f, 15f)
+            lineTo(18f, 9f)
+        }
+    }
+
+    val ChevronUp: ImageVector by lazy {
+        strokeIcon("chevron-up") {
+            moveTo(6f, 15f)
+            lineTo(12f, 9f)
+            lineTo(18f, 15f)
+        }
+    }
+
     val Alert: ImageVector by lazy {
         strokeIcon("alert") {
             moveTo(21f, 12f)
