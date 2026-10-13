@@ -184,4 +184,16 @@ class GenerateQuizUseCaseTest {
 
             assertEquals("앞\n건진 글자", generator.text)
         }
+
+    @Test
+    fun `LN-14 기기 노트도 퀴즈 진입과 기록이 같다`() =
+        runTest {
+            val generator = RecordingGenerator()
+            val note = Note("local/abc", "기기 노트", "2026.10.14", listOf(NoteBlock.Paragraph(spans("기기 노트 본문"))))
+
+            val result = GenerateQuizUseCase(FixedNotes(note), generator)("local/abc")
+
+            assertEquals(true, result.isSuccess)
+            assertEquals("기기 노트 본문", generator.text)
+        }
 }

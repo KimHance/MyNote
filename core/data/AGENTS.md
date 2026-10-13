@@ -15,7 +15,7 @@
 
 ## reconcile — 세 모듈이 맞물리는 지점
 
-`NotesRepositoryImpl.sync()` 가 이 앱의 유일한 쓰기 경로다. 전체가 `withContext(Dispatchers.Default)` +
+`NotesRepositoryImpl.sync()` 가 저장소 노트의 쓰기 경로다(기기 노트의 쓰기는 아래 "기기 노트" 절). 전체가 `withContext(Dispatchers.Default)` +
 `runCatchingCancellable` **하나**로 감싸여 있다.
 
 1. **재변환(로컬).** `parser_version < PARSER_VERSION` 이고 `raw` 가 있는 행을 원문 · 행의 `path` 로 다시 만들어 한 번에 바꾼다.
@@ -86,6 +86,20 @@
 - 연결 식별자는 `ConnectionIdGenerator`(UUID)이고 쓴 id 는 DataStore 에 쌓여 겹치면 다시 뽑는다.
 - 시드는 domain 의 `ConsumeSeedUseCase` 가 소비한다(`ConnectionSeed?` 를 주입받아 `begin` → 첫 동기화 → `confirm`, 실패면 `discard`).
 
+## 기기 노트 — `DeviceNotesRepositoryImpl`
+
+앱 DB 가 원본인 노트의 쓰기 길이다. 같은 `source_notes` 테이블에 기기 소스(`SourceId.Device` = `local`, 종류 `Local`)로 들어가고
+화면은 지금처럼 `observeCategories()` 하나로 본다.
+
+- 저장 모양: 경로 `<docId>.md`(docId = UUID) · 원문 = 빈 앞머리 `---\n---\n` + 본문(`:core:format` 의 `deviceNoteRaw` · `deviceNoteBody`).
+  첫 줄이 `---` 인 본문도 앞머리로 먹히지 않고, 크기 경계는 저장 원문 기준으로 리더 한도와 같다(본문 최대 524,280 바이트).
+- 첫 저장은 `insertDeviceNote` 하나 — 기기 소스 행이 없으면 같은 트랜잭션에서 만든다. 소스 행 없이 노트가 먼저 들어가면 시작 복구가 지운다.
+- 고침은 제목 · 그룹 · 원문 · 파생 열만 바꾼다(키 · 날짜 · 처음 본 시각 그대로). 고침 · 지움 · 고치기용 읽기 질의는 소스 id 를 인자로 받지 않고
+  질의 글자에 `local` 을 박는다 — 저장소 노트는 DB 층에서도 못 고친다.
+- 지움 = 노트 → 그 키의 북마크(두 저장소라 한 번에 못 묶는다 — 사이에서 죽으면 노트 없는 북마크 키가 남고 북마크 화면은 노트와 맞춰 숨긴다).
+- 연결 흐름은 `kind == GitHub` 만 보므로 기기 노트를 이어받거나 지우지 않는다. 연결 id 생성기는 `local` 을 피한다.
+- 시험: `DeviceNotesTest`(LN-3 ~ LN-14 · RC 데이터 쪽) · `NoteImportTest`(LN-6 · LN-7 · 파일 읽기 `readStrictUtf8`).
+
 ## 형식 — `:core:format` 을 부르는 네 자리
 
 해석 규칙 · 와이어와 캐시 DTO · 한도 · 상자 사유는 `core/format/AGENTS.md` 에 있다. 이 모듈이 지킬 것은 **원문을 블록으로 바꾸는 자리가
@@ -144,3 +158,4 @@ M0 에 쓰는 코드가 없어 여기에 없다 — 쓰는 단계에서 더한�
   그대로인지(NF-16). 노트 사본은 `:core:format` 의 공유 시험 자료(`testFixtures(projects.core.format)` → `ParityNotes`)를 읽는다.
 - `TemplateNotesTest` — 템플릿 마크다운 예시(`public-repos/notes-template` 의 `.md` 둘)가 `NoteFormat` 에서 강등 0 · 앞머리가 블록으로 새지 않음 · 동기화로 전부 받아짐 · 앱이 그리는 모양을 다 씀 · 글자로만 보이는 문법 흔적 없음(NT-6). 템플릿 폴더가 시험 입력이라 한 글자만 바뀌어도 다시 돈다.
 - `ConnectionRepositoryTest` · `ConnectionConfigCodecTest` · `SyncFailureKindTest` · `BookmarkRepositoryImplTest`.
+- `DeviceNotesTest` · `NoteImportTest` — 기기 노트(위 "기기 노트" 절).

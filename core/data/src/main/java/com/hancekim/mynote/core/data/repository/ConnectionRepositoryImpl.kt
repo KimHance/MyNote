@@ -225,7 +225,7 @@ class ConnectionRepositoryImpl internal constructor(
     override suspend fun recover() = recovery.ensure()
 
     private suspend fun newSourceId(sources: List<SourceRecord>): SourceId {
-        val taken = state.usedSourceIds() + sources.map { it.id.value } + SourceId.Legacy.value
+        val taken = state.usedSourceIds() + sources.map { it.id.value } + SourceId.Legacy.value + SourceId.Device.value
         repeat(MAX_ID_ATTEMPTS) {
             val candidate = ids.next()
             if (candidate.isNotBlank() && '/' !in candidate && candidate !in taken) {

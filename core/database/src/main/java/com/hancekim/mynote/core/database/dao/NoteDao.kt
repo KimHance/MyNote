@@ -8,10 +8,12 @@ import androidx.room3.Transaction
 import androidx.room3.Upsert
 import com.hancekim.mynote.core.database.entity.SourceEntity
 import com.hancekim.mynote.core.database.entity.SourceNoteDerivedRow
+import com.hancekim.mynote.core.database.entity.SourceNoteDeviceRow
 import com.hancekim.mynote.core.database.entity.SourceNoteEntity
 import com.hancekim.mynote.core.database.entity.SourceNoteListRow
 import com.hancekim.mynote.core.database.entity.SourceNoteStaleRow
 import com.hancekim.mynote.core.database.entity.SourceNoteStateRow
+import com.hancekim.mynote.core.domain.model.SourceId
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -113,7 +115,7 @@ internal interface NoteDao {
 
     @Query(
         "UPDATE source_notes SET blocks_json = :blocksJson, excerpt = :excerpt, parser_version = :parserVersion " +
-            "WHERE note_key = :key",
+            "WHERE note_key = :key AND parser_version < :parserVersion",
     )
     suspend fun updateDerived(
         key: String,
@@ -126,6 +128,45 @@ internal interface NoteDao {
     suspend fun replaceDerived(rows: List<SourceNoteDerivedRow>) {
         rows.forEach { updateDerived(it.key, it.blocksJson, it.excerpt, it.parserVersion) }
     }
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertNote(note: SourceNoteEntity)
+
+    @Transaction
+    suspend fun insertDeviceNote(
+        source: SourceEntity,
+        note: SourceNoteEntity,
+    ) {
+        ensureSource(source)
+        insertNote(note)
+    }
+
+    @Query(
+        "UPDATE source_notes SET group_name = :group, title = :title, raw = :raw, blocks_json = :blocksJson, " +
+            "excerpt = :excerpt, parser_version = :parserVersion " +
+            "WHERE note_key = :key AND source_id = '${SourceId.DEVICE_ID}'",
+    )
+    suspend fun updateDeviceNote(
+        key: String,
+        group: String,
+        title: String,
+        raw: String,
+        blocksJson: String,
+        excerpt: String?,
+        parserVersion: Int,
+    ): Int
+
+    @Query("DELETE FROM source_notes WHERE note_key = :key AND source_id = '${SourceId.DEVICE_ID}'")
+    suspend fun deleteDeviceNote(key: String): Int
+
+    @Query(
+        "SELECT note_key, group_name, title, date, raw FROM source_notes " +
+            "WHERE note_key = :key AND source_id = '${SourceId.DEVICE_ID}' AND length(CAST(raw AS BLOB)) <= :maxRawBytes",
+    )
+    suspend fun loadDeviceNote(
+        key: String,
+        maxRawBytes: Int,
+    ): SourceNoteDeviceRow?
 
     companion object {
         const val DELETE_CHUNK = 900
