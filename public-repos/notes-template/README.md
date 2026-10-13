@@ -31,6 +31,7 @@ date: 2026.10.06
 
 - **웹**: 저장소 페이지에서 `Add file` → `Create new file` 로 `notes/<그룹>/<id>.md` 를 만들고 커밋합니다.
 - **로컬**: 저장소를 내려받아 편집하고 push 합니다. 작업이 `index.json` 을 커밋하기 때문에 **로컬에서 이어 쓰기 전에는 `git pull` 을 한 번** 합니다.
+- **AI 에이전트**: Claude Code · Codex 같은 에이전트에게 [`skills/write-note/SKILL.md`](skills/write-note/SKILL.md) 를 읽게 하고 "이 내용을 노트로 저장해 줘" 라고 하면, 규격대로 노트를 쓰고 검사한 뒤 push 까지 합니다.
 
 올린 뒤 앱에서 새로고침하면 새 노트가 보입니다.
 

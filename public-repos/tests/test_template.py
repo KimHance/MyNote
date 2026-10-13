@@ -136,6 +136,16 @@ class TemplateTest(support.TempCase):
         self.assertEqual((TEMPLATE / TEMPLATE_TOOL_REL).read_bytes(), support.KIT_TOOL.read_bytes())
         self.assertEqual((TEMPLATE / "SPEC.md").read_bytes(), support.KIT_SPEC.read_bytes())
 
+    def test_NT_5_노트_쓰기_스킬은_저장소_안_규격과_도구를_가리킨다(self):
+        """NT-5 노트 쓰기 스킬은 저장소 안 규격과 도구를 가리킨다"""
+        text = (TEMPLATE / "skills" / "write-note" / "SKILL.md").read_text(encoding="utf-8")
+        self.assertTrue(text.startswith("---\nname: write-note\ndescription: "))
+        self.assertIn("`SPEC.md`", text)
+        self.assertIn(f"python3 {TEMPLATE_TOOL_REL} check", text)
+        self.assertNotIn("CLAUDE_PLUGIN_ROOT", text)
+        self.assertNotIn("check-notes", text)
+        self.assertIn("skills/write-note/SKILL.md", README.read_text(encoding="utf-8"))
+
     def test_NT_5_workflow_줄_구조(self):
         """NT-5 workflow 줄 구조"""
         lines = self.workflow_lines()
