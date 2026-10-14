@@ -6,7 +6,7 @@
 | 기능 문서 | docs/spec/screen-copy.md |
 | 등급 | 문구만 |
 | 바꾼 문구 표 | docs/design/screen-copy-rows.md (이 문서가 20 KB 를 넘지 않게 나눴다) |
-| 마지막 변경 | 2026-10-14 · 끊기 대화상자 본문을 불러온 노트로 바꿔 옛 캐시 문장 행의 동결 예외를 지움(local-notes) |
+| 마지막 변경 | 2026-10-14 · local-notes 승격 — 한 줄 고정 자리에 편집기 · 붙여넣기 제목 키 · 실패 끝말 정한 것 |
 
 ## 문구
 
@@ -152,7 +152,7 @@ SC-1 이 보지 않는 문구다. 이름으로만 뺀다.
 
 | 자리 | 파일 | 리소스 | 이번에 바꾼 행 |
 |---|---|---|---|
-| 상단 바 제목 | `shell/NotesTopBar.kt` | `ui_app_title` · `ui_settings` · `shell_nav_bookmark` · `shell_nav_stats` · `shell_stats_history_title` · `connect_change_title` · `connect_attach_title` · 기기 노트 편집기 · 붙여넣기 제목(키는 local-notes 구현이 정한다) | 없음 |
+| 상단 바 제목 | `shell/NotesTopBar.kt` | `ui_app_title` · `ui_settings` · `shell_nav_bookmark` · `shell_nav_stats` · `shell_stats_history_title` · `connect_change_title` · `connect_attach_title` · `editor_title_new` · `editor_title_edit` · `editor_import_paste`(붙여넣기 제목) | 없음 |
 | 플로팅 내비 라벨(12sp) | ds `FloatingNav.kt` | `shell_nav_home` · `shell_nav_bookmark` · `shell_nav_stats` | 없음 |
 | 상태 알약 | ds `FloatingStatusPill.kt` | `ui_pill_*` 다섯 · `ui_model_percent` | 없음 |
 | 퀴즈 CTA 부제 | quiz `component/QuizCtaCard.kt` | `ui_quiz_cta_subtitle` · `ui_quiz_cta_need_model` · `ui_quiz_cta_paused` · `ui_quiz_cta_downloading` · `ui_pill_failed` | 없음 |
@@ -203,6 +203,7 @@ feature-modules 때 `strings.xml` 과 한 묶음으로 고친 갈래 표는 바�
 | 3 | 2026-10-11 · feature-modules | 없앰은 `지우기`. 모델 카드 `삭제` 버튼과 그 대화상자 제목 · 스낵바 셋만 동결(버튼 글자 수) | 용어 표 동결 예외 |
 | 4 | 2026-10-11 · feature-modules | 토큰 안내 낱말 · 알림 채널 이름 · 화면 제목은 그대로(기능 문서 결정 5 · BR-7) | 용어 표 동결 예외 |
 | 5 | 2026-10-14 · local-notes | `가져오기` = 다른 앱의 글 · 파일을 기기 노트로 들임. 버린 말 `가져오` 는 저장소 쪽 꼴만 버린다. 옛 캐시는 `이 기기의 노트` 가 아니라 `불러온 노트`. 바꾸기 `고치기` · 출처 `이 기기` · 빈 그룹 `그룹 없음` · `붙여넣기`(이름) / `붙여 넣으세요`(움직씨) | 용어 표 · local-notes 디자인 `## 문구` |
+| 6 | 2026-10-14 · local-notes | 저장 · 지우기 실패 스낵바는 `~하지 못했습니다. 다시 시도해 보세요.`(plan D33 · 끝말 막음 꼴 `주세요` 를 피한 권유 꼴) | local-notes 디자인 `## 문구` · `editor_save_failed` · `editor_delete_failed` |
 
 ## 검토
 
@@ -219,3 +220,4 @@ feature-modules 때 `strings.xml` 과 한 묶음으로 고친 갈래 표는 바�
 | 2026-10-12 | feature-modules | 리소스 이름 · 경로만(값 그대로) — 셸(`shell_`) · 통계(`stats_`) · 연결(`connect_`) · 설정(`settings_`) · 퀴즈(`quiz_`)가 각 모듈로 가며 그 모듈만 쓰는 문구의 접두사와 한 줄 고정 자리의 파일 칸이 바뀌었다(feature-modules 결정 15 · 16). 둘 이상이 쓰는 `ui_quiz_*` 는 그대로 |
 | 2026-10-14 | local-notes | 용어 표 — `가져오` 를 저장소 꼴 다섯 행으로 가름 · 기기 노트 개념 행(가져오기 · 새 노트 · 고치기 · 버리기 · 이 기기 · 그룹 없음 · 붙여넣기) · 옛 캐시 문장 행(`이 기기의 노트` — 바뀔 문구 넷은 구현까지 동결 예외) · 한 줄 고정 자리의 첫 실행 연결 화면 행을 홈 첫 실행 빈 상태로 |
 | 2026-10-14 | local-notes | 끊기 대화상자 본문(`settings_dialog_disconnect_body`)을 `## 문구` 대로 바꾸고 옛 캐시 문장 행의 동결 예외를 지움 — 남은 예외 0(plan D42) |
+| 2026-10-14 | local-notes | 승격 — 한 줄 고정 자리 상단 바 제목에 기기 노트 키 셋 · 정한 것 6(실패 스낵바 · plan D33 · D36) |
