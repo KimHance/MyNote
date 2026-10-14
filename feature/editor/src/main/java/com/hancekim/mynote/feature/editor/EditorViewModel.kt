@@ -11,6 +11,7 @@ import com.hancekim.mynote.core.domain.SaveDeviceNoteUseCase
 import com.hancekim.mynote.core.domain.model.DeviceNoteDraft
 import com.hancekim.mynote.core.domain.model.DeviceNoteFields
 import com.hancekim.mynote.core.domain.model.ImportOutcome
+import com.hancekim.mynote.core.domain.model.ImportRejection
 import com.hancekim.mynote.core.domain.model.NoteLimits
 import com.hancekim.mynote.core.navigation.LeaveGuard
 import com.hancekim.mynote.core.navigation.NavCommand
@@ -131,13 +132,16 @@ class EditorViewModel @Inject constructor(
         navigator.clearLeaveGuard(leaveGuard)
     }
 
-    /** 공유 받은 글 — 파일 공유는 파일 열기 규칙(표시 이름 확장자 · 512KB · UTF-8 — LN-7 이유)으로, 글 공유는 글 규칙으로(D34). */
+    /**
+     * 공유 받은 글 — 파일 공유는 파일 열기 규칙(표시 이름 확장자 · 512KB · UTF-8 — LN-7 이유)으로, 글 공유는 글 규칙으로(D34).
+     * 트램펄린이 거른 파일 공유(`content://` 아님 · 이 앱 자신의 주소 — D39)는 읽지 않고 받지 않는 종류로 알린다.
+     */
     private fun receiveShared(shared: SharedText) {
         val uri = shared.uri
-        if (uri == null) {
-            receive(importNote.text(shared.text, shared.subject), immediate = true)
-        } else {
-            launchSafely { receive(importNote.file(uri), immediate = true) }
+        when {
+            shared.refused -> receive(ImportOutcome.Rejected(ImportRejection.UnsupportedType), immediate = true)
+            uri == null -> receive(importNote.text(shared.text, shared.subject), immediate = true)
+            else -> launchSafely { receive(importNote.file(uri), immediate = true) }
         }
     }
 
@@ -271,11 +275,10 @@ class EditorViewModel @Inject constructor(
         loading: Boolean,
     ) = checked(EditorSession(key = key, draft = draft, original = draft, check = checkDraft(draft), loading = loading))
 
-    /** 크기 넘음이면 이유 줄의 KB 를 센다 — 넘지 않으면 세지 않는다(글자마다 512KB 를 다 세지 않게). */
+    /** 크기 넘음이면 이유 줄의 KB(저장 원문 기준 — D44)를 센다 — 넘지 않으면 세지 않는다(글자마다 512KB 를 다 세지 않게). */
     private fun checked(session: EditorSession): EditorSession =
         session.copy(
-            bodyKilobytes =
-                if (session.check.bodyTooLarge) Utf8Size.kilobytes(Utf8Size.bytes(session.draft.body)) else 0,
+            bodyKilobytes = if (session.check.bodyTooLarge) Utf8Size.savedKilobytes(session.draft.body) else 0,
         )
 
     private fun edit(change: (DeviceNoteDraft) -> DeviceNoteDraft) {
@@ -354,14 +357,20 @@ class EditorViewModel @Inject constructor(
             return
         }
         when {
-            stack != null -> navigator.dispatchImmediately(NavCommand.ReplaceAll(stack))
+            stack != null -> {
+                navigator.dispatchImmediately(NavCommand.ReplaceAll(stack))
+            }
 
-            // 같은 키(같은 노트 고치기 · 새 노트)는 스택 명령이 무시된다 — 세션을 그 키로 새로 연다(LN-10 · LN-8 ③)
-            open != null && open == session.value?.key -> restartSession(open)
+            open != null -> {
+                // 같은 키(같은 노트 고치기 · 새 노트)는 키가 그대로라 세션이 저절로 다시 열리지 않는다 — 그 키로 새로 연다(LN-10 · LN-8 ③).
+                // 스택은 같은 키여도 보낸다 — 넓은 창에서 편집기 위에 리더가 쌓였으면 편집기가 맨 위로 오고, 이미 맨 위면 같은 스택이라 무시된다(D39)
+                if (open == session.value?.key) restartSession(open)
+                navigator.dispatchImmediately(navigator.stack.value.openEditorCommand(open))
+            }
 
-            open != null -> navigator.dispatchImmediately(navigator.stack.value.openEditorCommand(open))
-
-            else -> leave(immediate = true)
+            else -> {
+                leave(immediate = true)
+            }
         }
     }
 

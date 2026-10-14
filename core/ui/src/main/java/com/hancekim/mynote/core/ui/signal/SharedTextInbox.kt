@@ -11,12 +11,14 @@ import javax.inject.Singleton
  * 다른 앱이 공유한 글 한 건(local-notes LN-8). [subject] 는 공유 제목 — 이름 후보다.
  *
  * @property uri 파일 공유(`EXTRA_STREAM`)면 그 파일 주소 — 파일 열기 규칙으로 읽는다(plan D34). 글 공유면 null 이고 [text] 가 본문이다
+ * @property refused 받지 않는 파일 공유(`content://` 가 아니거나 이 앱 자신의 주소 — plan D39). 읽지 않고 LN-7 받지 않는 종류로 알린다
  */
 data class SharedText(
     val text: String,
     val subject: String?,
     val id: Int,
     val uri: String? = null,
+    val refused: Boolean = false,
 )
 
 /**
@@ -46,6 +48,11 @@ class SharedTextInbox @Inject constructor() {
         subject: String?,
     ) {
         latest.value = SharedText(text = "", subject = subject, id = seq.incrementAndGet(), uri = uri)
+    }
+
+    /** 받지 않는 파일 공유 — 주소는 싣지 않는다(읽을 일이 없다). 꺼내는 쪽이 이유만 알린다. */
+    fun putRefused(subject: String?) {
+        latest.value = SharedText(text = "", subject = subject, id = seq.incrementAndGet(), refused = true)
     }
 
     /** [id] 글을 꺼낸다. 그 사이 새 글이 왔으면 null — 새 글은 다음에 꺼낸다. */

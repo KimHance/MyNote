@@ -292,6 +292,34 @@ class EditorViewModelTest {
         }
 
     @Test
+    fun `LN-10 넓은 창에서 같은 키를 버리고 다시 열면 새 편집기가 리더 위로 온다`() =
+        runTest {
+            // plan D39 — 목록 패널에서 연 리더가 편집기 위에 쌓인 채 새 노트를 누른 경우. 키가 같아도 편집기가 리더 밑에 깔리지 않는다
+            val f = Fixture(this)
+            val vm = f.vm()
+            val readerA = NotesNavKey.Reader("local/a.md")
+            vm.onIntent(EditorIntent.NewNote)
+            vm.onIntent(EditorIntent.BodyChanged("쓰던 글"))
+            f.settle()
+            f.navigator.dispatch(NavCommand.Push(readerA))
+            f.settle()
+            assertEquals(listOf(home, NotesNavKey.Editor(), readerA), f.stack())
+
+            vm.onIntent(EditorIntent.NewNote)
+            assertTrue(vm.state.value.exitConfirm)
+            vm.onIntent(EditorIntent.ExitAnswered(discard = true))
+
+            assertEquals(listOf(home, readerA, NotesNavKey.Editor()), f.stack())
+            assertEquals(
+                "",
+                vm.state.value.session
+                    ?.draft
+                    ?.body,
+            )
+            assertFalse(vm.state.value.guardsExit)
+        }
+
+    @Test
     fun `LN-10 바뀐 편집기를 떼는 탭 전환은 먼저 묻는다`() =
         runTest {
             // 넓은 창 — 편집기가 상세 칸에 있어도 플로팅 내비 · 목록 패널이 보인다(plan D32)
@@ -372,6 +400,24 @@ class EditorViewModelTest {
             f.inbox.putFile("content://files/scan.pdf", subject = "스캔")
 
             assertEquals(listOf(home), f.stack())
+            assertEquals(
+                "rejected:${ImportRejection.UnsupportedType}",
+                vm.state.value.notice
+                    ?.message,
+            )
+        }
+
+    @Test
+    fun `LN-8 트램펄린이 거른 파일 공유는 읽지 않고 LN-7 받지 않는 종류로 알린다`() =
+        runTest {
+            // plan D39 — content 주소가 아니거나 이 앱 자신의 주소. 파일 리더에 닿지 않는다
+            val f = Fixture(this)
+            val vm = f.vm(files = UnreachableFiles)
+
+            f.inbox.putRefused(subject = "flow")
+
+            assertEquals(listOf(home), f.stack())
+            assertNull(vm.state.value.session)
             assertEquals(
                 "rejected:${ImportRejection.UnsupportedType}",
                 vm.state.value.notice
@@ -874,6 +920,16 @@ private class FakeFiles : NoteFileReader {
         uri: String,
         maxBytes: Int,
     ): FileText = FileText.Read("# 파일 제목\n파일 본문")
+}
+
+/** 닿으면 실패하는 대역 — 거른 공유가 파일을 읽지 않는지 본다. */
+private object UnreachableFiles : NoteFileReader {
+    override suspend fun displayName(uri: String): String? = throw AssertionError("읽으면 안 된다: $uri")
+
+    override suspend fun read(
+        uri: String,
+        maxBytes: Int,
+    ): FileText = throw AssertionError("읽으면 안 된다: $uri")
 }
 
 /** 읽기를 [gate] 가 열릴 때까지 붙잡는 대역 — 클라우드 파일처럼 느린 읽기(디자인 C18). */
