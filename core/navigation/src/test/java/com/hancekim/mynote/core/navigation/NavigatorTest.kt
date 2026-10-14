@@ -1,5 +1,6 @@
 package com.hancekim.mynote.core.navigation
 
+import com.hancekim.mynote.core.navigation.key.MyNoteNavKey
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -143,5 +144,41 @@ class NavigatorTest {
 
             advanceUntilIdle()
             assertTrue(navigator.isSettled.value)
+        }
+
+    @Test
+    fun `LN-10 떠나기 지킴은 사용자 이동만 막고 창을 열지 않는다`() =
+        runTest {
+            val navigator = Navigator(this, home, WINDOW) { currentTime }
+            val editor = NotesNavKey.Editor()
+            navigator.dispatchImmediately(NavCommand.Push(editor))
+            advanceTimeBy(WINDOW)
+            val seen = mutableListOf<List<MyNoteNavKey>>()
+            val guard = LeaveGuard { _, next -> (editor !in next).also { if (it) seen += next } }
+            navigator.setLeaveGuard(guard)
+
+            // 탭 전환처럼 편집기를 떼는 사용자 이동은 막힌다 — 스택 그대로 · 막은 스택을 지킴이 받는다
+            assertEquals(
+                NavResult.Guarded,
+                navigator.dispatch(NavCommand.ReplaceAll(listOf(home, NotesNavKey.Bookmarks))),
+            )
+            assertEquals(listOf(home, editor), navigator.stack.value)
+            assertEquals(listOf(listOf(home, NotesNavKey.Bookmarks)), seen)
+            // 막힌 이동은 쓰로틀 창을 열지 않는다 — 곧바로 다른 이동이 된다
+            assertEquals(NavResult.Applied, navigator.dispatch(NavCommand.Push(a)))
+            advanceTimeBy(WINDOW)
+
+            // 정정(dispatchImmediately)은 지킴을 지나지 않는다
+            navigator.dispatchImmediately(NavCommand.ReplaceAll(listOf(home)))
+            assertEquals(listOf(home), navigator.stack.value)
+            advanceTimeBy(WINDOW)
+
+            // 다른 지킴이 걸린 뒤 옛 지킴을 풀어도 새 지킴은 남는다
+            val other = LeaveGuard { _, _ -> true }
+            navigator.setLeaveGuard(other)
+            navigator.clearLeaveGuard(guard)
+            assertEquals(NavResult.Guarded, navigator.dispatch(NavCommand.Push(b)))
+            navigator.clearLeaveGuard(other)
+            assertEquals(NavResult.Applied, navigator.dispatch(NavCommand.Push(b)))
         }
 }

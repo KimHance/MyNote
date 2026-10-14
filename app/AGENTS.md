@@ -254,11 +254,13 @@ DataStore(DataStoreTokenStore) → TokenRepository → ObserveTokenUseCase
   25MB 를 넘어 **그 앱의 백업 전체가 조용히 멈춘다** — 북마크·학습 기록도 같이 안 올라간다(기기 이전 한도는 2GB 라
   모델이 넘는다). `include` 를 하나라도 쓰면 나머지가 전부 빠지므로 `exclude` 만 쓴다. DataStore 이름이나 모델 파일
   이름을 바꾸면 이 파일도 같이 고친다.
-- **글 공유 받기는 트램펄린 `ShareReceiverActivity` 다**(local-notes LN-8). `SEND` · `text/plain` 만 받고(파일 · 여러 개 공유는 안 받는다),
+- **공유 받기는 트램펄린 `ShareReceiverActivity` 다**(local-notes LN-8). `SEND` · `text/*` · `application/octet-stream` 만 받고(여러 개 공유는 안 받는다),
   `excludeFromRecents` · `noHistory` · 빈 `taskAffinity` · `Theme.NoDisplay` 로 보낸 앱의 태스크에 잠깐 떴다가 글을 `:core:ui` 의
   `SharedTextInbox` 에 넣고 `MainActivity` 를 설정 알림과 같은 플래그(`NEW_TASK · CLEAR_TOP · SINGLE_TOP`)로 연 뒤 끝난다.
   `MainActivity` 가 공유를 직접 받으면 보낸 앱의 태스크에 둘째 인스턴스가 떠 싱글턴 Navigator 를 나눠 쓴다. 글을 인텐트에 다시 싣지 않는다 —
   512KB 글이 프로세스 사이 전달 한도에 닿는다. 받은함은 `:feature:editor` 의 `EditorViewModel` 이 꺼내 편집기를 연다.
+  파일 공유(`EXTRA_STREAM`)는 파일 열기 규칙으로 받는다(plan D34) — 받은함엔 주소만 넣고, 트램펄린이 받은 읽기 권한은 그 화면과 함께
+  끝날 수 있어 `MainActivity` 를 열 때 `clipData` + `FLAG_GRANT_READ_URI_PERMISSION` 으로 넘긴다. 파일이 붙어 있으면 글보다 파일이 먼저다(`shareRequestOf`).
 - 매니페스트에 `<receiver>` 가 없다. 알림이 여는 앱 컴포넌트는 `MainActivity` 하나다(아래 `download/` 절).
 
 ### 설정 딥링크 — 중복 push 를 막는 세 겹

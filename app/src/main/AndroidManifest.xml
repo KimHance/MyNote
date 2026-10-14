@@ -46,7 +46,7 @@
             </intent-filter>
         </activity>
 
-        <!-- 글 공유 받기(local-notes LN-8) — 받은함에 넣고 MainActivity 를 연 뒤 바로 끝나는 트램펄린. 최근 목록에 남지 않는다 -->
+        <!-- 글 · 파일 공유 받기(local-notes LN-8 · plan D34) — 받은함에 넣고 MainActivity 를 연 뒤 바로 끝나는 트램펄린. 최근 목록에 남지 않는다 -->
         <activity
             android:name=".ShareReceiverActivity"
             android:excludeFromRecents="true"
@@ -59,7 +59,9 @@
 
                 <category android:name="android.intent.category.DEFAULT" />
 
-                <data android:mimeType="text/plain" />
+                <data android:mimeType="text/*" />
+                <!-- `.md` 파일을 octet-stream 으로 주는 앱이 많다 — 받는 종류는 표시 이름 확장자로 가른다(LN-7 · plan D34) -->
+                <data android:mimeType="application/octet-stream" />
             </intent-filter>
         </activity>
     </application>

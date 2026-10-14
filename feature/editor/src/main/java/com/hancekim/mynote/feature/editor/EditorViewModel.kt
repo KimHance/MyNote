@@ -11,10 +11,12 @@ import com.hancekim.mynote.core.domain.SaveDeviceNoteUseCase
 import com.hancekim.mynote.core.domain.model.DeviceNoteDraft
 import com.hancekim.mynote.core.domain.model.DeviceNoteFields
 import com.hancekim.mynote.core.domain.model.ImportOutcome
+import com.hancekim.mynote.core.navigation.LeaveGuard
 import com.hancekim.mynote.core.navigation.NavCommand
 import com.hancekim.mynote.core.navigation.Navigator
 import com.hancekim.mynote.core.navigation.editorKey
 import com.hancekim.mynote.core.navigation.isEditorTop
+import com.hancekim.mynote.core.navigation.key.MyNoteNavKey
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import com.hancekim.mynote.core.navigation.openEditorCommand
 import com.hancekim.mynote.core.navigation.savedNoteCommand
@@ -24,6 +26,7 @@ import com.hancekim.mynote.core.ui.element.NotesSignal
 import com.hancekim.mynote.core.ui.element.NoticeUi
 import com.hancekim.mynote.core.ui.element.unseen
 import com.hancekim.mynote.core.ui.signal.FeatureSignals
+import com.hancekim.mynote.core.ui.signal.SharedText
 import com.hancekim.mynote.core.ui.signal.SharedTextInbox
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.persistentMapOf
@@ -70,10 +73,29 @@ class EditorViewModel @Inject constructor(
     private var draftSeq = 0
     private var noticeSeq = 0
 
-    /** 나가기 확인 뒤에 열 편집기 — 바뀐 편집기 위로 공유가 들어왔을 때(LN-8 ③). null 이면 확인 뒤 닫는다. */
+    /** 나가기 확인 뒤에 열 편집기 — 바뀐 편집기 위로 공유가 들어왔을 때(LN-8 ③). */
     private var pendingOpen: NotesNavKey.Editor? = null
 
+    /** 나가기 확인 뒤에 보낼 스택 — 바뀐 편집기를 떼는 사용자 이동(탭 전환 등)을 지킴이 막았을 때(plan D32). 둘 다 null 이면 닫는다. */
+    private var pendingStack: List<MyNoteNavKey>? = null
+
+    /**
+     * 떠나기 지킴(LN-10 · D32) — 바뀐 세션의 편집기 키가 다음 스택에서 빠지거나 바뀌는 사용자 이동을 막고 묻는다.
+     * 정정(`dispatchImmediately` — 저장 · 지움 · 연결 전이)은 지킴을 지나지 않는다.
+     */
+    private val leaveGuard =
+        LeaveGuard { _, next ->
+            val current = session.value
+            if (current == null || !current.dirty || next.editorKey() == current.key) return@LeaveGuard false
+            pendingOpen?.draftId?.let { prepared.remove(it) }
+            pendingOpen = null
+            pendingStack = next
+            exitConfirm.value = true
+            true
+        }
+
     init {
+        navigator.setLeaveGuard(leaveGuard)
         navigator.stack
             .map { it.editorKey() }
             .distinctUntilChanged()
@@ -91,9 +113,22 @@ class EditorViewModel @Inject constructor(
             .launchIn(viewModelScope)
         inbox.pending
             .filterNotNull()
-            .onEach { shared ->
-                inbox.take(shared.id)?.let { receive(importNote.text(it.text, it.subject), immediate = true) }
-            }.launchIn(viewModelScope)
+            .onEach { shared -> inbox.take(shared.id)?.let(::receiveShared) }
+            .launchIn(viewModelScope)
+    }
+
+    override fun onCleared() {
+        navigator.clearLeaveGuard(leaveGuard)
+    }
+
+    /** 공유 받은 글 — 파일 공유는 파일 열기 규칙(표시 이름 확장자 · 512KB · UTF-8 — LN-7 이유)으로, 글 공유는 글 규칙으로(D34). */
+    private fun receiveShared(shared: SharedText) {
+        val uri = shared.uri
+        if (uri == null) {
+            receive(importNote.text(shared.text, shared.subject), immediate = true)
+        } else {
+            launchSafely { receive(importNote.file(uri), immediate = true) }
+        }
     }
 
     override fun build() =
@@ -265,31 +300,48 @@ class EditorViewModel @Inject constructor(
 
     private fun close() {
         if (session.value?.dirty == true) {
+            pendingOpen?.draftId?.let { prepared.remove(it) }
             pendingOpen = null
+            pendingStack = null
             exitConfirm.value = true
         } else {
-            leave()
+            leave(immediate = false)
         }
     }
 
-    private fun leave() {
+    /** 편집기를 스택에서 뗀다. 확인을 거친 뒤(`버리기`)는 결정이 끝난 이동이라 쓰로틀 · 지킴 없이 보낸다. */
+    private fun leave(immediate: Boolean) {
         val stack = navigator.stack.value
-        if (stack.isEditorTop()) {
-            navigator.dispatch(NavCommand.Pop)
-        } else {
-            stack.editorKey()?.let { key -> navigator.dispatch(NavCommand.ReplaceAll(stack.filterNot { it == key })) }
-        }
+        val key = stack.editorKey() ?: return
+        val command = if (stack.isEditorTop()) NavCommand.Pop else NavCommand.ReplaceAll(stack.filterNot { it == key })
+        if (immediate) navigator.dispatchImmediately(command) else navigator.dispatch(command)
     }
 
     private fun answerExit(discard: Boolean) {
         exitConfirm.value = false
-        val next = pendingOpen
+        val open = pendingOpen
+        val stack = pendingStack
         pendingOpen = null
-        when {
-            !discard -> next?.draftId?.let { prepared.remove(it) }
-            next != null -> navigator.dispatchImmediately(navigator.stack.value.openEditorCommand(next))
-            else -> leave()
+        pendingStack = null
+        if (!discard) {
+            open?.draftId?.let { prepared.remove(it) }
+            return
         }
+        when {
+            stack != null -> navigator.dispatchImmediately(NavCommand.ReplaceAll(stack))
+
+            // 같은 키(같은 노트 고치기 · 새 노트)는 스택 명령이 무시된다 — 세션을 그 키로 새로 연다(LN-10 · LN-8 ③)
+            open != null && open == session.value?.key -> restartSession(open)
+
+            open != null -> navigator.dispatchImmediately(navigator.stack.value.openEditorCommand(open))
+
+            else -> leave(immediate = true)
+        }
+    }
+
+    private fun restartSession(key: NotesNavKey.Editor) {
+        session.value = null
+        onEditorKey(key)
     }
 
     /** 편집기를 연다. 스택에 바뀐 편집기가 있으면 먼저 묻는다(LN-8 ③ · LN-10). */
@@ -301,6 +353,7 @@ class EditorViewModel @Inject constructor(
         if (stack.editorKey() != null && session.value?.dirty == true) {
             pendingOpen?.draftId?.let { prepared.remove(it) }
             pendingOpen = key
+            pendingStack = null
             exitConfirm.value = true
             return
         }

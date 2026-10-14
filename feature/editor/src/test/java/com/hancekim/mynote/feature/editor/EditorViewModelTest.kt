@@ -14,6 +14,7 @@ import com.hancekim.mynote.core.domain.repository.DeviceNoteText
 import com.hancekim.mynote.core.domain.repository.DeviceNotesRepository
 import com.hancekim.mynote.core.domain.repository.NoteFileReader
 import com.hancekim.mynote.core.navigation.NavCommand
+import com.hancekim.mynote.core.navigation.NavResult
 import com.hancekim.mynote.core.navigation.Navigator
 import com.hancekim.mynote.core.navigation.key.MyNoteNavKey
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
@@ -239,6 +240,141 @@ class EditorViewModelTest {
             assertTrue(
                 vm.state.value.session
                     ?.previewing == true,
+            )
+        }
+
+    @Test
+    fun `LN-10 버리기는 같은 키의 편집기도 새로 연다`() =
+        runTest {
+            val f = Fixture(this)
+            val vm = f.vm()
+            // 새 노트 위에 새 노트 — 키가 같아 스택 명령이 무시되어도 쓰던 글이 남지 않는다
+            vm.onIntent(EditorIntent.NewNote)
+            vm.onIntent(EditorIntent.BodyChanged("쓰던 글"))
+            f.settle()
+            vm.onIntent(EditorIntent.NewNote)
+            assertTrue(vm.state.value.exitConfirm)
+            vm.onIntent(EditorIntent.ExitAnswered(discard = true))
+
+            assertEquals(listOf(home, NotesNavKey.Editor()), f.stack())
+            assertEquals(
+                "",
+                vm.state.value.session
+                    ?.draft
+                    ?.body,
+            )
+            assertFalse(vm.state.value.guardsExit)
+        }
+
+    @Test
+    fun `LN-10 버리기는 같은 노트를 다시 고칠 때 지금 값을 다시 읽는다`() =
+        runTest {
+            val f = Fixture(this)
+            f.repository.stored[readerX.noteId] = DeviceNoteDraft("제목", "", "저장된 본문")
+            f.at(home, readerX)
+            val vm = f.vm()
+            vm.onIntent(EditorIntent.Edit(readerX.noteId))
+            vm.onIntent(EditorIntent.BodyChanged("고치던 본문"))
+            f.settle()
+
+            vm.onIntent(EditorIntent.Edit(readerX.noteId))
+            vm.onIntent(EditorIntent.ExitAnswered(discard = true))
+
+            assertEquals(listOf(home, readerX, NotesNavKey.Editor(noteId = readerX.noteId)), f.stack())
+            assertEquals(
+                "저장된 본문",
+                vm.state.value.session
+                    ?.draft
+                    ?.body,
+            )
+            assertFalse(vm.state.value.guardsExit)
+        }
+
+    @Test
+    fun `LN-10 바뀐 편집기를 떼는 탭 전환은 먼저 묻는다`() =
+        runTest {
+            // 넓은 창 — 편집기가 상세 칸에 있어도 플로팅 내비 · 목록 패널이 보인다(plan D32)
+            val f = Fixture(this)
+            val vm = f.vm()
+            vm.onIntent(EditorIntent.NewNote)
+            vm.onIntent(EditorIntent.BodyChanged("쓰던 글"))
+            f.settle()
+            val bookmarksTab = listOf<MyNoteNavKey>(home, NotesNavKey.Bookmarks)
+
+            assertEquals(NavResult.Guarded, f.navigator.dispatch(NavCommand.ReplaceAll(bookmarksTab)))
+            assertTrue(vm.state.value.exitConfirm)
+            assertEquals(listOf(home, NotesNavKey.Editor()), f.stack())
+
+            // 계속 쓰기 — 그대로
+            vm.onIntent(EditorIntent.ExitAnswered(discard = false))
+            assertEquals(listOf(home, NotesNavKey.Editor()), f.stack())
+            assertEquals(
+                "쓰던 글",
+                vm.state.value.session
+                    ?.draft
+                    ?.body,
+            )
+
+            // 버리기 — 막혔던 이동을 마저 한다
+            f.navigator.dispatch(NavCommand.ReplaceAll(bookmarksTab))
+            vm.onIntent(EditorIntent.ExitAnswered(discard = true))
+            assertEquals(bookmarksTab, f.stack())
+            assertNull(vm.state.value.session)
+        }
+
+    @Test
+    fun `LN-10 편집기를 남기는 이동과 바뀌지 않은 편집기는 막지 않는다`() =
+        runTest {
+            val f = Fixture(this)
+            val vm = f.vm()
+            vm.onIntent(EditorIntent.NewNote)
+            vm.onIntent(EditorIntent.BodyChanged("쓰던 글"))
+            f.settle()
+
+            // 목록 패널에서 다른 노트를 열면 리더가 편집기 위에 쌓인다 — 편집기는 남으니 묻지 않는다
+            assertEquals(NavResult.Applied, f.navigator.dispatch(NavCommand.Push(NotesNavKey.Reader("local/a.md"))))
+            assertFalse(vm.state.value.exitConfirm)
+            f.settle()
+            f.navigator.dispatch(NavCommand.Pop)
+            f.settle()
+
+            vm.onIntent(EditorIntent.BodyChanged(""))
+            assertEquals(NavResult.Applied, f.navigator.dispatch(NavCommand.ReplaceAll(listOf(home))))
+            assertFalse(vm.state.value.exitConfirm)
+        }
+
+    @Test
+    fun `LN-8 파일 공유는 파일 열기 규칙으로 미리 채운 편집기를 연다`() =
+        runTest {
+            val f = Fixture(this)
+            val vm = f.vm()
+
+            f.inbox.putFile("content://files/flow.md", subject = null)
+
+            assertEquals(2, f.stack().size)
+            assertTrue(f.stack().last() is NotesNavKey.Editor)
+            assertEquals(
+                "파일 제목",
+                vm.state.value.session
+                    ?.draft
+                    ?.title,
+            )
+            assertEquals(0, f.repository.created.size)
+        }
+
+    @Test
+    fun `LN-8 받지 않는 파일 공유는 LN-7 이유로 알린다`() =
+        runTest {
+            val f = Fixture(this)
+            val vm = f.vm()
+
+            f.inbox.putFile("content://files/scan.pdf", subject = "스캔")
+
+            assertEquals(listOf(home), f.stack())
+            assertEquals(
+                "rejected:${ImportRejection.UnsupportedType}",
+                vm.state.value.notice
+                    ?.message,
             )
         }
 

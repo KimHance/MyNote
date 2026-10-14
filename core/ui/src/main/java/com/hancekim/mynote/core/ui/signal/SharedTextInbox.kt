@@ -7,11 +7,16 @@ import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** 다른 앱이 공유한 글 한 건(local-notes LN-8). [subject] 는 공유 제목 — 이름 후보다. */
+/**
+ * 다른 앱이 공유한 글 한 건(local-notes LN-8). [subject] 는 공유 제목 — 이름 후보다.
+ *
+ * @property uri 파일 공유(`EXTRA_STREAM`)면 그 파일 주소 — 파일 열기 규칙으로 읽는다(plan D34). 글 공유면 null 이고 [text] 가 본문이다
+ */
 data class SharedText(
     val text: String,
     val subject: String?,
     val id: Int,
+    val uri: String? = null,
 )
 
 /**
@@ -33,6 +38,14 @@ class SharedTextInbox @Inject constructor() {
         subject: String?,
     ) {
         latest.value = SharedText(text, subject, seq.incrementAndGet())
+    }
+
+    /** 파일 공유 — 글 대신 파일 주소를 넣는다. 읽기는 꺼내는 쪽이 메인 스레드 밖에서 한다. */
+    fun putFile(
+        uri: String,
+        subject: String?,
+    ) {
+        latest.value = SharedText(text = "", subject = subject, id = seq.incrementAndGet(), uri = uri)
     }
 
     /** [id] 글을 꺼낸다. 그 사이 새 글이 왔으면 null — 새 글은 다음에 꺼낸다. */
