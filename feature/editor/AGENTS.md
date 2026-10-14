@@ -13,7 +13,7 @@
 |---|---|
 | `EditorViewModel.kt` | 편집 세션 · 가져오기 그릇 · 붙여넣기 칸 · 공유 받기 · 지우기를 한 ViewModel 이 든다(Activity owner — 결정 7) |
 | `EditorUiState.kt` | 상태 · 세션 · 인텐트 · 이유 줄 종류(`SaveBlock` · `PasteBlock`) |
-| `Utf8Size.kt` | 칸 글의 UTF-8 바이트 · KB 올림 — 이유 줄 숫자와 붙여넣기 512KB 판정용(저장 판정은 UseCase) |
+| `Utf8Size.kt` | 칸 글의 UTF-8 바이트 · KB 올림 — 이유 줄 숫자(저장 원문 = 빈 앞머리 8 바이트 + 본문 기준)와 붙여넣기 512KB 판정용(저장 판정은 UseCase). 바이트 셈은 `:core:format` `MarkdownLimits` 와 같다(짝 없는 대리 문자 3 바이트) |
 | `EditorMessages.kt` | 스낵바 · 기본 그룹 문구(FM-8 — ViewModel 은 문구를 직접 읽지 않는다. `:app` `NotesModule` 이 묶는다) |
 | `EditorDestinations.kt` | 편집기 · 붙여넣기 등록 |
 | `EditorHost.kt` | 파일 고르기 런처 · 가져오기 대화상자(길 두 줄 · 읽는 중) · 나가기 확인 · 지우기 확인(`:core:ui` `GlassDialog` 틀). 셸이 시작 분기 위에서 늘 컴포즈한다 |
@@ -42,7 +42,7 @@
 ## 시험
 
 - JVM `EditorViewModelTest` — LN-3(⑥ · 이유 줄 · 한 줄 칸) · LN-6 · LN-7(붙여넣기 크기) · LN-8 · LN-9 · LN-10 · LN-11 의 ViewModel 쪽(가짜 Repository ·
-  가짜 가져오기 규칙). `Utf8SizeTest` 가 이유 줄 숫자의 바이트 · KB 올림을 본다.
+  가짜 가져오기 규칙). `Utf8SizeTest` 가 이유 줄 숫자의 바이트 · 저장 원문 기준 KB 올림을 본다.
   가져오기 규칙 자체는 `:core:format` `DeviceNoteMarkdownTest`, 거절 판정은 `:core:data` `NoteImportTest` 가 본다.
 - 스택 계산은 `:core:navigation` `EditorCommandsTest`, 셸 지킴 · 크롬은 `:app` `BackOrderTest`(계측) · `HeaderTest` 다.
 

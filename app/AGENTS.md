@@ -261,6 +261,8 @@ DataStore(DataStoreTokenStore) → TokenRepository → ObserveTokenUseCase
   512KB 글이 프로세스 사이 전달 한도에 닿는다. 받은함은 `:feature:editor` 의 `EditorViewModel` 이 꺼내 편집기를 연다.
   파일 공유(`EXTRA_STREAM`)는 파일 열기 규칙으로 받는다(plan D34) — 받은함엔 주소만 넣고, 트램펄린이 받은 읽기 권한은 그 화면과 함께
   끝날 수 있어 `MainActivity` 를 열 때 `clipData` + `FLAG_GRANT_READ_URI_PERMISSION` 으로 넘긴다. 파일이 붙어 있으면 글보다 파일이 먼저다(`shareRequestOf`).
+  파일 주소는 scheme 이 `content` 이고 이 앱 자신의 authority(앱 id 로 시작 · 시스템이 이 앱 제공자로 찾음, 사용자 번호 `0@` 는 떼고)가 아닐 때만
+  받는다(plan D39) — 나머지는 읽지 않고 받은함에 `putRefused` 로 넣어 편집기가 LN-7 받지 않는 종류로 알린다.
 - 매니페스트에 `<receiver>` 가 없다. 알림이 여는 앱 컴포넌트는 `MainActivity` 하나다(아래 `download/` 절).
 
 ### 설정 딥링크 — 중복 push 를 막는 세 겹

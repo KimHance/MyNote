@@ -44,7 +44,7 @@
     <string name="settings_repo_change">저장소 바꾸기</string>
     <string name="settings_repo_disconnect">연결 끊기</string>
     <string name="settings_dialog_disconnect_title">연결을 끊을까요?</string>
-    <string name="settings_dialog_disconnect_body">이 기기의 노트 %1$d개와 북마크 %2$d개, 저장된 토큰을 지웁니다. 학습 기록은 남습니다.</string>
+    <string name="settings_dialog_disconnect_body">이 저장소에서 불러온 노트 %1$d개와 북마크 %2$d개, 저장된 토큰을 지웁니다. 학습 기록은 남습니다.</string>
     <string name="settings_dialog_disconnect_empty">지울 노트와 북마크가 없습니다. 저장된 토큰만 지웁니다. 학습 기록은 남습니다.</string>
     <string name="settings_dialog_disconnect_confirm">끊기</string>
 </resources>
