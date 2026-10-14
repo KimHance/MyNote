@@ -111,9 +111,9 @@ internal class FeatureFixture(
 
     class FakeNotes : NotesRepository {
         var syncs = 0
+        val categories = MutableStateFlow(listOf(Category(CATEGORY, listOf(READABLE, UNREADABLE))))
 
-        override fun observeCategories(): Flow<List<Category>> =
-            flowOf(listOf(Category(CATEGORY, listOf(READABLE, UNREADABLE))))
+        override fun observeCategories(): Flow<List<Category>> = categories
 
         override suspend fun sync(): Result<SyncOutcome> {
             syncs += 1

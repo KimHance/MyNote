@@ -30,6 +30,12 @@ sealed interface NotesIntent : MviEvent {
 
     data object OpenConnect : NotesIntent
 
+    /** 빈 편집기를 지금 스택 위에 연다(LN-1 · LN-2). */
+    data object NewNote : NotesIntent
+
+    /** 가져오기 그릇을 연다(LN-1 · LN-2). 그릇은 편집기 기능 화면이라 신호로 알린다. */
+    data object Import : NotesIntent
+
     data class SignalShown(
         val signal: NotesSignal,
         val id: Int,

@@ -31,7 +31,9 @@ import com.hancekim.mynote.feature.notes.NoteUi
 import com.hancekim.mynote.feature.notes.R
 import com.hancekim.mynote.feature.notes.RecentNoteUi
 import com.hancekim.mynote.feature.notes.element.HomeBody
+import com.hancekim.mynote.feature.notes.element.HomeEntry
 import com.hancekim.mynote.feature.notes.element.NotesIntent
+import com.hancekim.mynote.feature.notes.element.homeEntriesOf
 import com.hancekim.mynote.feature.notes.navigation.rememberNoteSharedModifiers
 import com.hancekim.mynote.feature.notes.screen.connect.ConnectBand
 import kotlinx.collections.immutable.ImmutableList
@@ -47,6 +49,7 @@ internal fun HomeScreen(
     repoName: String?,
     onIntent: (NotesIntent) -> Unit,
     modifier: Modifier = Modifier,
+    entries: ImmutableList<HomeEntry> = homeEntriesOf(body),
     contentBottomPadding: Dp = 0.dp,
     contentTopPadding: Dp = 0.dp,
     contentEndPadding: Dp = 0.dp,
@@ -63,10 +66,11 @@ internal fun HomeScreen(
             if (recentNotes.isEmpty()) {
                 HomeEmpty(
                     body = body,
-                    onRefresh = { onIntent(NotesIntent.Refresh) },
+                    entries = entries,
+                    onIntent = onIntent,
                     endPadding = contentEndPadding,
                     topPadding = contentTopPadding,
-                    modifier = Modifier.align(Alignment.Center),
+                    bottomPadding = contentBottomPadding,
                 )
             } else {
                 LazyVerticalGrid(
@@ -102,6 +106,12 @@ internal fun HomeScreen(
                                 },
                         )
                     }
+                    if (entries.isNotEmpty()) {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            // 힌트 아래 16 — 카드 간격 + 버튼 터치 상자 위 4
+                            HomeEntryRow(entries = entries, onIntent = onIntent)
+                        }
+                    }
                     item(span = { GridItemSpan(maxLineSpan) }) {
                         Text(
                             text = stringResource(R.string.notes_home_recent),
@@ -118,6 +128,7 @@ internal fun HomeScreen(
                             title = recent.note.title,
                             onClick = { onIntent(NotesIntent.SelectNote(recent.note.id)) },
                             bookmarked = recent.note.id in bookmarkedIds,
+                            device = recent.note.device,
                             chipModifier = shared.chip,
                             dateModifier = shared.date,
                             titleModifier = shared.title,
@@ -133,6 +144,7 @@ private const val PREVIEW_REPO = "study-team/android-notes"
 
 private val previewRecent =
     persistentListOf(
+        RecentNoteUi(NoteUi("local/a", "코루틴 취소와 예외", "2026.10.14", device = true), "Kotlin"),
         RecentNoteUi(NoteUi("a", "Compose 상태 관리 정리", "2026.06.12"), "Android"),
         RecentNoteUi(NoteUi("b", "코루틴 디스패처 메모", "2026.05.30"), "Kotlin"),
         RecentNoteUi(NoteUi("c", "HTTP 캐싱 기초", "2026.04.22"), "CS"),
@@ -176,6 +188,55 @@ private fun HomeScreenShortPreview() {
 private fun HomeScreenExpandedPreview() {
     MyNoteTheme(windowClass = MyNoteWindowClass.Expanded) {
         HomeScreen(recentNotes = previewRecent, body = HomeBody.Notes, repoName = PREVIEW_REPO, onIntent = {})
+    }
+}
+
+@Preview(name = "Home · 첫 실행", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 360, heightDp = 800)
+@Composable
+private fun HomeScreenFirstRunPreview() {
+    MyNoteTheme {
+        HomeScreen(
+            recentNotes = persistentListOf(),
+            body = HomeBody.FirstRun,
+            repoName = null,
+            onIntent = {},
+            contentBottomPadding = 92.dp,
+        )
+    }
+}
+
+@Preview(name = "Home · 첫 실행 · 가로", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 800, heightDp = 360)
+@Composable
+private fun HomeScreenFirstRunShortPreview() {
+    MyNoteTheme(windowClass = MyNoteWindowClass.Medium, heightClass = MyNoteHeightClass.Compact) {
+        HomeScreen(
+            recentNotes = persistentListOf(),
+            body = HomeBody.FirstRun,
+            repoName = null,
+            onIntent = {},
+            contentEndPadding = 84.dp,
+        )
+    }
+}
+
+@Preview(
+    name = "Home · 첫 실행 · ×1.3",
+    showBackground = true,
+    backgroundColor = 0xFF0E1217,
+    widthDp = 360,
+    heightDp = 800,
+    fontScale = 1.3f,
+)
+@Composable
+private fun HomeScreenFirstRunLargePreview() {
+    MyNoteTheme {
+        HomeScreen(
+            recentNotes = persistentListOf(),
+            body = HomeBody.FirstRun,
+            repoName = null,
+            onIntent = {},
+            contentBottomPadding = 92.dp,
+        )
     }
 }
 

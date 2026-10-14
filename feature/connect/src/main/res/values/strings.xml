@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="connect_title">노트 저장소 연결</string>
     <string name="connect_intro">GitHub 저장소 주소를 붙여 넣으면 노트를 불러옵니다.</string>
     <string name="connect_link_label">저장소 주소</string>
     <string name="connect_link_hint">예: octo-learner/android-notes</string>
@@ -42,10 +41,10 @@
     <string name="connect_link_reason_file">파일 하나를 가리키는 주소입니다. 저장소 주소나 노트 목록 주소를 붙여 넣으세요.</string>
     <string name="connect_link_reason_no_repo">저장소 이름까지 적으세요. 예: octo-learner/android-notes</string>
     <string name="connect_dialog_switch_title">저장소를 바꿀까요?</string>
-    <string name="connect_dialog_switch_body">이 기기의 노트 %1$d개와 북마크 %2$d개를 지우고 새 저장소의 노트로 바꿉니다. 학습 기록은 남습니다.</string>
+    <string name="connect_dialog_switch_body">이 저장소에서 불러온 노트 %1$d개와 북마크 %2$d개를 지우고 새 저장소의 노트로 바꿉니다. 학습 기록은 남습니다.</string>
     <string name="connect_dialog_switch_token">저장된 토큰도 지웁니다.</string>
     <string name="connect_dialog_switch_confirm">바꾸기</string>
     <string name="connect_dialog_adopt_title">저장소를 연결할까요?</string>
-    <string name="connect_dialog_adopt_body">이 기기의 노트 %1$d개 중 새 저장소에 없는 노트와 그 북마크를 지웁니다. 새 저장소에도 있는 노트의 북마크와 학습 기록은 남습니다.</string>
+    <string name="connect_dialog_adopt_body">전에 불러온 노트 %1$d개 중 새 저장소에 없는 노트와 그 북마크를 지웁니다. 새 저장소에도 있는 노트의 북마크와 학습 기록은 남습니다.</string>
     <string name="connect_dialog_adopt_confirm">연결</string>
 </resources>

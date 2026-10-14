@@ -13,6 +13,7 @@ data class NoteUi(
     val blocks: ImmutableList<NoteContentBlock> = persistentListOf(),
     val excerpt: String? = null,
     val readable: Boolean = true,
+    val device: Boolean = false,
 )
 
 @Immutable

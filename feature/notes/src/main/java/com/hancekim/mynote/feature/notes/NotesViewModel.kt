@@ -15,6 +15,7 @@ import com.hancekim.mynote.core.domain.RemoveBookmarksUseCase
 import com.hancekim.mynote.core.domain.model.Bookmark
 import com.hancekim.mynote.core.domain.model.BookmarkEvent
 import com.hancekim.mynote.core.domain.model.BookmarkEventKind
+import com.hancekim.mynote.core.domain.model.Category
 import com.hancekim.mynote.core.domain.model.ConnectionState
 import com.hancekim.mynote.core.domain.model.Moment
 import com.hancekim.mynote.core.domain.model.ReadSession
@@ -24,6 +25,7 @@ import com.hancekim.mynote.core.navigation.NavCommand
 import com.hancekim.mynote.core.navigation.Navigator
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import com.hancekim.mynote.core.navigation.key.activeNoteId
+import com.hancekim.mynote.core.navigation.openEditorCommand
 import com.hancekim.mynote.core.navigation.openReaderCommand
 import com.hancekim.mynote.core.navigation.switchTabCommand
 import com.hancekim.mynote.core.ui.FailureLog
@@ -42,7 +44,6 @@ import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.element.ReaderScrollRequest
 import com.hancekim.mynote.feature.notes.element.settledCategories
 import com.hancekim.mynote.feature.notes.mapper.bookmarkedNotes
-import com.hancekim.mynote.feature.notes.mapper.toUi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -107,10 +108,9 @@ class NotesViewModel @Inject constructor(
             .distinctUntilChanged()
             .triggerIn(null, started = SharingStarted.Lazily)
 
-    private val categories: Flow<ImmutableList<CategoryUi>> =
+    private val categories: Flow<List<Category>> =
         getCategories()
             .catch { emit(emptyList()) }
-            .map { it.toUi() }
 
     private val categoryLoad =
         settledCategories(connection.filterNotNull()) { categories }
@@ -208,6 +208,7 @@ class NotesViewModel @Inject constructor(
             connection = connection.value,
             notesLoaded = categoryLoad.value.loaded,
             awaitingNotes = categoryLoad.value.settling,
+            connectBandCount = categoryLoad.value.connectBandCount,
             notice = notice.value?.takeIf { shownSignals.value.unseen(NotesSignal.Notice, it.id) != 0 },
             infoMessage = sync.value.infoMessage,
             infoId = shownSignals.value.unseen(NotesSignal.Info, sync.value.infoId),
@@ -238,6 +239,14 @@ class NotesViewModel @Inject constructor(
 
             NotesIntent.OpenConnect -> {
                 if (!signals.repoActionsLocked.value) navigator.push(NotesNavKey.Connect)
+            }
+
+            NotesIntent.NewNote -> {
+                navigator.dispatch(navigator.stack.value.openEditorCommand(NotesNavKey.Editor()))
+            }
+
+            NotesIntent.Import -> {
+                signals.requestImport()
             }
 
             is NotesIntent.QueryChanged -> {

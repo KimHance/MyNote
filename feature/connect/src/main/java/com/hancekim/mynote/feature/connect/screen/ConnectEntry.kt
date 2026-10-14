@@ -15,12 +15,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRowScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.CircleShape
@@ -63,23 +61,21 @@ private val ENTRY_STEPS =
     intArrayOf(R.string.connect_entry_step_1, R.string.connect_entry_step_2, R.string.connect_entry_step_3)
 
 /**
- * 저장소가 없는 사람에게 템플릿으로 만드는 길을 안내한다. [collapsible] 이면 `저장소 만들기` 단추가 안내 상자를
- * 펼치고 접는다 — 안내를 다 읽은 뒤 상자 끝의 단추로 템플릿 만들기 화면을 연다(사용자 결정). 두 칸 배치처럼 자리가
- * 넉넉하면 펼친 채로 단추 없이 보인다.
+ * 저장소가 없는 사람에게 템플릿으로 만드는 길을 안내한다. `저장소 만들기` 단추가 안내 상자를 펼치고 접는다 —
+ * 안내를 다 읽은 뒤 상자 끝의 단추로 템플릿 만들기 화면을 연다(사용자 결정).
  */
 @Composable
 internal fun EntrySection(
     onCreate: () -> Unit,
+    expanded: Boolean,
+    onToggle: () -> Unit,
     modifier: Modifier = Modifier,
-    expanded: Boolean = true,
-    onToggle: () -> Unit = {},
-    collapsible: Boolean = false,
 ) {
     val colors = MyNoteTheme.colors
     val panelInView = remember { BringIntoViewRequester() }
     // 펼친 상자가 화면 아래로 잘리지 않게 펼침이 끝난 뒤 상자 끝(템플릿 단추)까지 보이게 올린다
-    LaunchedEffect(expanded, collapsible) {
-        if (collapsible && expanded) {
+    LaunchedEffect(expanded) {
+        if (expanded) {
             delay(GUIDE_MILLIS.toLong())
             panelInView.bringIntoView()
         }
@@ -101,15 +97,13 @@ internal fun EntrySection(
             color = colors.text2,
             modifier = Modifier.padding(top = 6.dp),
         )
-        if (collapsible) {
-            EntryToggleButton(
-                expanded = expanded,
-                onClick = onToggle,
-                modifier = Modifier.padding(top = 14.dp).fillMaxWidth(),
-            )
-        }
+        EntryToggleButton(
+            expanded = expanded,
+            onClick = onToggle,
+            modifier = Modifier.padding(top = 14.dp).fillMaxWidth(),
+        )
         AnimatedVisibility(
-            visible = expanded || !collapsible,
+            visible = expanded,
             enter = expandVertically(tween(GUIDE_MILLIS)) + fadeIn(tween(GUIDE_MILLIS)),
             exit = shrinkVertically(tween(GUIDE_MILLIS)) + fadeOut(tween(GUIDE_MILLIS)),
         ) {
@@ -313,17 +307,6 @@ internal fun EntryDivider(modifier: Modifier = Modifier) {
     }
 }
 
-@Composable
-internal fun EntryColumnDivider(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier.width(COLUMN_GAP).fillMaxHeight().clearAndSetSemantics {},
-        contentAlignment = Alignment.Center,
-    ) {
-        Box(Modifier.width(1.dp).fillMaxHeight().background(MyNoteTheme.colors.border))
-    }
-}
-
-internal val COLUMN_GAP: Dp = 24.dp
 private val PANEL_RADIUS: Dp = 16.dp
 private val PANEL_PADDING: Dp = 16.dp
 private val OPEN_BUTTON_HEIGHT: Dp = 48.dp

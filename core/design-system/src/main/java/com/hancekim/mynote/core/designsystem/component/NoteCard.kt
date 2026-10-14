@@ -46,6 +46,7 @@ fun NoteCard(
     dateModifier: Modifier = Modifier,
     titleModifier: Modifier = Modifier,
     bookmarked: Boolean = false,
+    device: Boolean = false,
     trailing: (@Composable () -> Unit)? = null,
 ) {
     val colors = MyNoteTheme.colors
@@ -81,6 +82,10 @@ fun NoteCard(
                     maxLines = 1,
                     modifier = dateModifier,
                 )
+                if (device) {
+                    Spacer(Modifier.width(8.dp))
+                    DeviceOriginLabel()
+                }
                 trailing?.let {
                     Spacer(Modifier.weight(1f))
                     Spacer(Modifier.width(12.dp))
@@ -114,6 +119,7 @@ private const val RIBBON_FADE_MILLIS = 160
 private data class NoteCardPreviewState(
     val bookmarked: Boolean,
     val category: String,
+    val device: Boolean = false,
 )
 
 private class NoteCardPreviewProvider : PreviewParameterProvider<NoteCardPreviewState> {
@@ -122,13 +128,15 @@ private class NoteCardPreviewProvider : PreviewParameterProvider<NoteCardPreview
             NoteCardPreviewState(bookmarked = false, category = "Android"),
             NoteCardPreviewState(bookmarked = true, category = "Android"),
             NoteCardPreviewState(bookmarked = true, category = "Android 아키텍처 컴포넌트"),
+            NoteCardPreviewState(bookmarked = true, category = "Android 아키텍처 컴포넌트", device = true),
         )
 
     override fun getDisplayName(index: Int): String? =
         when (index) {
             0 -> "plain"
             1 -> "bookmarked"
-            else -> "bookmarked · long chip"
+            2 -> "bookmarked · long chip"
+            else -> "bookmarked · long chip · device"
         }
 }
 
@@ -145,6 +153,7 @@ private fun NoteCardPreview(
                 title = "Compose 상태 관리 정리",
                 onClick = {},
                 bookmarked = state.bookmarked,
+                device = state.device,
             )
         }
     }

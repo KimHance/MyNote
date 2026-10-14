@@ -33,25 +33,15 @@ class ConnectEntryTest {
     }
 
     @Test
-    fun `RC-25 입구 위계는 자리와 연결 유무로 갈린다`() {
-        assertEquals(EntryEmphasis.Equal, entryEmphasis(ConnectPlace.Root, hasConnection = false))
-        assertEquals(EntryEmphasis.LinkFirst, entryEmphasis(ConnectPlace.Stacked, hasConnection = false))
-        assertEquals(EntryEmphasis.LinkFirst, entryEmphasis(ConnectPlace.Stacked, hasConnection = true))
-        assertEquals(EntryEmphasis.LinkFirst, entryEmphasis(ConnectPlace.Root, hasConnection = true))
-    }
-
-    @Test
-    fun `RC-25 가로 두 단은 같은 무게일 때만 허용된다`() {
-        assertTrue(twoColumnsOf(EntryEmphasis.Equal, shortHeight = true, contentWidthDp = 800f, entryShown = true))
-        assertFalse(twoColumnsOf(EntryEmphasis.LinkFirst, shortHeight = true, contentWidthDp = 800f, entryShown = true))
-    }
-
-    @Test
-    fun `RC-25 가로 두 단은 높이 Compact 이면서 콘텐츠 폭 640 이상일 때만이다`() {
-        assertTrue(twoColumnsOf(EntryEmphasis.Equal, true, TWO_COLUMN_MIN_WIDTH_DP, true))
-        assertFalse(twoColumnsOf(EntryEmphasis.Equal, true, TWO_COLUMN_MIN_WIDTH_DP - 1f, true))
-        assertFalse(twoColumnsOf(EntryEmphasis.Equal, shortHeight = false, contentWidthDp = 852f, entryShown = true))
-        assertFalse(twoColumnsOf(EntryEmphasis.Equal, true, 800f, entryShown = false))
+    fun `RC-25 연결 화면의 세 길은 모두 링크 첫째이고 두 단이 없다`() {
+        // 세 길(홈 첫 실행 빈 상태 · 홈 안내 · 설정)은 모두 같은 쌓은 목적지를 열고, 구역 순서는 입구 보임 하나로만 갈린다
+        assertEquals(listOf(ConnectSection.Link, ConnectSection.Entry), connectSectionsOf(entryShown = true))
+        assertEquals(listOf(ConnectSection.Link), connectSectionsOf(entryShown = false))
+        listOf(true, false).forEach { shown ->
+            val sections = connectSectionsOf(shown)
+            assertEquals(ConnectSection.Link, sections.first())
+            assertEquals(sections.size, sections.toSet().size)
+        }
     }
 
     @Test

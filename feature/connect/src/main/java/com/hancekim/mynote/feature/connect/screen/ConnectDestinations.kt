@@ -3,7 +3,6 @@ package com.hancekim.mynote.feature.connect.screen
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import com.hancekim.mynote.core.ui.frame.ShellDestinations
 import com.hancekim.mynote.core.ui.frame.sceneEdgeModifier
-import com.hancekim.mynote.feature.connect.element.ConnectPlace
 
 /**
  * 연결 기능의 목적지 — 쌓은 연결 화면. 상태는 화면이 자기 ViewModel(Activity owner)에서 받는다.
@@ -18,7 +17,6 @@ fun connectDestinations(
         destination<NotesNavKey.Connect> {
             val modifier = frame.sceneEdgeModifier()
             ConnectRoute(
-                place = ConnectPlace.Stacked,
                 hasConnection = hasConnection(),
                 drafts = frame.drafts,
                 snackbarHostState = frame.snackbarHostState,
