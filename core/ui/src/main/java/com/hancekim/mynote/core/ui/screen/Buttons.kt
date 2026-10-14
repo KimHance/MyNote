@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -37,6 +38,7 @@ fun PrimaryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    leadingIcon: ImageVector? = null,
 ) {
     val colors = MyNoteTheme.colors
     val shape = RoundedCornerShape(12.dp)
@@ -58,7 +60,13 @@ fun PrimaryButton(
                 ).padding(horizontal = 18.dp),
         contentAlignment = Alignment.Center,
     ) {
-        ButtonLabel(text = text, color = colors.bg, weight = FontWeight.W700)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            ButtonIcon(leadingIcon, colors.bg)
+            ButtonLabel(text = text, color = colors.bg, weight = FontWeight.W700)
+        }
     }
 }
 
@@ -68,7 +76,8 @@ fun SecondaryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    trailingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+    trailingIcon: ImageVector? = null,
+    leadingIcon: ImageVector? = null,
 ) {
     val colors = MyNoteTheme.colors
     val shape = RoundedCornerShape(12.dp)
@@ -94,15 +103,9 @@ fun SecondaryButton(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            ButtonIcon(leadingIcon, colors.text2)
             ButtonLabel(text = text, color = colors.text, weight = FontWeight.W500)
-            if (trailingIcon != null) {
-                Icon(
-                    imageVector = trailingIcon,
-                    contentDescription = null,
-                    tint = colors.text2,
-                    modifier = Modifier.size(15.dp),
-                )
-            }
+            ButtonIcon(trailingIcon, colors.text2)
         }
     }
 }
@@ -138,7 +141,7 @@ fun DestructiveButton(
 }
 
 @Composable
-internal fun SolidDestructiveButton(
+fun SolidDestructiveButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -171,7 +174,7 @@ fun QuietButton(
     modifier: Modifier = Modifier,
     contentDescription: String? = null,
     enabled: Boolean = true,
-    trailingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+    trailingIcon: ImageVector? = null,
 ) {
     val colors = MyNoteTheme.colors
     val shape = RoundedCornerShape(10.dp)
@@ -215,6 +218,21 @@ fun QuietButton(
             }
         }
     }
+}
+
+/** 버튼 라벨 곁의 15dp 아이콘 — 장식이라 낭독하지 않는다(라벨이 이름). 없으면 자리도 없다. */
+@Composable
+private fun ButtonIcon(
+    icon: ImageVector?,
+    tint: Color,
+) {
+    if (icon == null) return
+    Icon(
+        imageVector = icon,
+        contentDescription = null,
+        tint = tint,
+        modifier = Modifier.size(15.dp),
+    )
 }
 
 @Composable

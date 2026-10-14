@@ -2,6 +2,7 @@ package com.hancekim.mynote.core.domain.model
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class NoteKeyTest {
@@ -23,5 +24,14 @@ class NoteKeyTest {
         assertNull(NoteKey.parse("/graph"))
         assertNull(NoteKey.parse("s0/"))
         assertNull(NoteKey.parse(""))
+    }
+
+    @Test
+    fun `LN-5 기기 소스 id 는 s0 와 다르고 슬래시가 없다`() {
+        assertEquals("local", SourceId.Device.value)
+        assertEquals(SourceId.DEVICE_ID, SourceId.Device.value)
+        assertTrue(SourceId.Device != SourceId.Legacy)
+        assertTrue('/' !in SourceId.Device.value)
+        assertEquals(NoteKey(SourceId.Device, "a/b"), NoteKey.parse("local/a/b"))
     }
 }

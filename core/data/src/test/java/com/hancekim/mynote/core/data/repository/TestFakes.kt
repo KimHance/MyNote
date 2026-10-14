@@ -6,6 +6,9 @@ import com.hancekim.mynote.core.data.datasource.BookmarkStore
 import com.hancekim.mynote.core.data.datasource.CachedNote
 import com.hancekim.mynote.core.data.datasource.CachedNoteState
 import com.hancekim.mynote.core.data.datasource.ConnectionStateStore
+import com.hancekim.mynote.core.data.datasource.DeviceNoteEdit
+import com.hancekim.mynote.core.data.datasource.DeviceNoteInsert
+import com.hancekim.mynote.core.data.datasource.DeviceNoteRow
 import com.hancekim.mynote.core.data.datasource.ListedNote
 import com.hancekim.mynote.core.data.datasource.LocalNotesDataSource
 import com.hancekim.mynote.core.data.datasource.NoteSourceAdapter
@@ -129,6 +132,7 @@ internal class FakeLocal(
     val sourceRows: Map<SourceId, SourceRecord> get() = rows.value
     var applyCalls = 0
     var promoteCalls = 0
+    var onLoadStale: (suspend () -> Unit)? = null
     val rawReads: MutableList<String> = Collections.synchronizedList(mutableListOf())
 
     private val visible = MutableStateFlow<List<CachedNote>>(emptyList())
@@ -232,19 +236,23 @@ internal class FakeLocal(
     override suspend fun loadStale(
         parserVersion: Int,
         maxRawBytes: Int,
-    ): List<StaleNote> =
-        store.value.values.mapNotNull { row ->
-            row.raw
-                ?.takeIf { row.parserVersion < parserVersion && it.toByteArray().size <= maxRawBytes }
-                ?.let { StaleNote(row.key, row.path, it) }
-        }
+    ): List<StaleNote> {
+        val stale =
+            store.value.values.mapNotNull { row ->
+                row.raw
+                    ?.takeIf { row.parserVersion < parserVersion && it.toByteArray().size <= maxRawBytes }
+                    ?.let { StaleNote(row.key, row.path, it) }
+            }
+        onLoadStale?.invoke()
+        return stale
+    }
 
     override suspend fun replaceDerived(rows: List<RederivedNote>) {
         writeError?.let { throw it }
         store.update { current ->
             current +
                 rows.mapNotNull { row ->
-                    current[row.key]?.let {
+                    current[row.key]?.takeIf { it.parserVersion < row.parserVersion }?.let {
                         row.key to
                             it.copy(
                                 blocksJson = row.blocksJson,
@@ -256,6 +264,79 @@ internal class FakeLocal(
         }
         publish()
     }
+
+    override suspend fun insertDeviceNote(note: DeviceNoteInsert) {
+        writeError?.let { throw it }
+        val device = SourceRecord(SourceId.Device, SourceKind.Local, null)
+        rows.update { if (device.id in it) it else it + (device.id to device) }
+        val key = "${SourceId.Device.value}/${note.docId}"
+        check(key !in store.value) { "duplicate key: $key" }
+        store.update {
+            it +
+                (
+                    key to
+                        CachedNote(
+                            key = key,
+                            sourceId = SourceId.Device.value,
+                            docId = note.docId,
+                            path = note.path,
+                            group = note.group,
+                            title = note.title,
+                            date = note.date,
+                            epochDay = note.epochDay,
+                            firstSeenAt = note.firstSeenAt,
+                            revision = null,
+                            fetchedAt = null,
+                            parserVersion = note.parserVersion,
+                            raw = note.raw,
+                            blocksJson = note.blocksJson,
+                            excerpt = note.excerpt,
+                        )
+                )
+        }
+        publish()
+    }
+
+    override suspend fun updateDeviceNote(edit: DeviceNoteEdit): Boolean {
+        writeError?.let { throw it }
+        val row = store.value[edit.key]?.takeIf { it.sourceId == SourceId.Device.value } ?: return false
+        store.update {
+            it +
+                (
+                    edit.key to
+                        row.copy(
+                            group = edit.group,
+                            title = edit.title,
+                            raw = edit.raw,
+                            blocksJson = edit.blocksJson,
+                            excerpt = edit.excerpt,
+                            parserVersion = edit.parserVersion,
+                        )
+                )
+        }
+        publish()
+        return true
+    }
+
+    override suspend fun deleteDeviceNote(key: String): Boolean {
+        deleteError?.let { throw it }
+        if (store.value[key]?.sourceId != SourceId.Device.value) return false
+        store.update { it - key }
+        publish()
+        return true
+    }
+
+    override suspend fun loadDeviceNote(
+        key: String,
+        maxRawBytes: Int,
+    ): DeviceNoteRow? =
+        store.value[key]
+            ?.takeIf { it.sourceId == SourceId.Device.value }
+            ?.let { row ->
+                row.raw
+                    ?.takeIf { it.toByteArray().size <= maxRawBytes }
+                    ?.let { DeviceNoteRow(row.key, row.group, row.title, row.date, it) }
+            }
 }
 
 internal class FakeTokenStore(

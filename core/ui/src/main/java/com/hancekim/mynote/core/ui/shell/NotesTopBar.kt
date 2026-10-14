@@ -61,6 +61,8 @@ fun NotesTopBar(
     modifier: Modifier = Modifier,
     showRefresh: Boolean = true,
     backEnabled: Boolean = true,
+    onEdit: (() -> Unit)? = null,
+    onDelete: (() -> Unit)? = null,
 ) {
     val colors = MyNoteTheme.colors
     TopAppBar(
@@ -100,6 +102,28 @@ fun NotesTopBar(
             if (bookmarked != null) {
                 BookmarkToggle(bookmarked = bookmarked, onToggle = onToggleBookmark)
                 Spacer(Modifier.width(ACTION_GAP))
+            }
+            // 기기 노트 리더(local-notes 22B) — 새로고침 자리에 고치기 · 지우기(손그림 22dp · bodyText). 보임은 셸이 정한다(null = 없음).
+            // 지우기는 바로 지우지 않고 편집기 기능의 확인 대화상자를 연다(LN-11 · 결정 7)
+            if (onEdit != null) {
+                IconButton(onClick = onEdit) {
+                    Icon(
+                        imageVector = MyNoteIcons.Edit,
+                        contentDescription = stringResource(R.string.ui_action_edit),
+                        tint = colors.bodyText,
+                        modifier = Modifier.size(ACTION_ICON),
+                    )
+                }
+            }
+            if (onDelete != null) {
+                IconButton(onClick = onDelete) {
+                    Icon(
+                        imageVector = MyNoteIcons.Delete,
+                        contentDescription = stringResource(R.string.ui_action_delete),
+                        tint = colors.bodyText,
+                        modifier = Modifier.size(ACTION_ICON),
+                    )
+                }
             }
             if (showRefresh) {
                 IconButton(onClick = onRefresh) {
@@ -191,6 +215,7 @@ private fun BookmarkToggle(
 private const val DISABLED_BACK_ALPHA = 0.4f
 private val TOGGLE_SIZE = 44.dp
 private val TOGGLE_ICON = 22.dp
+private val ACTION_ICON = 22.dp
 private val TOGGLE_RADIUS = 12.dp
 private val ACTION_GAP = 2.dp
 private const val TINT_MILLIS = 160
@@ -242,6 +267,25 @@ private fun NotesTopBarHomePreview() {
             onBack = {},
             onRefresh = {},
             onToggleBookmark = {},
+        )
+    }
+}
+
+@Preview(name = "TopBar · 기기 노트 리더(22B)", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 360)
+@Composable
+private fun NotesTopBarDeviceNotePreview() {
+    MyNoteTheme {
+        NotesTopBar(
+            title = "코루틴 취소와 예외 처리 정리",
+            showBack = true,
+            bookmarked = false,
+            onMenu = {},
+            onBack = {},
+            onRefresh = {},
+            onToggleBookmark = {},
+            showRefresh = false,
+            onEdit = {},
+            onDelete = {},
         )
     }
 }

@@ -6,7 +6,7 @@
 | 기능 문서 | docs/spec/screen-copy.md |
 | 등급 | 문구만 |
 | 바꾼 문구 표 | docs/design/screen-copy-rows.md (이 문서가 20 KB 를 넘지 않게 나눴다) |
-| 마지막 변경 | 2026-10-12 · 퀴즈 문구의 리소스 이름을 `quiz_` 로 · 한 줄 고정 자리 파일 칸을 퀴즈 모듈 경로로(move-quiz — 값 그대로) |
+| 마지막 변경 | 2026-10-14 · local-notes 승격 — 한 줄 고정 자리에 편집기 · 붙여넣기 제목 키 · 실패 끝말 정한 것 |
 
 ## 문구
 
@@ -30,11 +30,18 @@
 ### 용어 표
 
 같은 개념은 같은 말로 부른다. `버린 말` 이 값에 있으면 SC-3 이 걸린다 — `동결 예외` 칸에 이름을 적은 문구만 빼고.
-노트를 저장소에서 데려오는 일은 `불러오기`, 퀴즈 모델 파일을 기기로 가져오는 일은 `받기` 로 갈린다.
+노트를 저장소에서 데려오는 일은 `불러오기`, 퀴즈 모델 파일을 기기로 가져오는 일은 `받기`, 다른 앱의 글 · 파일을 기기 노트로 들이는 일은 `가져오기` 로 갈린다.
+`가져오` 는 기기 노트 말이 되었으므로 통째로 버리지 않고, 저장소 쪽에서 쓰는 꼴(저장소 · GitHub 와 한 문장 · 진행 · 결과 꼴)만 버린다(local-notes 디자인).
 
 | 개념 | 쓸 말 | 버린 말 | 꼴 | 동결 예외 | 왜 |
 |---|---|---|---|---|---|
-| 노트를 저장소에서 데려옴 | 불러오기 · 불러오는 중 · 불러왔습니다 · 불러오지 못했습니다 | `가져오` | 글자 | — | 한 일에 다섯 말(불러오기 · 받기 · 가져오기 · 동기화 · 반영)이 섞였다. 가장 많이 쓰던 말로 |
+| 노트를 저장소에서 데려옴 | 불러오기 · 불러오는 중 · 불러왔습니다 · 불러오지 못했습니다 | `저장소[^.?\n]*가져오` | 정규식 | — | 한 일에 다섯 말(불러오기 · 받기 · 가져오기 · 동기화 · 반영)이 섞였다. 가장 많이 쓰던 말로. 같은 문장에 저장소가 있으면 불러오기다 |
+| 〃 | 〃 | `GitHub[^.?\n]*가져오` | 정규식 | — | 같음 |
+| 〃 | 〃 | `가져오는 중` | 글자 | — | 진행은 불러오는 중이다. 가져오기는 읽는 중을 쓴다 |
+| 〃 | 〃 | `가져왔` | 글자 | — | 결과는 불러왔습니다. 가져오기는 결과 문장이 없다(편집기가 열린다) |
+| 〃 | 〃 | `가져오지 못` | 글자 | — | 실패는 불러오지 못했습니다. 가져오기 실패는 가져올 수 없습니다 |
+| 저장소에서 불러온 노트(연결 안내 띠 · 바꾸기 · 이어받기 · 끊기 대화상자) | 이 저장소에서 불러온 노트 · 전에 불러온 노트 | `이 기기의 노트` | 글자 | — | `이 기기` 는 기기 노트 출처 말이다(local-notes 결정 · 기능 문서 깨지는 전제). 옛 캐시를 이 기기로 부르면 뜻이 뒤집힌다 |
+| 〃 | 〃 | `노트는 이 기기에만` | 글자 | — | 같음. 띠 · 대화상자 넷(RC-1 · RC-15 · RC-17 · RC-19)은 값을 `## 문구`(local-notes 디자인)대로 바꿔 동결 예외가 없다 |
 | 〃 | 〃 | `동기화` | 글자 | — | 내부 용어. 저장소 카드 줄도 불러오기로 |
 | 〃 | 〃 | `반영` | 글자 | — | 명사 나열 |
 | 〃 | 〃 | `노트를? 받` | 정규식 | — | `받` 은 모델 말이다 |
@@ -53,6 +60,18 @@
 | 토큰 안내 낱말 | 세분화된 토큰 · 이 저장소 하나만 · 콘텐츠 읽기 전용 | — | — | `ui_token_howto_kind` · `ui_token_howto_scope` · `ui_token_howto_perm` | 동결(기능 문서 결정 5). GitHub 화면 이름과 짝이고 템플릿 README 시험이 본다 |
 | 화면 제목 | MyNote · 설정 · 북마크 · 통계 · 지난 요약 | — | — | `ui_app_title` · `app_name` · `ui_settings` · `shell_nav_bookmark` · `shell_nav_stats` · `shell_stats_history_title` | 동결(BR-7) |
 | 저장소를 앱에 묶음 | 연결 · 연결 끊기 · 저장소 바꾸기 | — | — | — | 그대로 |
+| 다른 앱의 글 · 파일을 기기 노트로 들임 | 가져오기 · 가져올 글 · 가져올 수 없습니다 · 파일 열기 · 붙여넣기 | `파일을 불러` | 글자 | — | 불러오기는 저장소 말이다(local-notes 디자인) |
+| 〃 | 〃 | `글을 불러` | 글자 | — | 같음 |
+| 앱에서 노트를 새로 씀 | 새 노트 · 쓰기 | `작성` | 글자 | — | 한자어 꼬리. 버튼 · 제목이 새 노트 |
+| 기기 노트를 바꿈 | 고치기 · 노트 고치기 | `편집` | 글자 | — | 한 일에 한 말. 편집기는 화면 이름이 아니다(문서 말) |
+| 〃 | 〃 | `수정` | 글자 | — | 같음 |
+| 저장하지 않은 글을 버림 | 버리기 · 계속 쓰기 | `폐기` | 글자 | — | 한자어 |
+| 기기 노트의 출처 | 이 기기 | `로컬` | 글자 | — | 내부 용어. 저장소 노트에는 출처 말이 없다(local-notes 결정 8). 화면에 나타냄은 `표시` 가 아니라 보이다(위) |
+| 그룹 칸을 비운 기기 노트의 그룹 | 그룹 없음 | `미분류` | 글자 | — | 그룹 칸 안내 글과 같은 말. 저장값도 이 글자(local-notes 정하지 않은 것 20) |
+| 〃 | 〃 | `기본 그룹` | 글자 | — | 문서 말이다 |
+| 클립보드의 글을 칸에 넣음 | 붙여넣기(이름 · 버튼 · 제목) · 붙여 넣으세요 · 붙여 넣으면(움직씨) | `붙여 넣기` | 글자 | — | 이름은 붙여 쓰고 움직씨는 띄운다 |
+| 〃 | 〃 | `붙여넣으` | 글자 | — | 같음 |
+| 〃 | 〃 | `붙여넣습` | 글자 | — | 같음 |
 
 ### 끝말
 
@@ -133,7 +152,7 @@ SC-1 이 보지 않는 문구다. 이름으로만 뺀다.
 
 | 자리 | 파일 | 리소스 | 이번에 바꾼 행 |
 |---|---|---|---|
-| 상단 바 제목 | `shell/NotesTopBar.kt` | `ui_app_title` · `ui_settings` · `shell_nav_bookmark` · `shell_nav_stats` · `shell_stats_history_title` · `connect_change_title` · `connect_attach_title` | 없음 |
+| 상단 바 제목 | `shell/NotesTopBar.kt` | `ui_app_title` · `ui_settings` · `shell_nav_bookmark` · `shell_nav_stats` · `shell_stats_history_title` · `connect_change_title` · `connect_attach_title` · `editor_title_new` · `editor_title_edit` · `editor_import_paste`(붙여넣기 제목) | 없음 |
 | 플로팅 내비 라벨(12sp) | ds `FloatingNav.kt` | `shell_nav_home` · `shell_nav_bookmark` · `shell_nav_stats` | 없음 |
 | 상태 알약 | ds `FloatingStatusPill.kt` | `ui_pill_*` 다섯 · `ui_model_percent` | 없음 |
 | 퀴즈 CTA 부제 | quiz `component/QuizCtaCard.kt` | `ui_quiz_cta_subtitle` · `ui_quiz_cta_need_model` · `ui_quiz_cta_paused` · `ui_quiz_cta_downloading` · `ui_pill_failed` | 없음 |
@@ -155,27 +174,12 @@ SC-1 이 보지 않는 문구다. 이름으로만 뺀다.
 
 | 자리 | 왜 | 이번에 바꾼 행 |
 |---|---|---|
-| 첫 실행 연결 화면(가로 800 × 336 · 두 단) | BR-8 — 스크롤 없이 한 화면 | `connect_entry_title` −1 · `connect_entry_step_1` −1 · `connect_token_desc` −3 · `connect_syncing_desc` −4 · `ui_connect_err_offline` −5. 늘어나는 행은 `ui_token_err_rejected` +8 하나 — 토큰을 넣은 뒤의 오류 상자라 BR-8 이 보는 첫 화면에는 없다. SC-9 캡처로 본다 |
+| 홈 첫 실행 빈 상태(가로 800 × 360) | 높이 Compact 에서 스크롤 없이 한 화면 — 제목 · 설명 한 줄 · 버튼 한 줄 · 저장소 연결 한 줄(local-notes 디자인). 첫 실행 연결 화면(BR-8 · 두 단)은 기능 문서 RC-25 · brand 결정 15 가 걷었다 | 없음 |
 | 접힌 알림 | 접히면 한 줄 | `ai_model_download_no_space` −3 · `ai_model_download_failed_body` −2 |
 
 ### 같이 바뀔 것
 
-copy-apply 가 `strings.xml` 과 한 묶음으로 고친다. 인용 글자가 `strings.xml` 값과 다르면 SC-8 이 걸린다.
-
-| # | 갈래 | 파일 · 자리 | 무엇 | 누가 |
-|---|---|---|---|---|
-| ① | 템플릿 README | `public-repos/notes-template/README.md` 앱 용어 일곱 · 문제 해결의 연결 실패 문장 | 바뀌는 값 없음 — 일곱(`connect_entry_create` · `connect_link_label` · `connect_action` · `connect_token_title` · `ui_token_howto_*` 셋)과 `connect_err_no_list` 는 그대로. 확인만 | copy-apply |
-| ② | DESIGN.md | 9.2 `ds_unsupported_*` 다섯 · 9.3 권유 끝말 · 9.4 옮긴 문구 표의 ☰ 줄 · 확인 다이얼로그 예 · 실패 예 · 쓰지 않는 표현 머리 | 이 문서와 같은 커밋에서 고쳤다 | 디자인(끝남) |
-| ③ | 공개 규격 | `public-repos/notes-kit/SPEC.md` 와 플러그인 사본 | 인용 낱말(`원문 보기` · `노트 목록` · `노트 저장소`)이 그대로라 고칠 것 없음. 확인만 | copy-apply |
-| ④ | 기능 문서 | `docs/spec/sync.md` SY-6 `노트 변경 반영 — …` → `노트를 불러왔습니다 · …` | 인용 글자만 · 바뀐 기록 `인용 문구만` | copy-spec |
-| ④ | 기능 문서 | `docs/spec/model-download.md` 열린 질문 1 `내려받기를 취소했습니다` → `받기를 취소했습니다` | 같음 | copy-spec |
-| ④ | 기능 문서 | `docs/spec/repo-connect.md` 결정 30 "저장된 토큰이 지워집니다" 한 줄 → `저장된 토큰도 지웁니다` | 같음. RC-15 · RC-17 은 인용이 아니라 풀어 쓴 말이라 그대로 | copy-spec |
-| ⑤ | 디자인 문서 | `docs/design/repo-connect.md` 입구 제목 · 단계 ① | 이 문서와 같은 커밋에서 고쳤다 | 디자인(끝남) |
-| ⑤ | 디자인 문서 | `docs/design/model-download.md` 용어 줄(스낵바도 `받`) · 알림 표 받지 못함 본문 | 이 문서와 같은 커밋에서 고쳤다 | 디자인(끝남) |
-| ⑤ | 디자인 문서 | `docs/design/note-format.md` · `docs/design/brand.md` | 문구표의 값이 바뀌지 않는다(낭독 낱말 · 한도 상자 · 제목) | 없음 |
-| ⑥ | 모듈 문서 | `feature/notes/AGENTS.md` 실패 이유 절의 "잠시 뒤 다시 시도해 주세요" | `잠시 뒤 다시 시도하세요` 로 | copy-apply |
-| ⑦ | 시험 | 값을 단언하는 파이썬 둘(`public-repos/tests/test_template.py` 일곱 · `notes-tests/test_brand_title.py` 다섯) | 값이 그대로라 고칠 것 없음. Kotlin 시험은 `R.string` 으로 읽어 안 깨진다 — 글자로 적은 `MyNoteHeroTest` 의 안내는 견본이고 바뀌지 않는 앞 문장이다 | copy-apply(돌려 확인) |
-| — | 시안 기록 | `labs/repo-connect-design/r1` · `r2` README 문구표 · `labs/brand-design` 생성기 | 그때의 시안 기록이라 고치지 않는다. 정본은 `strings.xml` 과 이 문서 | 없음 |
+feature-modules 때 `strings.xml` 과 한 묶음으로 고친 갈래 표는 바꾼 문구 표 파일(`docs/design/screen-copy-rows.md` `## 같이 바뀔 것`)로 옮겼다.
 
 ## 기능 문서 항목
 
@@ -187,7 +191,7 @@ copy-apply 가 `strings.xml` 과 한 묶음으로 고친다. 인용 글자가 `s
 | SC-4 · SC-5 | 바꾼 문구 표(`docs/design/screen-copy-rows.md`) — 지운 문구 0 · 형식 자리 그대로 |
 | SC-6 | 바꾼 문구 표의 자리 · 길이 칸 · `### 한 줄 고정 자리` |
 | SC-7 | 바꾼 문구 표의 낭독 행 · 문장 안 나열을 쉼표로 바꾼 행 |
-| SC-8 | `### 같이 바뀔 것` |
+| SC-8 | `docs/design/screen-copy-rows.md` `## 같이 바뀔 것` |
 | SC-9 | `### 한 줄 고정 자리` 의 자리 목록 — 캡처는 copy-apply |
 
 ## 정한 것
@@ -198,6 +202,8 @@ copy-apply 가 `strings.xml` 과 한 묶음으로 고친다. 인용 글자가 `s
 | 2 | 2026-10-11 · feature-modules | 노트 = `불러오기` · 모델 = `받기` · 모델 돌리기 = `실행` · 버튼 = `새로고침` | 용어 표 |
 | 3 | 2026-10-11 · feature-modules | 없앰은 `지우기`. 모델 카드 `삭제` 버튼과 그 대화상자 제목 · 스낵바 셋만 동결(버튼 글자 수) | 용어 표 동결 예외 |
 | 4 | 2026-10-11 · feature-modules | 토큰 안내 낱말 · 알림 채널 이름 · 화면 제목은 그대로(기능 문서 결정 5 · BR-7) | 용어 표 동결 예외 |
+| 5 | 2026-10-14 · local-notes | `가져오기` = 다른 앱의 글 · 파일을 기기 노트로 들임. 버린 말 `가져오` 는 저장소 쪽 꼴만 버린다. 옛 캐시는 `이 기기의 노트` 가 아니라 `불러온 노트`. 바꾸기 `고치기` · 출처 `이 기기` · 빈 그룹 `그룹 없음` · `붙여넣기`(이름) / `붙여 넣으세요`(움직씨) | 용어 표 · local-notes 디자인 `## 문구` |
+| 6 | 2026-10-14 · local-notes | 저장 · 지우기 실패 스낵바는 `~하지 못했습니다. 다시 시도해 보세요.`(plan D33 · 끝말 막음 꼴 `주세요` 를 피한 권유 꼴) | local-notes 디자인 `## 문구` · `editor_save_failed` · `editor_delete_failed` |
 
 ## 검토
 
@@ -211,8 +217,7 @@ copy-apply 가 `strings.xml` 과 한 묶음으로 고친다. 인용 글자가 `s
 |---|---|---|
 | 2026-10-11 | feature-modules | 처음 — 395개 전수, 바꾼 문구 56행(screen-copy-rows.md) |
 | 2026-10-11 | feature-modules | 끝말 막음 8 · 9 넓히고 10 더함 — 검수가 `맞지?` · `다시 해` 거짓 통과를 찾았다 |
-| 2026-10-12 | feature-modules | 리소스 이름만 — 셸이 `:app` 으로 가며 셸만 쓰는 내비 · 제목 문구 넷이 `notes_` 에서 `shell_` 로(값 그대로 · feature-modules 결정 15 · 16) |
-| 2026-10-12 | feature-modules | 리소스 이름 · 경로만 — 통계가 `:feature:stats` 로 가며 통계만 쓰는 문구가 `notes_stats_` 에서 `stats_` 로(값 그대로 · feature-modules 결정 15) · 한 줄 고정 자리 통계 세 행의 파일 칸이 통계 모듈 안 경로로 |
-| 2026-10-12 | feature-modules | 리소스 이름 · 경로만 — 연결 화면이 `:feature:connect` 로 가며 연결만 쓰는 문구가 `notes_connect_` · `notes_entry_` · `notes_link_reason_` · 바꾸기 · 받아들이기 대화상자에서 `connect_` 로(값 그대로 · feature-modules 결정 15) · 한 줄 고정 자리 주소 칸 힌트 행의 파일 칸이 연결 모듈 안 경로로 |
-| 2026-10-12 | feature-modules | 리소스 이름 · 경로만 — 설정 화면이 `:feature:settings` 로 가며 설정만 쓰는 문구가 `notes_settings_` · `notes_repo_` · 모델 카드 · 모델 대화상자 · 끊기 대화상자에서 `settings_` 로(값 그대로 · feature-modules 결정 15) · 한 줄 고정 자리 모델 카드 · 저장소 카드 · 버튼 행의 파일 칸이 설정 모듈 안 경로로 |
-| 2026-10-12 | feature-modules | 리소스 이름 · 경로만 — 퀴즈가 `:feature:quiz` 로 가며 퀴즈만 쓰는 문구가 `notes_quiz_` 에서 `quiz_` 로(값 그대로 · feature-modules 결정 15 — CTA 부제 · 그만두기 스낵바처럼 둘 이상이 쓰는 `ui_quiz_*` 는 그대로) · 한 줄 고정 자리 퀴즈 두 행의 파일 칸이 퀴즈 모듈 안 경로로 |
+| 2026-10-12 | feature-modules | 리소스 이름 · 경로만(값 그대로) — 셸(`shell_`) · 통계(`stats_`) · 연결(`connect_`) · 설정(`settings_`) · 퀴즈(`quiz_`)가 각 모듈로 가며 그 모듈만 쓰는 문구의 접두사와 한 줄 고정 자리의 파일 칸이 바뀌었다(feature-modules 결정 15 · 16). 둘 이상이 쓰는 `ui_quiz_*` 는 그대로 |
+| 2026-10-14 | local-notes | 용어 표 — `가져오` 를 저장소 꼴 다섯 행으로 가름 · 기기 노트 개념 행(가져오기 · 새 노트 · 고치기 · 버리기 · 이 기기 · 그룹 없음 · 붙여넣기) · 옛 캐시 문장 행(`이 기기의 노트` — 바뀔 문구 넷은 구현까지 동결 예외) · 한 줄 고정 자리의 첫 실행 연결 화면 행을 홈 첫 실행 빈 상태로 |
+| 2026-10-14 | local-notes | 끊기 대화상자 본문(`settings_dialog_disconnect_body`)을 `## 문구` 대로 바꾸고 옛 캐시 문장 행의 동결 예외를 지움 — 남은 예외 0(plan D42) |
+| 2026-10-14 | local-notes | 승격 — 한 줄 고정 자리 상단 바 제목에 기기 노트 키 셋 · 정한 것 6(실패 스낵바 · plan D33 · D36) |

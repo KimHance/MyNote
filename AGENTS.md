@@ -2,14 +2,16 @@
 
 이 파일은 이 레포에서 작업하는 에이전트를 위한 안내다.
 
-GitHub 의 마크다운 노트(옛 JSON 도)를 받아 읽는 **읽기 전용** 안드로이드 학습 노트 앱. 앱에서 쓰기는 없다.
+마크다운 학습 노트를 읽는 안드로이드 앱. 노트는 두 곳에서 온다 — 연결한 GitHub 저장소에서 받아 캐시하는 **저장소 노트**(옛 JSON 도)와
+앱에서 쓰거나 가져와(공유 · `.md` 파일 · 붙여넣기) 앱 DB 가 원본인 **기기 노트**(기능 문서 `local-notes`). 저장소 노트는 앱에서
+고치지 않고(읽기 전용 그대로), 쓰기 · 고치기 · 지우기는 기기 노트만이다. 저장소 연결은 선택이고 첫 실행은 홈 빈 상태다.
 온디바이스 LLM(LiteRT-LM)으로 노트에서 4지선다 퀴즈를 만드는 기능이 붙어 있다.
 퀴즈 모델(2.6GB)은 APK 에 없고 **앱에서 런타임에 내려받는다**(WorkManager + 포그라운드 알림).
 
 **모듈마다 `AGENTS.md` 가 따로 있다. 어떤 모듈을 건드리든 그 파일을 먼저 읽어라.**
 여기에는 모듈 하나만 봐서는 알 수 없는 것만 적는다.
 
-> `README.md` 는 사람용 소개다(2026-10-07 에 지금 사실로 맞췄다). 버전 · 모듈의 정본은 여전히
+> `README.md` 는 사람용 소개다(2026-10-14 에 기기 노트 · 선택 저장소로 맞췄다). 버전 · 모듈의 정본은 여전히
 > `gradle/libs.versions.toml` 과 `settings.gradle.kts` 다 — README 와 다르면 이쪽을 믿고 README 를 고쳐라.
 
 ---
@@ -32,7 +34,7 @@ GitHub 의 마크다운 노트(옛 JSON 도)를 받아 읽는 **읽기 전용** 
 python3 -I -m unittest discover notes-tests && python3 -I -m unittest discover public-repos/tests && python3 -I -m unittest discover public-repos/notes-kit/tests
 # 계측 시험 — 모듈마다 차례로 돌린다(`test` 에 안 든다 · 한 호출에 묶으면 병렬로 겹쳐 서로 죽는다). ANDROID_SERIAL 이 비면 붙은 기기 전부에 설치한다
 # 라이브러리 셋은 앱을 건드리지 않고, :app 은 앱을 덮어 설치하지만 gradle.properties 의 leaveApksInstalledAfterRun 이 지우지 않게 막는다
-# 기능 모듈 다섯 · :core:ui 에는 계측이 없다 — 셸과 기능 화면을 같이 그리는 계측(뒤로가기 7단 · 브랜드)은 :app 에 있다
+# 기능 모듈 · :core:ui 에는 계측이 없다 — 셸과 기능 화면을 같이 그리는 계측(뒤로가기 7단 · 브랜드)은 :app 에 있다
 ANDROID_SERIAL=<기기 serial> ./gradlew :core:design-system:connectedDebugAndroidTest && ANDROID_SERIAL=<기기 serial> ./gradlew :core:database:connectedDebugAndroidTest
 ANDROID_SERIAL=<기기 serial> ./gradlew :app:connectedDebugAndroidTest
 ```
@@ -61,6 +63,7 @@ app  ─────────────────────────
  ├─ feature/settings  ────────────  설정 · 저장소 칸 · 모델 카드 · 끊기 대화상자
  ├─ feature/quiz      ────────────  퀴즈 오버레이 · 리더 끝 CTA 카드 (목적지 키 없음)
  ├─ feature/stats     ────────────  통계 · 지난 요약
+ ├─ feature/editor    ────────────  기기 노트 편집기 · 붙여넣기 · 가져오기 그릇 · 지우기 확인 · 공유 받기 세션
  │    └→ core/{common, design-system, domain, navigation, ui}   (feature convention 이 자동 주입 · 기능끼리는 모른다)
  │
  ├─ core/ui        ──→ core/{common, design-system, domain, navigation}  두 기능 이상이 쓰는 화면 조각 · 셸 틀 계약 · 기능 사이 신호
@@ -106,6 +109,12 @@ app  ─────────────────────────
 ## 모듈을 가로지르는 함정
 
 한 모듈만 봐서는 안 보이는 것들이다. 각각 해당 모듈 `AGENTS.md` 에 자세히 있다.
+
+**노트 DB 는 더 이상 버려도 되는 캐시가 아니다.**
+기기 노트는 `source_notes` 의 기기 소스(`local`) 행이 유일한 원본이다 — 저장소에서 다시 받을 수 없다. DB 를 버리는
+마이그레이션(`fallbackToDestructiveMigration`) · 백업 규칙에서 노트 DB 빼기는 사용자 노트를 잃는다(LN-13 · LN-15).
+노트 행을 쓰는 길도 둘이다: 저장소 노트는 동기화(`NotesRepositoryImpl.sync`), 기기 노트는 `DeviceNotesRepositoryImpl`.
+저장소 흐름(동기화 · 이어받기 · 바꾸기 · 끊기)은 `kind == GitHub` 소스만 건드린다(LN-12). (`core/data/AGENTS.md` · `core/database/AGENTS.md`)
 
 **콘텐츠가 앱보다 먼저 나가면 옛 앱에서 상자로 보인다.**
 앱은 목록 항목 경로의 확장자로 형식을 고른다 — `.md` 는 마크다운, 그 밖은 JSON. 마크다운을 모르는 옛 앱은 `.md`
@@ -155,7 +164,7 @@ feature 에서는 안 보인다. (`feature/notes/AGENTS.md`)
 
 **화면 문구는 `strings.xml`.** 코드에 한글 리터럴을 두지 않는다(프리뷰 더미와 개발자용 `error()`·예외
 메시지는 예외). 모듈별 `resourcePrefix` 가 걸려 있다 — design-system `ds_` · `:core:ui` `ui_` · `:core:ai` `ai_` ·
-기능 모듈은 모듈 이름 그대로(`notes_` · `connect_` · `settings_` · `quiz_` · `stats_`, 기능 컨벤션이 건다). `:app` 은 접두사를
+기능 모듈은 모듈 이름 그대로(`notes_` · `connect_` · `settings_` · `quiz_` · `stats_` · `editor_`, 기능 컨벤션이 건다). `:app` 은 접두사를
 걸지 않고 셸 문구를 `shell_` 로 시작한다. 문구는 그것을 참조하는 모듈이 하나면 그 모듈, 둘 이상이면 `:core:ui` 에 둔다.
 공통 문구(확인·취소·저장·닫기·되돌리기)는 design-system 의 `ds_*` 를 쓴다.
 말투는 **합니다체** — 서술 `~합니다`/`~습니다`, 권유 `~하세요`.

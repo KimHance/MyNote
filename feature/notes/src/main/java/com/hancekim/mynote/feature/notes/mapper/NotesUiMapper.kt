@@ -3,7 +3,9 @@ package com.hancekim.mynote.feature.notes.mapper
 import com.hancekim.mynote.core.domain.model.Category
 import com.hancekim.mynote.core.domain.model.Note
 import com.hancekim.mynote.core.domain.model.NoteBlock
+import com.hancekim.mynote.core.domain.model.NoteOrigin
 import com.hancekim.mynote.core.domain.model.firstSentence
+import com.hancekim.mynote.core.ui.mapper.toContentBlocks
 import com.hancekim.mynote.feature.notes.CategoryUi
 import com.hancekim.mynote.feature.notes.NoteUi
 import kotlinx.collections.immutable.ImmutableList
@@ -25,4 +27,5 @@ internal fun Note.toUi(): NoteUi =
         blocks = blocks.toContentBlocks(),
         excerpt = firstSentence(),
         readable = blocks.none { it is NoteBlock.Unsupported && it.reason.wholeNote },
+        device = origin == NoteOrigin.Device,
     )

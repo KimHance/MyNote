@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.mapper
+package com.hancekim.mynote.core.ui.mapper
 
 import com.hancekim.mynote.core.designsystem.block.NoteColumnAlign
 import com.hancekim.mynote.core.designsystem.block.NoteContentBlock

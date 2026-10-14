@@ -102,6 +102,7 @@ dependencies {
     implementation(projects.feature.settings)
     implementation(projects.feature.quiz)
     implementation(projects.feature.stats)
+    implementation(projects.feature.editor)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime)

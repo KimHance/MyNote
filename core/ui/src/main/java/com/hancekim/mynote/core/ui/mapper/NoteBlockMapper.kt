@@ -1,4 +1,4 @@
-package com.hancekim.mynote.feature.notes.mapper
+package com.hancekim.mynote.core.ui.mapper
 
 import com.hancekim.mynote.core.designsystem.block.NoteColumnAlign
 import com.hancekim.mynote.core.designsystem.block.NoteContentBlock
@@ -19,7 +19,8 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 
-internal fun List<NoteBlock>.toContentBlocks(limits: NoteLimits = NoteLimits.Default): ImmutableList<NoteContentBlock> =
+/** 도메인 블록 → 디자인 시스템 리더 블록. 리더(`:feature:notes`)와 편집기 미리보기(`:feature:editor`)가 같이 쓴다(FM-3 · local-notes LN-3 ②). */
+fun List<NoteBlock>.toContentBlocks(limits: NoteLimits = NoteLimits.Default): ImmutableList<NoteContentBlock> =
     map { it.toContentBlock(limits) }.toImmutableList()
 
 private fun NoteBlock.toContentBlock(limits: NoteLimits): NoteContentBlock =

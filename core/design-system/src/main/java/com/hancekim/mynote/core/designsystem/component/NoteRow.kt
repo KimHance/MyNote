@@ -31,6 +31,7 @@ fun NoteRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     bookmarked: Boolean = false,
+    device: Boolean = false,
 ) {
     val colors = MyNoteTheme.colors
     Row(
@@ -53,8 +54,12 @@ fun NoteRow(
             color = if (active) colors.accent else colors.text2,
             modifier = Modifier.weight(1f),
         )
-        if (bookmarked) {
+        if (device) {
             Spacer(Modifier.width(8.dp))
+            DeviceGlyph()
+        }
+        if (bookmarked) {
+            Spacer(Modifier.width(if (device) 6.dp else 8.dp))
             BookmarkGlyph()
         }
     }
@@ -63,6 +68,7 @@ fun NoteRow(
 private data class NoteRowPreviewState(
     val active: Boolean,
     val bookmarked: Boolean,
+    val device: Boolean = false,
 )
 
 private class NoteRowPreviewProvider : PreviewParameterProvider<NoteRowPreviewState> {
@@ -72,6 +78,7 @@ private class NoteRowPreviewProvider : PreviewParameterProvider<NoteRowPreviewSt
             NoteRowPreviewState(active = true, bookmarked = false),
             NoteRowPreviewState(active = false, bookmarked = true),
             NoteRowPreviewState(active = true, bookmarked = true),
+            NoteRowPreviewState(active = false, bookmarked = true, device = true),
         )
 
     override fun getDisplayName(index: Int): String? =
@@ -79,7 +86,8 @@ private class NoteRowPreviewProvider : PreviewParameterProvider<NoteRowPreviewSt
             0 -> "inactive"
             1 -> "active"
             2 -> "inactive · bookmarked"
-            else -> "active · bookmarked"
+            3 -> "active · bookmarked"
+            else -> "inactive · bookmarked · device"
         }
 }
 
@@ -94,6 +102,7 @@ private fun NoteRowPreview(
             active = state.active,
             onClick = {},
             bookmarked = state.bookmarked,
+            device = state.device,
         )
     }
 }

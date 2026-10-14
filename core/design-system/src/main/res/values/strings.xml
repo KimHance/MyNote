@@ -11,6 +11,7 @@
     <string name="ds_scroll_to_top">맨 위로</string>
     <string name="ds_search_hint">노트 검색</string>
     <string name="ds_bookmarked">북마크됨</string>
+    <string name="ds_origin_device">이 기기</string>
     <string name="ds_state_expanded">펼침</string>
     <string name="ds_state_collapsed">접힘</string>
 

@@ -33,11 +33,16 @@ import com.hancekim.mynote.core.designsystem.block.NoteSpanStyle
 import com.hancekim.mynote.core.designsystem.block.UnsupportedKind
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.domain.model.ConnectionState
+import com.hancekim.mynote.core.domain.model.DeviceNoteDraft
+import com.hancekim.mynote.core.domain.model.DraftCheck
 import com.hancekim.mynote.core.domain.model.RepoConnection
 import com.hancekim.mynote.core.domain.model.SourceId
 import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import com.hancekim.mynote.core.navigation.key.activeNoteId
 import com.hancekim.mynote.core.ui.element.NotesDrafts
+import com.hancekim.mynote.feature.editor.EditorIntent
+import com.hancekim.mynote.feature.editor.EditorSession
+import com.hancekim.mynote.feature.editor.EditorUiState
 import com.hancekim.mynote.feature.notes.CategoryUi
 import com.hancekim.mynote.feature.notes.NoteUi
 import com.hancekim.mynote.feature.notes.R
@@ -226,6 +231,42 @@ class BackOrderTest {
     }
 
     @Test
+    fun `FM-10 LN-10 바뀐 편집기의 뒤로가기는 pop 대신 나가기 확인을 묻는다`() {
+        shell.show(ShellScene(stack = EDITOR_STACK, editor = ShellEditor.Dirty))
+
+        shell.back()
+
+        assertEquals(listOf(Recorded.CloseEditor), shell.recorded())
+    }
+
+    @Test
+    fun `FM-10 LN-10 바뀐 편집기는 예측 뒤로가기도 미리보기 없이 묻는다`() {
+        shell.show(ShellScene(stack = EDITOR_STACK, editor = ShellEditor.Dirty))
+
+        shell.predictiveBack()
+
+        assertEquals(listOf(Recorded.CloseEditor), shell.recorded())
+    }
+
+    @Test
+    fun `FM-10 LN-10 바뀌지 않은 편집기는 pop 된다`() {
+        shell.show(ShellScene(stack = EDITOR_STACK, editor = ShellEditor.Clean))
+
+        shell.back()
+
+        assertEquals(listOf(Recorded.Back), shell.recorded())
+    }
+
+    @Test
+    fun `FM-10 LN-10 전환 중이면 바뀐 편집기도 삼킨다`() {
+        shell.show(ShellScene(stack = EDITOR_STACK, editor = ShellEditor.Dirty, settled = false))
+
+        shell.back()
+
+        assertEquals(emptyList<Recorded>(), shell.recorded())
+    }
+
+    @Test
     fun `FM-4 창 등급이 바뀌어도 리더 스크롤과 원문 펼침과 토큰 입력이 남는다`() {
         shell.show(ShellScene(stack = READER_STACK))
         shell.expandRaw()
@@ -253,7 +294,10 @@ class BackOrderTest {
 // ---------------------------------------------------------------------------------------------
 
 /** 몸통이 단언하는 콜백. 셸의 인텐트 타입과 떨어져 있어 ViewModel 이 나뉘어도 그대로다. */
-internal enum class Recorded { Back, DismissQuiz, CancelTokenEdit, Exit }
+internal enum class Recorded { Back, DismissQuiz, CancelTokenEdit, CloseEditor, Exit }
+
+/** 편집기 세션 — 없음 · 연 때 그대로 · 바뀜(LN-10). */
+internal enum class ShellEditor { None, Clean, Dirty }
 
 internal enum class ShellWindow { Compact, Wide }
 
@@ -265,6 +309,7 @@ internal enum class ShellQuiz { None, Setup, Solving }
  * @property stack 백스택. 통계 · 지난 요약 · 연결은 넣지 않는다(엔트리가 Hilt ViewModel 을 쓴다)
  * @property settled 전환이 끝났는가
  * @property tokenEditing 설정의 토큰 편집 중인가
+ * @property editor 편집기 세션 — 스택 맨 위가 [EDITOR_KEY] 일 때 쓴다(LN-10)
  */
 internal data class ShellScene(
     val stack: List<NotesNavKey> = listOf(NotesNavKey.Home),
@@ -272,7 +317,11 @@ internal data class ShellScene(
     val quiz: ShellQuiz = ShellQuiz.None,
     val window: ShellWindow = ShellWindow.Compact,
     val tokenEditing: Boolean = false,
+    val editor: ShellEditor = ShellEditor.None,
 )
+
+internal val EDITOR_KEY = NotesNavKey.Editor()
+internal val EDITOR_STACK: List<NotesNavKey> = listOf(NotesNavKey.Home, EDITOR_KEY)
 
 internal val READER_STACK: List<NotesNavKey> = listOf(NotesNavKey.Home, NotesNavKey.Reader(LONG_NOTE_ID))
 internal val SETTINGS_STACK: List<NotesNavKey> = listOf(NotesNavKey.Home, NotesNavKey.Settings)
@@ -416,6 +465,7 @@ internal class ShellHarness(
                     notes = {},
                     settings = { if (it == SettingsIntent.CancelTokenEdit) calls += Recorded.CancelTokenEdit },
                     quiz = { if (it == QuizIntent.Dismiss) calls += Recorded.DismissQuiz },
+                    editor = { if (it == EditorIntent.Close) calls += Recorded.CloseEditor },
                 )
             }
         MyNoteTheme(windowClass = current.window.windowClass, heightClass = MyNoteHeightClass.Medium) {
@@ -475,6 +525,19 @@ private fun ShellScene.toStates(exitRequestId: Int): FeatureStates {
                         ShellQuiz.Solving -> QuizUiState.Solving(questions = QUESTIONS)
                     },
             ),
+        editor = EditorUiState(session = editorSession(editor)),
+    )
+}
+
+private fun editorSession(editor: ShellEditor): EditorSession? {
+    if (editor == ShellEditor.None) return null
+    val original = DeviceNoteDraft()
+    val draft = if (editor == ShellEditor.Dirty) original.copy(body = "가") else original
+    return EditorSession(
+        EDITOR_KEY,
+        draft,
+        original,
+        DraftCheck(titleBlank = true, bodyBlank = false, bodyTooLarge = false),
     )
 }
 

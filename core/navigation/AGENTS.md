@@ -58,6 +58,13 @@ dispatch: throttle.isIdle() 로 게이트  →  reduce(현재 스택, 명령)  �
 - **창 길이는 `SceneMotion` 에서 파생한다** — `max(DURATION_MILLIS, BODY_FADE_OUT + BODY_FADE_IN)`.
   매직넘버로 두면 모션을 늘렸을 때 쓰로틀만 짧게 남는다.
 
+### 떠나기 지킴 — `LeaveGuard`
+
+`setLeaveGuard` 로 한 칸만 건다(새로 걸면 갈아 끼우고, `clearLeaveGuard(guard)` 는 그 지킴일 때만 푼다). **`dispatch` 만 지난다** —
+게이트 → `reduce` → 지킴 순이고, 막히면 스택을 바꾸지 않고 창도 열지 않은 채 `NavResult.Guarded` 를 돌려준다. `Ignored` 와 다르다 —
+셸은 `Ignored` 만 종료 안내로 읽는다. `dispatchImmediately`(정정)는 지킴을 지나지 않는다. 지금 거는 곳은 편집기 나가기 확인 하나다
+(`:feature:editor` — 바뀐 편집기를 떼는 탭 전환 · 스택 바꿈을 묻는다, local-notes LN-10 · plan D32). 시험: `NavigatorTest.LN-10 …`.
+
 ### `dispatchImmediately`
 
 게이트를 우회한다. **사용자 입력이 아닌 이동 전용**(정정·딥링크). 호출부는 동기화로 지워진 노트가 열려 있을 때의
@@ -196,6 +203,19 @@ nav3 의 `LocalNavAnimatedContentScope` 는 미설정 시 **예외를 던진다*
 - `openReaderCommand(noteId)` — 설정이 맨 위면 설정을 걷고 그 자리에 리더를 둔다(`ReplaceAll`), 아니면 `Push`.
 - `switchTabCommand(tab)` — 플로팅 내비 칸(`NotesTab`). 홈은 `ReplaceAll([Home])`, 북마크 · 통계는 `[Home]` 에서 `Push` · 그 밖에서
   `ReplaceAll([Home, 탭])`. 이미 그 자리면 `Navigator` 가 `Ignored` 로 받는다.
+
+## 편집기 명령 — `EditorCommands.kt`(local-notes)
+
+기기 노트 편집기 · 붙여넣기 · 지우기의 스택 계산. 셋 다 스택을 받아 명령 하나를 돌려주는 순수 함수다. 키는 `NotesNavKey.Editor(noteId?, draftId?)`
+(새 노트 = 둘 다 null · 고치기 = `noteId` · 가져온 글 = `draftId` — 본문은 키에 싣지 않는다) · `NotesNavKey.Paste`.
+
+- `openEditorCommand(editor)` — 스택의 편집기를 빼고 맨 위에 새 편집기(편집기는 스택에 하나 — LN-8 ③). 붙여넣기가 맨 위면 그 자리를 갈아 끼운다.
+  아무것도 안 빼면 `Push`.
+- `savedNoteCommand(noteId)` — 편집기를 빼고 그 아래가 그 노트 리더면 그대로(고치기), 아니면 그 자리에 리더(새 노트 — LN-3 ⑥).
+- `withoutNoteCommand(noteId)` — 그 노트의 리더 · 편집기를 빼고 이웃이 같은 키가 되면 합친다. 비면 홈(LN-11). 퀴즈 닫기는 부른 쪽이
+  `FeatureSignals.closeQuiz()` 로 한다.
+- 넓은 창에서 편집기 · 붙여넣기는 연결 화면과 달리 **상세 칸**에 든다(디자인 C8) — 씬 전략은 그대로이고 헤더 슬롯을 셸이 비운다.
+  시험: `ListDetailSceneStrategyTest.LN-3 편집기와 붙여넣기는 넓은 창에서 상세 칸이다` · `EditorCommandsTest`.
 
 ## 등록 틀 — `registry/Destinations.kt`
 

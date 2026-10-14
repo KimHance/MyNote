@@ -188,7 +188,8 @@ ViewModel 하나 — 만 공개로 내놓고 셸을 import 하지 않는다. 연
 아예 그리지 않는다.** 퀴즈에 넣을 평문이 없어서다. 판정은 `NotesUiMapper` 가 파생하는 `NoteUi.readable` 하나이고(`NotesUiMapperTest`),
 통계의 "다시 풀기"(`OpenQuizFor`)도 같은 값으로 리더만 열고 퀴즈 설정을 띄우지 않는다(띄우면 `GenerateQuizUseCase` 가
 빈 평문으로 `QuizFailure.Empty`). 블록 몇 개만 못 그린 노트(`UnknownType`·`BrokenBlock`)는 평소대로다. 그 블록은
-`NoteBlockMapper` 가 빈 `text`·`raw` 를 `null` 로 바꿔 design-system `NoteContentBlock.Unsupported` 로 넘긴다(`NoteBlockMapperTest`).
+`:core:ui` 의 `NoteBlockMapper`(`toContentBlocks` — 편집기 미리보기와 같이 써서 옮겼다, FM-3)가 빈 `text`·`raw` 를 `null` 로 바꿔
+design-system `NoteContentBlock.Unsupported` 로 넘긴다(`:core:ui` `NoteBlockMapperTest`).
 
 ---
 

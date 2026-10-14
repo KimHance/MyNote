@@ -18,12 +18,13 @@ EXPECTED_VIEW_MODELS = {
     "QuizViewModel.kt",
     "StatsViewModel.kt",
     "ConnectViewModel.kt",
+    "EditorViewModel.kt",
 }
 
 # FM-7 — 목적지 스코프 ViewModel 은 창 등급이 바뀌어 NavDisplay 가 다시 만들어질 때 새로 생긴다(결정 7)
 ACTIVITY_OWNER = "viewModelStoreOwner"
 ENTRY_DECORATOR = "rememberViewModelStoreNavEntryDecorator"
-MIN_HILT_CALLS = 7
+MIN_HILT_CALLS = 8
 
 # FM-7 · SY-1 — 동기화 흐름은 차갑다. 구독마다 동기화가 돈다
 SYNC_PARAM = re.compile(r"\w+\s*:\s*ObserveSyncRunsUseCase\b")
@@ -51,7 +52,7 @@ OTHER_FEATURE_STATE = {
 SETTINGS = REPO_ROOT / "settings.gradle.kts"
 CATALOG = REPO_ROOT / "gradle" / "libs.versions.toml"
 CONVENTION = REPO_ROOT / "build-logic" / "convention"
-FEATURES = (":feature:notes", ":feature:connect", ":feature:settings", ":feature:quiz", ":feature:stats")
+FEATURES = (":feature:notes", ":feature:connect", ":feature:settings", ":feature:quiz", ":feature:stats", ":feature:editor")
 CORE_UI = ":core:ui"
 CORE_UI_DEPENDS = {":core:common", ":core:design-system", ":core:domain", ":core:navigation"}
 DATA_LAYER = (":core:data", ":core:network", ":core:database", ":core:ai", ":core:format")
@@ -64,6 +65,7 @@ PREFIXES = {
     ":feature:settings": "settings_",
     ":feature:quiz": "quiz_",
     ":feature:stats": "stats_",
+    ":feature:editor": "editor_",
     CORE_UI: "ui_",
     ":core:design-system": "ds_",
     ":core:ai": "ai_",
@@ -106,6 +108,8 @@ SHARED_PIECES = {
         "CONTENT_MAX_WIDTH",
         "NotesTopBar",
         "ActionDialog",
+        "GlassDialog",
+        "toContentBlocks",
         "rememberBookmarkTimeLabel",
         "NotesScrollState",
         "ShellFrame",
@@ -171,9 +175,17 @@ SCREEN_FILES = {
         "StatsViewModel.kt",
         "StatsDestinations.kt",
     ),
+    # local-notes — 편집기 · 붙여넣기 · 가져오기 그릇 · 지우기 확인(기능 모듈 하나 — brief 정하지 않은 것 11)
+    ":feature:editor": (
+        "EditorScreen.kt",
+        "PasteScreen.kt",
+        "EditorHost.kt",
+        "EditorViewModel.kt",
+        "EditorDestinations.kt",
+    ),
 }
 # 노트에 남으면 안 되는 다른 기능의 파일 이름 머리. 연결 띠(`ConnectBand.kt`)는 모듈 지도에서 노트 몫이다
-OTHER_FEATURE_HEADS = ("Connect", "Settings", "Quiz", "Stats")
+OTHER_FEATURE_HEADS = ("Connect", "Settings", "Quiz", "Stats", "Editor")
 NOTES_KEPT = {"ConnectBand.kt"}
 
 # FM-11 — 정의만 있고 아무도 쓰지 않는 문구 가운데 이유가 있어 두는 것(plan D47). 누가 쓰기 시작하면 시험이 목록에서 지우라고 알린다
@@ -195,6 +207,8 @@ SIGNAL_TYPES = (
     "NavCommand",
     "MyNoteNavKey",
     "NotesNavKey",
+    "SharedTextInbox",
+    "SharedText",
 )
 
 # FM-11 — 결정 15. 공통 액션 문구는 참조 수와 상관없이 design-system 에 산다
@@ -203,13 +217,14 @@ SHARED_STRING_HOMES = (CORE_UI, ":core:design-system")
 # 아직 한 모듈이 쓰지만 기능을 다 떼면 둘 이상이 쓰는 문구 — 공용 조각과 같이 `:core:ui` 로 먼저 옮겼다.
 # 실제로 둘 이상이 쓰게 되면 시험이 이 목록에서 지우라고 알린다. 연결을 떼며 마지막 셋(`ui_token_*`)이 빠져 지금은 비었다
 PLACED_AHEAD = {}
-# FM-5 — 셸은 `:app` 에 산다. 결정 12 의 고정 순서 호출(연결 루트 · 읽는 중 · 모델 확인 대화상자 · 뒤로가기 핸들러 · 목록 패널 ·
-# 퀴즈 오버레이 · 상단 바)과 드로어 틀은 `:app` 의 셸 파일 한 곳에서 부른다. 기능 모듈에는 NavDisplay · 드로어 틀이 없다
+# FM-5 — 셸은 `:app` 에 산다. 결정 12 의 고정 순서 호출(읽는 중 · 모델 확인 대화상자 · 편집기 기능의 대화상자 자리 · 뒤로가기 핸들러 ·
+# 목록 패널 · 퀴즈 오버레이 · 상단 바)과 드로어 틀은 `:app` 의 셸 파일 한 곳에서 부른다. 기능 모듈에는 NavDisplay · 드로어 틀이 없다.
+# 연결 루트는 local-notes 에서 시작 결과가 아니게 되어(RC-1) 목록에서 빠졌다
 SHELL_FILE = "NotesShell.kt"
 SHELL_ONLY_CALLS = ("NavDisplay", "ModalNavigationDrawer")
 ORDERED_CALLS = (
-    "ConnectRoute",
     "ConnectReadingScreen",
+    "EditorHost",
     "ModelConfirmDialog",
     "BackHandler",
     "ListPanelScreen",
@@ -220,7 +235,7 @@ ORDERED_CALLS = (
 # FM-15 — 모듈마다 AGENTS.md 가 있고, 루트 AGENTS.md 의 모듈 지도(그 절의 첫 코드 블록)가 그 모듈 폴더를 든다
 ROOT_AGENTS = REPO_ROOT / "AGENTS.md"
 MODULE_MAP_HEADING = "## 모듈 지도와 의존 방향"
-MIN_MODULES = 17
+MIN_MODULES = 18
 MULTIBINDING = re.compile(r"@(?:IntoSet|IntoMap|ElementsIntoSet)\b")
 ROOT_ROUTE = "NotesRoute"
 # FM-11 — 결정 16. `:app` 은 resourcePrefix 를 걸지 않고 셸 문구만 `shell_` 로 시작한다. 셸 문구가 아닌 앱 리소스 이름
@@ -508,7 +523,7 @@ class FeatureModulesTest(unittest.TestCase):
     def test_FM_2_기능_모듈은_서로를_의존하지_않는다(self):
         graph = module_graph()
         # 헛통과 막이 — 판정이 컨벤션이 넣는 의존과 접근자 이름을 실제로 읽는지, 기능 의존을 알아보는지 먼저 본다
-        self.assertTrue(set(FEATURES) <= closure(graph, ":app"), "`:app` 이 기능 모듈 다섯을 다 보지 못했습니다")
+        self.assertTrue(set(FEATURES) <= closure(graph, ":app"), "`:app` 이 기능 모듈을 다 보지 못했습니다")
         found = []
         for path in (*FEATURES, CORE_UI):
             reached = closure(graph, path)
@@ -567,7 +582,7 @@ class FeatureModulesTest(unittest.TestCase):
         homes = {}
         for path in sources:
             homes.setdefault(path.name, set()).add(module_of(path))
-        # 헛통과 막이 — 모듈 지도의 화면 파일을 하나도 빠짐없이 찾는지, 다섯 모듈을 다 보는지 먼저 본다
+        # 헛통과 막이 — 모듈 지도의 화면 파일을 하나도 빠짐없이 찾는지, 기능 모듈을 다 보는지 먼저 본다
         self.assertEqual({module_of(path) for path in sources}, set(FEATURES))
         wrong = [
             f"{name}: {sorted(homes.get(name, ()))} — {home} 에만 있어야 한다"

@@ -178,6 +178,7 @@ fun ListPanelScreen(
                                         active = note.id == chrome.activeNoteId,
                                         onClick = { dispatch(NotesIntent.SelectNote(note.id)) },
                                         bookmarked = note.id in uiState.bookmarkedIds,
+                                        device = note.device,
                                     )
                                 }
                             }

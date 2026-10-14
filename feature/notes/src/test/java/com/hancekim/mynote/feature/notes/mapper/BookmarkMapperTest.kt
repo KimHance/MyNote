@@ -48,7 +48,7 @@ class BookmarkMapperTest {
     }
 
     @Test
-    fun `노트가 없는 북마크는 목록에서 빠진다`() {
+    fun `LN-11 노트 없는 북마크 키는 보이지 않는다`() {
         val result = bookmarkedNotes(categories, listOf(Bookmark("ghost", 99L), Bookmark("tcp", 1L)))
 
         assertEquals(listOf("tcp"), result.map { it.note.id })
