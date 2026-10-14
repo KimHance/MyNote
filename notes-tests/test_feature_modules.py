@@ -108,6 +108,8 @@ SHARED_PIECES = {
         "CONTENT_MAX_WIDTH",
         "NotesTopBar",
         "ActionDialog",
+        "GlassDialog",
+        "toContentBlocks",
         "rememberBookmarkTimeLabel",
         "NotesScrollState",
         "ShellFrame",

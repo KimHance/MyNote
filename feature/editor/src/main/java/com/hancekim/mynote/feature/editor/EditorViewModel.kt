@@ -11,6 +11,7 @@ import com.hancekim.mynote.core.domain.SaveDeviceNoteUseCase
 import com.hancekim.mynote.core.domain.model.DeviceNoteDraft
 import com.hancekim.mynote.core.domain.model.DeviceNoteFields
 import com.hancekim.mynote.core.domain.model.ImportOutcome
+import com.hancekim.mynote.core.domain.model.NoteLimits
 import com.hancekim.mynote.core.navigation.NavCommand
 import com.hancekim.mynote.core.navigation.Navigator
 import com.hancekim.mynote.core.navigation.editorKey
@@ -27,6 +28,7 @@ import com.hancekim.mynote.core.ui.signal.FeatureSignals
 import com.hancekim.mynote.core.ui.signal.SharedTextInbox
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
@@ -63,12 +65,16 @@ class EditorViewModel @Inject constructor(
     private val importDialog = trigger(ImportDialogUi.Closed)
     private val filePicks = trigger(0)
     private val pasteText = trigger("")
+    private val pasteTooLarge = trigger(false)
     private val notice = trigger<NoticeUi<EditorIntent>?>(null)
     private val shownSignals = trigger(persistentMapOf<NotesSignal, Int>())
 
     private val prepared = mutableMapOf<Int, DeviceNoteDraft>()
     private var draftSeq = 0
     private var noticeSeq = 0
+
+    /** 고른 파일을 읽는 일 — 읽는 중에 `취소` 하면 결과를 버린다(편집기도 이유도 없다). */
+    private var fileRead: Job? = null
 
     /** 나가기 확인 뒤에 열 편집기 — 바뀐 편집기 위로 공유가 들어왔을 때(LN-8 ③). null 이면 확인 뒤 닫는다. */
     private var pendingOpen: NotesNavKey.Editor? = null
@@ -82,8 +88,12 @@ class EditorViewModel @Inject constructor(
         navigator.stack
             .map { NotesNavKey.Paste in it }
             .distinctUntilChanged()
-            .onEach { open -> if (!open) pasteText.value = "" }
-            .launchIn(viewModelScope)
+            .onEach { open ->
+                if (!open) {
+                    pasteText.value = ""
+                    pasteTooLarge.value = false
+                }
+            }.launchIn(viewModelScope)
         // 일회성 신호 — 만들어질 때의 값은 이미 본 것이다(싱글턴이라 옛 요청이 남아 있다)
         signals.importRequests
             .drop(1)
@@ -104,6 +114,7 @@ class EditorViewModel @Inject constructor(
             importDialog = importDialog.value,
             filePickRequestId = filePicks.value,
             pasteText = pasteText.value,
+            pasteTooLarge = pasteTooLarge.value,
             notice = notice.value?.takeIf { shownSignals.value.unseen(NotesSignal.Notice, it.id) != 0 },
         )
 
@@ -171,15 +182,21 @@ class EditorViewModel @Inject constructor(
             }
 
             EditorIntent.DismissImport -> {
+                fileRead?.cancel()
+                fileRead = null
                 importDialog.value = ImportDialogUi.Closed
             }
 
             is EditorIntent.PasteChanged -> {
                 pasteText.value = event.text
+                pasteTooLarge.value = Utf8Size.bytes(event.text, stopAfter = RAW_LIMIT) > RAW_LIMIT
             }
 
             EditorIntent.PasteNext -> {
-                receive(importNote.text(pasteText.value), immediate = false)
+                // `다음` 이 꺼진 동안(빈 칸 · 512KB 넘음)은 이유 줄이 이미 보인다 — 스낵바를 겹쳐 띄우지 않는다
+                if (!pasteTooLarge.value && pasteText.value.isNotBlank()) {
+                    receive(importNote.text(pasteText.value), immediate = false)
+                }
             }
 
             is EditorIntent.SignalShown -> {
@@ -217,13 +234,22 @@ class EditorViewModel @Inject constructor(
         key: NotesNavKey.Editor,
         draft: DeviceNoteDraft,
         loading: Boolean,
-    ) = EditorSession(key = key, draft = draft, original = draft, check = checkDraft(draft), loading = loading)
+    ) = checked(EditorSession(key = key, draft = draft, original = draft, check = checkDraft(draft), loading = loading))
+
+    /** 크기 넘음이면 이유 줄의 KB 를 센다 — 넘지 않으면 세지 않는다(글자마다 512KB 를 다 세지 않게). */
+    private fun checked(session: EditorSession): EditorSession =
+        session.copy(
+            bodyKilobytes =
+                if (session.check.bodyTooLarge) Utf8Size.kilobytes(Utf8Size.bytes(session.draft.body)) else 0,
+        )
 
     private fun edit(change: (DeviceNoteDraft) -> DeviceNoteDraft) {
         val current = session.value ?: return
         if (current.loading) return
         val draft = change(current.draft)
-        session.value = current.copy(draft = draft, check = checkDraft(draft), previewBlocks = null)
+        // 미리보기는 본문의 해석이다 — 미리보기 중에 제목 · 그룹을 고쳐도 블록은 그대로 둔다(버리면 다시 해석할 일이 없어 진행 막대가 남는다)
+        val blocks = if (draft.body == current.draft.body) current.previewBlocks else null
+        session.value = checked(current.copy(draft = draft, check = checkDraft(draft), previewBlocks = blocks))
     }
 
     private fun setPreview(on: Boolean) {
@@ -311,12 +337,14 @@ class EditorViewModel @Inject constructor(
     private fun readFile(uri: String?) {
         if (uri == null) return
         importDialog.value = ImportDialogUi.Reading
-        launchSafely {
-            val outcome = importNote.file(uri)
-            importDialog.value =
-                if (outcome == ImportOutcome.Dismissed) ImportDialogUi.Choosing else ImportDialogUi.Closed
-            receive(outcome, immediate = false)
-        }
+        fileRead?.cancel()
+        fileRead =
+            launchSafely {
+                val outcome = importNote.file(uri)
+                importDialog.value =
+                    if (outcome == ImportOutcome.Dismissed) ImportDialogUi.Choosing else ImportDialogUi.Closed
+                receive(outcome, immediate = false)
+            }
     }
 
     /** 가져오기 결과 — 미리 채운 편집기를 열거나 이유를 알린다(LN-6 · LN-7). 노트는 만들지 않는다. */
@@ -365,3 +393,6 @@ class EditorViewModel @Inject constructor(
 }
 
 private const val TAG = "MyNoteEditor"
+
+/** 가져올 원문 한도 — LN-7 의 512KB(524,288 바이트). 붙여넣기 이유 줄이 같은 경계를 쓴다. */
+private val RAW_LIMIT = NoteLimits.Default.maxBytes

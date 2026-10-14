@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 편집기 · 가져오기 문구(local-notes 디자인 문서 `## 문구`). 화면 몸통을 채우는 단위가 더한다 -->
+    <!-- 편집기 · 가져오기 문구(local-notes 디자인 문서 `## 문구`) -->
     <string name="editor_title_new">새 노트</string>
     <string name="editor_title_edit">노트 고치기</string>
     <string name="editor_field_title">제목</string>
     <string name="editor_field_group">그룹</string>
     <string name="editor_group_default">그룹 없음</string>
     <string name="editor_field_body">여기에 마크다운으로 쓰세요.</string>
+    <string name="editor_mode_write">쓰기</string>
+    <string name="editor_mode_preview">미리보기</string>
+    <string name="editor_reason_empty">제목과 본문을 쓰면 저장할 수 있습니다.</string>
+    <string name="editor_reason_too_large">본문이 %1$sKB로 512KB를 넘습니다. 줄이면 저장할 수 있습니다.</string>
+    <string name="editor_origin_device">이 기기</string>
+    <string name="editor_meta_created">이 기기 · %1$s에 만듦</string>
 
     <string name="editor_exit_title">저장하지 않고 나갈까요?</string>
     <string name="editor_exit_body">쓴 내용은 남지 않습니다.</string>
@@ -20,10 +26,15 @@
     <string name="editor_import_title">무엇을 가져올까요?</string>
     <string name="editor_import_body">가져온 글은 새 노트로 열립니다. 저장해야 노트가 됩니다.</string>
     <string name="editor_import_file">파일 열기</string>
+    <string name="editor_import_file_hint">.md나 .markdown 파일</string>
     <string name="editor_import_paste">붙여넣기</string>
+    <string name="editor_import_paste_hint">다른 앱에서 복사한 글</string>
+    <string name="editor_import_share">다른 앱의 공유 메뉴에서 MyNote를 골라도 됩니다.</string>
     <string name="editor_import_reading">파일을 읽는 중입니다</string>
 
+    <string name="editor_paste_label">가져올 글</string>
     <string name="editor_paste_field">여기를 길게 눌러 붙여 넣으세요.</string>
+    <string name="editor_paste_reason_empty">글을 붙여 넣으면 다음으로 갈 수 있습니다.</string>
     <string name="editor_paste_next">다음</string>
 
     <string name="editor_import_rejected_empty">가져올 글이 없습니다.</string>

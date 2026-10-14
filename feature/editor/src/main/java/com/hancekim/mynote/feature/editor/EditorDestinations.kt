@@ -26,8 +26,10 @@ fun editorDestinations(
             )
         }
         destination<NotesNavKey.Paste> {
+            val state = editor()
             PasteScreen(
-                text = editor().pasteText,
+                text = state.pasteText,
+                block = state.pasteBlock,
                 onIntent = onIntent,
                 onClose = onShellBack,
                 modifier = frame.sceneEdgeModifier(),

@@ -3,8 +3,10 @@ package com.hancekim.mynote.core.ui.screen.connect
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -47,6 +49,51 @@ fun ActionDialog(
     modifier: Modifier = Modifier,
 ) {
     val colors = MyNoteTheme.colors
+    GlassDialog(modifier = modifier) {
+        Column(
+            modifier =
+                Modifier
+                    .weight(1f, fill = false)
+                    .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            KeepWordsText(
+                text = title,
+                style = MyNoteTheme.textStyles.sectionTitle,
+                color = colors.text,
+                modifier = Modifier.semantics { heading() },
+            )
+            KeepWordsText(
+                text = body,
+                style = MyNoteTheme.textStyles.bodySmall,
+                color = colors.bodyText,
+            )
+        }
+        FlowRow(
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            SecondaryButton(text = stringResource(DsR.string.ds_action_cancel), onClick = onDismiss)
+            if (destructive) {
+                SolidDestructiveButton(text = confirmLabel, onClick = onConfirm)
+            } else {
+                PrimaryButton(text = confirmLabel, onClick = onConfirm)
+            }
+        }
+    }
+}
+
+/**
+ * 대화상자 틀 — 안전 영역 안 가운데 유리 판(glassPanel · 반경 26 · 폭 ≤ 420). 내용은 [content] 가 [padding] 안에 세로로 쌓는다.
+ * [ActionDialog] 와 기기 노트 대화상자(가져오기 · 나가기 확인 · 지우기 확인)가 같이 쓴다. 높이가 넘치면 내용 쪽에서 스크롤한다.
+ */
+@Composable
+fun GlassDialog(
+    modifier: Modifier = Modifier,
+    padding: PaddingValues = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 16.dp),
+    content: @Composable ColumnScope.() -> Unit,
+) {
     Box(
         modifier =
             modifier
@@ -59,41 +106,9 @@ fun ActionDialog(
             radius = DIALOG_RADIUS,
             backdrop = null,
             modifier = Modifier.widthIn(max = CONNECT_DIALOG_MAX_WIDTH).fillMaxWidth(),
-            tint = colors.glassPanel,
+            tint = MyNoteTheme.colors.glassPanel,
         ) {
-            Column(modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 16.dp)) {
-                Column(
-                    modifier =
-                        Modifier
-                            .weight(1f, fill = false)
-                            .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    KeepWordsText(
-                        text = title,
-                        style = MyNoteTheme.textStyles.sectionTitle,
-                        color = colors.text,
-                        modifier = Modifier.semantics { heading() },
-                    )
-                    KeepWordsText(
-                        text = body,
-                        style = MyNoteTheme.textStyles.bodySmall,
-                        color = colors.bodyText,
-                    )
-                }
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    SecondaryButton(text = stringResource(DsR.string.ds_action_cancel), onClick = onDismiss)
-                    if (destructive) {
-                        SolidDestructiveButton(text = confirmLabel, onClick = onConfirm)
-                    } else {
-                        PrimaryButton(text = confirmLabel, onClick = onConfirm)
-                    }
-                }
-            }
+            Column(modifier = Modifier.padding(padding), content = content)
         }
     }
 }

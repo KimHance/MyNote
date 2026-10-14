@@ -15,6 +15,7 @@
 Room 에서 나온다(`observeCategories()` → `LocalNotesDataSource.observeNotes()` → `NoteDao.observeNotes()`).
 원격은 이 테이블을 갱신하는 입력일 뿐이고, 갱신 규칙(리비전 비교·add/update/skip/delete·재변환)은
 `core/data/AGENTS.md` 에 있다. 소스 목록은 `sources` 테이블이다(`s0` = 연결 정보 없이 이어받는 옛 노트의 소스, 연결되면 `config_json` 이 채워진다. 새 연결은 UUID).
+**기기 노트(`local` 소스 행)는 이 테이블이 유일한 원본이다** — 저장소 노트처럼 다시 받을 수 없으니 DB 를 버리는 길은 사용자 노트를 잃는다(local-notes LN-13).
 
 ## Room 타입을 가두는 방식
 
@@ -73,7 +74,7 @@ Room 에서 나온다(`observeCategories()` → `LocalNotesDataSource.observeNot
   없어서 Entity 를 고치고 버전만 올리면 **런타임에 DB 를 열다가 죽는다** — 새 테이블·인덱스면 `@AutoMigration`,
   컬럼 변경이면 `Migration` 을 쓰고, 엔티티·버전·스키마 JSON 을 한 커밋에 낸다. 손으로 SQL 을 쓰지 않는다 —
   **예외는 4→5 하나**(아래).
-  (노트 캐시라서 destructive 로 가도 되지만, 이제 같은 파일에 학습 기록이 있어 그건 기록을 날리는 결정이다.)
+  (destructive 는 안 된다 — 같은 파일에 학습 기록과 기기 노트가 있고, 기기 노트는 이 DB 가 원본이다(local-notes LN-13).)
 - DB 파일명은 `notes.db`, 빌더 옵션은 `.addMigrations(MIGRATION_4_5)` 하나다.
 
 ## 노트 캐시 v5 — `sources`·`source_notes` 와 4→5 수동 마이그레이션
