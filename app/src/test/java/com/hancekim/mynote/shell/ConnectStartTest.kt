@@ -118,11 +118,26 @@ class ConnectStartTest {
         val cleanup = screenCleanupOf(connected, ConnectionState.None)
 
         assertEquals(ScreenCleanup(resetStack = true, dismissQuiz = true), cleanup)
-        // 끊은 뒤 노트가 0 이어도 시작 판정은 셸(홈 첫 실행 빈 상태)이다 — RC-17 끊은 뒤 화면은 홈이다
+        // 끊은 뒤 노트가 0 이어도 시작 판정은 셸(홈 첫 실행 빈 상태)이다
         assertEquals(
             StartDestination.Shell,
             startDestination(ConnectionKnown.None, NotesKnown.Empty, seedPending = false),
         )
+    }
+
+    @Test
+    fun `RC-17 끊은 뒤 화면은 홈이다`() {
+        val connected = connected("s1", "octo-learner", "android-notes")
+
+        // 끊기 = 연결 → 없음 전이 — 스택은 홈 하나로 정리되고, 노트가 0 이든(기기 노트 없음) 남았든(기기 노트) 시작 판정은 셸(홈)이다
+        assertEquals(true, screenCleanupOf(connected, ConnectionState.None)?.resetStack)
+        for (notes in listOf(NotesKnown.Empty, NotesKnown.Some)) {
+            assertEquals(
+                "$notes",
+                StartDestination.Shell,
+                startDestination(ConnectionKnown.None, notes, seedPending = false),
+            )
+        }
     }
 
     @Test

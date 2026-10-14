@@ -58,6 +58,13 @@ dispatch: throttle.isIdle() 로 게이트  →  reduce(현재 스택, 명령)  �
 - **창 길이는 `SceneMotion` 에서 파생한다** — `max(DURATION_MILLIS, BODY_FADE_OUT + BODY_FADE_IN)`.
   매직넘버로 두면 모션을 늘렸을 때 쓰로틀만 짧게 남는다.
 
+### 떠나기 지킴 — `LeaveGuard`
+
+`setLeaveGuard` 로 한 칸만 건다(새로 걸면 갈아 끼우고, `clearLeaveGuard(guard)` 는 그 지킴일 때만 푼다). **`dispatch` 만 지난다** —
+게이트 → `reduce` → 지킴 순이고, 막히면 스택을 바꾸지 않고 창도 열지 않은 채 `NavResult.Guarded` 를 돌려준다. `Ignored` 와 다르다 —
+셸은 `Ignored` 만 종료 안내로 읽는다. `dispatchImmediately`(정정)는 지킴을 지나지 않는다. 지금 거는 곳은 편집기 나가기 확인 하나다
+(`:feature:editor` — 바뀐 편집기를 떼는 탭 전환 · 스택 바꿈을 묻는다, local-notes LN-10 · plan D32). 시험: `NavigatorTest.LN-10 …`.
+
 ### `dispatchImmediately`
 
 게이트를 우회한다. **사용자 입력이 아닌 이동 전용**(정정·딥링크). 호출부는 동기화로 지워진 노트가 열려 있을 때의

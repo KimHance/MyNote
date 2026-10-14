@@ -26,6 +26,10 @@
   `ShareReceiverActivity` 가 `:core:ui` 의 `SharedTextInbox` 에 넣고 이 ViewModel 이 꺼낸다(512KB 글이 프로세스 사이 전달 한도에 닿는다).
 - **나가기 확인은 셸 뒤로가기 ④ 의 지킴이다.** 바뀐 편집기면(`EditorUiState.guardsExit`) 셸이 `NavDisplay` 뒤에 둔 핸들러가
   `EditorIntent.Close` 를 보낸다. 편집기 화면 안에 `BackHandler` 를 두지 않는다 — 7단 표에 새 단이 생기고 예측 뒤로 미리보기가 돈 뒤에 막힌다.
+- **뒤로가기 밖의 사용자 이동도 묻는다**(plan D32). ViewModel 이 `Navigator` 에 떠나기 지킴을 걸어, 바뀐 세션의 편집기 키가 다음 스택에서
+  빠지거나 바뀌는 `dispatch`(넓은 창 탭 전환 · 스택 바꿈)를 `Guarded` 로 막고 그 스택을 기다렸다 `버리기` 면 보낸다. 편집기를 남기는 이동
+  (리더를 위에 쌓기)은 막지 않는다. `버리기` 뒤 다시 열 키가 지금 키와 같으면 세션을 새로 연다.
+- **파일 공유도 받는다**(plan D34) — 받은함 항목에 `uri` 가 있으면 `ImportNoteUseCase.file`(파일 열기와 같은 규칙 · LN-7 이유)로 읽는다.
 - **저장 · 지움 뒤 스택은 `:core:navigation` 의 순수 함수**(`savedNoteCommand` · `withoutNoteCommand`)로 한 번에 계산해 보낸다.
   지운 뒤 퀴즈는 `FeatureSignals.closeQuiz()` 로 닫는다. 연결 전이 정리(`:app` `ScreenCleanup`)와는 따로다.
 - **파일 고르기 런처는 `EditorHost` 에만.** 대화상자 안처럼 사라지는 자리에 두면 고르기 결과가 돌아올 곳이 없다. MIME 은 넓게(`*/*`) 열고
