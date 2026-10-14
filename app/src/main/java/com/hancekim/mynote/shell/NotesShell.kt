@@ -46,15 +46,16 @@ import com.hancekim.mynote.core.designsystem.component.MyNoteSnackbarHost
 import com.hancekim.mynote.core.designsystem.component.rememberFloatingNavScrollState
 import com.hancekim.mynote.core.designsystem.motion.MyNoteEasing
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
+import com.hancekim.mynote.core.domain.model.NoteOrigin
 import com.hancekim.mynote.core.ui.element.NotesDrafts
 import com.hancekim.mynote.core.ui.element.NotesSignal
 import com.hancekim.mynote.core.ui.frame.ShellFrame
 import com.hancekim.mynote.core.ui.shell.NotesScrollState
 import com.hancekim.mynote.core.ui.shell.NotesTopBar
 import com.hancekim.mynote.core.ui.shell.rememberNotesScrollState
-import com.hancekim.mynote.feature.connect.element.ConnectPlace
 import com.hancekim.mynote.feature.connect.screen.ConnectReadingScreen
-import com.hancekim.mynote.feature.connect.screen.ConnectRoute
+import com.hancekim.mynote.feature.editor.EditorHost
+import com.hancekim.mynote.feature.editor.EditorIntent
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.notes.screen.ListPanelChrome
@@ -69,11 +70,14 @@ import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import kotlinx.coroutines.launch
 import com.hancekim.mynote.core.ui.R as UiR
 
-// 결정 12 — 순서가 뜻을 갖는 호출(시작 분기의 읽는 중 · 연결 루트, 모델 확인 대화상자, 뒤로가기 핸들러, 목록 패널,
-// 퀴즈 오버레이, 상단 바 행동)은 이 파일 한 곳에서 컴포즈 순서대로 직접 부른다. 순서 없는 집합으로 받지 않는다.
-// 목적지 키 7개의 화면만 등록 묶음(NotesNavDisplay)을 거친다.
+// 결정 12 — 순서가 뜻을 갖는 호출(시작 분기의 읽는 중, 모델 확인 대화상자, 편집기 기능의 대화상자 · 파일 고르기 자리,
+// 뒤로가기 핸들러, 목록 패널, 퀴즈 오버레이, 상단 바 행동)은 이 파일 한 곳에서 컴포즈 순서대로 직접 부른다.
+// 순서 없는 집합으로 받지 않는다. 목적지 키 9개의 화면만 등록 묶음(NotesNavDisplay)을 거친다.
 
-/** 시작 분기 — 셸 상태(연결 · 시드)와 노트 상태(불러옴)를 같은 프레임에 묶어 판정한다. 창 등급 분기 위다. */
+/**
+ * 시작 분기 — 셸 상태(연결 · 시드)와 노트 상태(불러옴)를 같은 프레임에 묶어 판정한다. 창 등급 분기 위다.
+ * 연결 화면은 시작 결과가 아니다 — 노트가 없으면 홈 첫 실행 빈 상태다(RC-1 · local-notes 결정 4).
+ */
 @Composable
 internal fun NotesStart(
     states: FeatureStates,
@@ -89,16 +93,6 @@ internal fun NotesStart(
             ConnectReadingScreen()
         }
 
-        StartDestination.ConnectRoot -> {
-            ConnectRoute(
-                place = ConnectPlace.Root,
-                hasConnection = false,
-                drafts = drafts,
-                snackbarHostState = snackbarHostState,
-                onShellBack = { intents.shell(ShellIntent.Back) },
-            )
-        }
-
         StartDestination.Shell -> {
             NotesShell(
                 states = states,
@@ -110,6 +104,9 @@ internal fun NotesStart(
             )
         }
     }
+
+    // 편집기 기능의 파일 고르기 런처 · 대화상자 — 창 등급 분기 위에서 늘 컴포즈해 고르기 결과가 돌아올 자리가 사라지지 않는다
+    EditorHost(state = states.editor, onIntent = intents.editor)
 
     if (showDownloadConfirm) {
         ModelConfirmDialog(
@@ -172,7 +169,7 @@ internal fun NotesShell(
 
     BackHandler(enabled = drawerOpening) { scope.launch { drawerState.close() } }
 
-    val pillVisible = rememberModelPillVisible(shell.modelStatus, shell.isSettingsOpen || shell.isConnectOpen)
+    val pillVisible = rememberModelPillVisible(shell.modelStatus, shell.isSettingsOpen || shell.ownsChrome)
     // State 그대로 틀에 넘긴다 — 300ms 동안 셸 본문이 아니라 여백을 읽는 화면만 다시 그린다
     val contentTopPadding =
         animateDpAsState(
@@ -199,6 +196,7 @@ internal fun NotesShell(
     // 등록 화면 · 슬롯은 자기 기능 상태만 읽는다 — 다른 기능의 상태가 바뀌어도 다시 그리지 않는다(D41)
     val notesState = rememberUpdatedState(states.notes)
     val settingsState = rememberUpdatedState(states.settings)
+    val editorState = rememberUpdatedState(states.editor)
     val quizModelStatus = rememberUpdatedState(states.quiz.modelStatus)
     val hasConnection = rememberUpdatedState(shell.connectedRepo != null)
     val panelChrome = rememberUpdatedState(states.listPanel)
@@ -236,6 +234,8 @@ internal fun NotesShell(
                 },
                 hasConnection = { hasConnection.value },
                 onShellBack = { currentIntents.value.shell(ShellIntent.Back) },
+                editor = { editorState.value },
+                onEditorIntent = { currentIntents.value.editor(it) },
             )
         }
 
@@ -267,7 +267,7 @@ internal fun NotesShell(
                         modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars),
                     )
                 },
-                topBar = { if (useDrawer && !states.quiz.quiz.coversReader && !shell.isConnectOpen) headerSlot() },
+                topBar = { if (useDrawer && !states.quiz.quiz.coversReader && !shell.ownsChrome) headerSlot() },
             ) { padding ->
                 Box(
                     Modifier
@@ -296,6 +296,12 @@ internal fun NotesShell(
                                 frame = frame,
                                 destinations = destinations,
                             )
+                        }
+
+                        // ④ 의 지킴 — 바뀐 편집기가 맨 위면 pop 대신 나가기 확인을 묻는다(LN-10). NavDisplay 뒤라 pop 을 이기고
+                        // 예측 뒤로 미리보기가 돌지 않는다. 삼킴 앞이라 전환 중에는 삼킴이 이긴다 — 7단의 단은 그대로다
+                        BackHandler(enabled = shell.isEditorTop && states.editor.guardsExit && !drawerEngaged) {
+                            intents.editor(EditorIntent.Close)
                         }
 
                         // ③ 전환 중 삼킴 — NavDisplay 뒤라야 예측 뒤로가기 커밋 뒤에도 스택과 화면이 맞는다
@@ -330,7 +336,7 @@ internal fun NotesShell(
         // ① 드로어 — 본 컴포지션의 M3 핸들러
         ModalNavigationDrawer(
             drawerState = drawerState,
-            gesturesEnabled = !shell.isConnectOpen,
+            gesturesEnabled = !shell.ownsChrome,
             drawerContent = {
                 ModalDrawerSheet(
                     drawerState = drawerState,
@@ -383,7 +389,10 @@ private fun rememberNotesPanelSlot(
         }
     }
 
-/** 헤더 슬롯 — 상단 바와 그 행동(메뉴 · 뒤로 · 새로고침 · 북마크). 셸이 묶은 [HeaderUi] 만 읽는다. */
+/**
+ * 헤더 슬롯 — 상단 바와 그 행동(메뉴 · 뒤로 · 새로고침 · 북마크 · 기기 노트의 고치기 · 지우기). 셸이 묶은 [HeaderUi] 만 읽는다.
+ * 넓은 창에서 편집기 · 붙여넣기가 상세 칸에 들면 자기 상단 바를 그리므로 비운다(디자인 C8).
+ */
 @Composable
 private fun rememberNotesHeaderSlot(
     header: () -> HeaderUi,
@@ -400,43 +409,56 @@ private fun rememberNotesHeaderSlot(
     return remember(homeTitle, settingsTitle, bookmarksTitle, statsTitle, historyTitle) {
         @Composable {
             val ui = header()
-            NotesTopBar(
-                title =
-                    when (ui.place) {
-                        HeaderPlace.Settings -> settingsTitle
-                        HeaderPlace.Bookmarks -> bookmarksTitle
-                        HeaderPlace.Stats -> statsTitle
-                        HeaderPlace.StatsHistory -> historyTitle
-                        HeaderPlace.Other -> ui.noteTitle ?: homeTitle
-                    },
-                showBack = ui.showBack,
-                showRefresh = ui.showRefresh,
-                bookmarked = ui.bookmarked,
-                onMenu = { currentMenu.value() },
-                onBack = { intents().shell(ShellIntent.Back) },
-                onRefresh = { intents().notes(NotesIntent.Refresh) },
-                onToggleBookmark = { intents().notes(NotesIntent.ToggleBookmark) },
-            )
+            val deviceNoteId = ui.deviceNoteId
+            if (ui.place != HeaderPlace.OwnChrome) {
+                NotesTopBar(
+                    title =
+                        when (ui.place) {
+                            HeaderPlace.Settings -> settingsTitle
+                            HeaderPlace.Bookmarks -> bookmarksTitle
+                            HeaderPlace.Stats -> statsTitle
+                            HeaderPlace.StatsHistory -> historyTitle
+                            HeaderPlace.Other, HeaderPlace.OwnChrome -> ui.noteTitle ?: homeTitle
+                        },
+                    showBack = ui.showBack,
+                    showRefresh = ui.showRefresh,
+                    bookmarked = ui.bookmarked,
+                    onMenu = { currentMenu.value() },
+                    onBack = { intents().shell(ShellIntent.Back) },
+                    onRefresh = { intents().notes(NotesIntent.Refresh) },
+                    onToggleBookmark = { intents().notes(NotesIntent.ToggleBookmark) },
+                    onEdit = deviceNoteId?.let { id -> { intents().editor(EditorIntent.Edit(id)) } },
+                    onDelete = deviceNoteId?.let { id -> { intents().editor(EditorIntent.RequestDelete(id)) } },
+                )
+            }
         }
     }
 }
 
-private enum class HeaderPlace { Settings, Bookmarks, Stats, StatsHistory, Other }
+internal enum class HeaderPlace { Settings, Bookmarks, Stats, StatsHistory, OwnChrome, Other }
 
-/** 상단 바가 보이는 값 — 셸 · 노트 상태에서 묶는다. 같으면 헤더를 다시 그리지 않는다. */
+/**
+ * 상단 바가 보이는 값 — 셸 · 노트 상태에서 묶는다. 같으면 헤더를 다시 그리지 않는다.
+ *
+ * @property deviceNoteId 맨 위 리더가 기기 노트면 그 id — 새로고침 자리에 고치기 · 지우기가 보인다(local-notes 22B · LN-9 · LN-11).
+ * 저장소 노트 리더는 null 이라 둘이 없다(결정 2)
+ */
 @Immutable
-private data class HeaderUi(
+internal data class HeaderUi(
     val place: HeaderPlace,
     val noteTitle: String?,
     val showBack: Boolean,
     val showRefresh: Boolean,
     val bookmarked: Boolean?,
+    val deviceNoteId: String? = null,
 )
 
-private fun headerOf(states: FeatureStates): HeaderUi {
+internal fun headerOf(states: FeatureStates): HeaderUi {
     val shell = states.shell
+    val deviceNoteId = shell.activeNoteId?.takeIf { NoteOrigin.of(it) == NoteOrigin.Device }
     val place =
         when {
+            shell.ownsChrome -> HeaderPlace.OwnChrome
             shell.isSettingsOpen -> HeaderPlace.Settings
             shell.isBookmarksTop -> HeaderPlace.Bookmarks
             shell.isStatsTop -> HeaderPlace.Stats
@@ -447,8 +469,9 @@ private fun headerOf(states: FeatureStates): HeaderUi {
         place = place,
         noteTitle = if (place == HeaderPlace.Other) states.activeNote?.title else null,
         showBack = shell.isSettingsOpen || shell.isStatsHistoryTop,
-        showRefresh = !shell.isStatsHistoryTop,
+        showRefresh = !shell.isStatsHistoryTop && deviceNoteId == null,
         bookmarked = if (shell.activeNoteId != null) states.notes.isBookmarked(shell.activeNoteId) else null,
+        deviceNoteId = deviceNoteId,
     )
 }
 

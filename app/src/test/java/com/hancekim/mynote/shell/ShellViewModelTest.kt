@@ -1,5 +1,7 @@
 package com.hancekim.mynote.shell
 
+import com.hancekim.mynote.core.navigation.NavCommand
+import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -56,6 +58,28 @@ class ShellViewModelTest {
             assertEquals(0, vm.state.value.exitRequestId)
 
             advanceTimeBy(EXIT_WINDOW - 1)
+            vm.onIntent(ShellIntent.Back)
+            assertEquals(1, vm.state.value.exitRequestId)
+        }
+
+    @Test
+    fun `RC-1 첫 화면 홈의 뒤로는 종료 안내이고 쌓은 연결 화면의 뒤로는 이전 화면이다`() =
+        runTest {
+            val fixture = FeatureFixture(this)
+            val vm = fixture.shell()
+            fixture.subscribe(vm)
+
+            // 쌓은 연결 화면(홈 첫 실행 빈 상태의 `저장소 연결`) — 뒤로 = 홈, 종료 안내 없음
+            fixture.navigator.dispatchImmediately(NavCommand.Push(NotesNavKey.Connect))
+            fixture.settle()
+            vm.onIntent(ShellIntent.Back)
+            assertEquals(listOf(NotesNavKey.Home), fixture.navigator.stack.value)
+            assertEquals(0, vm.state.value.exitHintId)
+
+            // 첫 화면 홈 — 한 번은 종료 안내, 창 안의 두 번째가 종료
+            fixture.settle()
+            vm.onIntent(ShellIntent.Back)
+            assertEquals(1, vm.state.value.exitHintId)
             vm.onIntent(ShellIntent.Back)
             assertEquals(1, vm.state.value.exitRequestId)
         }

@@ -66,7 +66,7 @@ internal fun BoxScope.NotesOverlays(
                 NAV_STATS -> onShellIntent(ShellIntent.SwitchTab(NotesTab.Stats))
             }
         },
-        hidden = navScroll.hidden || quizOpen || shell.isSettingsOpen || shell.isConnectOpen,
+        hidden = navScroll.hidden || quizOpen || shell.isSettingsOpen || shell.ownsChrome,
         layout = layout,
         backdrop = backdrop,
     )
@@ -76,7 +76,7 @@ internal fun BoxScope.NotesOverlays(
             scrollToTopVisible(
                 scrolled = scroll.showScrollToTop,
                 quizOpen = quizOpen,
-                connectOpen = shell.isConnectOpen,
+                connectOpen = shell.ownsChrome,
                 tokenEditing = tokenEditing,
             ),
         onClick = {

@@ -4,6 +4,8 @@
 
     <string name="ui_action_refresh">새로고침</string>
     <string name="ui_action_note_list">노트 목록</string>
+    <string name="ui_action_edit">고치기</string>
+    <string name="ui_action_delete">지우기</string>
 
     <string name="ui_bookmark_action">북마크</string>
     <string name="ui_bookmark_state_on">북마크됨</string>

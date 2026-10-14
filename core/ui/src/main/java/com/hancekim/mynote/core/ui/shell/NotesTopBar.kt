@@ -12,6 +12,8 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -61,6 +63,8 @@ fun NotesTopBar(
     modifier: Modifier = Modifier,
     showRefresh: Boolean = true,
     backEnabled: Boolean = true,
+    onEdit: (() -> Unit)? = null,
+    onDelete: (() -> Unit)? = null,
 ) {
     val colors = MyNoteTheme.colors
     TopAppBar(
@@ -100,6 +104,25 @@ fun NotesTopBar(
             if (bookmarked != null) {
                 BookmarkToggle(bookmarked = bookmarked, onToggle = onToggleBookmark)
                 Spacer(Modifier.width(ACTION_GAP))
+            }
+            // 기기 노트 리더(local-notes 22B) — 새로고침 자리에 고치기 · 지우기. 보임은 셸이 정한다(null = 없음)
+            if (onEdit != null) {
+                IconButton(onClick = onEdit) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = stringResource(R.string.ui_action_edit),
+                        tint = colors.bodyText,
+                    )
+                }
+            }
+            if (onDelete != null) {
+                IconButton(onClick = onDelete) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = stringResource(R.string.ui_action_delete),
+                        tint = colors.bodyText,
+                    )
+                }
             }
             if (showRefresh) {
                 IconButton(onClick = onRefresh) {

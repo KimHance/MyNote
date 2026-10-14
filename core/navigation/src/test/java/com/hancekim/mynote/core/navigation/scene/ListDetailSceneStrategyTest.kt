@@ -80,6 +80,19 @@ class ListDetailSceneStrategyTest {
         assertEquals(entry(NotesNavKey.Home).contentKey, scene.entries.single().contentKey)
     }
 
+    @Test
+    fun `LN-3 편집기와 붙여넣기는 넓은 창에서 상세 칸이다`() {
+        // 디자인 C8 — 목록 패널은 남고 편집기 · 붙여넣기가 상세 칸에 든다(헤더는 셸 슬롯이 비운다)
+        val editor = sceneOf(NotesNavKey.Home, NotesNavKey.Reader("a"), NotesNavKey.Editor(noteId = "a"))
+        val paste = sceneOf(NotesNavKey.Home, NotesNavKey.Paste)
+        val home = sceneOf(NotesNavKey.Home)
+
+        assertEquals(entry(NotesNavKey.Editor(noteId = "a")).contentKey, editor.entries.single().contentKey)
+        assertEquals(entry(NotesNavKey.Paste).contentKey, paste.entries.single().contentKey)
+        assertEquals(home.key, editor.key)
+        assertEquals(2, editor.previousEntries.size)
+    }
+
     private companion object {
         const val SCENE_KEY = "list-detail"
     }

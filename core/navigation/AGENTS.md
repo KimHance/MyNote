@@ -197,6 +197,19 @@ nav3 의 `LocalNavAnimatedContentScope` 는 미설정 시 **예외를 던진다*
 - `switchTabCommand(tab)` — 플로팅 내비 칸(`NotesTab`). 홈은 `ReplaceAll([Home])`, 북마크 · 통계는 `[Home]` 에서 `Push` · 그 밖에서
   `ReplaceAll([Home, 탭])`. 이미 그 자리면 `Navigator` 가 `Ignored` 로 받는다.
 
+## 편집기 명령 — `EditorCommands.kt`(local-notes)
+
+기기 노트 편집기 · 붙여넣기 · 지우기의 스택 계산. 셋 다 스택을 받아 명령 하나를 돌려주는 순수 함수다. 키는 `NotesNavKey.Editor(noteId?, draftId?)`
+(새 노트 = 둘 다 null · 고치기 = `noteId` · 가져온 글 = `draftId` — 본문은 키에 싣지 않는다) · `NotesNavKey.Paste`.
+
+- `openEditorCommand(editor)` — 스택의 편집기를 빼고 맨 위에 새 편집기(편집기는 스택에 하나 — LN-8 ③). 붙여넣기가 맨 위면 그 자리를 갈아 끼운다.
+  아무것도 안 빼면 `Push`.
+- `savedNoteCommand(noteId)` — 편집기를 빼고 그 아래가 그 노트 리더면 그대로(고치기), 아니면 그 자리에 리더(새 노트 — LN-3 ⑥).
+- `withoutNoteCommand(noteId)` — 그 노트의 리더 · 편집기를 빼고 이웃이 같은 키가 되면 합친다. 비면 홈(LN-11). 퀴즈 닫기는 부른 쪽이
+  `FeatureSignals.closeQuiz()` 로 한다.
+- 넓은 창에서 편집기 · 붙여넣기는 연결 화면과 달리 **상세 칸**에 든다(디자인 C8) — 씬 전략은 그대로이고 헤더 슬롯을 셸이 비운다.
+  시험: `ListDetailSceneStrategyTest.LN-3 편집기와 붙여넣기는 넓은 창에서 상세 칸이다` · `EditorCommandsTest`.
+
 ## 등록 틀 — `registry/Destinations.kt`
 
 기능 모듈은 자기 목적지 화면을 `DestinationRegistration<F>`(= `DestinationScope.(F) -> Unit`)로 내놓고, 셸이 그 묶음을

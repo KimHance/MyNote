@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 편집기 · 가져오기 문구(local-notes 디자인 문서 `## 문구`). 화면 몸통을 채우는 단위가 더한다 -->
+    <string name="editor_title_new">새 노트</string>
+    <string name="editor_title_edit">노트 고치기</string>
+    <string name="editor_field_title">제목</string>
+    <string name="editor_field_group">그룹</string>
+    <string name="editor_group_default">그룹 없음</string>
+    <string name="editor_field_body">여기에 마크다운으로 쓰세요.</string>
+
+    <string name="editor_exit_title">저장하지 않고 나갈까요?</string>
+    <string name="editor_exit_body">쓴 내용은 남지 않습니다.</string>
+    <string name="editor_exit_keep">계속 쓰기</string>
+    <string name="editor_exit_discard">버리기</string>
+
+    <string name="editor_delete_title">이 노트를 지울까요?</string>
+    <string name="editor_delete_body">노트와 북마크를 지웁니다. 학습 기록은 남습니다. 되돌릴 수 없습니다.</string>
+    <string name="editor_deleted">노트를 지웠습니다.</string>
+
+    <string name="editor_import_title">무엇을 가져올까요?</string>
+    <string name="editor_import_body">가져온 글은 새 노트로 열립니다. 저장해야 노트가 됩니다.</string>
+    <string name="editor_import_file">파일 열기</string>
+    <string name="editor_import_paste">붙여넣기</string>
+    <string name="editor_import_reading">파일을 읽는 중입니다</string>
+
+    <string name="editor_paste_field">여기를 길게 눌러 붙여 넣으세요.</string>
+    <string name="editor_paste_next">다음</string>
+
+    <string name="editor_import_rejected_empty">가져올 글이 없습니다.</string>
+    <string name="editor_import_rejected_not_utf8">UTF-8로 저장된 파일만 가져올 수 있습니다.</string>
+    <string name="editor_import_rejected_too_large">512KB가 넘는 글은 가져올 수 없습니다.</string>
+    <string name="editor_import_rejected_unreadable">파일을 읽지 못했습니다. 다시 골라 보세요.</string>
+    <string name="editor_import_rejected_type">.md나 .markdown 파일만 가져올 수 있습니다.</string>
+
+    <string name="editor_save_failed">노트를 저장하지 못했습니다. 다시 시도해 보세요.</string>
+    <string name="editor_delete_failed">노트를 지우지 못했습니다. 다시 시도해 보세요.</string>
+</resources>

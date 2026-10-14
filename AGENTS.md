@@ -32,7 +32,7 @@ GitHub 의 마크다운 노트(옛 JSON 도)를 받아 읽는 **읽기 전용** 
 python3 -I -m unittest discover notes-tests && python3 -I -m unittest discover public-repos/tests && python3 -I -m unittest discover public-repos/notes-kit/tests
 # 계측 시험 — 모듈마다 차례로 돌린다(`test` 에 안 든다 · 한 호출에 묶으면 병렬로 겹쳐 서로 죽는다). ANDROID_SERIAL 이 비면 붙은 기기 전부에 설치한다
 # 라이브러리 셋은 앱을 건드리지 않고, :app 은 앱을 덮어 설치하지만 gradle.properties 의 leaveApksInstalledAfterRun 이 지우지 않게 막는다
-# 기능 모듈 다섯 · :core:ui 에는 계측이 없다 — 셸과 기능 화면을 같이 그리는 계측(뒤로가기 7단 · 브랜드)은 :app 에 있다
+# 기능 모듈 · :core:ui 에는 계측이 없다 — 셸과 기능 화면을 같이 그리는 계측(뒤로가기 7단 · 브랜드)은 :app 에 있다
 ANDROID_SERIAL=<기기 serial> ./gradlew :core:design-system:connectedDebugAndroidTest && ANDROID_SERIAL=<기기 serial> ./gradlew :core:database:connectedDebugAndroidTest
 ANDROID_SERIAL=<기기 serial> ./gradlew :app:connectedDebugAndroidTest
 ```
@@ -61,6 +61,7 @@ app  ─────────────────────────
  ├─ feature/settings  ────────────  설정 · 저장소 칸 · 모델 카드 · 끊기 대화상자
  ├─ feature/quiz      ────────────  퀴즈 오버레이 · 리더 끝 CTA 카드 (목적지 키 없음)
  ├─ feature/stats     ────────────  통계 · 지난 요약
+ ├─ feature/editor    ────────────  기기 노트 편집기 · 붙여넣기 · 가져오기 그릇 · 지우기 확인 · 공유 받기 세션
  │    └→ core/{common, design-system, domain, navigation, ui}   (feature convention 이 자동 주입 · 기능끼리는 모른다)
  │
  ├─ core/ui        ──→ core/{common, design-system, domain, navigation}  두 기능 이상이 쓰는 화면 조각 · 셸 틀 계약 · 기능 사이 신호

@@ -8,6 +8,7 @@ import com.hancekim.mynote.core.navigation.registry.destinationProvider
 import com.hancekim.mynote.core.ui.element.NotesDrafts
 import com.hancekim.mynote.core.ui.frame.ShellFrame
 import com.hancekim.mynote.core.ui.shell.NotesScrollState
+import com.hancekim.mynote.feature.editor.EditorUiState
 import com.hancekim.mynote.feature.notes.element.NotesUiState
 import com.hancekim.mynote.feature.settings.SettingsUiState
 import org.junit.Assert.assertEquals
@@ -24,6 +25,8 @@ class ShellDestinationsTest {
             readerEndCta = {},
             hasConnection = { false },
             onShellBack = {},
+            editor = { EditorUiState() },
+            onEditorIntent = {},
         )
 
     @Test
@@ -51,7 +54,7 @@ class ShellDestinationsTest {
     private companion object {
         const val UNKNOWN = "unknown"
 
-        /** 목적지 키 7개. 키가 늘면 [covered] 가 컴파일을 멈춰 여기에 더하게 한다. */
+        /** 목적지 키 9개. 키가 늘면 [covered] 가 컴파일을 멈춰 여기에 더하게 한다. */
         val ALL_KEYS: List<NotesNavKey> =
             listOf(
                 NotesNavKey.Home,
@@ -61,6 +64,8 @@ class ShellDestinationsTest {
                 NotesNavKey.Reader("note"),
                 NotesNavKey.Settings,
                 NotesNavKey.Connect,
+                NotesNavKey.Editor(),
+                NotesNavKey.Paste,
             ).onEach(::covered)
 
         fun covered(key: NotesNavKey) =
@@ -72,6 +77,8 @@ class ShellDestinationsTest {
                 is NotesNavKey.Reader,
                 NotesNavKey.Settings,
                 NotesNavKey.Connect,
+                is NotesNavKey.Editor,
+                NotesNavKey.Paste,
                 -> Unit
             }
 

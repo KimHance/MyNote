@@ -17,9 +17,9 @@
 | 패키지 | 무엇 | 쓰는 곳 |
 |---|---|---|
 | (뿌리) | 스낵바 문구 `NotesMessages` · 실패 로그 `FailureLog` 와 그 Android 구현(`:app` 의 `NotesModule` 이 묶는다) | 노트 · 설정 · 퀴즈 · 연결 · 셸 VM |
-| `signal/` | 기능 사이 신호 계약 `FeatureSignals` · 마지막 동기화 홀더 `LastSyncHolder`(둘 다 `@Singleton`) · 설정 열기 `openSettings` | 모든 기능 ViewModel · 셸(결정 8 · 13) |
+| `signal/` | 기능 사이 신호 계약 `FeatureSignals`(가져오기 요청 `requestImport` 포함) · 마지막 동기화 홀더 `LastSyncHolder` · 공유 받은 글 받은함 `SharedTextInbox`(셋 다 `@Singleton`) · 설정 열기 `openSettings` | 모든 기능 ViewModel · 셸(결정 8 · 13) · 받은함은 `:app` 공유 트램펄린 → `:feature:editor` |
 | `frame/` | 셸 틀 계약 `ShellFrame` · `ShellDestinations` · 씬 가장자리 modifier | 셸 · 기능별 등록 파일(FM-4) |
-| `shell/` | 화면 상태 홀더 `NotesScrollState` · 상단 바 `NotesTopBar` | 셸이 들고 기능 화면이 받는다 · 셸과 쌓은 연결 화면 |
+| `shell/` | 화면 상태 홀더 `NotesScrollState` · 상단 바 `NotesTopBar`(기기 노트 리더의 고치기 · 지우기 자리 — 보임은 셸 `headerOf`) | 셸이 들고 기능 화면이 받는다 · 셸과 쌓은 연결 화면 |
 | `element/` | 토큰 입력 홀더(`TokenDraft` · `NotesDrafts` · `SecretText`) · 토큰 실패 종류와 문구 · 저장소 카드 판정과 마지막 동기화 · 모델 상태 → 카드 · 알약 · CTA 판정 · 일회성 신호 판정 `unseen` · 스낵바 알림 `NoticeUi` · 글자 크기 매핑(`FontScaleUi`) | 연결 · 설정 · 노트 · 퀴즈 · 셸 |
 | `screen/` | 공용 버튼(`Primary` · `Secondary` · `Destructive` · `SolidDestructive` · `Quiet`) · 본문 최대 폭 · 모델 상태 색 · 미리보기 틀 | 노트 · 연결 · 설정 · 퀴즈 · 셸 |
 | `screen/connect/` | 토큰 입력 칸 · 만드는 법 · 만들기 버튼 · 확인 중 줄 · 알림 상자 · 진행 막대 · 연결 아이콘 · 한글 어절 줄바꿈 글자 · 외부 브라우저 열기 · 대화상자 틀 `ActionDialog` | 연결 · 설정 · 노트 |
