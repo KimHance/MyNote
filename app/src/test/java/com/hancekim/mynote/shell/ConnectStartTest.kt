@@ -3,6 +3,7 @@ package com.hancekim.mynote.shell
 import com.hancekim.mynote.core.domain.model.ConnectionState
 import com.hancekim.mynote.core.domain.model.RepoConnection
 import com.hancekim.mynote.core.domain.model.SourceId
+import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import com.hancekim.mynote.feature.notes.CategoryUi
 import com.hancekim.mynote.feature.notes.NoteUi
 import com.hancekim.mynote.feature.notes.element.NotesUiState
@@ -12,28 +13,48 @@ import org.junit.Test
 
 class ConnectStartTest {
     @Test
-    fun `RC-1 시작 화면 판정 9칸`() {
-        val expected =
-            mapOf(
-                (ConnectionKnown.Unknown to NotesKnown.Unknown) to StartDestination.Reading,
-                (ConnectionKnown.Unknown to NotesKnown.Empty) to StartDestination.Reading,
-                (ConnectionKnown.Unknown to NotesKnown.Some) to StartDestination.Reading,
-                (ConnectionKnown.None to NotesKnown.Unknown) to StartDestination.Reading,
-                (ConnectionKnown.None to NotesKnown.Empty) to StartDestination.ConnectRoot,
-                (ConnectionKnown.None to NotesKnown.Some) to StartDestination.Shell,
-                (ConnectionKnown.Connected to NotesKnown.Unknown) to StartDestination.Reading,
-                (ConnectionKnown.Connected to NotesKnown.Empty) to StartDestination.Shell,
-                (ConnectionKnown.Connected to NotesKnown.Some) to StartDestination.Shell,
-            )
-
-        assertEquals(9, expected.size)
-        expected.forEach { (cell, destination) ->
-            assertEquals(
-                "연결 ${cell.first} · 노트 ${cell.second}",
-                destination,
-                startDestination(cell.first, cell.second, seedPending = false),
-            )
+    fun `RC-1 시작 화면 판정 표`() {
+        // (연결) × (저장소 노트) × (기기 노트) — 시작 판정은 노트 수만 본다. 저장소 노트 · 기기 노트 어느 쪽이든 하나면 "노트 있음"
+        val connections = listOf(ConnectionKnown.Unknown, ConnectionKnown.None, ConnectionKnown.Connected)
+        val repoNotes = listOf<Int?>(null, 0, 22)
+        val deviceNotes = listOf(0, 3)
+        var cells = 0
+        for (connection in connections) {
+            for (repo in repoNotes) {
+                for (device in deviceNotes) {
+                    val notes =
+                        when {
+                            repo == null -> NotesKnown.Unknown
+                            repo + device == 0 -> NotesKnown.Empty
+                            else -> NotesKnown.Some
+                        }
+                    val expected =
+                        if (connection == ConnectionKnown.Unknown ||
+                            repo == null
+                        ) {
+                            StartDestination.Reading
+                        } else {
+                            StartDestination.Shell
+                        }
+                    assertEquals(
+                        "연결 $connection · 저장소 노트 $repo · 기기 노트 $device",
+                        expected,
+                        startDestination(connection, notes, seedPending = false),
+                    )
+                    cells++
+                }
+            }
         }
+        assertEquals(18, cells)
+    }
+
+    @Test
+    fun `RC-1 시작 결과에 연결 화면이 없다`() {
+        assertEquals(listOf(StartDestination.Reading, StartDestination.Shell), StartDestination.entries)
+        assertEquals(
+            StartDestination.Shell,
+            startDestination(ConnectionKnown.None, NotesKnown.Empty, seedPending = false),
+        )
     }
 
     @Test
@@ -47,8 +68,38 @@ class ConnectStartTest {
             startDestination(ConnectionKnown.None, NotesKnown.Some, seedPending = true),
         )
         assertEquals(
-            StartDestination.ConnectRoot,
+            StartDestination.Shell,
             startDestination(ConnectionKnown.None, NotesKnown.Empty, seedPending = false),
+        )
+    }
+
+    @Test
+    fun `LN-13 이전 판 사용자의 첫 화면은 그대로다`() {
+        // 연결 있음 + 노트 22 → 홈 · 연결 없음 + 옛 캐시 22 → 홈(띠는 홈이 정한다)
+        assertEquals(
+            StartDestination.Shell,
+            startDestination(ConnectionKnown.Connected, NotesKnown.Some, seedPending = false),
+        )
+        assertEquals(
+            StartDestination.Shell,
+            startDestination(ConnectionKnown.None, NotesKnown.Some, seedPending = false),
+        )
+    }
+
+    @Test
+    fun `LN-8 읽는 중에는 편집기를 미룬다`() {
+        // 공유가 먼저 와서 스택에 편집기가 쌓여도 시작 판정이 읽는 중이면 셸(편집기)을 그리지 않는다
+        val shell =
+            ShellUiState(
+                backStack = persistentListOf(NotesNavKey.Home, NotesNavKey.Editor(draftId = 1)),
+                connection = null,
+            )
+        val notes = NotesUiState(notesLoaded = false)
+
+        assertEquals(StartDestination.Reading, startOf(shell, notes))
+        assertEquals(
+            StartDestination.Shell,
+            startOf(shell.copy(connection = ConnectionState.None, seedPending = false), notes.copy(notesLoaded = true)),
         )
     }
 
@@ -61,16 +112,32 @@ class ConnectStartTest {
     }
 
     @Test
-    fun `RC-23 끊으면 연결 화면 루트다`() {
+    fun `RC-23 끊으면 스택은 홈 하나다`() {
         val connected = connected("s1", "octo-learner", "android-notes")
 
         val cleanup = screenCleanupOf(connected, ConnectionState.None)
 
         assertEquals(ScreenCleanup(resetStack = true, dismissQuiz = true), cleanup)
+        // 끊은 뒤 노트가 0 이어도 시작 판정은 셸(홈 첫 실행 빈 상태)이다
         assertEquals(
-            StartDestination.ConnectRoot,
+            StartDestination.Shell,
             startDestination(ConnectionKnown.None, NotesKnown.Empty, seedPending = false),
         )
+    }
+
+    @Test
+    fun `RC-17 끊은 뒤 화면은 홈이다`() {
+        val connected = connected("s1", "octo-learner", "android-notes")
+
+        // 끊기 = 연결 → 없음 전이 — 스택은 홈 하나로 정리되고, 노트가 0 이든(기기 노트 없음) 남았든(기기 노트) 시작 판정은 셸(홈)이다
+        assertEquals(true, screenCleanupOf(connected, ConnectionState.None)?.resetStack)
+        for (notes in listOf(NotesKnown.Empty, NotesKnown.Some)) {
+            assertEquals(
+                "$notes",
+                StartDestination.Shell,
+                startDestination(ConnectionKnown.None, notes, seedPending = false),
+            )
+        }
     }
 
     @Test
@@ -128,7 +195,7 @@ class ConnectStartTest {
 
         assertEquals(StartDestination.Shell, startOf(shell, withNotes))
         assertEquals(StartDestination.Reading, startOf(shell, notLoaded))
-        assertEquals(StartDestination.ConnectRoot, startOf(shell, loadedEmpty))
+        assertEquals(StartDestination.Shell, startOf(shell, loadedEmpty))
     }
 
     private fun connected(

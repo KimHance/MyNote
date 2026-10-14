@@ -84,6 +84,7 @@
 | `:feature:settings` | 설정 화면 · 저장소 칸 · 끊기 대화상자 · 모델 카드 · 모델 대화상자 · 글자 크기 · 학습 기록 켜기 · 토큰 편집 판정(`SettingsScreen` · `RepoSection` · `ModelCard` · `ModelDialogs` · `TokenEdit` · `TokenMask` · 연결 주소 만들기) | 같음 | `settings_` |
 | `:feature:quiz` | 퀴즈 설정 · 생성 중 · 풀기 · 결과 · 실패 · 오버레이 · 리더 끝 CTA · 문항 화면 모델 (`quiz/` · `QuizQuestionUi`) | 같음 | `quiz_` |
 | `:feature:stats` | 통계 · 지난 요약 (`screen/stats/` · `stats/`) | 같음 | `stats_` |
+| `:feature:editor` (local-notes 에서 더함) | 기기 노트 편집기 · 붙여넣기 · 가져오기 그릇 · 나가기 · 지우기 확인 · 공유 받은 글을 편집기로 잇기 (나누기 뒤 새로 — `local-notes` brief 정하지 않은 것 11) | 같음 | `editor_` |
 | `:core:ui` (새) | 두 기능 이상이 쓰는 것 — 아래 공용 조각 표 | `:core:{common, design-system, domain, navigation}` | `ui_` |
 | `:core:navigation` | 지금 것 + 리더 열기 명령 · 탭 전환 명령 · 탭 종류 (`navigation/OpenReader` · `TabSwitch` · `element/NotesTab`) | 그대로 | — |
 | `:app` | 셸 — 시작 분기 · Scaffold · 드로어/고정 패널 틀 · 플로팅 내비 · 맨 위로 · 모델 알약 · 상단 바 행동 · NavDisplay · 오버레이 자리 · 뒤로가기 순서 · 종료 안내 · 스낵바 수집 · 알림 권한 요청 · 테마 · 창 크기 판정 (`shell/` · `NotesRoute` · `element/ConnectStart` · `ScreenCleanup`) | 모든 feature + core | `shell_` (파이썬 시험) |

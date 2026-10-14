@@ -33,7 +33,7 @@
 | 1 | 드로어 닫기 (Material3) | `ModalDrawerSheet(drawerState = …)` 의 예측 뒤로가기 핸들러. 드로어가 열려 있는 동안 `NotesShell` 이 Scaffold 내용의 자식 디스패처를 꺼서 이 핸들러가 받는다 |
 | 2 | 퀴즈 오버레이 닫기 | `NotesShell` 의 `QuizOverlay` (`NotesOverlays` 뒤 · Scaffold 내용의 맨 끝) |
 | 3 | 전환 중 삼킴 | `NotesShell` 의 `BackHandler(enabled = !isNavSettled && !drawerEngaged) {}` |
-| 4 | `NavDisplay` 의 pop | `NotesNavDisplay` |
+| 4 | `NavDisplay` 의 pop(바뀐 편집기면 지킴이 나가기 확인으로 돌린다 — 아래) | `NotesNavDisplay` · 지킴은 `NotesShell` |
 | 5 | 여는 중인 드로어 닫기 | `NotesShell` 본문 |
 | 6 | 펼친 고정 패널 접기 | `NotesShell` 본문 |
 | 7 | 앱 종료 안내 → 종료 | `NotesShell` 본문 (`enabled = !canPop && !drawerEngaged && !collapsiblePanelOpen`) |
@@ -50,6 +50,10 @@
   접힌 화면에서 드로어를 연 채 펼쳤을 때 열림으로 남은 상태가 넓은 창의 pop 을 막는다. 순서는 계측
   `src/androidTest/…/shell/BackOrderTest`(FM-10)가 지킨다 — 상태 없는 셸을 하네스로 띄워 단마다 누른다.
 
+- **바뀐 편집기의 지킴은 `NavDisplay` 뒤 · 삼킴 앞이다**(local-notes LN-10). 편집기가 맨 위이고 `EditorUiState.guardsExit` 면
+  `BackHandler` 가 pop 대신 `EditorIntent.Close`(나가기 확인)를 보낸다. `NavDisplay` 뒤라 pop 을 이기고 일반 핸들러라 예측 뒤로 미리보기가
+  돌지 않는다. 삼킴 앞이라 전환 중에는 삼킴이 이긴다. ④ 의 한 갈래라 단 수는 그대로다 — 편집기 화면 안에 `BackHandler` 를 두지 않는다.
+  계측 `BackOrderTest` 의 `FM-10 LN-10 …` 넷이 지킨다.
 - **삼킴은 `NavDisplay` 호출 뒤에 둔다.** `NavDisplay` 는 예측 뒤로가기 애니메이션을 **이미 커밋한
   뒤** `onBack` 을 부른다. 앞에 두고 버리면 화면은 닫혔는데 스택은 그대로라 어긋난다.
   `activity-compose` 의 `BackHandler` 는 `NavigationEventDispatcher` 가 있으면 거기 등록되므로
@@ -70,12 +74,13 @@
 등록 묶음과 `NavDisplay`(`NotesNavDisplay`) / 플로팅 내비·맨 위로·모델 알약(`NotesOverlays`·`ModelPill`).
 스크롤과 "맨 위로" 판정(`NotesScrollState`) · 상단 바(`NotesTopBar`)는 연결 화면 · 등록 파일도 써서 `:core:ui` 의 `shell/` 에 있다.
 
-**`NotesShell.kt` 한 파일이 순서를 고정한다(결정 12 · FM-5).** 시작 분기의 읽는 중 · 연결 루트(`NotesStart`), 모델 확인
-대화상자, 뒤로가기 핸들러, 드로어 · 고정 패널의 목록 패널, 퀴즈 오버레이, 상단 바와 그 행동(헤더 슬롯)을 이 파일에서 컴포즈
+**`NotesShell.kt` 한 파일이 순서를 고정한다(결정 12 · FM-5).** 시작 분기의 읽는 중(`NotesStart` — 연결 화면은 시작 결과가 아니다,
+RC-1), 모델 확인 대화상자, 편집기 기능의 파일 고르기 런처 · 대화상자 자리(`EditorHost` — 창 등급 분기 위에서 늘 컴포즈), 뒤로가기 핸들러, 드로어 · 고정 패널의 목록 패널, 퀴즈 오버레이, 상단 바와 그 행동(헤더 슬롯)을 이 파일에서 컴포즈
 순서대로 직접 부른다. 순서 없는 집합(Hilt `@IntoSet` 같은 멀티바인딩)으로 받지 않는다 — 받으면 퀴즈 오버레이(②)가 삼킴(③)보다
 먼저 컴포즈될 수 있다.
 
-**목적지 키 7개의 화면은 기능별 등록 파일이 등록한다(FM-4).** `:feature:notes` 의 `NotesDestinations.kt`(홈 · 북마크 · 리더) ·
+**목적지 키 9개의 화면은 기능별 등록 파일이 등록한다(FM-4).** `:feature:notes` 의 `NotesDestinations.kt`(홈 · 북마크 · 리더) ·
+`:feature:editor` 의 `EditorDestinations.kt`(편집기 · 붙여넣기) ·
 `:feature:stats` 의 `screen/StatsDestinations.kt`(통계 · 지난 요약) · `:feature:settings` 의 `SettingsDestinations.kt`(설정) ·
 `:feature:connect` 의 `screen/ConnectDestinations.kt`(쌓은 연결 화면). 셸 파일은 목적지 화면을 부르지 않고, `shellDestinations` 가 기능마다
 자기 상태 · 입구만 넘겨 묶는다. 리더 끝 CTA 자리는 노트 등록 파일이 노트 id 를 받는 슬롯으로 내놓고, 셸이 그 슬롯에 `:feature:quiz` 의 `QuizCtaCard` 를 넣는다(노트는 퀴즈 모듈을 모른다 — FM-2). 화면이 셸에게서 받는 틀 값은 셸 틀 계약 `:core:ui` 의 `frame/ShellFrame`(위 · 아래 · 끝 여백 · 두 단 · 쌓이는 씬 ·
@@ -205,11 +210,11 @@ DataStore(DataStoreTokenStore) → TokenRepository → ObserveTokenUseCase
   `-Ptemplate.repo=…` 로 한 번만 덮어 쓸 수도 있다.
 
 - **`defaultConfig` 는 넷 다 빈 문자열이다 — 코드에 기본 저장소가 없다**(RC-19 d). `local.properties` 에 키가 없으면
-  시드 없음이고 첫 실행은 연결 화면이다.
+  시드 없음이고 첫 실행은 홈 첫 실행 빈 상태다(local-notes LN-1).
 - **`debug` 블록만 `local.properties` 의 `github.owner`·`github.repo`·`github.branch`·`github.token` 으로 덮어쓴다.**
   브랜치가 비면 저장소 기본 브랜치다.
 - **`release` 블록은 넷을 항상 빈 문자열로 못 박는다**(결정 22) — `local.properties` 에 값이 있어도 공개 APK 에는 시드·토큰이
-  들어가지 않는다. 그래서 release 로 처음 켜면 연결 화면이 뜨는 게 정상이다. 이 줄을 지우면 `defaultConfig` 가 바뀔 때
+  들어가지 않는다. 그래서 release 로 처음 켜면 홈 첫 실행 빈 상태가 뜨는 게 정상이다. 이 줄을 지우면 `defaultConfig` 가 바뀔 때
   시드가 release 로 샐 수 있다.
 - `local.properties` 는 gitignore 되고, 키 이름만 안내한다: `github.owner`·`github.repo`·`github.branch`·`github.token`
   (release 서명 키는 아래 release 절). 값을 문서·커밋·로그에 적지 않는다.
@@ -249,6 +254,13 @@ DataStore(DataStoreTokenStore) → TokenRepository → ObserveTokenUseCase
   25MB 를 넘어 **그 앱의 백업 전체가 조용히 멈춘다** — 북마크·학습 기록도 같이 안 올라간다(기기 이전 한도는 2GB 라
   모델이 넘는다). `include` 를 하나라도 쓰면 나머지가 전부 빠지므로 `exclude` 만 쓴다. DataStore 이름이나 모델 파일
   이름을 바꾸면 이 파일도 같이 고친다.
+- **공유 받기는 트램펄린 `ShareReceiverActivity` 다**(local-notes LN-8). `SEND` · `text/*` · `application/octet-stream` 만 받고(여러 개 공유는 안 받는다),
+  `excludeFromRecents` · `noHistory` · 빈 `taskAffinity` · `Theme.NoDisplay` 로 보낸 앱의 태스크에 잠깐 떴다가 글을 `:core:ui` 의
+  `SharedTextInbox` 에 넣고 `MainActivity` 를 설정 알림과 같은 플래그(`NEW_TASK · CLEAR_TOP · SINGLE_TOP`)로 연 뒤 끝난다.
+  `MainActivity` 가 공유를 직접 받으면 보낸 앱의 태스크에 둘째 인스턴스가 떠 싱글턴 Navigator 를 나눠 쓴다. 글을 인텐트에 다시 싣지 않는다 —
+  512KB 글이 프로세스 사이 전달 한도에 닿는다. 받은함은 `:feature:editor` 의 `EditorViewModel` 이 꺼내 편집기를 연다.
+  파일 공유(`EXTRA_STREAM`)는 파일 열기 규칙으로 받는다(plan D34) — 받은함엔 주소만 넣고, 트램펄린이 받은 읽기 권한은 그 화면과 함께
+  끝날 수 있어 `MainActivity` 를 열 때 `clipData` + `FLAG_GRANT_READ_URI_PERMISSION` 으로 넘긴다. 파일이 붙어 있으면 글보다 파일이 먼저다(`shareRequestOf`).
 - 매니페스트에 `<receiver>` 가 없다. 알림이 여는 앱 컴포넌트는 `MainActivity` 하나다(아래 `download/` 절).
 
 ### 설정 딥링크 — 중복 push 를 막는 세 겹

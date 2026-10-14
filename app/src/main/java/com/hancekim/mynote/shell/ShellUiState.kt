@@ -34,6 +34,19 @@ data class ShellUiState(
 
     val isConnectOpen: Boolean get() = backStack.lastOrNull() is NotesNavKey.Connect
 
+    val isEditorTop: Boolean get() = backStack.lastOrNull() is NotesNavKey.Editor
+
+    /**
+     * 맨 위 화면이 자기 상단 바를 그리는 쌓은 화면인가 — 연결 · 편집기 · 붙여넣기(local-notes). 셸은 그동안 상단 바 · 드로어 제스처 ·
+     * 플로팅 내비 · 모델 알약을 숨긴다.
+     */
+    val ownsChrome: Boolean
+        get() =
+            backStack.lastOrNull().let {
+                it is NotesNavKey.Connect || it is NotesNavKey.Editor ||
+                    it is NotesNavKey.Paste
+            }
+
     val isBookmarksTop: Boolean get() = backStack.lastOrNull() is NotesNavKey.Bookmarks
 
     val isStatsTop: Boolean get() = backStack.lastOrNull() is NotesNavKey.Stats

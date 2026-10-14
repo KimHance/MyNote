@@ -56,6 +56,9 @@ class FeatureSignals @Inject constructor() {
     private val clears = MutableStateFlow(0)
     val studyLogClears: StateFlow<Int> = clears.asStateFlow()
 
+    private val imports = MutableStateFlow(0)
+    val importRequests: StateFlow<Int> = imports.asStateFlow()
+
     fun reportReaderOpened(
         noteId: String,
         resumeAt: Float?,
@@ -75,7 +78,7 @@ class FeatureSignals @Inject constructor() {
         covers.value = covered
     }
 
-    /** 연결이 바뀌어 퀴즈를 닫는다. 덮음도 같이 내려 읽기 세션이 같은 틱에 다시 돈다. */
+    /** 연결이 바뀌거나 그 노트를 지워 퀴즈를 닫는다(RC-23 · LN-11). 덮음도 같이 내려 읽기 세션이 같은 틱에 다시 돈다. */
     fun closeQuiz() {
         covers.value = false
         closes.update { it + 1 }
@@ -91,6 +94,11 @@ class FeatureSignals @Inject constructor() {
 
     fun studyLogCleared() {
         clears.update { it + 1 }
+    }
+
+    /** 홈의 `가져오기` — 편집기 기능이 가져오기 그릇을 연다(local-notes LN-1 · LN-2 · LN-6). */
+    fun requestImport() {
+        imports.update { it + 1 }
     }
 }
 

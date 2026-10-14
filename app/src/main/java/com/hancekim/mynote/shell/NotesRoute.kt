@@ -42,6 +42,8 @@ import com.hancekim.mynote.core.domain.model.SourceId
 import com.hancekim.mynote.core.ui.element.NotesDrafts
 import com.hancekim.mynote.core.ui.element.NotesSignal
 import com.hancekim.mynote.core.ui.element.NoticeUi
+import com.hancekim.mynote.feature.editor.EditorIntent
+import com.hancekim.mynote.feature.editor.EditorViewModel
 import com.hancekim.mynote.feature.notes.CategoryUi
 import com.hancekim.mynote.feature.notes.NoteUi
 import com.hancekim.mynote.feature.notes.NotesViewModel
@@ -56,7 +58,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import com.hancekim.mynote.core.designsystem.R as DsR
 
-/** 기능 ViewModel 넷은 모두 Activity 를 owner 로 받는다 — 창 등급이 바뀌어 NavDisplay 가 다시 만들어져도 남는다(결정 7). */
+/** 기능 ViewModel 다섯은 모두 Activity 를 owner 로 받는다 — 창 등급이 바뀌어 NavDisplay 가 다시 만들어져도 남는다(결정 7). */
 @Composable
 fun NotesRoute(
     shellViewModel: ShellViewModel = hiltViewModel(viewModelStoreOwner = LocalActivity.current as ComponentActivity),
@@ -64,12 +66,15 @@ fun NotesRoute(
     settingsViewModel: SettingsViewModel =
         hiltViewModel(viewModelStoreOwner = LocalActivity.current as ComponentActivity),
     quizViewModel: QuizViewModel = hiltViewModel(viewModelStoreOwner = LocalActivity.current as ComponentActivity),
+    editorViewModel: EditorViewModel =
+        hiltViewModel(viewModelStoreOwner = LocalActivity.current as ComponentActivity),
 ) {
     val activity = LocalActivity.current
     val shell by shellViewModel.state.collectAsStateWithLifecycle()
     val notes by notesViewModel.state.collectAsStateWithLifecycle()
     val settings by settingsViewModel.state.collectAsStateWithLifecycle()
     val quiz by quizViewModel.state.collectAsStateWithLifecycle()
+    val editor by editorViewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var notificationsEnabled by remember { mutableStateOf(notificationsAllowed(context)) }
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -107,6 +112,7 @@ fun NotesRoute(
                     }
                 },
                 quiz = { quizViewModel.onIntent(it) },
+                editor = { editorViewModel.onIntent(it) },
             )
         }
 
@@ -117,6 +123,7 @@ fun NotesRoute(
                 notes = notes,
                 settings = settings.copy(notificationsEnabled = notificationsEnabled),
                 quiz = quiz,
+                editor = editor,
             ),
         intents = intents,
         onExit = { activity?.finish() },
@@ -217,6 +224,10 @@ private fun RootSnackbars(
     NoticeSnackbar(states.settings.notice, host, undoLabel, onUndo = { current.settings(it) }) { id ->
         current.settings(SettingsIntent.SignalShown(NotesSignal.Notice, id))
     }
+    // 편집기 · 가져오기 — 거절 이유 5종(LN-7) · 지움(LN-11) · 실패
+    NoticeSnackbar(states.editor.notice, host, undoLabel, onUndo = { current.editor(it) }) { id ->
+        current.editor(EditorIntent.SignalShown(NotesSignal.Notice, id))
+    }
 }
 
 @Composable
@@ -277,7 +288,7 @@ private val previewStates: FeatureStates =
         )
     }
 
-private val previewIntents = FeatureIntents(shell = {}, notes = {}, settings = {}, quiz = {})
+private val previewIntents = FeatureIntents(shell = {}, notes = {}, settings = {}, quiz = {}, editor = {})
 
 @Preview(name = "Notes · Compact", showBackground = true, widthDp = 360, heightDp = 720)
 @Composable

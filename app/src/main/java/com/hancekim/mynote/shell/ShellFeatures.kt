@@ -3,6 +3,8 @@ package com.hancekim.mynote.shell
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import com.hancekim.mynote.core.ui.element.CtaAction
+import com.hancekim.mynote.feature.editor.EditorIntent
+import com.hancekim.mynote.feature.editor.EditorUiState
 import com.hancekim.mynote.feature.notes.NoteUi
 import com.hancekim.mynote.feature.notes.element.NotesIntent
 import com.hancekim.mynote.feature.notes.element.NotesUiState
@@ -12,13 +14,14 @@ import com.hancekim.mynote.feature.quiz.QuizOverlayState
 import com.hancekim.mynote.feature.settings.SettingsIntent
 import com.hancekim.mynote.feature.settings.SettingsUiState
 
-/** 셸이 그리는 데 쓰는 기능 상태 넷. 화면만 쓰는 값은 여기서 묶어 넘긴다(결정 13). */
+/** 셸이 그리는 데 쓰는 기능 상태 다섯. 화면만 쓰는 값은 여기서 묶어 넘긴다(결정 13). */
 @Stable
 internal data class FeatureStates(
     val shell: ShellUiState = ShellUiState(),
     val notes: NotesUiState = NotesUiState(),
     val settings: SettingsUiState = SettingsUiState(),
     val quiz: QuizOverlayState = QuizOverlayState(),
+    val editor: EditorUiState = EditorUiState(),
 ) {
     val activeNote: NoteUi? get() = notes.noteById(shell.activeNoteId)
 
@@ -32,13 +35,14 @@ internal data class FeatureStates(
             )
 }
 
-/** 기능 ViewModel 넷의 입구. 화면 이벤트는 그 기능의 ViewModel 로 간다. */
+/** 기능 ViewModel 다섯의 입구. 화면 이벤트는 그 기능의 ViewModel 로 간다. */
 @Immutable
 internal class FeatureIntents(
     val shell: (ShellIntent) -> Unit,
     val notes: (NotesIntent) -> Unit,
     val settings: (SettingsIntent) -> Unit,
     val quiz: (QuizIntent) -> Unit,
+    val editor: (EditorIntent) -> Unit,
 )
 
 /** 리더 끝 CTA 를 누르면 어디로 가나(FM-6 ⑤). */
