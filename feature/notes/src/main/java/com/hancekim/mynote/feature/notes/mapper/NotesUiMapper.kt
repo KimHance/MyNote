@@ -5,6 +5,7 @@ import com.hancekim.mynote.core.domain.model.Note
 import com.hancekim.mynote.core.domain.model.NoteBlock
 import com.hancekim.mynote.core.domain.model.NoteOrigin
 import com.hancekim.mynote.core.domain.model.firstSentence
+import com.hancekim.mynote.core.ui.mapper.toContentBlocks
 import com.hancekim.mynote.feature.notes.CategoryUi
 import com.hancekim.mynote.feature.notes.NoteUi
 import kotlinx.collections.immutable.ImmutableList

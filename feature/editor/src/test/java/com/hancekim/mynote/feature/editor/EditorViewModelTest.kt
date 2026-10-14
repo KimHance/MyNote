@@ -21,6 +21,7 @@ import com.hancekim.mynote.core.navigation.key.NotesNavKey
 import com.hancekim.mynote.core.ui.element.NotesSignal
 import com.hancekim.mynote.core.ui.signal.FeatureSignals
 import com.hancekim.mynote.core.ui.signal.SharedTextInbox
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -564,6 +565,193 @@ class EditorViewModelTest {
         }
 
     @Test
+    fun `LN-3 제목이나 본문이 비면 저장이 꺼지고 빈 칸 이유가 보인다`() =
+        runTest {
+            val f = Fixture(this)
+            val vm = f.vm()
+            vm.onIntent(EditorIntent.NewNote)
+            f.settle()
+
+            assertEquals(
+                SaveBlock.Empty,
+                vm.state.value.session
+                    ?.saveBlock,
+            )
+            vm.onIntent(EditorIntent.TitleChanged("제목"))
+            assertEquals(
+                "본문이 비면 그대로 빈 칸 이유다",
+                SaveBlock.Empty,
+                vm.state.value.session
+                    ?.saveBlock,
+            )
+            vm.onIntent(EditorIntent.BodyChanged("  \n "))
+            assertEquals(
+                SaveBlock.Empty,
+                vm.state.value.session
+                    ?.saveBlock,
+            )
+
+            vm.onIntent(EditorIntent.BodyChanged("본문"))
+
+            assertNull(
+                vm.state.value.session
+                    ?.saveBlock,
+            )
+            assertTrue(
+                vm.state.value.session!!
+                    .canSave,
+            )
+        }
+
+    @Test
+    fun `LN-3 크기를 넘으면 저장이 꺼지고 이유 줄에 본문 KB 가 보인다`() =
+        runTest {
+            val f = Fixture(this)
+            val vm = f.vm()
+            vm.onIntent(EditorIntent.NewNote)
+            f.settle()
+            vm.onIntent(EditorIntent.TitleChanged("제목"))
+
+            // 대역 경계는 1,000 글자 — 2,049 바이트 본문은 넘고 이유 줄은 올림한 3KB 다
+            vm.onIntent(EditorIntent.BodyChanged("a".repeat(2_049)))
+
+            val over = vm.state.value.session!!
+            assertEquals(SaveBlock.TooLarge, over.saveBlock)
+            assertEquals(3, over.bodyKilobytes)
+            assertFalse(over.canSave)
+
+            vm.onIntent(EditorIntent.BodyChanged("a".repeat(1_000)))
+
+            val back = vm.state.value.session!!
+            assertNull(back.saveBlock)
+            assertEquals("넘지 않으면 세지 않는다", 0, back.bodyKilobytes)
+            assertTrue(back.canSave)
+        }
+
+    @Test
+    fun `LN-3 미리보기 중에 제목을 고쳐도 미리보기 블록이 남고 본문을 고치면 다시 해석한다`() =
+        runTest {
+            val f = Fixture(this)
+            val vm = f.vm()
+            vm.onIntent(EditorIntent.NewNote)
+            f.settle()
+            vm.onIntent(EditorIntent.BodyChanged("본문"))
+            vm.onIntent(EditorIntent.SetPreview(true))
+            assertEquals(listOf("본문"), f.repository.previewed)
+
+            vm.onIntent(EditorIntent.TitleChanged("새 제목"))
+            vm.onIntent(EditorIntent.GroupChanged("kotlin"))
+
+            assertTrue(
+                vm.state.value.session!!
+                    .previewBlocks != null,
+            )
+            assertEquals("제목 · 그룹은 다시 해석하지 않는다", 1, f.repository.previewed.size)
+
+            vm.onIntent(EditorIntent.SetPreview(false))
+            vm.onIntent(EditorIntent.BodyChanged("고친 본문"))
+            vm.onIntent(EditorIntent.SetPreview(true))
+
+            assertEquals(listOf("본문", "고친 본문"), f.repository.previewed)
+        }
+
+    @Test
+    fun `LN-3 제목과 그룹 칸은 한 줄 200자다`() =
+        runTest {
+            val f = Fixture(this)
+            val vm = f.vm()
+            vm.onIntent(EditorIntent.NewNote)
+            f.settle()
+
+            vm.onIntent(EditorIntent.TitleChanged("첫 줄\r\n둘째 줄" + "가".repeat(300)))
+            vm.onIntent(EditorIntent.GroupChanged("kotlin\n" + "b".repeat(300)))
+
+            val draft =
+                vm.state.value.session!!
+                    .draft
+            assertEquals(200, draft.title.codePointCount(0, draft.title.length))
+            assertTrue(draft.title.startsWith("첫 줄 둘째 줄"))
+            assertEquals(200, draft.group.length)
+            assertTrue(draft.group.startsWith("kotlin b"))
+        }
+
+    @Test
+    fun `LN-7 붙여넣기 글이 512KB 를 넘으면 다음이 꺼지고 이유 줄이 보인다`() =
+        runTest {
+            val f = Fixture(this)
+            val vm = f.vm()
+            vm.onIntent(EditorIntent.ChoosePaste)
+            f.settle()
+            assertEquals(PasteBlock.Empty, vm.state.value.pasteBlock)
+
+            vm.onIntent(EditorIntent.PasteChanged("a".repeat(524_288)))
+            assertNull("524,288 바이트는 받는다", vm.state.value.pasteBlock)
+
+            vm.onIntent(EditorIntent.PasteChanged("a".repeat(524_287) + "가"))
+            assertEquals(PasteBlock.TooLarge, vm.state.value.pasteBlock)
+            vm.onIntent(EditorIntent.PasteNext)
+
+            assertEquals("꺼진 다음은 편집기를 열지 않는다", listOf(home, NotesNavKey.Paste), f.stack())
+            assertNull("이유는 이유 줄이 이미 보인다 — 스낵바를 겹치지 않는다", vm.state.value.notice)
+        }
+
+    @Test
+    fun `LN-7 빈 붙여넣기는 다음이 꺼진다`() =
+        runTest {
+            val f = Fixture(this)
+            val vm = f.vm()
+            vm.onIntent(EditorIntent.ChoosePaste)
+            f.settle()
+
+            vm.onIntent(EditorIntent.PasteChanged(" \n\t"))
+            vm.onIntent(EditorIntent.PasteNext)
+
+            assertEquals(PasteBlock.Empty, vm.state.value.pasteBlock)
+            assertEquals(listOf(home, NotesNavKey.Paste), f.stack())
+            assertNull(vm.state.value.notice)
+        }
+
+    @Test
+    fun `LN-6 파일을 읽는 중에 취소하면 가져온 글을 버린다`() =
+        runTest {
+            val f = Fixture(this)
+            val gate = CompletableDeferred<Unit>()
+            val vm = f.vm(files = GatedFiles(gate))
+            f.signals.requestImport()
+
+            vm.onIntent(EditorIntent.FileChosen("content://notes/flow.md"))
+            assertEquals(ImportDialogUi.Reading, vm.state.value.importDialog)
+
+            vm.onIntent(EditorIntent.DismissImport)
+            gate.complete(Unit)
+
+            assertEquals(ImportDialogUi.Closed, vm.state.value.importDialog)
+            assertEquals(listOf(home), f.stack())
+            assertNull(vm.state.value.notice)
+        }
+
+    @Test
+    fun `LN-6 다 읽으면 그릇이 닫히고 미리 채운 편집기가 열린다`() =
+        runTest {
+            val f = Fixture(this)
+            val gate = CompletableDeferred<Unit>()
+            val vm = f.vm(files = GatedFiles(gate))
+            f.signals.requestImport()
+            vm.onIntent(EditorIntent.FileChosen("content://notes/flow.md"))
+
+            gate.complete(Unit)
+
+            assertEquals(ImportDialogUi.Closed, vm.state.value.importDialog)
+            assertTrue(f.stack().last() is NotesNavKey.Editor)
+            assertEquals(
+                "파일 제목",
+                vm.state.value.session
+                    ?.draft
+                    ?.title,
+            )
+        }
+
+    @Test
     fun `FM-16 본 알림은 다시 나오지 않는다`() =
         runTest {
             val f = Fixture(this)
@@ -597,7 +785,7 @@ private class Fixture(
 
     fun stack(): List<MyNoteNavKey> = navigator.stack.value
 
-    fun vm(): EditorViewModel {
+    fun vm(files: NoteFileReader = FakeFiles()): EditorViewModel {
         val vm =
             EditorViewModel(
                 navigator = navigator,
@@ -608,7 +796,7 @@ private class Fixture(
                 deleteNote = DeleteDeviceNoteUseCase(repository),
                 loadNote = LoadDeviceNoteUseCase(repository),
                 previewNote = PreviewDeviceNoteUseCase(repository),
-                importNote = ImportNoteUseCase(text, FakeFiles(), { LocalDate.of(2026, 10, 14) }),
+                importNote = ImportNoteUseCase(text, files, { LocalDate.of(2026, 10, 14) }),
                 messages = FakeMessages,
                 failureLog = { _, _, cause -> throw AssertionError(cause) },
             )
@@ -686,6 +874,21 @@ private class FakeFiles : NoteFileReader {
         uri: String,
         maxBytes: Int,
     ): FileText = FileText.Read("# 파일 제목\n파일 본문")
+}
+
+/** 읽기를 [gate] 가 열릴 때까지 붙잡는 대역 — 클라우드 파일처럼 느린 읽기(디자인 C18). */
+private class GatedFiles(
+    private val gate: CompletableDeferred<Unit>,
+) : NoteFileReader {
+    override suspend fun displayName(uri: String): String? = uri.substringAfterLast('/')
+
+    override suspend fun read(
+        uri: String,
+        maxBytes: Int,
+    ): FileText {
+        gate.await()
+        return FileText.Read("# 파일 제목\n파일 본문")
+    }
 }
 
 private object FakeMessages : EditorMessages {
