@@ -27,6 +27,7 @@ fun notesDestinations(
             HomeScreen(
                 recentNotes = notes.recentNotes,
                 body = notes.homeBody,
+                entries = notes.homeEntries,
                 repoName = notes.heroRepoName,
                 showConnectBand = notes.showConnectBand && MyNoteTheme.adaptive.useModalDrawer,
                 onIntent = onIntent,

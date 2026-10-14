@@ -7,9 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -35,11 +33,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -88,25 +84,22 @@ import com.hancekim.mynote.feature.connect.element.ConfirmKind
 import com.hancekim.mynote.feature.connect.element.ConfirmUi
 import com.hancekim.mynote.feature.connect.element.ConnectBackAction
 import com.hancekim.mynote.feature.connect.element.ConnectNotice
-import com.hancekim.mynote.feature.connect.element.ConnectPlace
+import com.hancekim.mynote.feature.connect.element.ConnectSection
 import com.hancekim.mynote.feature.connect.element.ConnectStep
-import com.hancekim.mynote.feature.connect.element.EntryEmphasis
 import com.hancekim.mynote.feature.connect.element.LinkCheck
 import com.hancekim.mynote.feature.connect.element.NoticeWays
 import com.hancekim.mynote.feature.connect.element.canConnect
 import com.hancekim.mynote.feature.connect.element.connectBackAction
 import com.hancekim.mynote.feature.connect.element.connectNoticeRes
-import com.hancekim.mynote.feature.connect.element.entryEmphasis
+import com.hancekim.mynote.feature.connect.element.connectSectionsOf
 import com.hancekim.mynote.feature.connect.element.linkReasonRes
 import com.hancekim.mynote.feature.connect.element.noticeWays
-import com.hancekim.mynote.feature.connect.element.twoColumnsOf
 import kotlinx.coroutines.launch
 import com.hancekim.mynote.core.designsystem.R as DsR
 import com.hancekim.mynote.core.ui.R as UiR
 
 @Composable
 fun ConnectRoute(
-    place: ConnectPlace,
     hasConnection: Boolean,
     drafts: com.hancekim.mynote.core.ui.element.NotesDrafts,
     snackbarHostState: SnackbarHostState,
@@ -140,11 +133,10 @@ fun ConnectRoute(
     }
     LaunchedEffect(state.resetCount) { drafts.consumeReset(state.resetCount) }
 
-    val backAction = connectBackAction(place, state.step)
-    BackHandler(enabled = place == ConnectPlace.Root || backAction != ConnectBackAction.PopScreen) {
+    val backAction = connectBackAction(state.step)
+    BackHandler(enabled = backAction != ConnectBackAction.PopScreen) {
         when (backAction) {
             ConnectBackAction.CancelProbe -> viewModel.onIntent(ConnectIntent.CancelProbe)
-            ConnectBackAction.ShowExitHint -> onShellBack()
             ConnectBackAction.Ignore, ConnectBackAction.PopScreen -> Unit
         }
     }
@@ -153,42 +145,23 @@ fun ConnectRoute(
         stringResource(
             if (hasConnection) R.string.connect_change_title else R.string.connect_attach_title,
         )
-    val content =
-        @Composable {
-            ConnectScreen(
-                state = state,
-                place = place,
-                title = title,
-                draft = draft,
-                onIntent = viewModel::onIntent,
-                onBack = {
-                    when (backAction) {
-                        ConnectBackAction.CancelProbe -> viewModel.onIntent(ConnectIntent.CancelProbe)
-                        ConnectBackAction.Ignore -> Unit
-                        else -> onShellBack()
-                    }
-                },
-                onCreateToken = { openOrNotify(TOKEN_PAGE_URL) },
-                modifier = modifier,
-                emphasis = entryEmphasis(place, hasConnection),
-                onOpenCreate = { state.template?.let { openOrNotify(it.generateUrl) } },
-                onOpenGuide = { state.template?.let { openOrNotify(it.introUrl) } },
-            )
-        }
-    if (place == ConnectPlace.Root) {
-        Box(Modifier.fillMaxSize()) {
-            content()
-            MyNoteSnackbarHost(
-                hostState = snackbarHostState,
-                modifier =
-                    Modifier
-                        .align(Alignment.BottomCenter)
-                        .windowInsetsPadding(WindowInsets.safeDrawing),
-            )
-        }
-    } else {
-        content()
-    }
+    ConnectScreen(
+        state = state,
+        title = title,
+        draft = draft,
+        onIntent = viewModel::onIntent,
+        onBack = {
+            when (backAction) {
+                ConnectBackAction.CancelProbe -> viewModel.onIntent(ConnectIntent.CancelProbe)
+                ConnectBackAction.Ignore -> Unit
+                ConnectBackAction.PopScreen -> onShellBack()
+            }
+        },
+        onCreateToken = { openOrNotify(TOKEN_PAGE_URL) },
+        modifier = modifier,
+        onOpenCreate = { state.template?.let { openOrNotify(it.generateUrl) } },
+        onOpenGuide = { state.template?.let { openOrNotify(it.introUrl) } },
+    )
 
     state.confirm?.let { confirm ->
         ConnectConfirmDialog(
@@ -202,14 +175,12 @@ fun ConnectRoute(
 @Composable
 fun ConnectScreen(
     state: ConnectUiState,
-    place: ConnectPlace,
     title: String,
     draft: TokenDraft,
     onIntent: (ConnectIntent) -> Unit,
     onBack: () -> Unit,
     onCreateToken: () -> Unit,
     modifier: Modifier = Modifier,
-    emphasis: EntryEmphasis = entryEmphasis(place, hasConnection = false),
     onOpenCreate: () -> Unit = {},
     onOpenGuide: () -> Unit = {},
 ) {
@@ -289,87 +260,52 @@ fun ConnectScreen(
                 }
             }
         }
-    val latestLinkSection = rememberUpdatedState(linkSectionContent)
-    val linkSection = remember { movableContentOf { latestLinkSection.value() } }
 
     Surface(modifier = modifier.fillMaxSize(), color = colors.bg) {
         Column(
             Modifier
                 .fillMaxSize()
                 .windowInsetsPadding(
-                    if (place == ConnectPlace.Root) {
-                        WindowInsets.safeDrawing
-                    } else {
-                        WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
-                    },
+                    WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom),
                 ),
         ) {
-            if (place == ConnectPlace.Stacked) {
-                NotesTopBar(
-                    title = title,
-                    showBack = true,
-                    bookmarked = null,
-                    onMenu = {},
-                    onBack = onBack,
-                    onRefresh = {},
-                    onToggleBookmark = {},
-                    showRefresh = false,
-                    backEnabled = state.step == ConnectStep.Editing || state.step == ConnectStep.Probing,
-                )
-            }
-            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
-                val entryShown = state.entryShown
-                var guideOpen by rememberSaveable { mutableStateOf(false) }
-                val twoColumns = twoColumnsOf(emphasis, short, maxWidth.value, entryShown)
-                val topPad =
-                    when {
-                        place == ConnectPlace.Stacked -> STACKED_TOP
-                        short -> SHORT_ROOT_TOP
-                        adaptive.useModalDrawer -> COMPACT_ROOT_TOP
-                        else -> WIDE_ROOT_TOP
-                    }
+            NotesTopBar(
+                title = title,
+                showBack = true,
+                bookmarked = null,
+                onMenu = {},
+                onBack = onBack,
+                onRefresh = {},
+                onToggleBookmark = {},
+                showRefresh = false,
+                backEnabled = state.step == ConnectStep.Editing || state.step == ConnectStep.Probing,
+            )
+            var guideOpen by rememberSaveable { mutableStateOf(false) }
+            Column(
+                modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
                 Column(
-                    modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier =
+                        Modifier
+                            .widthIn(max = CONTENT_MAX_WIDTH)
+                            .fillMaxWidth()
+                            .padding(start = SIDE, end = SIDE, top = TOP_PAD, bottom = BOTTOM_PAD),
+                    verticalArrangement = Arrangement.spacedBy(gap),
                 ) {
-                    Column(
-                        modifier =
-                            Modifier
-                                .widthIn(max = if (twoColumns) TWO_COLUMN_MAX_WIDTH else CONTENT_MAX_WIDTH)
-                                .fillMaxWidth()
-                                .padding(
-                                    start = SIDE,
-                                    end = SIDE,
-                                    top = topPad,
-                                    bottom = if (twoColumns) TWO_COLUMN_BOTTOM else BOTTOM_PAD,
-                                ),
-                    ) {
-                        if (place == ConnectPlace.Root && !twoColumns) {
-                            ConnectHeading()
-                            Spacer(Modifier.height(HEADING_GAP))
-                        }
-                        if (twoColumns) {
-                            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-                                Column(Modifier.weight(1f)) {
-                                    ConnectHeading()
-                                    Spacer(Modifier.height(HEADING_GAP))
-                                    linkSection()
-                                }
-                                EntryColumnDivider()
-                                EntrySection(onCreate = onOpenCreate, modifier = Modifier.weight(1f))
+                    connectSectionsOf(state.entryShown).forEach { section ->
+                        when (section) {
+                            ConnectSection.Link -> {
+                                linkSectionContent()
                             }
-                        } else {
-                            Column(verticalArrangement = Arrangement.spacedBy(gap)) {
-                                linkSection()
-                                if (entryShown) {
-                                    EntryDivider()
-                                    EntrySection(
-                                        onCreate = onOpenCreate,
-                                        expanded = guideOpen,
-                                        onToggle = { guideOpen = !guideOpen },
-                                        collapsible = true,
-                                    )
-                                }
+
+                            ConnectSection.Entry -> {
+                                EntryDivider()
+                                EntrySection(
+                                    onCreate = onOpenCreate,
+                                    expanded = guideOpen,
+                                    onToggle = { guideOpen = !guideOpen },
+                                )
                             }
                         }
                     }
@@ -377,16 +313,6 @@ fun ConnectScreen(
             }
         }
     }
-}
-
-@Composable
-private fun ConnectHeading() {
-    KeepWordsText(
-        text = stringResource(R.string.connect_title),
-        style = MyNoteTheme.textStyles.title,
-        color = MyNoteTheme.colors.text,
-        modifier = Modifier.semantics { heading() },
-    )
 }
 
 @Composable
@@ -586,14 +512,8 @@ private fun SyncProgressCard() {
 
 private val SIDE: Dp = 16.dp
 private val BOTTOM_PAD: Dp = 24.dp
-private val STACKED_TOP: Dp = 12.dp
-private val SHORT_ROOT_TOP: Dp = 20.dp
-private val COMPACT_ROOT_TOP: Dp = 28.dp
-private val WIDE_ROOT_TOP: Dp = 72.dp
+private val TOP_PAD: Dp = 12.dp
 private val GAP: Dp = 24.dp
-private val HEADING_GAP: Dp = 12.dp
-private val TWO_COLUMN_MAX_WIDTH: Dp = 800.dp
-private val TWO_COLUMN_BOTTOM: Dp = 8.dp
 private val SHORT_GAP: Dp = 16.dp
 private val CARD_RADIUS: Dp = 14.dp
 
@@ -611,11 +531,11 @@ private fun PreviewHost(
     MyNoteTheme(windowClass = windowClass, heightClass = heightClass, fontScale = fontScale, content = content)
 }
 
-@Preview(name = "연결 · 빈 · 루트", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 360, heightDp = 800)
+@Preview(name = "연결 · 빈", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 360, heightDp = 800)
 @Composable
 private fun ConnectEmptyPreview() {
     PreviewHost {
-        ConnectScreen(ConnectUiState(), ConnectPlace.Root, "", TokenDraft(), {}, {}, {})
+        ConnectScreen(ConnectUiState(), "저장소 연결", TokenDraft(), {}, {}, {})
     }
 }
 
@@ -625,8 +545,7 @@ private fun ConnectFoundPreview() {
     PreviewHost {
         ConnectScreen(
             ConnectUiState(link = PREVIEW_LINK, linkCheck = previewFound),
-            ConnectPlace.Root,
-            "",
+            "저장소 연결",
             TokenDraft(),
             {},
             {},
@@ -641,8 +560,7 @@ private fun ConnectProbingPreview() {
     PreviewHost {
         ConnectScreen(
             ConnectUiState(link = PREVIEW_LINK, linkCheck = previewFound, step = ConnectStep.Probing),
-            ConnectPlace.Root,
-            "",
+            "저장소 연결",
             TokenDraft(),
             {},
             {},
@@ -661,8 +579,7 @@ private fun ConnectTokenNeededPreview() {
                 linkCheck = previewFound,
                 tokenPanel = TokenPanelUi(TokenReason.Needed),
             ),
-            ConnectPlace.Root,
-            "",
+            "저장소 연결",
             TokenDraft(),
             {},
             {},
@@ -682,8 +599,7 @@ private fun ConnectTokenClassicPreview() {
                 linkCheck = previewFound,
                 tokenPanel = TokenPanelUi(TokenReason.Needed),
             ),
-            ConnectPlace.Root,
-            "",
+            "저장소 연결",
             draft,
             {},
             {},
@@ -704,8 +620,7 @@ private fun ConnectTokenVerifyingPreview() {
                 step = ConnectStep.Probing,
                 tokenPanel = TokenPanelUi(TokenReason.Needed),
             ),
-            ConnectPlace.Root,
-            "",
+            "저장소 연결",
             draft,
             {},
             {},
@@ -725,8 +640,7 @@ private fun ConnectTokenRejectedPreview() {
                 linkCheck = previewFound,
                 tokenPanel = TokenPanelUi(TokenReason.Needed, TokenFailureKind.Rejected),
             ),
-            ConnectPlace.Root,
-            "",
+            "저장소 연결",
             draft,
             {},
             {},
@@ -746,8 +660,7 @@ private fun ConnectTokenNotVisiblePreview() {
                 linkCheck = previewFound,
                 tokenPanel = TokenPanelUi(TokenReason.Needed, TokenFailureKind.NotVisible),
             ),
-            ConnectPlace.Root,
-            "",
+            "저장소 연결",
             draft,
             {},
             {},
@@ -767,8 +680,7 @@ private fun ConnectTokenNoListPreview() {
                 linkCheck = previewFound,
                 tokenPanel = TokenPanelUi(TokenReason.Needed, TokenFailureKind.NoList),
             ),
-            ConnectPlace.Root,
-            "",
+            "저장소 연결",
             draft,
             {},
             {},
@@ -787,8 +699,7 @@ private fun ConnectTokenLimitPreview() {
                 linkCheck = previewFound,
                 tokenPanel = TokenPanelUi(TokenReason.Limit),
             ),
-            ConnectPlace.Root,
-            "",
+            "저장소 연결",
             TokenDraft(),
             {},
             {},
@@ -807,8 +718,7 @@ private fun ConnectTokenLimitWidePreview() {
                 linkCheck = previewFound,
                 tokenPanel = TokenPanelUi(TokenReason.Limit),
             ),
-            ConnectPlace.Root,
-            "",
+            "저장소 연결",
             TokenDraft(),
             {},
             {},
@@ -826,8 +736,7 @@ private fun ConnectLinkReasonPreview() {
                 link = "http://github.com/octo-learner/android-notes",
                 linkCheck = LinkCheck.Rejected(ConnectLinkRejection.NotHttps),
             ),
-            ConnectPlace.Root,
-            "",
+            "저장소 연결",
             TokenDraft(),
             {},
             {},
@@ -842,8 +751,7 @@ private fun ConnectNoListPreview() {
     PreviewHost {
         ConnectScreen(
             ConnectUiState(link = PREVIEW_LINK, linkCheck = previewFound, notice = ConnectNotice.NoList),
-            ConnectPlace.Root,
-            "",
+            "저장소 연결",
             TokenDraft(),
             {},
             {},
@@ -858,8 +766,7 @@ private fun ConnectOfflinePreview() {
     PreviewHost {
         ConnectScreen(
             ConnectUiState(link = PREVIEW_LINK, linkCheck = previewFound, notice = ConnectNotice.Offline),
-            ConnectPlace.Root,
-            "",
+            "저장소 연결",
             TokenDraft(),
             {},
             {},
@@ -868,14 +775,13 @@ private fun ConnectOfflinePreview() {
     }
 }
 
-@Preview(name = "첫 동기화 중 · 루트", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 360, heightDp = 800)
+@Preview(name = "첫 동기화 중", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 360, heightDp = 800)
 @Composable
 private fun ConnectSyncingPreview() {
     PreviewHost {
         ConnectScreen(
             ConnectUiState(link = PREVIEW_LINK, linkCheck = previewFound, step = ConnectStep.Syncing),
-            ConnectPlace.Root,
-            "",
+            "저장소 연결",
             TokenDraft(),
             {},
             {},
@@ -890,7 +796,6 @@ private fun ConnectStackedPreview() {
     PreviewHost {
         ConnectScreen(
             ConnectUiState(link = PREVIEW_LINK, linkCheck = previewFound),
-            ConnectPlace.Stacked,
             "저장소 바꾸기",
             TokenDraft(),
             {},
@@ -906,7 +811,6 @@ private fun ConnectStackedWidePreview() {
     PreviewHost(windowClass = MyNoteWindowClass.Medium) {
         ConnectScreen(
             ConnectUiState(link = PREVIEW_LINK, linkCheck = previewFound),
-            ConnectPlace.Stacked,
             "저장소 바꾸기",
             TokenDraft(),
             {},
@@ -922,7 +826,6 @@ private fun ConnectStackedSyncingPreview() {
     PreviewHost {
         ConnectScreen(
             ConnectUiState(link = PREVIEW_LINK, linkCheck = previewFound, step = ConnectStep.Syncing),
-            ConnectPlace.Stacked,
             "저장소 바꾸기",
             TokenDraft(),
             {},
@@ -936,7 +839,7 @@ private fun ConnectStackedSyncingPreview() {
 @Composable
 private fun ConnectLandscapePreview() {
     PreviewHost(windowClass = MyNoteWindowClass.Medium, heightClass = MyNoteHeightClass.Compact) {
-        ConnectScreen(ConnectUiState(), ConnectPlace.Root, "", TokenDraft(), {}, {}, {})
+        ConnectScreen(ConnectUiState(), "저장소 연결", TokenDraft(), {}, {}, {})
     }
 }
 
@@ -952,8 +855,7 @@ private fun ConnectLargeFontPreview() {
     PreviewHost(fontScale = MyNoteFontScale.Large) {
         ConnectScreen(
             ConnectUiState(link = PREVIEW_LINK, linkCheck = previewFound),
-            ConnectPlace.Root,
-            "",
+            "저장소 연결",
             TokenDraft(),
             {},
             {},
@@ -974,11 +876,11 @@ private fun ConnectConfirmAdoptPreview() {
     }
 }
 
-@Preview(name = "입구 · 빈 · 루트", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 360, heightDp = 800)
+@Preview(name = "입구 · 빈", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 360, heightDp = 800)
 @Composable
 private fun ConnectEntryEmptyPreview() {
     PreviewHost {
-        ConnectScreen(ConnectUiState(template = previewTemplate), ConnectPlace.Root, "", TokenDraft(), {}, {}, {})
+        ConnectScreen(ConnectUiState(template = previewTemplate), "저장소 연결", TokenDraft(), {}, {}, {})
     }
 }
 
@@ -988,8 +890,7 @@ private fun ConnectEntryFoundPreview() {
     PreviewHost {
         ConnectScreen(
             ConnectUiState(link = PREVIEW_LINK, linkCheck = previewFound, template = previewTemplate),
-            ConnectPlace.Root,
-            "",
+            "저장소 연결",
             TokenDraft(),
             {},
             {},
@@ -1002,15 +903,15 @@ private fun ConnectEntryFoundPreview() {
 @Composable
 private fun ConnectEntryWidePreview() {
     PreviewHost(windowClass = MyNoteWindowClass.Medium) {
-        ConnectScreen(ConnectUiState(template = previewTemplate), ConnectPlace.Root, "", TokenDraft(), {}, {}, {})
+        ConnectScreen(ConnectUiState(template = previewTemplate), "저장소 연결", TokenDraft(), {}, {}, {})
     }
 }
 
-@Preview(name = "입구 · 빈 · 가로 두 단", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 800, heightDp = 360)
+@Preview(name = "입구 · 빈 · 가로", showBackground = true, backgroundColor = 0xFF0E1217, widthDp = 800, heightDp = 360)
 @Composable
 private fun ConnectEntryLandscapePreview() {
     PreviewHost(windowClass = MyNoteWindowClass.Medium, heightClass = MyNoteHeightClass.Compact) {
-        ConnectScreen(ConnectUiState(template = previewTemplate), ConnectPlace.Root, "", TokenDraft(), {}, {}, {})
+        ConnectScreen(ConnectUiState(template = previewTemplate), "저장소 연결", TokenDraft(), {}, {}, {})
     }
 }
 
@@ -1018,7 +919,7 @@ private fun ConnectEntryLandscapePreview() {
 @Composable
 private fun ConnectEntryLargeFontPreview() {
     PreviewHost(fontScale = MyNoteFontScale.Large) {
-        ConnectScreen(ConnectUiState(template = previewTemplate), ConnectPlace.Root, "", TokenDraft(), {}, {}, {})
+        ConnectScreen(ConnectUiState(template = previewTemplate), "저장소 연결", TokenDraft(), {}, {}, {})
     }
 }
 
@@ -1028,7 +929,6 @@ private fun ConnectEntryStackedPreview() {
     PreviewHost {
         ConnectScreen(
             ConnectUiState(link = PREVIEW_LINK, linkCheck = previewFound, template = previewTemplate),
-            ConnectPlace.Stacked,
             "저장소 바꾸기",
             TokenDraft(),
             {},
@@ -1044,7 +944,6 @@ private fun ConnectEntryStackedWidePreview() {
     PreviewHost(windowClass = MyNoteWindowClass.Medium) {
         ConnectScreen(
             ConnectUiState(link = PREVIEW_LINK, linkCheck = previewFound, template = previewTemplate),
-            ConnectPlace.Stacked,
             "저장소 바꾸기",
             TokenDraft(),
             {},
@@ -1071,8 +970,7 @@ private fun ConnectNoListWaysPreview() {
                 notice = ConnectNotice.NoList,
                 template = previewTemplate,
             ),
-            ConnectPlace.Root,
-            "",
+            "저장소 연결",
             TokenDraft(),
             {},
             {},
@@ -1092,8 +990,7 @@ private fun ConnectNoListWaysLandscapePreview() {
                 notice = ConnectNotice.NoList,
                 template = previewTemplate,
             ),
-            ConnectPlace.Root,
-            "",
+            "저장소 연결",
             TokenDraft(),
             {},
             {},

@@ -38,6 +38,7 @@ data class NotesUiState(
     val connection: ConnectionState? = null,
     val notesLoaded: Boolean = false,
     val awaitingNotes: Boolean = false,
+    val connectBandCount: Int = 0,
     val notice: NoticeUi<NotesIntent>? = null,
     val infoMessage: String? = null,
     val infoId: Int = 0,
@@ -49,7 +50,10 @@ data class NotesUiState(
 
     val homeBody: HomeBody get() = homeBodyOf(connectedRepo != null, totalCount, isLoading || awaitingNotes)
 
-    val showConnectBand: Boolean get() = connection == ConnectionState.None && totalCount > 0
+    /** 연결 안내 띠 — 연결이 없고 연결 정보 없는 저장소 노트가 있을 때만. 기기 노트는 세지 않는다(RC-1). */
+    val showConnectBand: Boolean get() = connection == ConnectionState.None && connectBandCount > 0
+
+    val homeEntries: ImmutableList<HomeEntry> get() = homeEntriesOf(homeBody)
 
     val totalCount: Int get() = categories.sumOf { it.notes.size }
 

@@ -4,6 +4,7 @@ import com.hancekim.mynote.core.domain.model.Note
 import com.hancekim.mynote.core.domain.model.NoteBlock
 import com.hancekim.mynote.core.domain.model.NoteSpan
 import com.hancekim.mynote.core.domain.model.UnsupportedReason
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -21,6 +22,18 @@ class NotesUiMapperTest {
             text = null,
             raw = "{}",
         )
+
+    @Test
+    fun `LN-5 출처 표시는 기기 노트에만 있다`() {
+        val device = Note(id = "local/7f3a", title = "코루틴", date = "2026.10.14", blocks = emptyList()).toUi()
+        val legacy = note().toUi()
+        val connected = Note(id = "2f1c/android/flow", title = "Flow", date = "2026.10.01", blocks = emptyList()).toUi()
+
+        assertTrue(device.device)
+        assertFalse(legacy.device)
+        assertFalse(connected.device)
+        assertEquals(listOf(true, false, false), listOf(device, legacy, connected).map { it.device })
+    }
 
     @Test
     fun `노트 전체를 읽지 못한 노트는 읽을 수 없다`() {

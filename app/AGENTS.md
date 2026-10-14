@@ -417,8 +417,8 @@ APK 85.4MB → 60.6MB. **되돌릴 조건은 하나다: 인텔 맥에서 x86_64 
   앱 외부 캐시 `brand-mask/` 에 남긴다), `SplashWaitTest` · `LiveTasksTest`(`brand` BR-4 — 내려가기 기다림 계산과 같은 태스크 판단). 런처 그림은 `:app` 리소스라 라이브러리 계측에서 안 보여 여기 있다. 리소스 값 대조는
   파이썬(`notes-tests/test_brand_resources.py`)이다.
   `…/shell/BackOrderTest`(FM-10 뒤로가기 7단 · FM-4 창 등급 — 상태 없는 셸에 가짜 상태를 넣어 그린다. 몸통은 하네스 말만 쓰고, 셸이
-  바뀌면 하네스만 고친다) · `…/brand/TitleFontScreensTest`(`brand` BR-8 — 가로 800×360 첫 실행 연결 화면 · 통계 요약 카드를 기기 글꼴과
-  Gothic A1 로 그려 스크롤 없음 · 두 단 · 줄 수를 보고 PNG 를 시험 APK 외부 캐시 `brand-font/` 에 남긴다. Gothic A1 쪽은 글꼴 제공자 ·
+  바뀌면 하네스만 고친다) · `…/brand/TitleFontScreensTest`(`brand` BR-8 — 통계 요약 카드를 기기 글꼴과
+  Gothic A1 로 그려 줄 수를 보고 PNG 를 시험 APK 외부 캐시 `brand-font/` 에 남긴다. Gothic A1 쪽은 글꼴 제공자 ·
   네트워크가 없으면 건너뛴다)도 여기 있다 — 셸과 여러 기능 화면을 같이 그려서다. 둘 다 Hilt ViewModel 없이 그리지만 앱 계측이라
   `MyNoteApplication`(Hilt · 토큰 동기 · 워커)이 실제로 뜬 채 돈다.
 - JVM 시험은 `src/test/…/shell/` — 셸 VM(`ShellViewModelTest`) · 등록 묶음(`ShellDestinationsTest`) · 시작 분기(`ConnectStartTest`) ·

@@ -17,14 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.SemanticsProperties
-import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
@@ -36,12 +33,6 @@ import com.hancekim.mynote.core.designsystem.font.decideTitleFont
 import com.hancekim.mynote.core.designsystem.font.googleTitleFontSource
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.designsystem.theme.ProvideTitleFontFamily
-import com.hancekim.mynote.core.domain.connect.TemplateRepo
-import com.hancekim.mynote.core.ui.element.TokenDraft
-import com.hancekim.mynote.feature.connect.R
-import com.hancekim.mynote.feature.connect.element.ConnectPlace
-import com.hancekim.mynote.feature.connect.screen.ConnectScreen
-import com.hancekim.mynote.feature.connect.screen.ConnectUiState
 import com.hancekim.mynote.feature.stats.GeneratedAgo
 import com.hancekim.mynote.feature.stats.SummaryCardUi
 import com.hancekim.mynote.feature.stats.SummaryLabel
@@ -50,7 +41,6 @@ import com.hancekim.mynote.feature.stats.screen.SummaryForm
 import com.hancekim.mynote.feature.stats.screen.rememberStatsFormats
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Rule
@@ -67,40 +57,6 @@ class TitleFontScreensTest {
     private val gothicA1 = runBlocking { decideTitleFont(googleTitleFontSource(context)) { delay(LOAD_MILLIS) } }
 
     private var fontFamily by mutableStateOf<FontFamily>(FontFamily.Default)
-
-    @Test
-    fun `BR-8 가로 800x360 첫 실행 연결 화면은 두 글꼴 모두 스크롤 없이 두 단 한 화면이다`() {
-        show(
-            width = CONNECT_WIDTH,
-            height = CONNECT_HEIGHT,
-            windowClass = MyNoteWindowClass.Medium,
-            heightClass = MyNoteHeightClass.Compact,
-        ) {
-            ConnectScreen(
-                state = ConnectUiState(template = TemplateRepo("octo-learner", "notes-template")),
-                place = ConnectPlace.Root,
-                title = "",
-                draft = TokenDraft(),
-                onIntent = {},
-                onBack = {},
-                onCreateToken = {},
-            )
-        }
-        val heading = context.getString(R.string.connect_title)
-        val entry = context.getString(R.string.connect_entry_title)
-        val heights =
-            eachFont("connect-800x360") { name ->
-                val scroll = rule.onNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.VerticalScrollAxisRange))
-                val range = scroll.fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange]
-                assertEquals("$name 스크롤 범위", 0f, range.maxValue(), 0f)
-                val entryLeft = rule.onNodeWithText(entry).getBoundsInRoot().left
-                assertTrue("$name 두 단(입구 왼쪽 $entryLeft)", entryLeft > CONNECT_WIDTH / 2)
-                listOf(rule.onNodeWithText(heading).height(), rule.onNodeWithText(entry).height())
-            }
-        assumeGothic()
-        assertSameLines("화면 제목", heights[0][0], heights[1][0], line = (24 * 1.3f).dp)
-        assertSameLines("입구 제목", heights[0][1], heights[1][1], line = (19 * 1.35f).dp)
-    }
 
     @Test
     fun `BR-8 통계 요약 문장은 두 글꼴에서 줄 수가 같다`() {
@@ -200,8 +156,6 @@ class TitleFontScreensTest {
 private fun dir(): File =
     File(InstrumentationRegistry.getInstrumentation().targetContext.externalCacheDir, "brand-font").apply { mkdirs() }
 
-private val CONNECT_WIDTH = 800.dp
-private val CONNECT_HEIGHT = 336.dp
 private val SUMMARY_WIDTH = 380.dp
 private const val MARGIN_DP = 20f
 private const val LOAD_MILLIS = 10_000L

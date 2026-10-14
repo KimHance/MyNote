@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.PathBuilder
+import androidx.compose.ui.graphics.vector.addPathNodes
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
@@ -199,6 +200,50 @@ object MyNoteIcons {
             lineTo(12f, 17.7f)
         }
     }
+
+    // 기기 노트(local-notes 디자인 C2) — 핸드오프 path 그대로. 빈 상태 타일 · 버튼 · 상단 바 · 출처 표기가 같이 쓴다
+
+    /** 새 노트 — 종이 + 더하기. */
+    val NewNote: ImageVector by lazy {
+        svgStrokeIcon("note_new", "M12.5 20.5H7a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2h6l5 5v4M13 3.5v5h5M18 15.5v6M15 18.5h6")
+    }
+
+    /** 가져오기 — 받침 + 아래 화살표. 가져오기 대화상자의 `파일 열기` 줄도 쓴다. */
+    val Import: ImageVector by lazy {
+        svgStrokeIcon("import", "M4 13.5v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5M12 3.5V15M7.5 10.5L12 15l4.5-4.5")
+    }
+
+    /** 고치기 — 연필. */
+    val Edit: ImageVector by lazy {
+        svgStrokeIcon("edit", "M14.5 5.5l4 4L9 19H5v-4zM12.5 7.5l4 4")
+    }
+
+    /** 지우기 — 휴지통. */
+    val Delete: ImageVector by lazy {
+        svgStrokeIcon(
+            "delete",
+            "M4.5 6.5h15M9.5 6.5v-2a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v2" +
+                "M6.5 6.5l.9 12.6a1.5 1.5 0 0 0 1.5 1.4h6.2a1.5 1.5 0 0 0 1.5-1.4l.9-12.6M10 10.5v6M14 10.5v6",
+        )
+    }
+
+    /** 이 기기 — 출처 표기 글리프(12dp 로 쓴다). 색 없이 모양으로 읽힌다. */
+    val Device: ImageVector by lazy {
+        svgStrokeIcon(
+            "device",
+            "M9.5 3h5A2.5 2.5 0 0 1 17 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-5A2.5 2.5 0 0 1 7 18.5v-13A2.5 2.5 0 0 1 9.5 3z" +
+                "M10.5 17.5h3",
+        )
+    }
+
+    /** 붙여넣기 — 겹친 종이(뒤 종이는 가린 부분을 그리지 않는다). */
+    val Paste: ImageVector by lazy {
+        svgStrokeIcon(
+            "paste",
+            "M8 7V5.5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-2" +
+                "M6 7h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z",
+        )
+    }
 }
 
 private fun PathBuilder.fourPointStar(
@@ -251,6 +296,27 @@ private fun filledIcon(
             strokeLineCap = StrokeCap.Round,
             strokeLineJoin = StrokeJoin.Round,
             pathBuilder = pathBuilder,
+        ).build()
+
+/** SVG path 글자로 그린 선 아이콘 — 디자인 핸드오프 path 를 그대로 옮길 때. 규격은 [strokeIcon] 과 같다. */
+private fun svgStrokeIcon(
+    name: String,
+    pathData: String,
+): ImageVector =
+    ImageVector
+        .Builder(
+            name = name,
+            defaultWidth = 21.dp,
+            defaultHeight = 21.dp,
+            viewportWidth = 24f,
+            viewportHeight = 24f,
+        ).addPath(
+            pathData = addPathNodes(pathData),
+            fill = null,
+            stroke = SolidColor(Color.White),
+            strokeLineWidth = 1.7f,
+            strokeLineCap = StrokeCap.Round,
+            strokeLineJoin = StrokeJoin.Round,
         ).build()
 
 private fun strokeIcon(

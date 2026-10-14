@@ -34,6 +34,7 @@ import com.hancekim.mynote.core.designsystem.block.NoteSpanStyle
 import com.hancekim.mynote.core.designsystem.block.UnsupportedKind
 import com.hancekim.mynote.core.designsystem.block.rememberNoteContentState
 import com.hancekim.mynote.core.designsystem.component.CategoryChip
+import com.hancekim.mynote.core.designsystem.component.DeviceOriginLabel
 import com.hancekim.mynote.core.designsystem.component.fadingEdges
 import com.hancekim.mynote.core.designsystem.theme.MyNoteTheme
 import com.hancekim.mynote.core.domain.model.NoteLimits
@@ -86,6 +87,7 @@ internal fun NoteReaderScreen(
                         color = MyNoteTheme.colors.text3,
                         modifier = shared.date,
                     )
+                    if (note.device) DeviceOriginLabel()
                 }
                 Text(
                     text = note.title,
@@ -191,6 +193,14 @@ private val previewBrokenNote =
             ),
         readable = false,
     )
+
+@Preview(name = "Reader · 기기 노트", showBackground = true, widthDp = 360, heightDp = 720)
+@Composable
+private fun NoteReaderScreenDevicePreview() {
+    MyNoteTheme {
+        NoteReaderScreen(note = previewNote.copy(id = "local/a", device = true), categoryName = "Kotlin")
+    }
+}
 
 @Preview(name = "Reader · 모르는 블록", showBackground = true, widthDp = 400, heightDp = 720)
 @Composable
