@@ -12,11 +12,14 @@
 | 파일 | 무엇 |
 |---|---|
 | `EditorViewModel.kt` | 편집 세션 · 가져오기 그릇 · 붙여넣기 칸 · 공유 받기 · 지우기를 한 ViewModel 이 든다(Activity owner — 결정 7) |
-| `EditorUiState.kt` | 상태 · 세션 · 인텐트 |
+| `EditorUiState.kt` | 상태 · 세션 · 인텐트 · 이유 줄 종류(`SaveBlock` · `PasteBlock`) |
+| `Utf8Size.kt` | 칸 글의 UTF-8 바이트 · KB 올림 — 이유 줄 숫자와 붙여넣기 512KB 판정용(저장 판정은 UseCase) |
 | `EditorMessages.kt` | 스낵바 · 기본 그룹 문구(FM-8 — ViewModel 은 문구를 직접 읽지 않는다. `:app` `NotesModule` 이 묶는다) |
 | `EditorDestinations.kt` | 편집기 · 붙여넣기 등록 |
-| `EditorHost.kt` | 파일 고르기 런처 · 가져오기 그릇 · 나가기 확인 · 지우기 확인. 셸이 시작 분기 위에서 늘 컴포즈한다 |
-| `screen/` | 편집기 · 붙여넣기 화면 |
+| `EditorHost.kt` | 파일 고르기 런처 · 가져오기 대화상자(길 두 줄 · 읽는 중) · 나가기 확인 · 지우기 확인(`:core:ui` `GlassDialog` 틀). 셸이 시작 분기 위에서 늘 컴포즈한다 |
+| `screen/EditorScreen.kt` | 편집기 — 자기 상단 바 · 제목 칸 · 그룹 줄 · (고치기) 메타 줄 · `쓰기`/`미리보기` 전환 · 이유 줄 · 본문 칸 또는 미리보기 |
+| `screen/PasteScreen.kt` | 붙여넣기 — 자기 상단 바 · `가져올 글` 큰 칸(mono) · 이유 줄 |
+| `screen/EditorParts.kt` | 두 화면이 같이 쓰는 상단 바 · 면 없는 칸 · 밑줄 · 이유 줄 · 전환 |
 
 ## 지킬 것
 
@@ -34,11 +37,22 @@
 
 ## 시험
 
-- JVM `EditorViewModelTest` — LN-3 ⑥ · LN-6 · LN-7 · LN-8 · LN-9 · LN-10 · LN-11 의 ViewModel 쪽(가짜 Repository · 가짜 가져오기 규칙).
+- JVM `EditorViewModelTest` — LN-3(⑥ · 이유 줄 · 한 줄 칸) · LN-6 · LN-7(붙여넣기 크기) · LN-8 · LN-9 · LN-10 · LN-11 의 ViewModel 쪽(가짜 Repository ·
+  가짜 가져오기 규칙). `Utf8SizeTest` 가 이유 줄 숫자의 바이트 · KB 올림을 본다.
   가져오기 규칙 자체는 `:core:format` `DeviceNoteMarkdownTest`, 거절 판정은 `:core:data` `NoteImportTest` 가 본다.
 - 스택 계산은 `:core:navigation` `EditorCommandsTest`, 셸 지킴 · 크롬은 `:app` `BackOrderTest`(계측) · `HeaderTest` 다.
 
-## 아직 골격인 것
+## 화면 규칙
 
-화면 몸통(칸 모양 · 쓰기/미리보기 전환 · 이유 줄 · 키보드 규칙 · 대화상자 모양 · 새 아이콘)은 화면 단위가 채운다. 지금 화면은 목적지 · 배선을
-세우는 자리다.
+모양의 기준은 디자인 문서 `docs/design/local-notes.md`(22B · 제약 C1 ~ C19 · 문구)와 시안 해부(`labs/local-notes-design/r1/README.md` §3.2 ·
+`README-2.md` §3.1 ~ §3.3)다.
+
+- **미리보기는 리더 렌더러 그대로다.** `PreviewDeviceNoteUseCase` 의 블록을 `:core:ui` `toContentBlocks` 로 바꿔 `NoteContent` 로 그린다(한도 상자
+  포함 — C5). 해석은 전환할 때 한 번이고 결과가 오기 전엔 진행 막대다(C10). 입력마다 해석하지 않는다.
+- **이유 줄 값은 ViewModel 이 든다.** 화면은 `saveBlock` · `pasteBlock` · `bodyKilobytes` 를 받아 그린다. 본문 KB 는 크기를 넘었을 때만 센다 —
+  512KB 본문을 글자마다 세지 않게.
+- **키보드** — 루트가 `safeDrawing` 인셋(IME 포함)을 먹고, 상단 바만 고정 · 나머지 한 스크롤이다(C7). 본문 칸은 최소 높이로 빈 아래를 눌러도 닿게 한다.
+  새 노트 · 가져온 글은 제목 칸, 붙여넣기는 큰 칸에 처음 한 번 포커스를 준다(고치기는 키보드를 열지 않는다).
+- **아이콘은 디자인 시스템 손그림 한 벌**(`MyNoteIcons.Import` · `Paste` · `Device` · `Edit` · `Delete` — C2). Material 세트를 쓰지 않는다
+  (붙여넣기 화면의 뒤로 화살표는 셸 상단 바와 같은 것).
+- 가져오기 읽는 중에 `취소` 하면 읽던 일을 끊고 결과를 버린다(편집기 · 거절 스낵바 없음).
