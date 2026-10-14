@@ -3,7 +3,7 @@
 | 항목 | 값 |
 |---|---|
 | 기능 | feature-modules |
-| 마지막 변경 | 2026-10-12 · 승격 — 결정 19 ~ 24(드로어 디스패처 · 공용 조각 · 낡는 문서 · 공통 액션 예외 · CTA 슬롯) · 열린 질문 1 ~ 4 |
+| 마지막 변경 | 2026-10-14 · local-notes 승격 — 새 기능 모듈 `:feature:editor`(결정 25) · 공용 조각 `toContentBlocks` · `GlassDialog` · FM-1 · FM-2 모듈 수 |
 | 디자인 | 없음 |
 | 항목 ID | FM-번호 (예 FM-4) |
 
@@ -61,6 +61,7 @@
 | 22 | 2026-10-12 · feature-modules | 기능을 옮기면 낡는 문서(노트 `AGENTS.md` 의 그 기능 문단 · `app/AGENTS.md` 의 등록 경로 · 디자인 문서의 파일 칸)는 그 기능을 옮기는 단위가 같이 고친다 — 기능 문단은 새 모듈 `AGENTS.md` 로, 나머지는 경로 · 이름만 바꾸고 `## 바뀐 기록` 에 한 줄. 새 지도 전체를 맞추는 것은 문서 단위(FM-15)다 | 옮긴 단위가 무엇이 바뀌었는지 가장 잘 알고, 뒤 단위 검수가 낡은 문서를 근거로 읽지 않는다 | 메인 | 정함 |
 | 23 | 2026-10-12 · feature-modules | 화면이 아직 안 쓰는 공통 액션 문구 `ds_action_confirm` · `ds_action_retry` 는 지우지 않는다. FM-11 의 '쓰지 않는 문구 0' 에서 이 둘만 예외이고, 시험의 남겨 둔 목록에 이유와 함께 이름으로 든다 | `DESIGN.md` 공통 문구 표가 정한 공통 액션 어휘다. 화면이 쓰게 되면 시험이 목록에서 지우라고 알린다 | 메인 | 정함 |
 | 24 | 2026-10-12 · feature-modules | 리더 끝 CTA 는 퀴즈 기능의 화면이라 노트 등록은 리더 끝 슬롯(노트 id 를 받는다) 하나만 내놓고, `:app` 셸이 그 슬롯에 퀴즈 CTA 카드를 넣는다 | 노트는 퀴즈 모듈을 모른다(FM-2). 셸은 모든 기능을 알므로 결정 13 의 '`:app` 이 묶어 넘기는 값' 과 같은 길이다 | 메인 | 정함 |
+| 25 | 2026-10-14 · local-notes | 기기 노트 편집기 · 붙여넣기 · 가져오기 그릇은 **새 기능 모듈 하나 `:feature:editor`**(문구 접두사 `editor_`)에 산다. 홈(노트)의 `가져오기` 는 그 모듈을 부르지 않고 `:core:ui` 신호로 그릇을 연다 | 셋 다 "편집기로 가는 길" 이다. 기능끼리는 서로를 모르므로 홈은 신호로 그릇을 연다(FM-2 · 결정 13) | 메인 | 정함 |
 
 ### 안 하는 것
 
@@ -115,8 +116,10 @@
 | 실패 로그 `FailureLog` 와 그 Android 구현 | `FailureLog.kt` (ViewModel 시험 가능하게가 만듦) | 노트 · 설정 · 퀴즈 · 연결 · 셸 ViewModel |
 | 스낵바 알림 `NoticeUi` | `element/NotesUiState.kt` 일부 | 노트 · 설정 ViewModel · 셸 스낵바 수집 |
 | 글자 크기 매핑(`FontScaleUi` 의 두 방향 변환) | `element/FontScaleUi.kt` | 셸 · 설정 ViewModel |
+| 노트 블록 → 화면 블록 매퍼 `toContentBlocks` | `mapper/NoteBlockMapper.kt`(노트에서 옮김) | 노트(리더) · 편집기(미리보기) |
+| 유리 대화상자 틀 `GlassDialog`(모서리 · 폭 상한 · 여백) — 대화상자 틀이 그 위에 선다 | `screen/connect/ActionDialog.kt` | 연결 · 설정(대화상자 틀을 거쳐) · 편집기(나가기 · 지우기 확인 · 가져오기 그릇) |
 
-표의 마지막 네 행은 기준 커밋 뒤 ViewModel 시험 가능하게 · ViewModel 나누기가 만들었거나 둘 이상이 쓰게 된 조각이고, 공용 조각 옮기기에서 `:core:ui` 로 갔다(결정 21). 끊기 대화상자 모델(`DisconnectDialogUi`)은 같은 파일에 있었지만 설정만 쓰므로 공용 조각이 아니다 — 설정 떼기가 가져갔다. 이 표와 `notes-tests/test_feature_modules.py` 의 공용 조각 목록은 같은 조각을 든다.
+표의 마지막 네 행은 기준 커밋 뒤 ViewModel 시험 가능하게 · ViewModel 나누기가 만들었거나 둘 이상이 쓰게 된 조각이고, 공용 조각 옮기기에서 `:core:ui` 로 갔다(결정 21). 끊기 대화상자 모델(`DisconnectDialogUi`)은 같은 파일에 있었지만 설정만 쓰므로 공용 조각이 아니다 — 설정 떼기가 가져갔다. 마지막 두 행은 `local-notes` 가 편집기 모듈을 더하며 둘 이상이 쓰게 된 조각이다 — 미리보기가 리더와 같은 블록을 그려야 해 매퍼가 노트에서 `:core:ui` 로 갔다. 이 표와 `notes-tests/test_feature_modules.py` 의 공용 조각 목록은 같은 조각을 든다.
 
 ### 셸 틀 계약
 
@@ -182,8 +185,8 @@
 
 | ID | 동작 | 받아들임 기준 | 확인 |
 |---|---|---|---|
-| FM-1 | 화면은 모듈 지도대로 다섯 기능 모듈에 산다 | `settings.gradle.kts` 에 `:feature:{notes, connect, settings, quiz, stats}` 와 `:core:ui` 가 있다. 모듈 지도의 화면 파일이 그 모듈 `src/main` 에만 있고 `:feature:notes` 에 연결 · 설정 · 퀴즈 · 통계 화면 파일이 0개다. 공용 조각 표의 조각이 `:core:ui`(탭 · 리더 열기 명령은 `:core:navigation`)에 있다 | 파이썬: `FM-1 모듈 지도의 모듈이 모두 등록돼 있다` · `FM-1 공용 조각은 core:ui 와 core:navigation 에 산다` · `FM-1 화면은 모듈 지도대로 산다`(화면 파일 자리 — 마지막 기능 떼기인 퀴즈 떼기가 더했다) |
-| FM-2 | 기능 모듈은 서로를 의존하지 않는다 | 다섯 기능 모듈과 `:core:ui` 의 선언 의존과 컨벤션이 넣는 의존을 닫힘으로 따라가 `:feature:*` 가 0개다. 교차 확인: 각 기능 모듈의 `dependencies --configuration debugRuntimeClasspath` 출력에 `project ':feature:` 가 0줄이고, 같은 명령을 `:app` 에 돌리면 다섯 줄 모두 나온다(헛통과 아님) | 파이썬: `FM-2 기능 모듈은 서로를 의존하지 않는다` · 명령: `./gradlew :feature:<모듈>:dependencies --configuration debugRuntimeClasspath \| grep "project ':feature:"` 0줄 · `:app` 은 5종 |
+| FM-1 | 화면은 모듈 지도대로 기능 모듈에 산다 | `settings.gradle.kts` 에 `:feature:{notes, connect, settings, quiz, stats, editor}` 와 `:core:ui` 가 있다. 모듈 지도의 화면 파일이 그 모듈 `src/main` 에만 있고 `:feature:notes` 에 연결 · 설정 · 퀴즈 · 통계 화면 파일이 0개다. 공용 조각 표의 조각이 `:core:ui`(탭 · 리더 열기 명령은 `:core:navigation`)에 있다 | 파이썬: `FM-1 모듈 지도의 모듈이 모두 등록돼 있다` · `FM-1 공용 조각은 core:ui 와 core:navigation 에 산다` · `FM-1 화면은 모듈 지도대로 산다`(화면 파일 자리 — 마지막 기능 떼기인 퀴즈 떼기가 더했다) |
+| FM-2 | 기능 모듈은 서로를 의존하지 않는다 | 모든 기능 모듈과 `:core:ui` 의 선언 의존과 컨벤션이 넣는 의존을 닫힘으로 따라가 `:feature:*` 가 0개다. 교차 확인: 각 기능 모듈의 `dependencies --configuration debugRuntimeClasspath` 출력에 `project ':feature:` 가 0줄이고, 같은 명령을 `:app` 에 돌리면 여섯 줄 모두 나온다(헛통과 아님) | 파이썬: `FM-2 기능 모듈은 서로를 의존하지 않는다` · 명령: `./gradlew :feature:<모듈>:dependencies --configuration debugRuntimeClasspath \| grep "project ':feature:"` 0줄 · `:app` 은 6종 |
 | FM-3 | 기능 모듈 · `:core:ui` 는 데이터 층 · 모델 구현을 모른다 | 같은 닫힘에 `:core:data` · `:core:network` · `:core:database` · `:core:ai` · `:core:format` 이 0개다 | 파이썬: `FM-3 기능 모듈은 데이터 층을 모른다` |
 | FM-4 | 목적지 화면은 그 기능 모듈이 등록하고, 셸은 등록 묶음을 셸 틀 계약의 값만 넘겨 그린다 | `NotesNavKey` 의 키 7개마다 등록된 화면이 정확히 하나다. 셸 파일에서 목적지 화면 Composable(`HomeScreen(` · `BookmarksScreen(` · `NoteReaderScreen(` · `SettingsScreen(` · `StatsRoute(` · `StatsHistoryRoute(` · `ConnectRoute(`)을 부르는 줄이 0이다 — 이 0 에는 결정 12 의 고정 순서 호출(퀴즈 오버레이 · 목록 패널 · 상단 바 행동 · 모델 확인 대화상자 · 연결 루트 · 뒤로가기 핸들러)이 **들지 않는다**. 등록 화면이 셸에게서 받는 틀 값은 셸 틀 계약 표의 것뿐이고, 기능 자기 상태 · 입구와 결정 13 으로 묶어 넘기는 값은 틀 밖 등록 함수 인자다(결정 18). 창 등급이 바뀌어도(접기 · 펴기) 리더 스크롤 · 원문 펼침 · 토큰 draft 가 남는다 | JVM: `FM-4 모든 목적지 키에 화면이 하나씩 등록된다` · 계측: `FM-4 창 등급이 바뀌어도 리더 스크롤과 원문 펼침과 토큰 입력이 남는다` · 리뷰 grep |
 | FM-5 | 셸은 `:app` 에 살고 순서를 한 파일이 고정한다 | `NavDisplay(` 호출 · `ModalNavigationDrawer(` · 플로팅 내비 배치 · 뒤로가기 7단의 핸들러가 `:app` 에만 있고 `feature/` 아래 0건이다. 결정 12 의 고정 순서 호출이 `:app` 셸 파일 한 곳에 있고, 오버레이 · 패널 · 핸들러를 순서 없는 집합(멀티바인딩)으로 받지 않는다. `layerBackdrop` 상자 안에는 NavDisplay 하나이고 기능이 주는 오버레이도 그 형제 자리에서 그린다. `MainActivity` 가 부르는 루트 화면이 `:app` 에 있다 | 리뷰 grep: `feature/` 아래 `NavDisplay(` · `ModalNavigationDrawer(` 0건 · 오버레이 · 핸들러 타입의 `@IntoSet` 0건 · FM-10 |
@@ -236,3 +239,4 @@
 | 2026-10-11 | feature-modules · 단위 검수 반영 | FM-4 · FM-6 · FM-12 · 결정 8 · 결정 18 · (셸 틀 계약 · 공용 조각 표) | 단위 검수(vm-split · nav-registry · copy-apply)가 구현이 맞고 문서가 좁다고 짚은 것: 틀 밖 등록 인자(결정 18 · 결정 13) · 공용 조각 표에 셸 틀 계약 타입(화면 상태 홀더와 같은 단위) · 결정 8 에 셸 ViewModel 의 연결 전이 비우기 · FM-6 ⑧ 범주는 시작 때 값 · ⑪ 학습 기록 지우기와 북마크 되돌리기 · ⑨ 확인 칸을 실제 시험으로 · FM-12 이름으로 찾는 대상에 문구 시험 · 디자인 문서의 리소스 이름. 보이는 동작은 그대로 |
 | 2026-10-12 | feature-modules · 공용 조각 옮기기 검수 반영 | FM-1 · (공용 조각 표 · 문구 자리) | 공용 조각 옮기기 명세 검수 의도와 메인 후속(공용 조각 · 문구 자리 · FM-1 시험 이름)을 표에 맞춤: 공용 조각 표에 ViewModel 시험 가능하게 · 나누기가 만든 넷(스낵바 문구 · 실패 로그 · 스낵바 알림 · 글자 크기 매핑) · 끊기 대화상자 모델은 설정 몫 · 문구 자리는 결정 15 가 표보다 먼저 · 스낵바 문구 열다섯은 `:core:ui` · 목록 패널 배지는 노트 · 앞당겨 옮긴 다섯 · 없는 이름 한 줄 지움 · FM-1 확인 칸에 모듈 몫 시험 둘. 뒤 기능 떼기가 표를 보고 거꾸로 옮기지 않게. 보이는 동작은 그대로 |
 | 2026-10-12 | feature-modules · 승격 | FM-1 · FM-11 · 결정 19 ~ 24 · 열린 질문 1 ~ 4 · (모듈 지도 · 공용 조각 표 · 셸 틀 계약 · 문구 자리) | run 끝 승격: 드로어 예측 뒤로가기는 자식 디스패처로 M3 연출 유지 · 켜고 끔은 그 프레임에(결정 19 · 20) · 공용 조각 다섯 문구와 셋 조각은 공용 조각 옮기기에서(결정 21) · 옮기면 낡는 문서는 그 단위가(결정 22) · 공통 액션 둘은 FM-11 예외(결정 23 · 받아들임 문장에도) · 리더 끝 CTA 는 노트가 슬롯만 내놓고 셸이 퀴즈 카드를 넣음(결정 24 · 셸 틀 계약 끝 문단). 모듈 지도 괄호는 나누기 전 자리라고 적음 · 앞당긴 목록이 비었음 · 묶인 문구 목록을 지금 이름으로 · FM-1 화면 자리 시험이 이제 있음. 실기기 수동 · 상태 통째로 받는 자리 · 지난 요약 펼침 · 설정 선언 좁히기와 시험 고정물을 열린 질문으로. 보이는 동작은 그대로 |
+| 2026-10-14 | local-notes · 승격 | FM-1 · FM-2 · 결정 25 · (모듈 지도 · 공용 조각 표) | 기기 노트 편집기 모듈 `:feature:editor` 를 결정으로(모듈 지도 행은 구현 단위가 더함) · 공용 조각 표에 `toContentBlocks`(노트 → `:core:ui`) · `GlassDialog` · FM-1 모듈 목록과 FM-2 의 `:app` 확인 줄 수를 여섯으로. 경계 규칙은 그대로 |
