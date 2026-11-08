@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>붙여넣기</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+</style>
+</helmet>
+<div style="width:360px;height:800px;background:#0E1217;color:#C8D2DC;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;display:flex;flex-direction:column;overflow:hidden">
+  <div style="display:flex;align-items:center;gap:4px;padding:8px 10px;height:56px">
+    <button aria-label="뒤로" style="width:40px;height:40px;border:none;border-radius:12px;background:none;display:flex;align-items:center;justify-content:center;cursor:pointer">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C8D2DC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <span style="flex:1;text-align:center;font-size:17px;font-weight:700;color:#E6EDF3">붙여넣기</span>
+    <button disabled style="height:40px;padding:0 18px;border:none;border-radius:12px;background:#6EA8FE;color:#0E1217;font-size:15.5px;font-weight:700;opacity:0.4">다음</button>
+  </div>
+  <div style="padding:10px 20px 8px"><span style="font-size:12px;font-weight:600;letter-spacing:0.08em;color:#687585;text-transform:uppercase">가져올 글</span></div>
+  <div style="flex:1;margin:0 20px;background:#1B232D;border:1px solid #283039;border-radius:12px;padding:14px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;line-height:1.65;color:#687585;overflow:hidden">여기를 길게 눌러 붙여 넣으세요.</div>
+  <div style="display:flex;align-items:center;gap:6px;padding:12px 20px 22px;font-size:13px;color:#687585">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#687585" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>글을 붙여 넣으면 다음으로 갈 수 있습니다.
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":360,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
