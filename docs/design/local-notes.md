@@ -5,20 +5,20 @@
 | 기능 | local-notes |
 | 기능 문서 | docs/spec/local-notes.md (확정본 9169a9f) · docs/spec/repo-connect.md RC-1 · RC-15 · RC-17 · RC-19 · RC-25 · docs/spec/brand.md 결정 15 |
 | 등급 | 화면 (연결 안내 띠 · 바꾸기 · 이어받기 · 끊기 대화상자 문장은 문구만) |
-| 마지막 변경 | 2026-10-14 · 승격 — 디자이너 · 구현 화면 선택을 정한 것으로 · 실패 스낵바 문구 |
+| 마지막 변경 | 2026-11-08 · 디자인 체계 최신화 — 시안 표 캔버스 칸 · Design 캔버스 생성(9화면) · 떨어진 후보 21B · 22A 정리 |
 
 ## 시안
 
-| 차수 | 후보 | 고른 것 | 누가 | 로컬 폴더 | 시안 생성기 | 검사 명령 | Claude Design 파일 |
+| 차수 | 후보 | 고른 것 | 누가 | 로컬 폴더 | 시안 생성기 | 검사 명령 | 캔버스 |
 |---|---|---|---|---|---|---|---|
-| 1 | 21A(히어로 아래 행) | **21A** | 메인 | `labs/local-notes-design/r1/21A` | 없음 | 없음 | Local Notes.dc.html |
-| 1 | 21B(상단 바 아이콘) | 안 고름(비교용 · 구현 기준 아님) | 메인 | `r1/21B` | 없음 | 없음 | 같은 파일 |
-| 1 | 22B(상단 바 고치기 · 지우기) | **22B** | 메인 | `labs/local-notes-design/r1/22B` | 없음 | 없음 | Local Notes 2.dc.html |
-| 1 | 22A(상단 바 고치기 + 편집기 지우기) | 안 고름(비교용 · 구현 기준 아님) | 메인 | `r1/22A` | 없음 | 없음 | 같은 파일 |
-| 1 · 공통 | — | — | 디자이너 | `labs/local-notes-design/r1/common` | 없음 | 없음 | 위 두 파일 |
+| 1 | 21A(히어로 아래 행) | **21A** | 메인 | `labs/local-notes-design/r1/21A` | 없음 | 없음 | 아래 캔버스 |
+| 1 | 22B(상단 바 고치기 · 지우기) | **22B** | 메인 | `labs/local-notes-design/r1/22B` | 없음 | 없음 | 아래 캔버스 |
+| 1 · 공통 | — | — | 디자이너 | `labs/local-notes-design/r1/common` | 없음 | 없음 | 아래 캔버스 |
 | 1 · 문구 | — | — | 디자이너 | 이 문서 `## 문구` | 없음 | `python3 -I -m unittest discover -s notes-tests -p 'test_screen_copy.py'` | 없음 |
 
-장 = `r1/<후보>/<화면>-<상태>-<폭>.png` · 설명은 `r1/README.md`(홈 · 편집기) · `r1/README-2.md`(가져오기 · 리더). 구현 기준은 `21A/` · `22B/` · `common/`(`21B/` · `22A/` 는 비교용). `common/지우기 확인-compact` 는 22A 편집기 위 그림이고 22B 에서는 리더 위에 뜬다. 새 색 없음 · 새 아이콘 여섯(C2).
+장 = `r1/<후보>/<화면>-<상태>-<폭>.png` · 설명은 `r1/README.md`(홈 · 편집기) · `r1/README-2.md`(가져오기 · 리더). 구현 기준은 `21A/` · `22B/` · `common/`. `common/지우기 확인-compact` 는 리더(22B) 위에 뜬다. 새 색 없음 · 새 아이콘 여섯(C2).
+
+캔버스 = Design 캔버스 `claude.ai/artifact/6m4rRLVmGJwgVkeHZ6mGXC`(9화면 · compact 다크). 레포 사본 `labs/local-notes-design/canvas/`. 옛 `Claude Design 파일`(`.dc.html`)은 끊긴 참조라 캔버스로 바꿨다.
 
 ## 제약
 
@@ -211,3 +211,4 @@ C1 ~ C19 표(그릴 것 · 크기 · 입력 · 데이터와 출처)는 `docs/des
 | 2026-10-14 | local-notes | 처음 — 제약 C1 ~ C19 · 차수 1(후보 21A · 21B · 22A · 22B + 공통) · 문구 · 문구만 넷 |
 | 2026-10-14 | local-notes | 후보 고름 — 21A · 22B(메인 D21 · D22). 21B · 22A 는 시안 표에 안 고름 · 본문을 고른 후보로 |
 | 2026-10-14 | local-notes | 승격 — 정한 것 3 ~ 11(디자이너 선택 · D33 · D44 · D45 · U3 · U4 화면 선택) · `## 문구` 에 실패 스낵바 둘(D36) · 확인 칸에 구현 뒤 사진 · `## 제약` 표를 `local-notes-constraints.md` 로 나눔(크기) |
+| 2026-11-08 | 디자인 체계 | 시안 표 마지막 칸을 `캔버스` 로(옛 `Claude Design 파일`) · Design 캔버스 생성(9화면 compact 다크, 레포 사본 `canvas/`) · 떨어진 후보 `21B` · `22A` 장 삭제(비교용 · 구현 기준 아님 — 21A · 22B 채택) |

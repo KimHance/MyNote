@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>편집기 · 빈 · 저장 꺼짐</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+</style>
+</helmet>
+<div style="width:360px;height:800px;background:#0E1217;color:#C8D2DC;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;display:flex;flex-direction:column;overflow:hidden">
+  <div style="display:flex;align-items:center;gap:4px;padding:8px 10px;height:56px">
+    <button aria-label="닫기" style="width:40px;height:40px;border:none;border-radius:12px;background:none;display:flex;align-items:center;justify-content:center;cursor:pointer">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C8D2DC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+    </button>
+    <span style="flex:1;text-align:center;font-size:17px;font-weight:700;color:#E6EDF3">새 노트</span>
+    <button disabled style="height:40px;padding:0 18px;border:none;border-radius:12px;background:#6EA8FE;color:#0E1217;font-size:15.5px;font-weight:700;opacity:0.4">저장</button>
+  </div>
+  <div style="padding:8px 20px 0">
+    <div style="font-size:19px;font-weight:700;color:#687585;padding:8px 0;border-bottom:1px solid #283039">제목</div>
+    <div style="display:flex;align-items:center;gap:8px;padding:12px 0;font-size:14px;color:#687585">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#687585" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h18"/><path d="M3 12h18"/><path d="M3 17h12"/></svg>그룹 없음
+    </div>
+  </div>
+  <div style="display:flex;gap:4px;margin:4px 20px;background:#161C24;border:1px solid #283039;border-radius:12px;padding:3px">
+    <div style="flex:1;text-align:center;padding:8px;border-radius:9px;background:#1B232D;color:#6EA8FE;font-size:14px;font-weight:600">쓰기</div>
+    <div style="flex:1;text-align:center;padding:8px;border-radius:9px;color:#9AA7B4;font-size:14px;font-weight:500">미리보기</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;padding:10px 20px 6px;font-size:13px;color:#687585">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#687585" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>제목과 본문을 쓰면 저장할 수 있습니다.
+  </div>
+  <div style="flex:1;padding:8px 20px 20px;font-size:15px;line-height:1.5;color:#687585">여기에 마크다운으로 쓰세요.</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":360,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

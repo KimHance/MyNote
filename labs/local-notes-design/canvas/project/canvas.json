@@ -1,0 +1,39 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-11-08T12:00:00Z" },
+  "title": "기기 노트 — Design 캔버스",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "designSystems": [],
+  "notes": {
+    "t1": {
+      "x": 0,
+      "y": -300,
+      "text": "MyNote · 기기 노트 (local-notes) — compact 다크",
+      "kind": "title1",
+      "maxW": 1240
+    }
+  },
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 360, "h": 800, "title": "홈 · 첫 실행 빈 상태 (LN-1)", "radius": 28 },
+    "Home-21A.dc.html": { "x": 440, "y": 0, "w": 360, "h": 800, "title": "홈 · 노트 있음 (21A · LN-2)", "radius": 28 },
+    "Editor-empty.dc.html": { "x": 880, "y": 0, "w": 360, "h": 800, "title": "편집기 · 빈 · 저장 꺼짐 (LN-3)", "radius": 28 },
+    "Editor-typing.dc.html": { "x": 0, "y": 920, "w": 360, "h": 800, "title": "편집기 · 쓰는 중 (LN-3)", "radius": 28 },
+    "Editor-preview.dc.html": { "x": 440, "y": 920, "w": 360, "h": 800, "title": "편집기 · 미리보기 (LN-3)", "radius": 28 },
+    "Reader-22B.dc.html": { "x": 880, "y": 920, "w": 360, "h": 800, "title": "리더 · 기기 노트 (22B · LN-9·11)", "radius": 28 },
+    "Import-dialog.dc.html": { "x": 0, "y": 1840, "w": 360, "h": 800, "title": "가져오기 대화상자 (LN-6)", "radius": 28 },
+    "Paste.dc.html": { "x": 440, "y": 1840, "w": 360, "h": 800, "title": "붙여넣기 (LN-6)", "radius": 28 },
+    "Delete-confirm.dc.html": { "x": 880, "y": 1840, "w": 360, "h": 800, "title": "지우기 확인 (LN-11)", "radius": 28 }
+  },
+  "order": [
+    "Main.dc.html",
+    "Home-21A.dc.html",
+    "Editor-empty.dc.html",
+    "Editor-typing.dc.html",
+    "Editor-preview.dc.html",
+    "Reader-22B.dc.html",
+    "Import-dialog.dc.html",
+    "Paste.dc.html",
+    "Delete-confirm.dc.html"
+  ]
+}

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>편집기 · 미리보기</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+</style>
+</helmet>
+<div style="width:360px;height:800px;background:#0E1217;color:#C8D2DC;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;display:flex;flex-direction:column;overflow:hidden">
+  <div style="display:flex;align-items:center;gap:4px;padding:8px 10px;height:56px">
+    <button aria-label="닫기" style="width:40px;height:40px;border:none;border-radius:12px;background:none;display:flex;align-items:center;justify-content:center;cursor:pointer">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C8D2DC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+    </button>
+    <span style="flex:1;text-align:center;font-size:17px;font-weight:700;color:#E6EDF3">새 노트</span>
+    <button style="height:40px;padding:0 18px;border:none;border-radius:12px;background:#6EA8FE;color:#0E1217;font-size:15.5px;font-weight:700;cursor:pointer">저장</button>
+  </div>
+  <div style="display:flex;gap:4px;margin:4px 20px 0;background:#161C24;border:1px solid #283039;border-radius:12px;padding:3px">
+    <div style="flex:1;text-align:center;padding:8px;border-radius:9px;color:#9AA7B4;font-size:14px;font-weight:500">쓰기</div>
+    <div style="flex:1;text-align:center;padding:8px;border-radius:9px;background:#1B232D;color:#6EA8FE;font-size:14px;font-weight:600">미리보기</div>
+  </div>
+  <div style="flex:1;overflow:hidden;padding:16px 20px 20px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+      <span style="font-size:13px;color:#6EA8FE;background:rgba(110,168,254,0.14);border:1px solid rgba(110,168,254,0.26);border-radius:999px;padding:2px 10px">kotlin</span>
+      <span style="font-size:13px;color:#687585">2026-11-08</span>
+      <span style="display:inline-flex;align-items:center;gap:4px;font-size:13px;color:#687585">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#687585" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>이 기기
+      </span>
+    </div>
+    <h1 style="margin:10px 0 14px;font-size:26px;font-weight:700;color:#E6EDF3;letter-spacing:-0.015em;line-height:1.25">Kotlin 제네릭</h1>
+    <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#E6EDF3">왜 제네릭?</h2>
+    <p style="margin:0 0 14px;font-size:16px;line-height:1.78;color:#C8D2DC">제네릭은 <strong style="color:#E6EDF3">타입 안전</strong>과 재사용을 동시에 얻는 장치다. 없으면 <code style="background:#1B232D;color:#6EA8FE;font-family:ui-monospace,monospace;font-size:13px;padding:1px 6px;border-radius:6px">Any</code> 로 담고 꺼낼 때마다 캐스팅해야 한다.</p>
+    <pre style="margin:0;background:#1B232D;border:1px solid #283039;border-radius:12px;padding:14px;overflow:hidden"><code style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;line-height:1.65;color:#C8D2DC">fun &lt;T&gt; box(v: T): List&lt;T&gt; =
+    listOf(v)</code></pre>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":360,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
