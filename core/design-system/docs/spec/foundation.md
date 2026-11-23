@@ -22,7 +22,7 @@ decisions: [BR-D4]
 - `MyNoteEasing`, `MyNoteExitEasing` — the standard and exit curves.
 - `rememberReduceMotion()` — whether animations should be skipped.
 ### Not covered
-- The palette, text style list, spacing, radius and adaptive token values — `design-foundation`, described in DESIGN.md.
+- The palette, text style list, radius and adaptive token values (page paddings included) — `design-foundation`, described in DESIGN.md.
 - Deciding the window and height class from the container size — the app screen root.
 - Choosing the title font — see `font`.
 ### Unconfirmed

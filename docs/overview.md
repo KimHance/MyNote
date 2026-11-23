@@ -35,7 +35,7 @@ the repository, the token, the text size and the model card.
 | `domain` | `core/domain` | pure JVM: models, repository interfaces, use cases |
 | `navigation` | `core/navigation` | Navigation 3 contract: keys, navigator, scenes, registry |
 | `design-system` | `core/design-system` | components, block renderers, charts, theme, motion |
-| `design-foundation` | `core/design-foundation` | tokens (colour, type, spacing, adaptive) |
+| `design-foundation` | `core/design-foundation` | tokens (colour, radius, type, adaptive window classes) |
 | `common` | `core/common` | MVI base, result type, throttler |
 | `build-logic` | `build-logic` | `hancenote.*` convention plugins |
 
