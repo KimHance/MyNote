@@ -1,6 +1,6 @@
 ---
 units: [app:di, app:build]
-plans: [007-repo-connect, 010-brand, 012-feature-modules, 013-local-notes]
+plans: [001-reader-foundation, 007-repo-connect, 010-brand, 012-feature-modules, 013-local-notes]
 decisions: [BR-D13, FM-D10, FM-D16, FM-D23, DEC-18]
 ---
 ## di — Hilt wiring
@@ -8,7 +8,7 @@ decisions: [BR-D13, FM-D10, FM-D16, FM-D23, DEC-18]
 - Five Hilt modules in the singleton component and one qualifier, `@ApplicationScope`, complete the graph. `:app` is the only module that sees data, network, database and ai together, so a missing binding fails the `:app` compile, never at runtime.
 - The application scope is one singleton coroutine scope on the default dispatcher with a supervisor job; a failing child is logged at error level under the tag `MyNote` and does not cancel its siblings. It is a qualified binding, so a second scope can be added without clashing.
 - The system clock and the wall clock are provided as unscoped system implementations.
-- The navigator is a singleton on the application scope, starting at Home, so the back stack outlives the Activity and ViewModels and survives rotation; it is lost on process death, there is no save or restore (012-feature-modules: FM-7).
+- The navigator is a singleton on the application scope, starting at Home, so the back stack outlives the Activity and ViewModels and survives rotation; it is lost on process death, there is no save or restore (001-reader-foundation: RD-16).
 - The connection seed is null unless the owner and repository build values are both non-blank; otherwise it carries owner, repository, branch and the token, the token null when blank. Release builds always have blank values, so they carry no seed (007-repo-connect: RC-19).
 - The template repository is read from the build value by the domain parser; an empty or malformed value gives null and the connect screen shows no template entry (007-repo-connect: RC-26).
 - Five seams of feature modules are bound here to their Android implementations: notes messages, editor messages, failure log, quiz auto-advance policy (follows the accessibility setting) and stats trace (writes to the log).

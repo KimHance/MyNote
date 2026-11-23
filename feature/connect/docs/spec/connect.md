@@ -21,7 +21,7 @@ decisions: [RC-D53, RC-D57, RC-D59, RC-D63, NT-D31, NT-D32, DEC-21a]
 - When the check passes and nothing would be erased the first sync starts at once; when something would be erased the confirm dialog opens first (see `confirm`). Opening the dialog hides the keyboard and drops focus (007-repo-connect: RC-15).
 - During the first sync the connect button is replaced by a card, `노트 불러오는 중`, with a progress bar and `끝나면 연결됩니다. 지금은 닫을 수 없습니다.` The link and token cannot be edited (007-repo-connect: RC-24).
 - A failed first sync returns to editing with a token card or a notice, as read by `issues`; the connection and notes are unchanged on the screen's side (007-repo-connect: RC-6, RC-7).
-- A completed connection clears the token draft and, 1.5 seconds later, resets the screen state (007-repo-connect: RC-23).
+- A completed connection clears the token draft and, 1.5 seconds later, resets the screen state.
 - An unexpected exception in the flow is logged and shown as the transient notice, with the screen back in editing and any pending confirm dropped; it does nothing once the connection is done.
 - When the connection goes from connected to not connected (a disconnect), the screen resets: link, token card, notice, dialog cleared, a running job cancelled, a reset count up so the shell clears the token draft once. A connection that never existed does not clear what the user typed (007-repo-connect: RC-17).
 - The link is kept in saved state and survives process death; the token draft is not saved and survives only rotation and folding (007-repo-connect: RC-24).
@@ -34,7 +34,7 @@ decisions: [RC-D53, RC-D57, RC-D59, RC-D63, NT-D31, NT-D32, DEC-21a]
 - `ConnectStep` (`Editing`, `Probing`, `Syncing`, `Done`) · `ConnectBackAction` · `connectBackAction(step)` — checking cancels, syncing and done ignore, editing pops (007-repo-connect: RC-24).
 ### Guarantees
 - Cancel while checking keeps input; input during the first sync is ignored; a 404 without token opens the token card with the link kept; a disconnect empties the screen once and a never-connected screen is left alone (`ConnectViewModelTest`) (007-repo-connect: RC-5, RC-17, RC-24).
-- The back decision is fixed by `ConnectBackTest` (007-repo-connect: RC-1, RC-24).
+- The back decision is fixed by `ConnectBackTest` (007-repo-connect: RC-24).
 ### Not covered
 - Parsing a link, the check requests, the first sync, confirm and rollback — `domain` use cases, implemented in `data`.
 - Link reasons and failure mapping — `connect:issues`; the entry section — `connect:entry`; the confirm dialog — `connect:confirm`.

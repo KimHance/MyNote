@@ -72,7 +72,7 @@ decisions: [D-33, D-59, D-62]
 - `statsDestinations()` — registers the `Stats` and `StatsHistory` destinations.
 - `StatsFormats` and `rememberStatsFormats()` — Korean date, week and month formatters for stats labels.
 ### Guarantees
-- The header number style keeps its pre-title-font shape (`StatsHeaderValueTest`).
+- The header number is not drawn in a title style (`StatsHeaderValueTest`).
 - No automated UI test drives the Stats screen; `TitleFontScreensTest` in `app` only draws the summary card.
 ### Not covered
 - The top bar title, refresh and back, the floating navigation and the two-column decision — the `app` shell and `ui`.

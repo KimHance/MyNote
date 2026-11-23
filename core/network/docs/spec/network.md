@@ -7,7 +7,7 @@ decisions: [SY-D7, SY-D8, DEC-11]
 ### Behaviour
 - The adapter serves sources of kind GitHub and sends only GET requests to `repos/{owner}/{repo}/contents/{path}`, with `ref` set to the branch (007-repo-connect: RC-K1).
 - Owner, repository, branch and list location are read from the source's stored connection on every request; the module keeps no coordinates of its own (006-sync: SY-2).
-- An empty branch sends no `ref`, so GitHub uses the repository's default branch (007-repo-connect: RC-19).
+- An empty branch sends no `ref`, so GitHub uses the repository's default branch (007-repo-connect: RC-K1).
 - A source with no readable stored connection fails before any request (sync never calls the adapter for such a source) (006-sync: SY-3).
 - Both requests ask for the raw file with `Accept: application/vnd.github.raw+json`; without it GitHub answers with a metadata envelope holding base64 content, which the list decoding and the original text would both get wrong (007-repo-connect: RC-K1).
 - Paths are sent unencoded, so the slashes of `notes/<group>/<id>.md` stay slashes (007-repo-connect: RC-K1).
@@ -40,7 +40,7 @@ decisions: [SY-D7, SY-D8, DEC-11]
 - Repository step failures: rate limit gives rate limited; 5xx or another status gives transient; 401 gives token rejected with a token, else token needed; 404 or 403 gives repository not visible with a token, else token needed (007-repo-connect: RC-5, RC-7).
 - An unreadable or empty repository answer is transient.
 - Candidates (branch and list location) are tried in order; the default-branch candidate becomes the repository's default branch, and an empty branch sends no `ref` (007-repo-connect: RC-2).
-- The first candidate whose list answers 200 verifies: the connection (canonical owner and name, branch, list location, public = not private) plus the note ids of that list; later candidates are not tried (007-repo-connect: RC-15).
+- The first candidate whose list answers 200 verifies: the connection (canonical owner and name, branch, list location, public = not private) plus the note ids of that list; later candidates are not tried (007-repo-connect: RC-4, RC-12).
 - An empty list object verifies with no note ids; a list that does not decode gives a broken-list failure (007-repo-connect: RC-10).
 - Only 404 moves on to the next candidate; list rate limit gives rate limited, 401 gives token rejected or token needed, 403 gives list not reachable, 5xx gives transient (007-repo-connect: RC-7).
 - When every candidate is 404: without a token the repository has no list (format not supported); with a token the list is not reachable (007-repo-connect: RC-9).

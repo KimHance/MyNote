@@ -12,7 +12,7 @@ decisions: [RD-D5, BR-D15]
 - `correct` and `wrong` are made not to speak by colour alone; they are always used with an icon or text. `warn` and `warnText` mean "fewer questions were made than asked", not a failure, so they are not red.
 - The lamp colours `LampTop` and `LampBottom` of `MyNoteBrandColors` are outside the palette on purpose. Only the hero mark's light gradient reads them; they are not used for surfaces, text or state, and they are not added to `MyNoteColors`, where they would look like ordinary tokens and leak onto screens. The night and icon background colours are Android colour resources in the app module, not here. (010-brand: BR-6)
 - `MyNoteRadius` holds four constants (card, list, chip, inline code), read directly rather than through the theme. Most corner radii in the app are literals chosen in components, not tokens; the inline-code radius has no user today.
-- There is no spacing scale. A spacing token that nothing used was removed; real spacing is dp literals plus the page, gap and vertical-padding values of `adaptive`.
+- There is no spacing scale; spacing is dp literals plus the page, gap and vertical-padding values of `adaptive`.
 - A token nobody uses is deleted rather than kept, because a leftover name reads as an approved value.
 - Colour holders are marked immutable; `MyNoteRadius`, an object of constants, is not marked.
 ### Public API
@@ -35,7 +35,7 @@ decisions: [RD-D5, BR-D15]
 - Those four styles fix their line height and use a centred line-height style that trims nothing, so Gothic A1's line box equals the line height. With the device font, Korean text falls back to another font whose line box (about 1.45 em) can exceed the line height and leave extra space; the number of lines is the same. (010-brand: BR-8)
 - Hero and note title sizes are not text styles; they are sizes in `adaptive` that vary continuously with the window. A screen applies one with `resized`.
 - `TextStyle.resized(size)` sets the font size and scales a line height given in sp by the same ratio, so a bigger title does not get lines that touch. A line height that is missing or in em is left alone and only the size changes. (010-brand: BR-8)
-- A screen does not keep a private type scale: the quiz once had 11 styles of its own that were merged here, and a screen that bypasses the system drifts and creates one value under two names.
+- A screen does not keep a private type scale: a screen that bypasses the system drifts and creates one value under two names.
 - Adding or removing a title-font style also means changing the style table in the brand design document; a Python test checks that table.
 - The module does not know how the title font is obtained or whether it has arrived; the design system's font gate decides and passes a font family in.
 ### Public API

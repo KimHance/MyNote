@@ -1,6 +1,6 @@
 ---
 units: [navigation:navigator, navigation:keys, navigation:commands]
-plans: [001-reader-foundation, 013-local-notes]
+plans: [001-reader-foundation, 004-bookmarks, 005-stats, 013-local-notes]
 decisions: [RD-D2, BM-D1, LN-D15]
 ---
 ## navigator — Navigator
@@ -59,7 +59,7 @@ decisions: [RD-D2, BM-D1, LN-D15]
 ### Behaviour
 - Each function takes the current stack and returns one `NavCommand`, so one user action is one `dispatch` and one throttle window. Two commands in a row would lose the second.
 - `openReaderCommand(noteId)`: if the top is not `Settings` it pushes the reader. If settings is on top, it takes settings off and puts the reader in its place; when the entry below settings is already that reader, it only takes settings off. (001-reader-foundation: RD-11)
-- `switchTabCommand(tab)` for the floating navigation (`NotesTab`: Home, Bookmarks, Stats): Home replaces the stack with the home key from anywhere (pressing it on home alone changes nothing). Bookmarks or Stats pushes the tab onto a stack that is exactly the home key; from anywhere else it replaces the stack with home plus the tab, so an open reader or the other tab is dropped. The same tab pressed on top gives the stack it already has and is ignored without opening a window. (001-reader-foundation: RD-15)
+- `switchTabCommand(tab)` for the floating navigation (`NotesTab`: Home, Bookmarks, Stats): Home replaces the stack with the home key from anywhere (pressing it on home alone changes nothing). Bookmarks or Stats pushes the tab onto a stack that is exactly the home key; from anywhere else it replaces the stack with home plus the tab, so an open reader or the other tab is dropped. The same tab pressed on top gives the stack it already has and is ignored without opening a window. (001-reader-foundation: RD-15) (004-bookmarks: BM-7) (005-stats: ST-8)
 - `openEditorCommand(editor)`: removes every editor already in the stack and, if the top then is `Paste`, the paste screen too; when nothing was removed it pushes. Otherwise it replaces the stack with the rest plus the new editor (home when the rest is empty). So a cold share starts from home plus the editor, a running app pushes over the current stack, a second share replaces the first editor, and the paste screen's next step replaces paste, so back returns to where paste was opened. (013-local-notes: LN-6, LN-8)
 - `savedNoteCommand(noteId)`: removes the editors from the stack and, unless the entry now on top is already that note's reader, puts that reader on top. A new note ends on its reader in the editor's place; an edit goes back to the reader below. Back returns to the screen that opened the editor. (013-local-notes: LN-3, LN-9)
 - `withoutNoteCommand(noteId)`: removes that note's readers and the editors editing it, merges neighbours that became the same key, and falls back to home when nothing is left. It always answers `ReplaceAll`; when nothing changed the navigator ignores it. Closing the quiz overlay is the caller's job through a signal in `ui`. (013-local-notes: LN-11)

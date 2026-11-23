@@ -16,7 +16,7 @@ decisions: [D-45, D-46, D-47]
 - Four numbers are computed for the period and, when a comparison exists, for the comparison span: notes read (distinct notes with a session started in the span), minutes, quizzes finished, and questions asked and answered right. The difference between the two is left to the screen (005-stats: ST-9).
 - Minutes are the sum of active time divided by 60,000 and rounded down once for the sum, not per session. Accuracy is correct over asked as a whole percent rounded half up (2 of 3 is 67) and is none when nothing was asked (005-stats: ST-9).
 - Deleted notes still count in the numbers; the lists below show only notes that still exist, so a deleted device note leaves them (005-stats: ST-14) (013-local-notes: LN-11).
-- Records and notes with a key prefix give the same results as before keys had prefixes, because ids are opaque strings.
+- Records and notes whose keys carry a source prefix are counted like any others, because ids are opaque strings.
 - The category axis is the union of the categories of the current notes and of the period's sessions, attempts and bookmark events (blank names left out), sorted by name. Each category keeps its axis index so colors stay stable between charts.
 - Reading time per bar counts a session on the date it started. Category minutes are sorted by minutes, largest first, then axis order; their sum can differ by a minute from the total because of rounding (005-stats: ST-11).
 - Stalled notes: per note the latest session over all time (by its end time) counts when it started inside the period and reached less than 90 percent; newest first, at most 5, existing notes only (005-stats: ST-11).

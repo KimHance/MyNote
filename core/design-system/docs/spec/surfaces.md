@@ -70,7 +70,7 @@ decisions: [D-18, D-19]
 ### Not covered
 - Deciding which notes are bookmarked or device notes, and the shared-element wiring — `notes` and the shell.
 - The list panel screen, the bookmarks screen and their row variants — `notes`.
-- The bookmarks screen's own row, which is not yet merged with `NumberedRow` — `notes`.
+- The bookmarks screen's own row, which is separate from `NumberedRow` — `notes`.
 
 ## brand — Hero, logo and icons
 ### Behaviour
@@ -81,7 +81,7 @@ decisions: [D-18, D-19]
 - The repository line shows the name exactly as given in one line with a middle ellipsis; its accessibility text is the full name; with `repoName = null` the line is absent and nothing replaces it (010-brand: BR-6).
 - The logo vectors are built from the current accent and text colours and are never tinted: the mark's window frame and its light are different colours, and a tint would flatten the light.
 - `MyNoteIcons` holds the icon set as `ImageVector`s on a 24 viewport, drawn in white to be tinted at the use site: most are line icons with a 1.7 stroke, while `BookmarkFilled`, `Sparkle` and `CheckBoxChecked` are filled shapes.
-- The six device-note icons (new note, import, edit, delete, device, paste) are single no-fill stroke paths taken from the design hand-off (013-local-notes: LN-3).
+- The six device-note icons (new note, import, edit, delete, device, paste) are single no-fill stroke paths taken from the design hand-off.
 - Icons are created lazily on first use.
 ### Public API
 - `MyNoteHero(title, repoName, modifier, hint)` — the home hero.

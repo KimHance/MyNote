@@ -5,7 +5,7 @@ decisions: [NF-D6, NF-D7, NF-D8, NF-D9, NF-D10, NF-D11, NF-D12, NF-D22, NF-D26, 
 ---
 ## markdown — Markdown converter
 ### Behaviour
-- Converts a Markdown original (CommonMark with GitHub tables, task items and strike-through; no maths and no highlight) into the same block kinds the reader always drew. It runs only on text that passed `limits`.
+- Converts a Markdown original (CommonMark with GitHub tables, task items and strike-through; no maths and no highlight) into the block kinds the reader draws. It runs only on text that passed `limits`.
 - Front matter is cut first. A leading BOM is dropped and CRLF and lone CR become LF. If the first line is exactly `---` and a later line is exactly `---`, the lines between them are front matter and never become a block. A boundary with spaces around it is not a boundary. With no closing line the whole text is body (009-note-format: NF-1).
 - The converter reads only the boundary of front matter, not the lines inside; title and date of a note come from the list entry (009-note-format: NF-1).
 - Headings 1 to 6 come from `#` lines and from setext underlines (`===` is level 1, `---` under a paragraph is level 2). Paragraphs are one block each; a blank line makes no block and there is no spacer. `---`, `***` and `___` are dividers (009-note-format: NF-3).
@@ -72,7 +72,7 @@ decisions: [NF-D6, NF-D7, NF-D8, NF-D9, NF-D10, NF-D11, NF-D12, NF-D22, NF-D26, 
 - A device note is stored as a path `<doc id>.md` and an original made of an empty front matter (two `---` lines, 8 bytes) followed by the body. The empty front matter keeps a body that starts with `---` from being read as front matter (013-local-notes: LN-3).
 - Reading the body back from a stored original removes exactly that prefix; any body round trips, including empty ones, ones starting with `---` and ones starting with a BOM (013-local-notes: LN-3).
 - A body fits when its UTF-8 size is at most 524,280 bytes, so the stored original is at most 524,288 bytes, the same count and limit the reader uses. A stored original fits when it is at most 524,288 bytes (013-local-notes: LN-3, LN-7).
-- A body that fits but breaks another limit (for example 33 nested quote marks) is saved and shown as a whole-note over-limit box (013-local-notes: LN-3).
+- A body that fits but breaks another limit (for example 33 nested quote marks) is saved and shown as a whole-note over-limit box (009-note-format: NF-8).
 - The import rule turns pasted, shared or file text into a draft of title, body and date. A BOM is dropped and CRLF and CR become LF; the front-matter boundary is the same code as in `markdown` and agrees with the shared boundary folder (013-local-notes: LN-6).
 - Title: the front-matter `title` when not blank; else the first non-blank line if it is a level-1 `# ` heading; else the name hint (a file or share title); else empty. A `# ` heading with a closing run of `#` after a space has it removed, inline marks stay, and `# #`, `#text`, `## text` and setext are not title headings (013-local-notes: LN-6).
 - A front-matter value is what follows the first colon, trimmed, with one pair of matching quotes removed; the first of a repeated key wins; keys other than `title` and `date` are ignored (013-local-notes: LN-6).

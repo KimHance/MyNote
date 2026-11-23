@@ -1,6 +1,6 @@
 ---
 units: [app:shell-state, app:shell, app:shell-chrome]
-plans: [001-reader-foundation, 003-model-download, 005-stats, 007-repo-connect, 012-feature-modules, 013-local-notes]
+plans: [001-reader-foundation, 003-model-download, 004-bookmarks, 005-stats, 007-repo-connect, 012-feature-modules, 013-local-notes]
 decisions: [RD-D3, RD-D6, BM-D2, RC-D8, FM-D7, FM-D8, FM-D11, FM-D12, FM-D14, FM-D17, FM-D19, FM-D20, DEC-37a]
 ---
 ## shell-state — Shell state and start decision
@@ -17,7 +17,7 @@ decisions: [RD-D3, RD-D6, BM-D2, RC-D8, FM-D7, FM-D8, FM-D11, FM-D12, FM-D14, FM
 - At creation the ViewModel consumes the debug seed once; the seed-pending flag turns false when the call ends, whether it succeeded or failed (007-repo-connect: RC-19).
 - Start decision: reading while the connection is unknown or the notes are not loaded yet, and while there is no connection and the seed is still pending; every other case is the shell (007-repo-connect: RC-1).
 - The notes count that feeds the decision includes repository and device notes; zero notes without a connection is the shell with the home first-run empty state, never a connect screen (013-local-notes: LN-1) (007-repo-connect: RC-1).
-- A top screen that draws its own top bar (connect, editor, paste) is reported as owning the chrome; the shell then hides top bar, drawer gestures, floating nav and model pill (013-local-notes: LN-3).
+- A top screen that draws its own top bar (connect, editor, paste) is reported as owning the chrome; the shell then hides top bar, drawer gestures, floating nav and model pill (007-repo-connect: RC-14).
 - The selected tab is the last Home, Bookmarks or Stats key on the stack, Home when none.
 - The reader-end card sends one of four targets: open quiz setup with note id and category, ask to confirm the model download, open settings through the shell, or start the download through settings (012-feature-modules: FM-6).
 - Scroll-to-top is allowed only when scrolled and no quiz is open, no chrome-owning screen is on top and no token is being edited.
@@ -48,7 +48,7 @@ decisions: [RD-D3, RD-D6, BM-D2, RC-D8, FM-D7, FM-D8, FM-D11, FM-D12, FM-D14, FM
 - An exit request finishes the Activity; an exit hint dismisses the current snackbar, shows `한 번 더 누르면 종료합니다` for a short time and then reports it as shown.
 - One snackbar host sits above the start branch and the window-class branch and receives notes errors and infos, the quiz quit undo, and the notices of notes, settings and editor; a notice with an undo shows the undo action; each reports back as shown once it ends, so folding or rotating does not show it again (012-feature-modules: FM-16).
 - The quit undo shows a short snackbar; pressing its action sends the quiz undo-exit intent.
-- The start branch shows the reading screen or the shell. The editor host (file picker launcher and dialogs) is composed above the branch, so a pick result always has a place to return to (013-local-notes: LN-8).
+- The start branch shows the reading screen or the shell. The editor host (file picker launcher and dialogs) is composed above the branch, so a pick result always has a place to return to (013-local-notes: LN-6).
 - The model-download confirm dialog is composed above the branch too; its open state survives rotation; confirming starts the download through the permission step above.
 - A window-class change switches between the modal-drawer form and the fixed-panel form and rebuilds `NavDisplay`; reader scroll per note, source expansion and the token draft live above that branch and survive it (012-feature-modules: FM-4).
 - Back is taken in this order, highest first: open drawer, quiz overlay, swallow during a transition, pop, opening drawer, expanded fixed panel, root exit hint (012-feature-modules: FM-10) (001-reader-foundation: RD-17).
@@ -68,7 +68,7 @@ decisions: [RD-D3, RD-D6, BM-D2, RC-D8, FM-D7, FM-D8, FM-D11, FM-D12, FM-D14, FM
 - A registered screen gets only frame values from the shell: insets, two-pane flag, stacked-scene flag, scroll holders, token draft, snackbar host. Its own state and entry points, and screen-only values (has connection, shell back, notification settings), are separate parameters of its registration function (012-feature-modules: FM-4).
 - A registered screen reads only its own feature's state, so another feature's change does not redraw it; the entry provider is built once for a frame and destination set, and no per-destination ViewModel decorator is used.
 - The notes registration exposes a reader-end slot with the note id; the shell fills it with the quiz card showing the quiz model status (012-feature-modules: FM-6).
-- Two-pane content needs window width minus the expanded fixed panel, minus two page paddings, minus the rail reserve to be at least 640 dp; the panel counts only in the fixed-panel form (001-reader-foundation: RD-7).
+- Two-pane content needs window width minus the expanded fixed panel, minus two page paddings, minus the rail reserve to be at least 640 dp; the panel counts only in the fixed-panel form (004-bookmarks: BM-16).
 - Content reserves 92 dp at the bottom for the floating bar, or only the navigation inset with a rail; in rail form the end padding reserves the rail width plus a 12 dp gap beyond the page padding.
 - Screen transitions, the shared-element scope and predictive back come from `:core:navigation`; the shell passes them to `NavDisplay` unchanged (001-reader-foundation: RD-18).
 ### Public API

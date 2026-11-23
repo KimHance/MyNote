@@ -41,7 +41,7 @@ decisions: [NT-D15, FM-D15, DEC-19]
 - No JDK toolchain is declared: code compiles with the JDK that runs Gradle and only the target is fixed at 17.
 - Unit tests in Android modules include Android resources; every `Test` task has the no-tests-found failure turned off, so a module without tests does not break the root test run on Gradle 9.
 - All Kotlin warnings become errors only when the Gradle property `warningsAsErrors` is exactly `true`; passing `-PwarningsAsErrors` with no value is false.
-- Compose setup turns Compose on with a single plain assignment on the common extension; it is not narrowed by extension type, because a `when` once left Compose off for an unexpected extension type and the build failed with a misleading "composable not found" error.
+- Compose setup turns Compose on with a single plain assignment on the common extension; it is not narrowed by extension type, because a `when` over the extension type would leave Compose off for an unexpected type and the build would then fail with a misleading "composable not found" error.
 - Compose setup adds the Compose BOM to both `implementation` and `androidTestImplementation`, then activity-compose, Material 3, UI, UI tooling preview and the immutable-collections library; UI tooling and the test manifest in debug builds; the UI test library in androidTest.
 - It adds Slack's Compose lint checks, turns off the Android Lint check `ComposeCompositionLocalUsage` (theme tokens travel by composition local on purpose), and keeps source information in Compose output.
 - Compose stability reports are written to the module's `build/compose-reports/` only when the property `composeMetrics` exists, with any value; they are off by default because writing them slows every build.
@@ -63,7 +63,7 @@ decisions: [NT-D15, FM-D15, DEC-19]
 - With some but not all present, the build continues with a warning that names the missing keys, and the release APK is unsigned.
 - With all four present but no file at the keystore path, the build continues with a warning that names the path, and the release APK is unsigned.
 - With all four present and the file found, a `release` signing config is created and attached to the release build type.
-- No case fails the build. The silent and the warning cases are split because a misspelt key used to end in a successful build with an unsigned APK that failed only at install or upload.
+- No case fails the build. The silent and the warning cases are split because otherwise a misspelt key would end in a successful build with an unsigned APK that fails only at install or upload.
 - An unsigned release is recognised by its file name: `app-release-unsigned.apk`.
 ### Public API
 - None — the function is internal to the convention project and is called only by the application plugin.
@@ -93,7 +93,7 @@ decisions: [NT-D15, FM-D15, DEC-19]
 - Unused imports are reported by nobody: the ktlint rule exists but is opt-in and the `.editorconfig` does not enable it. Enabling it must be done inside the Kotlin section of that file; the same line placed under the markdown and JSON section is silently ignored.
 - The pre-commit hook runs ktlint on staged Kotlin files only, and stops the commit on a violation.
 ### Public API
-- None — the plugin is applied by id from other plugins and has no catalog alias.
+- `KtlintConventionPlugin` — the plugin class behind the id `hancenote.ktlint`; other plugins apply it by id and it has no catalog alias.
 ### Not covered
 - Formatting rules themselves — the root `.editorconfig`.
 - The commit hook script — `.githooks/pre-commit`, outside any module.

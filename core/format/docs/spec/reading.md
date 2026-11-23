@@ -5,7 +5,7 @@ decisions: [NF-D16, NF-D17, NF-D19, NF-D37, DEC-26, DEC-28]
 ---
 ## note-format — Entry point and block cache
 ### Behaviour
-- One entry turns an original into blocks. The format comes from the path: a path ending in `.md` (any letter case) is Markdown; any other path, and no path, is JSON. No path means an old cache row from before paths were stored (009-note-format: NF-2).
+- One entry turns an original into blocks. The format comes from the path: a path ending in `.md` (any letter case) is Markdown; any other path, and no path, is JSON. No path means a cache row that carries no path (009-note-format: NF-2).
 - Every place that turns an original into blocks goes through this entry: a freshly fetched note, the start-up re-parse, the first sync of a connection, and the replacement of a damaged cache. Format choice is not repeated anywhere else (009-note-format: NF-2).
 - The entry never throws. An exception or a stack overflow gives one whole-note box of kind `broken_note`; running out of memory gives one whole-note box of kind `limit_exceeded`. Only that note is affected (009-note-format: NF-2, NF-8).
 - Three calls exist: `parse` returns the blocks for drawing, `derive` returns what the cache stores (blocks JSON and the first sentence), and `read` rebuilds blocks from the stored cache.
@@ -14,7 +14,7 @@ decisions: [NF-D16, NF-D17, NF-D19, NF-D37, DEC-26, DEC-28]
 - Field names and the block type names are the storage format. Changing them needs a new parse version so cached rows are rebuilt (009-note-format: NF-9).
 - The bytes cached for the eight blocks of format 1 are fixed: a JSON note and a Markdown note that give the same blocks give the same bytes (009-note-format: NF-12).
 - The cache may grow new block kinds and fields (table, italic, strike, checkbox state, children, start). The wire shape of JSON notes may not (see `json-format`).
-- Cache decoding ignores unknown keys, turns an unknown enum value or a null into the default, and reads an unknown block type as an unknown-type box without throwing. An old `{"type":"unknown"}` reads as an unknown-type box with no original, so the reader hides "show original".
+- Cache decoding ignores unknown keys, turns an unknown enum value or a null into the default, and reads an unknown block type as an unknown-type box without throwing. A cached `{"type":"unknown"}` reads as an unknown-type box with no original, so the reader hides "show original".
 - The cache is written through a size-capped stream and stops at once past 1 MB (1,048,576 UTF-8 bytes). The note then becomes a whole-note over-limit box, for JSON notes as well as Markdown; exactly 1,048,576 bytes is accepted (009-note-format: NF-8).
 - A whole-note box (`broken_note`, `limit_exceeded`) is stored with an empty original, because the original is already in the notes table; `parse` returns the box with the original inside (009-note-format: NF-8).
 - Box kinds: `unknown_type` (JSON block with an unknown type), `broken_block` (known type with a missing or wrongly typed field, or no type), `broken_note` (not JSON, or the parse threw), `limit_exceeded` (a limit was passed). The first two cover one block; the last two cover the whole note.
@@ -22,7 +22,7 @@ decisions: [NF-D16, NF-D17, NF-D19, NF-D37, DEC-26, DEC-28]
 - When the cache cannot be decoded, `read` asks for the original and parses it by path. With no original it returns a `broken_note` box holding the cache text. A format problem never removes a note from the list (009-note-format: NF-2).
 - The parse version is 2. Any change that alters parse results raises it, so cached rows older than it are rebuilt offline from the stored original and path (009-note-format: NF-9).
 - The version is tied to the engine release it was made for. A test compares that release with the one in the version catalogue and fails when only the catalogue was changed (009-note-format: NF-9).
-- Re-parsing an original gives the same blocks as the old cache path; re-reading the 22 repository notes shows no difference (009-note-format: NF-12).
+- Re-parsing a JSON original gives the same blocks as decoding its blocks straight into the cache and reading them back; re-reading the 22 repository notes shows no difference (009-note-format: NF-12).
 - The 22 fixed pairs of JSON and Markdown copies give the same blocks (the JSON spacer excepted, since Markdown has no spacer), the same first sentences and the same quiz text. Every note under the repository's `notes/` reads with no box and at least one block (009-note-format: NF-11).
 - The fixed copies are frozen values and are never compared with the live `notes/` folder; editing a Markdown copy breaks parity on purpose (009-note-format: NF-11).
 ### Public API
@@ -37,7 +37,7 @@ decisions: [NF-D16, NF-D17, NF-D19, NF-D37, DEC-26, DEC-28]
 - Today's cache bytes and old cache rows stay readable: `CacheCompatTest`.
 - Cache cap boundary and the empty original of whole-note boxes: `ResultLimitsTest`.
 - Engine release equals the one the parse version was made for: `EngineVersionTest`.
-- Fixed parity of 22 notes and the repository notes: `ParityTest`; equivalence with the old cache path: `ReparseEquivalenceTest`.
+- Fixed parity of 22 notes and the repository notes: `ParityTest`; equivalence of re-parsing with decoding straight into the cache: `ReparseEquivalenceTest`.
 ### Not covered
 - The block model, first-sentence rule and limit values — see `domain`.
 - Turning Markdown text into blocks — see `markdown`; reading JSON — see `json-format`; the screening limits — see `limits`.
@@ -55,7 +55,7 @@ decisions: [NF-D16, NF-D17, NF-D19, NF-D37, DEC-26, DEC-28]
 - A box carries a text salvage and the block's own JSON re-written with a two-space indent. The text is the block's `fallback` string when present, otherwise the joined span text, code and list items (one line per item), otherwise nothing.
 - An unknown span style, or a style that is null, a number or a boolean, reads as plain text and the block is kept. A style that is an object or an array makes that one block a `broken_block`.
 - An empty `blocks` array is a normal note with no body.
-- The set of accepted types is counted from the frozen wire shape, not from the cache shape. Types and fields added to the cache later (table, italic, start, children) in a JSON original read as they did before they existed: a table block is an unknown-type box and the extra fields are ignored (009-note-format: NF-12).
+- The set of accepted types is counted from the frozen wire shape, not from the cache shape. Types and fields that exist only in the cache shape (table, italic, start, children) are not read from a JSON original: a table block is an unknown-type box and the extra fields are ignored (009-note-format: NF-12).
 - Bad input becomes boxes rather than exceptions; a note with a 100,000-level nested value in one block still gives one block through the entry (009-note-format: NF-2).
 ### Public API
 - None — the reader, the wire shape and the type set are internal; callers go through `note-format`.

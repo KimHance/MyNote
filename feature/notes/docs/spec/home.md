@@ -11,7 +11,7 @@ decisions: [RC-D44, RC-D52, BR-D3, LN-D4, LN-D8, LN-D13, DEC-16]
 - A card shows the category chip, the date and the title; pressing it opens the reader; chip, date and title travel to the reader as shared elements keyed by note id (001-reader-foundation: RD-13).
 - A bookmarked note's card carries the corner ribbon; a device note's card carries the source mark; repository notes carry neither (004-bookmarks: BM-5) (013-local-notes: LN-5).
 - The hero shows the app title, the connected repository's canonical name when a connection is confirmed and no repository line otherwise, and a one-sentence hint (010-brand: BR-6).
-- The hint differs by window: Compact tells the person to open the list with the menu button, wider windows point at the fixed list on the left (001-reader-foundation: RD-7).
+- The hint differs by window: Compact tells the person to open the list with the menu button, wider windows point at the fixed list on the left (001-reader-foundation: RD-5).
 - Below the hero, two secondary buttons "새 노트" and "가져오기" sit in one row, in every state that has notes (013-local-notes: LN-2).
 - The connect band ("저장소를 연결하세요" with "연결하기") is the first grid item and shows only at Compact width, only when no connection exists but cached repository notes do; wider windows show it in the list panel instead (007-repo-connect: RC-1).
 - The band opens the stacked connect screen; it is not shown for device notes alone (007-repo-connect: RC-1).
@@ -53,7 +53,7 @@ decisions: [RC-D44, RC-D52, BR-D3, LN-D4, LN-D8, LN-D13, DEC-16]
 - With a query and no match, "검색 결과가 없습니다" replaces the list (001-reader-foundation: RD-9).
 - The note being read is shown as the active row; bookmarked notes carry the glyph and device notes the source mark (004-bookmarks: BM-6) (013-local-notes: LN-5).
 - Choosing a note opens the reader (from settings it takes settings' place) (001-reader-foundation: RD-11).
-- The settings row is fixed below the list and never scrolls away; the list scrolls in the space between (001-reader-foundation: RD-8).
+- The settings row is fixed below the list and never scrolls away; the list scrolls in the space between.
 - The list fades at the top (16 dp) once it can scroll back and at the bottom (52 dp) while more follows, animated over 200 ms; no divider is drawn above the settings row.
 - The settings row is highlighted only in a fixed pane while settings is open.
 - The settings row shows model state: a ring (with a percent when known, in the warning tone while retrying) while the model is busy; otherwise "모델 오류" after a failure, nothing when ready, "모델 없음" otherwise; "토큰 확인" is added only when the shell reports a token check and the model is not busy.

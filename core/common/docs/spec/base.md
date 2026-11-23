@@ -31,7 +31,7 @@ decisions: [RD-D1]
 - `MviViewModel<S, E>` — abstract base. Public: `state` (the shared state flow) and `onIntent(event)`. For subclasses: `build()`, `handleIntent(event)`, `onFailure(cause)`, `launchSafely { }`, `trigger(initial)`, `Flow.triggerIn(initial, started)`.
 ### Guarantees
 - Registration, equality, rebuild, lifetime (5 seconds, no stacking, `Lazily`), failure boundary and stream behaviour: `MviViewModelTest`.
-- A single pipeline under 48 concurrent first readers, no lost updates under 50,000 concurrent updates, and no overlapping `build()`, both with a plain thread dispatcher and with a single-thread dispatcher that runs inline like the Android main looper: `MviViewModelConcurrencyTest` (it holds the second class, `MviViewModelMainImmediateConcurrencyTest`).
+- A single pipeline under many concurrent first readers (four per processor core), no lost updates under 50,000 concurrent updates, and no overlapping `build()`, both with a plain thread dispatcher and with a single-thread dispatcher that runs inline like the Android main looper: `MviViewModelConcurrencyTest` (it holds the second class, `MviViewModelMainImmediateConcurrencyTest`).
 - Tests of a ViewModel must start the collector on an unconfined test dispatcher; a collector launched without one makes `state` read late, so some of these tests fail and the others pass without checking anything.
 ### Not covered
 - What a screen's state contains and how a screen sends intents — each feature module.

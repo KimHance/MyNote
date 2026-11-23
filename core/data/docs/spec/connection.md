@@ -7,13 +7,13 @@ decisions: [SY-D10, RC-D4, RC-D5, RC-D6, RC-D9, RC-D19, RC-D20, RC-D28, RC-D29, 
 ### Behaviour
 - A connection is one JSON value on its source row: owner, repo, branch, list location, public flag, plus a pending flag and the id of the attempt that confirmed it; there is one connection at a time and no schema change (007-repo-connect: RC-12).
 - A stored value that is blank, unreadable, or missing owner, repo or list location reads as no connection; unknown keys are ignored (007-repo-connect: RC-12).
-- The confirmed connection is the first GitHub source whose stored value decodes and is not pending; the device source has no stored value and is never a connection (007-repo-connect: RC-12) (013-local-notes: LN-5).
+- The confirmed connection is the first GitHub source whose stored value decodes and is not pending; the device source has no stored value and is never a connection (007-repo-connect: RC-12).
 - Observing the connection first waits for start recovery, then follows the source rows and emits connected (source id and connection) or none, without repeats.
 - "Attempting" is true from `begin` until `confirm` or `discard` ends, in memory only.
 - `begin` sorts an attempt into one of three kinds: same repository (the confirmed connection's owner and repo, ignoring case) keeps that source id (007-repo-connect: RC-14).
 - New: another repository while connected, or a first connection with nothing to adopt; it gets a new source id and a source row marked pending, which normal sync skips (007-repo-connect: RC-15).
 - Adopt: no confirmed connection and a GitHub source without a stored connection that holds at least one note; nothing is written to its row before confirmation (007-repo-connect: RC-19).
-- Device notes are never adopted and never make a first connection an adoption (013-local-notes: LN-12).
+- Device notes are never adopted and never make a first connection an adoption (007-repo-connect: RC-19) (013-local-notes: LN-12).
 - `begin` records the attempt (target source, a fresh attempt id, the token before it, whether a candidate token came with it) before saving that candidate token; a second `begin` in the same process first runs recovery to clear a leftover attempt (007-repo-connect: RC-6).
 - New source ids come from the generator; a blank id, an id with `/`, an id used before (kept across deletes), an existing source id, `s0` and `local` are skipped; after 16 rejected tries `begin` fails (013-local-notes: LN-5).
 - The first sync of an attempt reconciles an in-memory source with the target connection under the attempt's source id; for adopt and same-repository attempts it also removes the bookmarks of notes it deleted.
@@ -21,9 +21,9 @@ decisions: [SY-D10, RC-D4, RC-D5, RC-D6, RC-D9, RC-D19, RC-D20, RC-D28, RC-D29, 
 - `confirm` runs to the end even when cancelled and always clears "attempting"; the stored value gets the attempt id (007-repo-connect: RC-15).
 - Confirming a new connection writes the replaced GitHub source ids to the bookmark sweep list, promotes the pending source while deleting the replaced sources' notes and rows in one transaction, then removes their bookmarks by prefix and clears the list (007-repo-connect: RC-15).
 - A subscriber never sees old and new repository notes together, because promotion is one transaction (007-repo-connect: RC-15).
-- Confirming a change to a public repository removes the old token, unless the token was a candidate of this attempt (a token typed after a rate limit stays), then waits up to 5 seconds for the applied token to become empty so sync is not started twice (007-repo-connect: RC-15, RC-7) (006-sync: SY-1).
+- Confirming a change to a public repository removes the old token, unless the token was a candidate of this attempt (a token typed after a rate limit stays), then waits up to 5 seconds for the applied token to become empty so sync is not started twice (007-repo-connect: RC-15) (006-sync: SY-1).
 - A same-repository change or a change to a private repository keeps the token; confirming a same-repository or adopt attempt only rewrites the stored value (007-repo-connect: RC-14, RC-15).
-- Confirmation clears the attempt record and the seed block (007-repo-connect: RC-17).
+- Confirmation clears the attempt record and the seed block (007-repo-connect: RC-19).
 - `discard` runs to the end even when cancelled: it restores the token held before the attempt (waiting up to 5 seconds for it to be applied), deletes a new attempt's source only while it is still pending, and clears the attempt (007-repo-connect: RC-6) (006-sync: SY-1).
 - Disconnect order is marker (which also blocks the build seed), notes and source row in one transaction, bookmarks by prefix, token, marker cleared; the seed block stays until a later connection is confirmed (007-repo-connect: RC-17, RC-19).
 - If deleting the notes fails, the marker and seed block are cleared when the row still exists, bookmarks and token stay, and the result is a failure (007-repo-connect: RC-17).

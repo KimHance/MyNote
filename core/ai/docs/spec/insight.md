@@ -45,11 +45,11 @@ decisions: [D-53, D-56, D-57]
 - A run is limited to 3 minutes. On timeout the work already saved is kept; a failure of kind timeout is recorded against the target that was running, and a timeout during the pattern does not mark the summary as failed. Cancelling stops the native decode (005-stats: ST-18, ST-20).
 - A generation failure (parse, too long, digits, missing field, engine, timeout) is stored with its time and kind (engine and timeout kept as such, the rest as parse) and the run still ends as success, so the next charge plans again; an engine failure stops the remaining jobs (005-stats: ST-20).
 - A saved summary or pattern is written with the output-version stamp (model commit and output version 2); the result of a job overwrites that week's entry (005-stats: ST-20).
-- If the user cleared the records while the run was in progress, the result is thrown away and nothing is written (005-stats: ST-6, ST-20).
-- After a save, old summaries are pruned by the cutoff `domain` defines. A run that saved something and also failed or was interrupted records the success time as well as the failure (005-stats: ST-20).
-- The output version is 2: summaries from the first round that contained digits are filtered out downstream and the week reads "no summary". Raise it whenever the output format or prompt contract changes (005-stats: ST-19).
+- If the user cleared the records while the run was in progress, the result is thrown away and nothing is written (005-stats: ST-6).
+- After a save, old summaries are pruned by the cutoff `domain` defines. A run that saved something and also failed or was interrupted records the success time as well as the failure (005-stats: ST-7, ST-20).
+- The output version is 2: summaries stored under any other output version are filtered out downstream and the week reads "no summary". Raise it whenever the output format or prompt contract changes (005-stats: ST-19, ST-20).
 - The scheduler also reports whether a run is generating (running with the generating phase), which the stats screen shows as a running line.
-- Deleting the model first cancels this work, so the engine lock is free within about a second instead of waiting up to the full run (005-stats: ST-18).
+- Deleting the model first cancels this work, so the engine lock is free within about a second instead of waiting up to the full run.
 ### Public API
 - `StudyInsightWork` — the `InsightScheduler` implementation: `schedule()`, `cancel()`, `state()` (idle or generating) and the `stamp` (model commit and output version).
 ### Guarantees

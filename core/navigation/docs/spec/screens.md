@@ -1,6 +1,6 @@
 ---
 units: [navigation:scenes, navigation:registry, navigation:shared-elements]
-plans: [001-reader-foundation, 007-repo-connect, 012-feature-modules, 013-local-notes]
+plans: [001-reader-foundation, 007-repo-connect, 012-feature-modules]
 decisions: [RD-D4, RC-D33]
 ---
 ## scenes — Scenes and transitions
@@ -11,7 +11,7 @@ decisions: [RD-D4, RC-D33]
 - The panel opens and closes by expanding and shrinking horizontally from the start with a fade. The scene draws no widths, colours or dividers; the panel, header and expanded state come from the caller as slots.
 - The caller keeps the panel and header slot lambdas stable across compositions; a new lambda each time looks like a different strategy and rebuilds the whole scene. The expanded state is read through a function and is not part of that stability, so folding and unfolding the panel does not recreate the strategy.
 - When the top entry is the connect screen the strategy returns no scene, so the single-pane layout is used: the connect screen is full width without list panel or header even on a wide window, from the root or on top of other screens. The test compares the entry's content key with the default content key of a connect entry, so giving an entry its own content key silently breaks it. (007-repo-connect: RC-14)
-- The editor and the paste screen are not special-cased: on a wide window they sit in the detail pane with the list panel kept, and the shell empties the header slot. (013-local-notes: LN-3)
+- The editor and the paste screen are not special-cased: on a wide window they sit in the detail pane with the list panel kept, and the shell empties the header slot.
 - A push slides the new scene in from the right (1.05 of its width) while it scales from 0.90 to 1, and the old scene scales to 0.93 and fades to half; it takes 340 ms with an ease-out-style curve. A pop is the reverse: the old scene scales back from 0.93 and fades in, the front scene slides out and scales to 0.90. (001-reader-foundation: RD-18)
 - Predictive back drives the same pop transition by seeking it; there is no separate predictive-back handler. The predictive spec is the pop spec and ignores the swipe edge; it ends fully off screen at progress 1 because a committed gesture continues the same spec to the end, and a spec that stops short would leave the previous screen showing.
 - Back is delivered after the animation is committed. A handler that swallows back during a transition has to be composed after the display (the later one wins) so it still stops a pop whose animation already ran; that wiring is in the app shell.

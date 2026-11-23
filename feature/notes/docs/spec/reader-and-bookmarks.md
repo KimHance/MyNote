@@ -64,7 +64,7 @@ decisions: [BM-D6, BM-D7, BM-D13, D-22, D-24, D-25, D-26, D-27, D-30]
 - The bookmark toggle in the reader — `ui` top bar, handled by `notes:state`.
 - Time label wording (today, yesterday, this year, other year) — `ui`.
 - Bookmark storage and clean-up when notes are deleted — `data` and `database`.
-- No UI test covers this screen; the first-round behaviour was checked by hand on the folding emulator.
+- No UI test covers this screen; it was checked by hand on the folding emulator.
 
 ### Unconfirmed
 - Pixel sizes of the card variants come from the code constants and the owner's planning notes and were not re-measured on a device.

@@ -13,7 +13,7 @@ decisions: [BM-D5, BM-D15, DEC-36c]
 - Recent notes are every note of every category sorted by date string, newest first, equal dates in category order (001-reader-foundation: RD-5).
 - The total count sums all categories and ignores the search (001-reader-foundation: RD-8).
 - Search keeps a category when the query, ignoring case, is contained in a note title or in the category name; a category-name hit keeps all of its notes; the body is never read; a blank query shows everything, and the query is not trimmed (001-reader-foundation: RD-9).
-- Expand choices are a map by category name; a press flips that name only, whether or not a query is set; the map keeps names of categories that no longer exist, which have no effect (001-reader-foundation: RD-8, RD-9).
+- Expand choices are a map by category name; a press flips that name only, whether or not a query is set; the map keeps names of categories that are not in the list, which have no effect (001-reader-foundation: RD-8, RD-9).
 - A note gets its excerpt from the domain first-sentence rule, a "readable" flag that is false only when a whole-note box (broken note or over a limit) exists, and a device flag from the key (009-note-format: NF-8) (013-local-notes: LN-5).
 - The home body is derived: notes present is Notes; otherwise no confirmed connection is first run; otherwise receiving while the sync runs or notes are awaited; otherwise no notes (013-local-notes: LN-1) (007-repo-connect: RC-21).
 - The hero repository line is the confirmed connection's canonical `owner/repo` and nothing without a confirmed connection (010-brand: BR-6).
@@ -64,7 +64,7 @@ decisions: [BM-D5, BM-D15, DEC-36c]
 
 ### Behaviour
 - Registers three destinations for the shell: Home, Bookmarks and Reader; every other screen of this module (list panel) is called by the shell directly.
-- Each destination reads the notes state inside its own lambda, so a change in another feature's state does not redraw it (012-feature-modules: FM-7).
+- Each destination reads the notes state inside its own lambda, so a change in another feature's state does not redraw it.
 - Home gets the recent notes, the body, the entry buttons, the repository line and the bookmarked ids, plus the shell's paddings and grid state; the connect band is passed only when the window uses the modal drawer (007-repo-connect: RC-1).
 - Bookmarks gets the bookmark list, the two-column decision, the paddings and the list state from the shell; its loading flag is the sync running with no notes known (004-bookmarks: BM-14, BM-16, BM-21).
 - Reader looks the note up by id and draws nothing when it is missing; it receives the category name and the reader-end content as a slot built from the note id (001-reader-foundation: RD-12).

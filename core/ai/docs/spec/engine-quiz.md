@@ -39,7 +39,7 @@ decisions: [QZ-D1, QZ-D2, QZ-D3, QZ-D4, QZ-D5, D-55, DEC-30]
 ### Behaviour
 - A request is a note title, the note text and a count; the reply is a list of questions, or a failure (002-quiz: QZ-7).
 - Every call opens a fresh conversation with a fixed system line, thinking off, greedy sampling (top-k 1, temperature 0) and an output budget of 340 tokens per asked question (002-quiz: QZ-7).
-- The budget is a real limit: with too few tokens the JSON is cut off, the parser finds no array and the result is a Parse failure that looks like the model talking nonsense. A smaller budget (220) cut explanations mid-sentence (002-quiz: QZ-7).
+- The budget is a real limit: with too few tokens the JSON is cut off, the parser finds no array and the result is a Parse failure that looks like the model talking nonsense. A smaller budget (220) cuts explanations mid-sentence (002-quiz: QZ-7).
 - Because sampling is greedy, the same note and count give almost the same output; a retry with unchanged conditions rarely helps, a retry with fewer questions can (002-quiz: QZ-7).
 - The instructions are in English and the answer is asked in Korean by one line of the prompt; removing that line makes answers come out in English (002-quiz: QZ-7).
 - The prompt asks exactly the count, four choices that differ in meaning, plausible wrong choices, a zero-based answer index, a one-sentence explanation, JSON array only (002-quiz: QZ-7).

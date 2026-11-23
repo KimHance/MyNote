@@ -12,7 +12,7 @@ decisions: []
 - Each switch row is at least 68 dp high, toggles from anywhere on the row and is announced as a switch (001-reader-foundation: RD-23).
 - Study log holds the switch "학습 기록 남기기" ("읽은 시간, 퀴즈 결과, 북마크를 이 기기에만 저장합니다"), on by default and shown on when the stored value cannot be read (005-stats: ST-5).
 - Under the switch, "기록 지우기" opens a confirmation "학습 기록을 지울까요?" whose body names reading records, quiz results, bookmark history and weekly summaries and says it cannot be undone; "지우기" confirms, "취소" closes (005-stats: ST-6).
-- On confirm the view model first raises the study-log-cleared signal, so a pending bookmark undo no longer touches records, then clears and shows "학습 기록을 지웠습니다" (005-stats: ST-6) (012-feature-modules: FM-6).
+- On confirm the view model first raises the study-log-cleared signal, so a pending bookmark undo leaves records alone, then clears and shows "학습 기록을 지웠습니다" (005-stats: ST-6) (012-feature-modules: FM-6).
 - The help line under the study log card says the statistics screen is built from these records and records older than 365 days are removed automatically (005-stats: ST-7).
 - An open confirmation dialog survives rotation and folding.
 - Snackbar notices are one-shot: each has an id, and once the shell reports it shown it does not appear again after recreation (012-feature-modules: FM-K11).

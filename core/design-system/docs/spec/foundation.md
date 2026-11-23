@@ -26,7 +26,7 @@ decisions: [BR-D4]
 - Deciding the window and height class from the container size — the app screen root.
 - Choosing the title font — see `font`.
 ### Unconfirmed
-- Whether the app wraps `MyNoteTheme` in exactly one place at the screen root after the feature split was not re-checked; the intent is a single wrap.
+- Whether the app wraps `MyNoteTheme` in exactly one place at the screen root was not checked; the intent is a single wrap.
 
 ## font — Title font gate
 ### Behaviour
@@ -62,7 +62,7 @@ decisions: [BR-D4]
 - Trap: do not put a separate `background` before a `PressIndication`: it would not scale with the content and the label would look shrunken inside it. The surface goes through `color` and `pressColor`.
 - `PressIndication` implements equality by hand over all its parameters; a new parameter must be added to both `equals` and `hashCode` or colour changes will not reach the node.
 - `aiShine` draws a border of `baseColor` and, while `running`, a highlight that circles the border once every 3.2 s without stopping; `running = false` stops the circle and leaves the border; content is drawn on top.
-- `aiShine` draws into its own layer so that its endless redraw does not re-record the parent; without that layer a reader-end card re-recorded the whole note body on every frame.
+- `aiShine` draws into its own layer so that its endless redraw does not re-record the parent; without that layer a reader-end card would re-record the whole note body on every frame.
 - `aiShine` rebuilds its ring path and gradient only when its size changes.
 - `riseIn(delayMillis, durationMillis, distance)` fades the element in and moves it up from `distance` (12 dp default) over 300 ms by default, once when it enters composition; it does not change the element's layout size and ignores reduced motion (callers skip it).
 - Later changes of the delay or duration are ignored by `riseIn`; only `distance` updates.
