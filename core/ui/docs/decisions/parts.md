@@ -25,7 +25,7 @@
 - evidence: `core/ui/.../screen/connect/ExternalLink.kt`, `ExternalLinkTest`.
 
 ### FM-D9 · 2026-10 · ui:parts, FM-1
-- decision: The four shared buttons and the maximum body width live in `:core:ui`.
+- decision: The shared buttons (five today: primary, secondary, destructive, solid destructive, quiet) and the maximum body width live in `:core:ui`.
 - why: Notes, connect, settings and quiz use them together.
 - rejected: Raising them to `:core:design-system`, which would bring the DESIGN 13.0 review and a design document change.
 - evidence: `core/ui/src/main/java/com/hancekim/mynote/core/ui/screen/` (shared parts), `DESIGN.md`.

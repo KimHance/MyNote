@@ -89,7 +89,7 @@ decisions: [QZ-D6, QZ-D7, D-40]
 - Ready: subtitle "최대 5문제" (the number comes from the maximum count), a chevron, and the action opens the setup (002-quiz: QZ-2).
 - Missing: "퀴즈 모델이 필요합니다 · 2.6GB" with the chip "받기"; the action asks for confirmation first (002-quiz: QZ-2).
 - Paused: "<GB>GB 받다가 멈췄습니다" with "이어 받기"; failed: "퀴즈 모델을 받지 못했습니다" in the wrong colour with "다시 시도"; both start the download at once (002-quiz: QZ-2).
-- Any working download state: "퀴즈 모델 받는 중 · NN%" with a chevron, and the action opens settings; the percentage is the received share while downloading and 0 in the other working states (003-model-download: MD-K9).
+- Any working download state: "퀴즈 모델 받는 중 · NN%" with a chevron, and the action opens settings; the percentage is the received share while downloading, retrying or paused, and 0 while waiting for Wi-Fi, preparing or verifying (003-model-download: MD-K9).
 - The whole row is one button labelled "퀴즈 만들기", throttled to one press per 500 ms.
 - An accent ring shines around the card only when the model is ready and motion is not reduced (002-quiz: QZ-19).
 ### Public API

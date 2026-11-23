@@ -91,7 +91,7 @@ decisions: [RD-D3, RD-D6, BM-D2, RC-D8, FM-D7, FM-D8, FM-D11, FM-D12, FM-D14, FM
 - The navigation is hidden while scrolled down (its scroll state), while a quiz is open, while settings is on top and while a chrome-owning screen is on top.
 - Scroll-to-top follows the rule of `shell-state`; pressing it shows the navigation again and scrolls the active scroller to the top (001-reader-foundation: RD-14).
 - The model pill is visible while settings and chrome-owning screens are not on top and the status is busy, or the status became ready within the last 3.2 s after being busy, or the status is failed and that failure has not been seen (003-model-download: MD-K12).
-- A failure counts as seen once settings is opened while it is failed; the flag resets when the status leaves failed.
+- A failure counts as seen once settings, or a screen that owns the chrome (connect, editor, paste), is on top while the status is failed; the flag resets when the status leaves failed.
 - A ready pill appears only on a transition from a busy state to ready; the first observed status, even ready at app start or after recreation, shows nothing (003-model-download: MD-K12).
 - The pill is hidden while the navigation is scrolled away or a quiz is open, fades in and out, and pressing it opens settings.
 - While the pill is visible the content top padding grows by 54 dp over 300 ms; the pill state is computed once and handed to both the overlay and the padding.

@@ -12,7 +12,7 @@ decisions: [LN-D14]
 - A feature's own state, its entries and values tied up by `app` (connection present, shell back) are not frame values; they are separate parameters of its registration function.
 - `sceneEdgeModifier` draws the scene edge (corner and shadow, following the scene progress) only when scenes are stacked; otherwise it adds nothing.
 - `NotesScrollState` keeps one state each for the home grid, bookmarks list, stats list, stats side list, stats history, the reader scroll and the reader content. Which one the scroll-to-top button follows is derived: an open note wins, then bookmarks, stats, stats history, else home.
-- The scroll-to-top button shows when the reader is scrolled more than 400 dp, or when a list's first visible item is the third or later. Scrolling to top animates; on stats it scrolls the main and the side list together.
+- The scroll-to-top button shows when the reader is scrolled more than 400 dp, or when a list's first visible item is the fourth or later (index 3 and up). Scrolling to top animates; on stats it scrolls the main and the side list together.
 - Reader scroll and content state are created per note id, and the last id is kept while no note is open, so the state of the note left a moment ago is not replaced by an empty one.
 - The top bar has a one-line title (ellipsis), height from the adaptive header height, and a leading control: a back arrow when `showBack`, else a `☰` menu named `노트 목록` (the glyph itself is hidden from accessibility).
 - A disabled back arrow stays visible at 40% opacity; the connect screen disables it during the first sync (007-repo-connect: RC-24).

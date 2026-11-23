@@ -1,7 +1,7 @@
 # Decisions
 
 ### QZ-D6 · 2026-09 · QZ-1, QZ-2, QZ-18
-- decision: The entry is a card at the end of the note body, not in the header; the card stays (dimmed, with a need-model line and a download chip) when the model is missing; the quiz is an overlay above the reader and not a navigation destination, and back is received once by the overlay.
+- decision: The entry is a card at the end of the note body, not in the header; the card stays (without its shine, with a need-model line and a download chip) when the model is missing; the quiz is an overlay above the reader and not a navigation destination, and back is received once by the overlay.
 - why: Right after reading is the one moment a person wants to be quizzed; hiding the card would leave no way to learn that a model is needed. An overlay never touches the navigator, so it is not on the stack and a stack pop never closes it by accident.
 - rejected: A header button; hiding the entry without a model; a navigation destination for the quiz.
 - evidence: `feature/quiz` `QuizCtaCard`, `QuizOverlay`; `BackOrderTest` (`FM-10 퀴즈 오버레이가 닫힌다`); `ModelStatusUiTest`.

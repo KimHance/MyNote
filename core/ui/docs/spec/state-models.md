@@ -56,7 +56,7 @@ decisions: [SC-D5]
 - `secret()` hands the text out as `SecretText`; the draft's and the secret's string forms never contain the token, so logs and error messages cannot leak it (007-repo-connect: RC-8).
 - Drafts live in memory only: they survive rotation and folding because the shell holds them, and are not restored after process death (007-repo-connect: RC-24).
 - `NotesDrafts` holds two drafts, one for the connect screen and one for the settings token editor.
-- `consumeReset(count)` clears the connect draft once per new reset count: the same count again does nothing, a later count clears again, and a count of 0 never clears. A token typed after a clear is not wiped by a repeated call (007-repo-connect: RC-24).
+- `consumeReset(count)` clears the connect draft once per new reset count: a count equal to the last handled one does nothing (so the starting count 0 does nothing at first), and any different count clears again. A token typed after a clear is not wiped by a repeated call (007-repo-connect: RC-24).
 - Token failure kinds are rejected, not visible, no list, limit, offline, transient and bad list, each mapped to one `ui_*` sentence; a token reason is either needed or limit.
 ### Public API
 - `TokenDraft` — `text`, `revealed`, `isBlank`, `isClassic`, `secret()`, `clear()`.
