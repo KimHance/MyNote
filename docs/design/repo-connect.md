@@ -3,7 +3,7 @@
 | 항목 | 값 |
 |---|---|
 | 기능 | repo-connect |
-| 기능 문서 | docs/spec/repo-connect.md (기준 a5eb8fb) · docs/spec/sync.md SY-5 · docs/spec/note-template.md 머리 |
+| 기능 문서 | docs/plan/007-repo-connect.md (기준 a5eb8fb) · docs/plan/006-sync.md SY-5 · docs/plan/008-note-template.md 머리 |
 | 등급 | 화면 |
 | 마지막 변경 | 2026-10-14 · 첫 실행 루트 자리를 걷음 — 연결 화면은 쌓은 자리 하나 · 입구는 링크 첫째 하나(local-notes · 기능 문서 RC-1 · RC-25 · 결정 15 뒤집힘) |
 

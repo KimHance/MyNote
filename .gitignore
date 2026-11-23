@@ -202,7 +202,7 @@ secrets.properties
 !/docs/overview.md
 !/docs/decisions.md
 !/docs/plan/
-!/docs/spec/
+!/docs/open-questions.md
 !/docs/design/
 !/docs/images/
 

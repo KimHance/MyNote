@@ -3,7 +3,7 @@
 | 항목 | 값 |
 |---|---|
 | 기능 | screen-copy |
-| 기능 문서 | docs/spec/screen-copy.md |
+| 기능 문서 | docs/plan/011-screen-copy.md |
 | 등급 | 문구만 |
 | 바꾼 문구 표 | docs/design/screen-copy-rows.md (이 문서가 20 KB 를 넘지 않게 나눴다) |
 | 마지막 변경 | 2026-10-14 · local-notes 승격 — 한 줄 고정 자리에 편집기 · 붙여넣기 제목 키 · 실패 끝말 정한 것 |

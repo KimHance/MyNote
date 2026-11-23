@@ -3,7 +3,7 @@
 | 항목 | 값 |
 |---|---|
 | 기능 | local-notes |
-| 기능 문서 | docs/spec/local-notes.md (확정본 9169a9f) · docs/spec/repo-connect.md RC-1 · RC-15 · RC-17 · RC-19 · RC-25 · docs/spec/brand.md 결정 15 |
+| 기능 문서 | docs/plan/013-local-notes.md (확정본 9169a9f) · docs/plan/007-repo-connect.md RC-1 · RC-15 · RC-17 · RC-19 · RC-25 · docs/plan/010-brand.md 결정 15 |
 | 등급 | 화면 (연결 안내 띠 · 바꾸기 · 이어받기 · 끊기 대화상자 문장은 문구만) |
 | 마지막 변경 | 2026-11-08 · 디자인 체계 최신화 — 시안 표 캔버스 칸 · Design 캔버스 생성(9화면) · 떨어진 후보 21B · 22A 정리 |
 

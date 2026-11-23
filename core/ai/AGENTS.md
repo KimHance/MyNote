@@ -152,7 +152,7 @@ NPU 는 예전 실측에서 `Backend.NPU` 가 예외 없이 CPU 로 폴백했다
 
 ## 내려받기 알림 — `download/work/`
 
-떠 있는 내려받기 알림은 상태로 정해지고 한 번에 하나다(기능 문서 `docs/spec/model-download.md` MD-9 ~ MD-11,
+떠 있는 내려받기 알림은 상태로 정해지고 한 번에 하나다(기능 문서 `docs/plan/003-model-download.md` MD-9 ~ MD-11,
 글 · 막대 · 아이콘은 `docs/design/model-download.md` `## 알림`). 판단은 전부 `DownloadNotices.kt` 의 순수 함수이고
 `DownloadNotificationsTest`·`DownloadNoticesTest` 가 JVM 에서 본다(이 모듈에 Robolectric 이 없다).
 
