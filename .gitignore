@@ -196,7 +196,12 @@ secrets.properties
 .kotlin/
 
 # 내부 작업 문서(superpowers spec/plan 등) — 깃에 올리지 않음
+# 추적하는 것: 문서 체계(docs-system · overview · plan · decisions) · 디자인 문서 · 사진
 /docs/*
+!/docs/docs-system.md
+!/docs/overview.md
+!/docs/decisions.md
+!/docs/plan/
 !/docs/spec/
 !/docs/design/
 !/docs/images/
