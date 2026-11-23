@@ -59,3 +59,7 @@
 ./gradlew :feature:settings:testDebugUnitTest   # 토큰 편집 판정 · 설정 VM
 ./gradlew :app:compileDebugKotlin               # 이 모듈 변경 검증은 :app 컴파일로
 ```
+
+<!-- docs-system:start -->
+This module has documents, for when you need them: docs/overview.md (units) · docs/spec/ · docs/decisions/
+<!-- docs-system:end -->

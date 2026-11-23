@@ -447,3 +447,7 @@ APK 85.4MB → 60.6MB. **되돌릴 조건은 하나다: 인텔 맥에서 x86_64 
   ≤ 20초)을 못 넘으면 테스트가 실패한다(JSON 은 그 전에 쓴다). 앱 프로세스 안에서 돌므로 시작할 때 `study-insights` 를
   취소한다 — 같은 프로세스에서 워커가 두 번째 엔진을 올리는 것을 막으려는 것이고, 앱을 다시 켜면 `InsightScheduleSync` 가 되살린다.
 - application 컨벤션이 `testInstrumentationRunner = AndroidJUnitRunner` 를 넣는다(라이브러리 컨벤션과 같다).
+
+<!-- docs-system:start -->
+This module has documents, for when you need them: docs/overview.md (units) · docs/spec/ · docs/decisions/
+<!-- docs-system:end -->

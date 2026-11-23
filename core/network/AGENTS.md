@@ -77,3 +77,7 @@
   요청 경로·`ref`·`Accept` 헤더와 경로의 `/` 가 인코딩되지 않음.
 - `ConnectProbeTest`(확인 요청 · 응답 분류 · 후보) · `SyncFailureMappingTest`(SY-5) · `NetworkStatusResolverTest`.
 - reconcile 검증은 `:core:data` 의 `NotesReconcileTest` 가 fake `NoteSourceAdapter` 로 한다.
+
+<!-- docs-system:start -->
+This module has documents, for when you need them: docs/overview.md (units) · docs/spec/ · docs/decisions/
+<!-- docs-system:end -->

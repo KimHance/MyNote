@@ -195,3 +195,7 @@ room3-testing 의 `MigrationTestHelper` 는 Android 변형이 `Instrumentation` 
 `DeviceNoteDaoTest` 가 기기 노트 질의(소스 행과 한 트랜잭션 · 고침 열 · 지움 · 저장소 쪽 삭제가 기기 행을 안 지움 · 재변환 경합)를 본다.
 이 모듈의 계측 테스트는 라이브러리 테스트 APK 만 깔고 앱(`com.hancekim.mynote`)의 DB 를 건드리지 않는다.
 `DataStoreBookmarkStore` 자체(Context 가 필요한 부분)에는 테스트가 없다 — 이전 로직은 `BookmarkKeyMigration` 으로 떼어 JVM 에서 본다.
+
+<!-- docs-system:start -->
+This module has documents, for when you need them: docs/overview.md (units) · docs/spec/ · docs/decisions/
+<!-- docs-system:end -->

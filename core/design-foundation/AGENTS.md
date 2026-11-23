@@ -119,3 +119,7 @@ noteTitle · title · sectionTitle · screenTitle, 정본은 `docs/design/brand.
   색 리소스). `MyNoteColors` 에 넣으면 토큰처럼 읽혀 화면에 새어 나간다.
 - **안 쓰는 토큰은 남기지 않는다.** 팔레트가 유일한 출처라서 쓰이지 않는 이름도 "있는 값"처럼 읽히고,
   다음 사람이 그걸 근거로 쓴다(과거에 `navItemSelected`·`scrimTop`·`gesturePill` 을 정리한 이유).
+
+<!-- docs-system:start -->
+This module has documents, for when you need them: docs/overview.md (units) · docs/spec/ · docs/decisions/
+<!-- docs-system:end -->

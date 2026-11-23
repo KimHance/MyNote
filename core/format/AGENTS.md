@@ -203,3 +203,7 @@ JVM 모듈이라 태스크가 `:core:format:test` 다(`testDebugUnitTest` 없음
 - 마크다운 사본을 고치면 파리티가 깨진다.
 - 루트 폴더 둘은 `extra["notesInput"] = true`, 카탈로그는 `extra["catalogInput"] = true` 로 `Test` 태스크 입력이다
   (`build-logic/AGENTS.md` "레포 폴더 시험 입력"). 한 글자만 바뀌어도 다시 돈다.
+
+<!-- docs-system:start -->
+This module has documents, for when you need them: docs/overview.md (units) · docs/spec/ · docs/decisions/
+<!-- docs-system:end -->

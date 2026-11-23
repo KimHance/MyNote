@@ -399,3 +399,7 @@ ls build-logic/convention/build/pluginDescriptors/
 # ktlint 규칙 하나가 기본으로 도는지 (안 쓰는 import 를 잠깐 넣어 보고 되돌린다)
 ./gradlew :core:common:ktlintMainSourceSetCheck
 ```
+
+<!-- docs-system:start -->
+This module has documents, for when you need them: docs/overview.md (units) · docs/spec/ · docs/decisions/
+<!-- docs-system:end -->
