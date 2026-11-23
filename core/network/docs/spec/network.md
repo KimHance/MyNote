@@ -37,12 +37,12 @@ decisions: [SY-D7, SY-D8, DEC-11]
 ### Behaviour
 - The check runs on its own client that has no auth header; a token is sent only when the caller passes one, as `Authorization: Bearer <token>`, so a stored token never rides on the unauthenticated first check (007-repo-connect: RC-4).
 - It first reads `repos/{owner}/{repo}` and takes the canonical owner and name from `full_name` (falling back to the typed ones when malformed), the default branch and the private flag (007-repo-connect: RC-12).
-- Repository step failures: rate limit gives rate limited; 5xx or another status gives transient; 401 gives token rejected with a token, else token needed; 404 or 403 gives repository not visible with a token, else token needed (007-repo-connect: RC-5, RC-7).
+- Repository step failures: rate limit gives rate limited; 5xx or another status gives transient; 401 gives token rejected with a token, else token needed; 404, 403 or 451 gives repository not visible with a token, else token needed (007-repo-connect: RC-5, RC-7).
 - An unreadable or empty repository answer is transient.
 - Candidates (branch and list location) are tried in order; the default-branch candidate becomes the repository's default branch, and an empty branch sends no `ref` (007-repo-connect: RC-2).
-- The first candidate whose list answers 200 verifies: the connection (canonical owner and name, branch, list location, public = not private) plus the note ids of that list; later candidates are not tried (007-repo-connect: RC-4, RC-12).
+- The first candidate whose list answers with success (2xx) verifies: the connection (canonical owner and name, branch, list location, public = not private) plus the note ids of that list; later candidates are not tried (007-repo-connect: RC-4, RC-12).
 - An empty list object verifies with no note ids; a list that does not decode gives a broken-list failure (007-repo-connect: RC-10).
-- Only 404 moves on to the next candidate; list rate limit gives rate limited, 401 gives token rejected or token needed, 403 gives list not reachable, 5xx gives transient (007-repo-connect: RC-7).
+- Only 404 moves on to the next candidate; list rate limit gives rate limited, 401 gives token rejected or token needed, 403 or 451 gives list not reachable, 5xx or any other status gives transient (007-repo-connect: RC-7).
 - When every candidate is 404: without a token the repository has no list (format not supported); with a token the list is not reachable (007-repo-connect: RC-9).
 - A timeout gives transient, any other I/O error gives offline; neither changes anything stored (007-repo-connect: RC-11).
 - The check reads only the repository and the list file; it never fetches note bodies and never stores anything.
@@ -59,7 +59,7 @@ decisions: [SY-D7, SY-D8, DEC-11]
 - The applied token lives in memory only, starts empty on every process start and is filled by the app's token sync from the stored token; nothing else writes it and there is no built-in fallback token (007-repo-connect: RC-K6).
 - A blank token is stored as no token (007-repo-connect: RC-K2).
 - The auth header reads the applied token on every request and adds `Authorization: Bearer <token>`; with no token no header is sent at all (007-repo-connect: RC-K2).
-- Its stream tells others when a token is actually applied to the client, not merely saved; the notes screen syncs again on a change, and connection confirm and discard wait on it (006-sync: SY-1).
+- Its stream tells others when a token is actually applied to the client, not merely saved; the notes screen syncs again on a change, and connection confirm (when it drops the old token) and discard (when it restores the earlier token) wait on it (006-sync: SY-1).
 - If the app's token sync is not kept alive, every request goes out without authentication, silently (007-repo-connect: RC-K6).
 ### Public API
 - `GithubTokenHolder` — singleton holder: `update(token)`, `currentToken()`, `applied()` stream; it is both `GithubTokenProvider` and the domain `AppliedTokenSource`.

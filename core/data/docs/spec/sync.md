@@ -56,7 +56,7 @@ decisions: [SY-D1, SY-D2, SY-D4, SY-D6, NT-D28, DEC-1, DEC-25, DEC-36b]
 - If the source row disappeared meanwhile (disconnect or replacement), nothing is written and the source contributes an empty outcome, so a running sync never revives removed notes (007-repo-connect: RC-17).
 - The outcome counts added (not cached before) and updated (revision changed) notes and lists deleted note keys; refilling an original and re-deriving are not counted (006-sync: SY-K5) (009-note-format: NF-9).
 - Any failure, including a failed local write, comes back as a failed result and is never thrown; cancellation passes through and is never reported as a failure.
-- A failure kind thrown by the adapter reaches the caller unchanged and leaves the cache unchanged (006-sync: SY-5).
+- A failure kind thrown by the adapter reaches the caller unchanged and leaves that source's notes unchanged (006-sync: SY-5).
 - Parsing and encoding run on a background dispatcher, never on the caller's main thread.
 ### Public API
 - `NotesRepositoryImpl` — domain `NotesRepository`: `observeCategories()` (the cached note list as categories) and `sync()` (a `Result` of `SyncOutcome`).

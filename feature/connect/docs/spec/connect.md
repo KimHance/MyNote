@@ -22,7 +22,7 @@ decisions: [RC-D53, RC-D57, RC-D59, RC-D63, NT-D31, NT-D32, DEC-21a]
 - During the first sync the connect button is replaced by a card, `노트 불러오는 중`, with a progress bar and `끝나면 연결됩니다. 지금은 닫을 수 없습니다.` The link and token cannot be edited (007-repo-connect: RC-24).
 - A failed first sync returns to editing with a token card or a notice, as read by `issues`; the connection and notes are unchanged on the screen's side (007-repo-connect: RC-6, RC-7).
 - A completed connection clears the token draft and, 1.5 seconds later, resets the screen state.
-- An unexpected exception in the flow is logged and shown as the transient notice, with the screen back in editing and any pending confirm dropped; it does nothing once the connection is done.
+- An unexpected exception in the flow is logged and shown as the transient notice, with the screen back in editing and any pending confirm dropped; once the connection is done only the log line is written and the state stays.
 - When the connection goes from connected to not connected (a disconnect), the screen resets: link, token card, notice, dialog cleared, a running job cancelled, a reset count up so the shell clears the token draft once. A connection that never existed does not clear what the user typed (007-repo-connect: RC-17).
 - The link is kept in saved state and survives process death; the token draft is not saved and survives only rotation and folding (007-repo-connect: RC-24).
 - When no browser can be opened for `토큰 만들기` or an entry button, the snackbar says `브라우저를 열지 못했습니다. 브라우저 앱이 있는지 확인하세요.` and nothing else changes.
@@ -87,7 +87,7 @@ decisions: [RC-D53, RC-D57, RC-D59, RC-D63, NT-D31, NT-D32, DEC-21a]
 - Change (another repository replaces the connected one): `저장소를 바꿀까요?`, a body with the count of notes loaded from this repository and of bookmarks to remove, and that study records stay; a second sentence `저장된 토큰도 지웁니다.` when the token is dropped; the confirm is `바꾸기`, a solid destructive button (007-repo-connect: RC-15).
 - Take-over (the first connection adopts notes loaded earlier): `저장소를 연결할까요?`, a body naming only the count of earlier notes that the new repository lacks, that their bookmarks go, and that bookmarks and records of notes that remain stay; the confirm is `연결`, a primary button (007-repo-connect: RC-19).
 - The token line is shown for a change only, never for a take-over (007-repo-connect: RC-15, RC-19).
-- The dialog calls the notes "notes loaded from this repository", never "notes of this device"; that phrase is for device notes.
+- The dialog words the notes as loaded from a repository (`이 저장소에서 불러온` for a change, `전에 불러온` for a take-over), never as notes of this device; that phrase is for device notes.
 - `취소` or leaving the dialog drops the pending connection and changes nothing; the confirm starts the first sync (007-repo-connect: RC-15).
 - The dialog is a full-width window around the shared glass frame, at most 420 dp wide.
 ### Public API
@@ -102,7 +102,7 @@ decisions: [RC-D53, RC-D57, RC-D59, RC-D63, NT-D31, NT-D32, DEC-21a]
 ### Behaviour
 - A centred column with the app name `MyNote`, a small progress ring and the caption `연결 정보 읽는 중`, inside the safe area on the app background.
 - It is announced as one polite live region. It has no buttons and no back handling of its own.
-- The shell shows it in place of itself while the start branch is still reading, that is, while the connection or the seed is not yet known (007-repo-connect: RC-1).
+- The shell shows it in place of itself while the start branch is still reading, that is, while the connection or the note list is not yet known, or there is no connection and the seed is not yet consumed (007-repo-connect: RC-1).
 ### Public API
 - `ConnectReadingScreen(modifier)`.
 ### Not covered

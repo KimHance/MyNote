@@ -49,7 +49,7 @@ decisions: [MD-D1, MD-D4, MD-D5, MD-D6, MD-D8, MD-D13, MD-D16, MD-D18, MD-D19, B
 - An install starts by checking space against the built-in size minus the piece held; too little fails as `no-space` before any request (003-model-download: MD-3).
 - It then loops up to 8 rounds over the next step; after 8 rounds without finishing it fails as `too-many-rounds` (003-model-download: MD-2).
 - The first request is the body itself: nothing asks the remote first, no hub-only header is relied on (003-model-download: MD-1).
-- A leftover piece resumes from where it stopped; a plan file next to it is never read and is deleted when the piece is discarded or the install ends (003-model-download: MD-4).
+- A leftover piece resumes from where it stopped; a plan file next to it is never read and is deleted when the piece is discarded or moved into place (003-model-download: MD-4).
 - Bytes are appended in 64 KB chunks; progress is the whole-file count so far. A cancel closes the call and leaves the piece as it is (003-model-download: MD-K1).
 - A dropped connection, even mid-body, keeps the bytes already written and ends the round as retry-later (003-model-download: MD-7).
 - A round that adds no byte fails as `no-progress`, so a download that receives nothing cannot loop (003-model-download: MD-K4).
@@ -82,7 +82,7 @@ decisions: [MD-D1, MD-D4, MD-D5, MD-D6, MD-D8, MD-D13, MD-D16, MD-D18, MD-D19, B
 - When the work is stopped for any reason other than the app's own cancel (network lost, system), the retry notification stays; an app cancel leaves nothing (003-model-download: MD-11).
 - Waiting and retry notifications are posted when the app goes to the background and stay when it comes forward; the app removes notifications only when the status says there is nothing to show (missing or paused) (003-model-download: MD-9, MD-11).
 - Notifications use the low-importance channel `quiz_model_download`; working ones are ongoing and silent, results are not ongoing and close on tap. A tap opens settings when the app supplied that intent, else the launcher; the cancel action needs the work's cancel intent and the retry action the app's retry intent, and an action is left out when its intent is absent (003-model-download: MD-K11).
-- The retry notification's small icon is a still Material Icons `downloading` (Apache-2.0); the platform download icon, which animates, is used for waiting and downloading (003-model-download: MD-9).
+- The retry notification's small icon is a still Material Icons `downloading` (Apache-2.0); the platform download icon, which animates, is used for the other progress notices (waiting, preparing, downloading, verifying) (003-model-download: MD-9).
 ### Public API
 - `ModelDownloadIntents` — the app supplies `retry()` and `openSettings()` pending intents for the notification; optional (the module works without it).
 ### Guarantees

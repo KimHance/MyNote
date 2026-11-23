@@ -10,7 +10,7 @@ decisions: [RC-D1, RC-D2, RC-D10, RC-D25, RC-D27, RC-D35, RC-D54]
 - Seven rejection reasons exist and each is a different message to the person: empty, not https, not a GitHub address, Gist, GitHub Pages (`*.github.io`), single file, and owner only or no repository (007-repo-connect: RC-3).
 - Anything shaped like `scheme:` is a scheme and only `https://` (any letter case) passes; `http`, `ftp`, `ssh://`, `git://`, `file:` and `javascript:` all give the not-https reason (007-repo-connect: RC-3).
 - With no scheme, a first segment that contains a dot is read as a host (`example.com/foo` is not GitHub, `owner.github.io` is Pages); a first segment without a dot is the owner of `owner/repo` (007-repo-connect: RC-2).
-- Accepted hosts are `github.com` and `www.github.com` (case ignored) and the SSH form `git@github.com:owner/repo.git`; `raw.githubusercontent.com` is read as a raw file link; `gist.github.com` is the Gist reason; any other host is not-GitHub (007-repo-connect: RC-2, RC-3).
+- Accepted hosts are `github.com` and `www.github.com` (case ignored) and the SSH form `git@github.com:owner/repo.git`; `raw.githubusercontent.com` is read as a raw file link; `gist.github.com` is the Gist reason; `*.github.io` is the Pages reason; any other host is not-GitHub (007-repo-connect: RC-2, RC-3).
 - Owner characters are letters, digits and `-`; repository characters are letters, digits, `.`, `_` and `-`; a trailing `.git` is dropped. An owner with a dot or an underscore is not GitHub (007-repo-connect: RC-2).
 - `owner`, `github.com`, `owner/`, `owner/.git` and `https://github.com` give the missing-repository reason. Empty path segments (`a//b`) are dropped and `%2F` is never decoded (007-repo-connect: RC-3).
 - After owner and repository, `tree/…` and `blob/…` are read for a branch and a location; any other page (issues, pull, releases, wiki, none) reads as the repository itself with the default candidate: default branch and `notes/index.json` (007-repo-connect: RC-2).
@@ -42,7 +42,7 @@ decisions: [RC-D1, RC-D2, RC-D10, RC-D25, RC-D27, RC-D35, RC-D54]
 - If confirm throws, the connection is read again: when it shows the pending connection confirmed, the result is connected; otherwise failed with a server failure. Discard is never called after confirm has started, so only a confirmed connection's token keeps its new value (007-repo-connect: RC-6).
 - Before the first sync, the saved token is waited for up to 5 seconds until the network client reports it applied. On timeout with a saved token the sync is not started and the result is a server failure; with no saved token it goes on (007-repo-connect: RC-6, RC-22).
 - The build seed (debug builds only) is used when it has both owner and repository and the repository says it is eligible; otherwise nothing happens. Its connection has the default list location, the branch as given (an empty branch means the repository default), and is public when the seed has no token (007-repo-connect: RC-19).
-- A seed token is saved only when no token is saved yet, so a token the person removed or replaced is never overwritten; the seed then syncs after the token is applied, confirms on success and discards on failure or cancellation (007-repo-connect: RC-19, RC-22).
+- A seed token is saved only when no token is saved yet, so a token the person replaced is never overwritten; the seed then syncs after the token is applied, confirms on success and discards on failure or cancellation (007-repo-connect: RC-19, RC-22).
 - A sync run is one per trigger key: the applied token plus a refresh counter, observed together with whether a connection attempt is open. A changed key cancels a running sync and starts a new one; cancelling is not a failure (006-sync: SY-1).
 - While an attempt is open no sync runs and the current key is taken as handled, so connecting with a new token starts no extra sync; confirming starts none either. After the attempt is discarded, a later change of the applied token (the token rolled back) starts one (006-sync: SY-1).
 - A run is announced when the refresh counter is above zero: the start-up run and runs after connection changes made before any refresh tap are silent, a tapped refresh announces, and a token-change run after the first tap is announced too (006-sync: SY-1) (001-reader-foundation: RD-2).
@@ -74,7 +74,7 @@ decisions: [RC-D1, RC-D2, RC-D10, RC-D25, RC-D27, RC-D35, RC-D54]
 - Saving a blank token saves none, which removes the token; the saved token can be read once or observed.
 - The body text size is one of two values, normal and large, with normal as the default. The type is the domain's own and is mapped to the design system's text scale outside this module.
 - The study-log switch is read and set here; the rules it drives are in unit `study-log`.
-- Every command is a one-line pass-through to the repository.
+- Every command except saving a token (a blank token becomes none) is a one-line pass-through to the repository.
 ### Public API
 - `TokenRepository` — `currentToken()`, `saveToken(token)`, `observeToken()`; `AppliedTokenSource` — `applied()`.
 - `SettingsRepository` — `observeFontScale()`, `setFontScale`, `observeStudyLogEnabled()`, `setStudyLogEnabled`.

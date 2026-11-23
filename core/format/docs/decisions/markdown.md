@@ -4,7 +4,7 @@
 - decision: The note id is the file name, the group is the folder name, and title and date come from the front matter. A `#` heading in the body is a body block, not the title field.
 - why: A value has one source, as the group already comes from the folder name; the generator and the app apply the same rule.
 - rejected: Taking the title from the first body heading.
-- evidence: `core/format/src/main/java/com/hancekim/mynote/core/format/NoteFormat.kt`; `core/format/src/test/java/com/hancekim/mynote/core/format/NoteFormatTest.kt` (`NF-1 앞머리는 블록이 되지 않는다`)
+- evidence: `core/format/src/main/java/com/hancekim/mynote/core/format/NoteFormat.kt`; `core/format/src/test/java/com/hancekim/mynote/core/format/MarkdownConverterTest.kt` (`NF-1 앞머리는 블록이 되지 않는다`)
 
 ### NF-D7 · 2026-10 · NF-7, NF-3
 - decision: A Markdown note never becomes a raw-text box. Syntax the app cannot draw shows as text (the mapping tables of NF-3 to NF-7). The box is only for a note whose parsing failed or went over a limit.
@@ -34,10 +34,10 @@
 - decision: Notes are screened by limits before parsing. Container nesting over 32 levels (quote marks and list markers at line start) or an original over 512KB skips the engine and the whole note becomes an over-limit box. Nesting the screen misses is caught again by block depth during conversion and gives the same box. The drawn indent stops at the design limit of three levels.
 - why: Engine memory grows quickly with nesting depth, so one 20KB note can exhaust memory, and serialisation overflows the stack at 200 nested levels. Catching exceptions cannot prevent either.
 - rejected: Relying on catching exceptions after parsing.
-- evidence: `core/format/src/test/java/com/hancekim/mynote/core/format/MarkdownLimitsTest.kt` (`NF-8 한도를 넘는 원문은 엔진을 부르지 않는다`, `NF-8 32단은 읽고 33단은 한도 넘음이다`)
+- evidence: `core/format/src/test/java/com/hancekim/mynote/core/format/NoteFormatTest.kt` (`NF-8 한도를 넘는 원문은 엔진을 부르지 않는다`); `core/format/src/test/java/com/hancekim/mynote/core/format/MarkdownLimitsTest.kt` (`NF-8 32단은 읽고 33단은 한도 넘음이다`)
 
 ### NF-D12 · 2026-10 · NF-8
-- decision: Parsing has no time limit; only the size and depth limits screen a note.
+- decision: Parsing has no time limit; only the size, depth, table-cell and cache limits screen a note.
 - why: A time-out box gives different results on different devices; every measured input within the limits finished within 1.3 seconds.
 - rejected: A time deadline that turns slow notes into a box.
 - evidence: `core/format/src/main/java/com/hancekim/mynote/core/format/MarkdownLimits.kt`; `core/data/src/test/java/com/hancekim/mynote/core/data/repository/MarkdownSyncTest.kt` (`NF-8 한도 안의 큰 입력도 동기화를 멈추지 않는다`)
@@ -61,7 +61,7 @@
 - evidence: `core/format/src/test/java/com/hancekim/mynote/core/format/MarkdownLimitsTest.kt`
 
 ### LN-D12 · 2026-10 · LN-3
-- decision: A device note's raw text is stored as an empty front matter (two `---` lines, 8 bytes) plus the body, so the body size boundary is 524,280 bytes and the editor strips the first 8 bytes when loading.
+- decision: A device note's raw text is stored as an empty front matter (two `---` lines, 8 bytes) plus the body, so the body size boundary is 524,280 bytes and loading a note for editing strips the first 8 bytes.
 - why: A body whose first line is `---` stays a body, and the reader reads it through the same entry as repository notes (NF-2).
 - rejected: Adding a blank line only to bodies whose first line is `---`, which makes the way back ambiguous when the body starts with a blank line and `---`.
 - evidence: `core/format/src/main/java/com/hancekim/mynote/core/format/DeviceNoteMarkdown.kt`, `core/format/src/test/java/com/hancekim/mynote/core/format/DeviceNoteMarkdownTest.kt`, `feature/editor/src/test/java/com/hancekim/mynote/feature/editor/Utf8SizeTest.kt`.

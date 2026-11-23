@@ -6,7 +6,7 @@ decisions: [BM-D4, D-34, D-35, D-51, D-58, D-65]
 ## study-log — Study records
 ### Behaviour
 - Four tables hold the raw records behind statistics: read sessions (note key, category at record time, start, end, active milliseconds, highest share seen), quiz attempts (note key, category, start, finish, asked, correct), quiz answers and bookmark events (note key, category, kind, time) (005-stats: ST-1, ST-3, ST-4).
-- Records point at notes by key text with no foreign key, so records of a removed note stay and are listed only if the note still exists (007-repo-connect: RC-16).
+- Records point at notes by key text with no foreign key, so records of a removed note stay; no query here checks that the note exists (007-repo-connect: RC-16).
 - An attempt and its answers are written in one transaction; the new attempt id is filled into each answer. An answer row is keyed by attempt and position, is deleted with its attempt, and keeps the question, three or four choice cells, the right index and the picked index (005-stats: ST-3).
 - Missing choices below the third are stored as empty text; the fourth cell is empty (NULL) when the question has three choices.
 - Every attempt row carries the default format `llm`. The store has no input for a format, and `card` is defined but never written here.
@@ -81,7 +81,7 @@ decisions: [BM-D4, D-34, D-35, D-51, D-58, D-65]
 - The set-aside token has its own file so that backup rules can leave token files out while still backing up the connection state. A file name change needs the backup rules in `app` changed together.
 - Saving an attempt writes the set-aside token first, then the attempt, and removes any copy of the token from the state file. Reading an attempt takes the set-aside token from its file and falls back to a copy in the state file; it returns nothing when the source id or attempt id is missing. Clearing an attempt clears both files (007-repo-connect: RC-6).
 - Marking a disconnect writes the marker and sets the seed-blocked flag together; clearing the marker alone leaves the flag, and there is a call that clears both. The seed flag keeps the debug seed from reviving a disconnected connection (007-repo-connect: RC-17, RC-19).
-- Used source ids and the bookmark sweep set only grow until cleared; the sweep set is what lets a disconnect interrupted by a crash finish at the next start (007-repo-connect: RC-17).
+- Used source ids only grow, and the bookmark sweep set only grows until it is cleared; the sweep set is what lets a disconnect interrupted by a crash finish at the next start (007-repo-connect: RC-17).
 - A damaged file of any of these is replaced by an empty one, so the app opens with defaults (001-reader-foundation: RD-22).
 ### Public API
 - `DataStoreSettingsStore` — the `SettingsStore` implementation: observe and set text size and the study-log switch.

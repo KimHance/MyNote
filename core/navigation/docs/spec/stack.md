@@ -6,7 +6,7 @@ decisions: [RD-D2, BM-D1, LN-D15]
 ## navigator — Navigator
 ### Behaviour
 - The navigator is the only owner of the back stack. Neither Navigation 3 nor a ViewModel holds the stack; ViewModels read it and derive values from it (the open note, whether back can pop). It starts with the root key alone.
-- The stack changes only through `dispatch(command)`; `push(key)` and `pop()` are thin wrappers. A command is `Push(key)`, `Pop` or `ReplaceAll(keys)`. `dispatch` answers `Applied`, `Throttled`, `Ignored` or `Guarded`.
+- The stack changes only through `dispatch(command)` and `dispatchImmediately(command)`; `push(key)` and `pop()` are thin wrappers of `dispatch`. A command is `Push(key)`, `Pop` or `ReplaceAll(keys)`. `dispatch` answers `Applied`, `Throttled`, `Ignored` or `Guarded`.
 - `dispatch` goes in this order: the throttle gate, then computing the next stack, then the leave guard, then applying. The gate comes first so the stack is never changed and then reverted; a change in between would start a transition and leave screen and stack out of step.
 - A move that arrives inside the window after the last applied move is dropped, never queued, so tapping fast cannot flip through screens. The window restarts from each applied move. (001-reader-foundation: RD-16)
 - The default window is the larger of the scene transition length (340 ms) and the body fade-out plus fade-in (160 + 200 ms), that is 360 ms; it follows the motion numbers, not a copy of them. (001-reader-foundation: RD-16)

@@ -7,7 +7,7 @@
 - evidence: `app/src/main/res/values/themes.xml` (animation duration 616); `notes-tests/test_brand_resources.py` (`BR-5 스플래시 움직임은 1000ms 이하이고 테마 길이와 같다`)
 
 ### FM-D10 · 2026-10 · app:build, FM-13
-- decision: The title-font instrumented test (BR-8) moves into one `:app` instrumented test class, and the entry points of the connect and stats screens it draws are made public.
+- decision: The title-font instrumented test (BR-8) moves into one `:app` instrumented test class, and the entry point of the stats screen it draws is made public.
 - why: Splitting the test per feature would break its (class, name) pairs, which FM-13 keeps.
 - rejected: Splitting the test across feature modules.
 - evidence: `app/src/androidTest/java/com/hancekim/mynote/brand/TitleFontScreensTest.kt`.

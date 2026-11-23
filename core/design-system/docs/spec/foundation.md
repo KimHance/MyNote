@@ -78,6 +78,6 @@ decisions: [BR-D4]
 - `Modifier.fadingEdges(top, bottom)`, `Modifier.horizontalScrollFade(state, width, color)` — edge fades.
 - `throttledProcess(minIntervalMillis, action)` — composable that returns the throttled callback.
 ### Not covered
-- The glass navigation press look (`glass-nav` draws its own pill and deliberately does not use `PressIndication`).
+- The glass navigation press look (the `glass-nav` bar and rail draw their own pill and deliberately do not use `PressIndication`; the scroll-to-top button does).
 - When to run or skip a motion for reduced motion — callers, using `rememberReduceMotion` from `theme`.
 - The throttle clock and rule itself — `common`.

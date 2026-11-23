@@ -77,7 +77,7 @@ decisions: []
 ## model — Quiz model card
 ### Behaviour
 - The "퀴즈 모델" card shows "Gemma 4 E2B", a status dot, label and optional detail, a progress bar and the actions of the current model state; a help line sits under the card.
-- The progress bar is either determinate with "x.xx / y.yy GB" and the percentage, or indeterminate.
+- The progress bar, shown in every state except missing, ready and failed, is either determinate with "x.xx / y.yy GB" and the percentage, or indeterminate.
 - The notifications-off hint "알림이 꺼져 있어 앱을 나가면 진행 상황이 보이지 않습니다." with "켜기" shows only when the state asks for it (the five working states) and system notifications are off; "켜기" opens the system notification settings (003-model-download: MD-12).
 - "받기", "이어 받기" and "다시 시도" start the download; "취소" cancels; "받던 파일 지우기" discards the piece; "삭제" asks first (003-model-download: MD-K14).
 - The action buttons wrap to the next line instead of cutting a label (003-model-download: MD-13).
@@ -85,7 +85,7 @@ decisions: []
 - Discarding shows "받던 파일을 지웠습니다"; starting shows nothing.
 - The delete dialog "퀴즈 모델을 삭제할까요?" says it frees 2.6GB and the model must be downloaded again; on confirm the model is deleted and then "퀴즈 모델을 삭제했습니다" shows; the open dialog survives rotation.
 - The download confirm dialog "퀴즈 모델을 받을까요?" says Gemma 4 E2B is 2.6GB, downloads only on Wi-Fi and the app stays usable meanwhile, with "나중에" and "받기"; the shell shows it when the reader-end card is tapped with no model (002-quiz: QZ-2).
-- The three dialogs are glass cards at most 360 dp wide with a 26 dp radius; the study-log clear dialog of `settings` uses the same frame.
+- The download confirm and delete dialogs are glass cards at most 360 dp wide with a 26 dp radius; the study-log clear dialog of `settings` uses the same frame.
 - A failing model-status stream reads as missing.
 ### Public API
 - `ModelConfirmDialog(onDismiss, onConfirm, backdrop)` — the download confirm dialog, called by the `app` shell.

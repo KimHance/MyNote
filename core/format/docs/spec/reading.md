@@ -6,7 +6,7 @@ decisions: [NF-D16, NF-D17, NF-D19, NF-D37, DEC-26, DEC-28]
 ## note-format — Entry point and block cache
 ### Behaviour
 - One entry turns an original into blocks. The format comes from the path: a path ending in `.md` (any letter case) is Markdown; any other path, and no path, is JSON. No path means a cache row that carries no path (009-note-format: NF-2).
-- Every place that turns an original into blocks goes through this entry: a freshly fetched note, the start-up re-parse, the first sync of a connection, and the replacement of a damaged cache. Format choice is not repeated anywhere else (009-note-format: NF-2).
+- Every place that turns an original into blocks goes through this entry: a freshly fetched note, the start-up re-parse, the first sync of a connection, the replacement of a damaged cache, and the save, edit and preview of a device note. Format choice is not repeated anywhere else (009-note-format: NF-2).
 - The entry never throws. An exception or a stack overflow gives one whole-note box of kind `broken_note`; running out of memory gives one whole-note box of kind `limit_exceeded`. Only that note is affected (009-note-format: NF-2, NF-8).
 - Three calls exist: `parse` returns the blocks for drawing, `derive` returns what the cache stores (blocks JSON and the first sentence), and `read` rebuilds blocks from the stored cache.
 - `derive` stores the first sentence as the excerpt, computed by the domain rule; the failure boxes from an exception or memory exhaustion have no excerpt (009-note-format: NF-10).
@@ -22,11 +22,11 @@ decisions: [NF-D16, NF-D17, NF-D19, NF-D37, DEC-26, DEC-28]
 - When the cache cannot be decoded, `read` asks for the original and parses it by path. With no original it returns a `broken_note` box holding the cache text. A format problem never removes a note from the list (009-note-format: NF-2).
 - The parse version is 2. Any change that alters parse results raises it, so cached rows older than it are rebuilt offline from the stored original and path (009-note-format: NF-9).
 - The version is tied to the engine release it was made for. A test compares that release with the one in the version catalogue and fails when only the catalogue was changed (009-note-format: NF-9).
-- Re-parsing a JSON original gives the same blocks as decoding its blocks straight into the cache and reading them back; re-reading the 22 repository notes shows no difference (009-note-format: NF-12).
+- Re-parsing a JSON original gives the same blocks as decoding its blocks straight into the cache and reading them back; re-reading the 22 fixed JSON copies shows no difference (009-note-format: NF-12).
 - The 22 fixed pairs of JSON and Markdown copies give the same blocks (the JSON spacer excepted, since Markdown has no spacer), the same first sentences and the same quiz text. Every note under the repository's `notes/` reads with no box and at least one block (009-note-format: NF-11).
 - The fixed copies are frozen values and are never compared with the live `notes/` folder; editing a Markdown copy breaks parity on purpose (009-note-format: NF-11).
 ### Public API
-- `NoteFormat` — class with `parse(path, raw)`, `derive(path, raw)` and suspend `read(blocksJson, path, raw)`; an injectable no-argument constructor uses the Markdown converter, and a constructor takes another converter (and limits) for tests.
+- `NoteFormat` — class with `parse(path, raw)`, `derive(path, raw)` and suspend `read(blocksJson, path, raw)` where `raw` is a suspend function returning the original or null; an injectable no-argument constructor uses the Markdown converter, and a constructor takes another converter (and limits) for tests.
 - `MarkdownConverter` — fun interface: `convert(raw)` turns an in-limit Markdown original into blocks; it may throw.
 - `DerivedNote` — the cache value: blocks JSON and the excerpt (null when there is none).
 - `PARSER_VERSION` — the parse version number; rows with a lower stored value are re-parsed.
@@ -48,7 +48,7 @@ decisions: [NF-D16, NF-D17, NF-D19, NF-D37, DEC-26, DEC-28]
 ## json-format — JSON format 1 reader
 ### Behaviour
 - Reads a JSON note: a root object whose `blocks` array lists the blocks. Only `blocks` is read; title, date and id of the note come from the list entry (009-note-format: NF-12).
-- A root that is not an object, a `blocks` value that is not an array, or any JSON syntax error (a trailing comma included) gives one `broken_note` box holding the whole text (009-note-format: NF-12).
+- A root that is not an object, a missing `blocks` value or one that is not an array, or any JSON syntax error (a trailing comma included) gives one `broken_note` box holding the whole text (009-note-format: NF-12).
 - Format 1 has eight block types: heading, paragraph, code, quote, bullet list, ordered list, divider, spacer. A span has `text` and a `style` of text, bold or code. List items have spans only; an ordered list has no start number (009-note-format: NF-12).
 - A block that is not an object, or has no string `type`, is a `broken_block` box. A type outside the eight, including `unsupported` and `unknown` sent by a remote, is an `unknown_type` box that keeps the original type name (009-note-format: NF-12).
 - A block of a known type with a missing or wrongly typed field is a `broken_block` box; the blocks before and after it are kept.
@@ -60,7 +60,7 @@ decisions: [NF-D16, NF-D17, NF-D19, NF-D37, DEC-26, DEC-28]
 ### Public API
 - None — the reader, the wire shape and the type set are internal; callers go through `note-format`.
 ### Guarantees
-- Every case above is checked in `MyNoteJsonFormatTest`; out-of-format types and fields in `CacheCompatTest`.
+- Every case above except deep nesting is checked in `MyNoteJsonFormatTest`; out-of-format types and fields in `CacheCompatTest`; deep nesting in `NoteFormatTest`.
 ### Not covered
 - Writing JSON notes: the app never writes them, and the repository tools keep the same closed set in `public-repos`.
 - Choosing JSON over Markdown — see `note-format`.

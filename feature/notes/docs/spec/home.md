@@ -10,7 +10,7 @@ decisions: [RC-D44, RC-D52, BR-D3, LN-D4, LN-D8, LN-D13, DEC-16]
 - The grid fills the width from the card minimum width of the window class and never uses a fixed column count; from the Expanded class up it is capped at the reading width (001-reader-foundation: RD-6).
 - A card shows the category chip, the date and the title; pressing it opens the reader; chip, date and title travel to the reader as shared elements keyed by note id (001-reader-foundation: RD-13).
 - A bookmarked note's card carries the corner ribbon; a device note's card carries the source mark; repository notes carry neither (004-bookmarks: BM-5) (013-local-notes: LN-5).
-- The hero shows the app title, the connected repository's canonical name when a connection is confirmed and no repository line otherwise, and a one-sentence hint (010-brand: BR-6).
+- The hero shows the app title, the connected repository's canonical name when a connection is confirmed and no repository line otherwise, and a short hint (010-brand: BR-6).
 - The hint differs by window: Compact tells the person to open the list with the menu button, wider windows point at the fixed list on the left (001-reader-foundation: RD-5).
 - Below the hero, two secondary buttons "새 노트" and "가져오기" sit in one row, in every state that has notes (013-local-notes: LN-2).
 - The connect band ("저장소를 연결하세요" with "연결하기") is the first grid item and shows only at Compact width, only when no connection exists but cached repository notes do; wider windows show it in the list panel instead (007-repo-connect: RC-1).

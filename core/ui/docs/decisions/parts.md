@@ -13,7 +13,7 @@
 - evidence: `ExternalLinkTest`, `core/ui/.../screen/connect/ExternalLink.kt`.
 
 ### RC-D49 · 2026-10 · RC-24
-- decision: Korean word-boundary line breaking applies only to the text drawn new for the connect work (connect screen, repository card, confirm dialog, home band, empty state), only to drawn text; accessibility text and content descriptions stay original; the app-wide text style is unchanged.
+- decision: Korean word-boundary line breaking applies only to the text drawn new for the connect work (connect screen, repository card, confirm dialog, home band, empty state, and the notification hint on the settings model card), only to drawn text; accessibility text and content descriptions stay original; the app-wide text style is unchanged.
 - why: It prevents regressions on other screens while keeping reading aloud unaffected.
 - rejected: Applying it app-wide through the text style.
 - evidence: `core/ui/.../screen/connect/KeepWords.kt`, `KeepWordsTest` (`D50 한글 음절 사이에만 결합자를 넣어 어절 중간에서 꺾이지 않게 한다`).
@@ -31,7 +31,7 @@
 - evidence: `core/ui/src/main/java/com/hancekim/mynote/core/ui/screen/` (shared parts), `DESIGN.md`.
 
 ### DEC-15 · 2026-10 · ui:parts
-- decision: Korean word-level line breaking is done only for the text drawn by the connect feature (connect screen, repository card, confirm dialogs, home band): a WORD JOINER (U+2060) is inserted between Hangul syllables at draw time. Accessibility text keeps the original string. The rest of the app still breaks per syllable.
+- decision: Korean word-level line breaking is done only for the text drawn by the connect feature (connect screen, repository card, confirm dialogs, home band, empty state, and the notification hint on the settings model card): a WORD JOINER (U+2060) is inserted between Hangul syllables at draw time. Accessibility text keeps the original string. The rest of the app still breaks per syllable.
 - why: Compose LineBreak.WordBreak.Phrase had no effect on Hangul in measurements, and breaking mid-word read badly in design review.
 - rejected: The Compose Phrase word-break setting; applying the joiner app-wide or in a design-system text style (left open).
 - evidence: KeepWords.kt in core/ui screen/connect (WORD_JOINER) with KeepWordsTest.

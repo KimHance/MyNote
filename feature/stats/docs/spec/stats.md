@@ -15,7 +15,7 @@ decisions: [D-33, D-59, D-62]
 - The four numbers are notes read, minutes read, quizzes and accuracy; accuracy is empty when no question was asked (005-stats: ST-9).
 - Change per number: with no record at all every change is a dash and the caption reads "기록이 쌓이면 지난주와 비교합니다" (005-stats: ST-14).
 - Change on the all period is blank and the caption reads "<first record date>부터" (005-stats: ST-10).
-- Change in the first week of records reads "첫 주" for the counts and "N문제" for accuracy (005-stats: ST-10).
+- Change on the week period in the first week of records reads "첫 주" for the counts and "N문제" for accuracy (005-stats: ST-10).
 - When the comparison start predates the first record the change is a dash and the caption reads "<first record date>부터" (005-stats: ST-10).
 - Otherwise the change is the difference against the previous period up to the same moment, with a real minus sign, a plus sign, and "%p" for accuracy; the caption reads "지난주 월–<day> 대비" or "지난달 1–<d>일 대비" (005-stats: ST-9).
 - A period note shows on month and all when the history is under 14 days: "<date>부터 N일 치 기록입니다.", plus "이번 주와 거의 같습니다." at 7 days or fewer (005-stats: ST-10).

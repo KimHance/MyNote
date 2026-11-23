@@ -9,13 +9,13 @@ decisions: [D-44, RC-D23, BR-D1, BR-D10, BR-D12, BR-D14, LN-D17]
 - At process start it starts four things, in this order: token sync, the model wait notice (see `download`), study-log maintenance and insight schedule sync.
 - Each of the four lives only because `MyNoteApplication` holds an injected field for it and calls `start()`; nothing else references it. Deleting a field compiles and runs but silently drops the behaviour (007-repo-connect: RC-K6).
 - Every `start()` is idempotent: a second call does nothing.
-- Token sync first tries to finish an interrupted disconnect; any failure there is swallowed, cancellation is not (007-repo-connect: RC-17).
-- Token sync then observes the stored token and pushes each distinct value into the network token holder that the auth interceptor reads on every request; a storage read failure counts as no token (001-reader-foundation: RD-20).
+- Token sync first runs connection recovery, which finishes an interrupted disconnect or an unconfirmed connect attempt; any failure there is swallowed, cancellation is not (007-repo-connect: RC-17).
+- Token sync then observes the stored token and pushes each distinct value into the network token holder that the auth interceptor reads on every request; an I/O failure reading storage counts as no token, any other failure ends the observation (001-reader-foundation: RD-20).
 - The same holder is the applied-token source whose change makes the notes ViewModel run sync again (001-reader-foundation: RD-2).
 - Token sync forwards only the stored token and has no fallback to the build-embedded one; after disconnect or token removal the build token never comes back, it is used only by the seed connection (007-repo-connect: RC-22).
 - Study-log maintenance runs the prune use case once per process start; stored events, quiz answer text and summaries are cut to their retention periods there (005-stats: ST-7).
 - Insight schedule sync watches the model status and the study-record switch together; when the model is ready and records are on it schedules the unique daily insight work, otherwise it cancels it (005-stats: ST-17).
-- Insight schedule sync reacts only to distinct values; scheduling again while work with the current spec tag is queued does nothing (in `:core:ai`). If either source fails it cancels and stops observing until the next process start.
+- Insight schedule sync reacts only to distinct values; scheduling again while unfinished work with the current spec tag exists does nothing (in `:core:ai`). If either source fails it cancels and stops observing until the next process start.
 ### Public API
 - `MyNoteApplication` — the Hilt application class named in the manifest.
 - `TokenSync.start()` — starts the token pipeline.

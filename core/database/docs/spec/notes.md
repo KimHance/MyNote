@@ -7,7 +7,7 @@ decisions: [D-36, NF-D29, DEC-2]
 ### Behaviour
 - One table holds the notes of every source: one row per note, keyed by the note key `<source id>/<doc id>`, unique on (source id, doc id). Screens list notes from this table, never from the network (001-reader-foundation: RD-1).
 - A row keeps the original text (`raw`), the derived blocks as one JSON cell, the excerpt, the parse version, the content revision, path, group, title, display date, epoch day, first-seen time and fetch time. Body text is not split into tables.
-- A second table lists sources: id, kind and connection config. Kind is stored as the fixed strings `github`, `link`, `local`, never as enum names; a row with any other kind string is dropped from source lists without an error.
+- A second table lists sources: id, kind, connection config and added time. Kind is stored as the fixed strings `github`, `link`, `local`, never as enum names; a row with any other kind string is dropped from source lists without an error.
 - The list query returns key, source id, path, group, title, date and blocks JSON. It never reads the original, so a row bigger than the 2 MB cursor window cannot break the list (009-note-format: NF-8).
 - Order is epoch day newest first with unreadable dates (NULL) last, then later first-seen first, then title in binary order. The home category and note order is derived from this query (013-local-notes: LN-4).
 - Notes of a source whose config contains the pending marker are hidden from the list but still counted by the note count (007-repo-connect: RC-15).
@@ -32,7 +32,7 @@ decisions: [D-36, NF-D29, DEC-2]
 - None other: entities, row types, the DAO and the kind column mapping are internal.
 ### Guarantees
 - A source's sync, delete or promote never removes another source's notes or a device note: `NoteDaoTest`, `DeviceNoteDaoTest`.
-- Order, pending hiding, the single emission on promote, the 900-id chunking and the re-derive filter are checked on a real Room database: `NoteDaoTest`.
+- Order, pending hiding, no mixed old and new list on promote, the 900-id chunking and the re-derive filter are checked on a real Room database: `NoteDaoTest`.
 - A re-derive cannot overwrite an edit saved at the current parse version; an edit keeps date, first-seen time and every other column: `DeviceNoteDaoTest`.
 - The worst-case row stays under the cursor window: `NoteRowBudgetTest`, `NoteDaoTest`.
 - Kind strings round-trip and unknown strings are dropped: `SourceKindColumnTest`.

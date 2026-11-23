@@ -16,4 +16,4 @@
 - decision: The notes view model starts its sync flow with SharingStarted.Lazily. If the flow ends with an exception it does not run again while the view model lives; sync failures arrive as Result values, so only a repository read error ends it.
 - why: Under screen re-subscription the flow used to be revived, so sync reran on every return to the screen.
 - rejected: A while-subscribed sharing policy that restarts on re-subscription.
-- evidence: NotesViewModel in feature/notes (sync trigger with SharingStarted.Lazily); FM-K10 in the old feature-modules document.
+- evidence: NotesViewModel in feature/notes (sync trigger with SharingStarted.Lazily); FM-K10 in plan 012-feature-modules.

@@ -43,7 +43,7 @@
 - evidence: string `ai_model_download_title` in `core/ai`, `DownloadNoticesTest`.
 
 ### MD-D18 · 2026-10 · MD-10
-- decision: A work start clears only result and retry notifications; the progress notification appears only after the work became foreground, and the app never posts a progress-slot notification itself.
+- decision: A work start clears only result and retry notifications; the progress notification appears only after the work became foreground, and the app posts a progress-slot notification only for the waiting state when it goes to the background, never a preparing one.
 - why: A preparing notification posted by the app before the work went foreground was never removed when the work stopped or failed first.
 - rejected: The app posting a preparing notification into the progress slot before the work starts.
 - evidence: `ModelDownloadWorker.kt`, `DownloadNoticesTest` (`MD-10 포그라운드가 되기 전에 멈추거나 실패해도 준비 알림이 남지 않는다`).

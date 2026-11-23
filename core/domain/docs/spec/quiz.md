@@ -11,7 +11,7 @@ decisions: [QZ-D8]
 - A plain text that is blank fails as an empty-input failure and the engine is not woken (002-quiz: QZ-5).
 - Otherwise the generator receives the note title, the cut text and the count, and its result is returned unchanged: no retry, no filtering of questions, no timeout.
 - Plain text follows one rule set for every block: headings, paragraphs and quotes are one line of their text; code is included line by line so questions can be asked about code; dividers and spacers are dropped (009-note-format: NF-10) (002-quiz: QZ-5).
-- A list item is one line starting `- `, `- [x] ` for a checked box or `- [ ] ` for an unchecked box, in numbered lists too (numbers are not written); an item whose text is empty writes no line but its child blocks still do (009-note-format: NF-10).
+- A list item is one line starting `- `, `- [x] ` for a checked box or `- [ ] ` for an unchecked box, in numbered lists too (numbers are not written); an item whose text is empty or blank writes no line but its child blocks still do (009-note-format: NF-10).
 - A table writes its header row first and then each row as one line, cells joined by ` | ` (009-note-format: NF-10).
 - Child blocks of a list item are indented two spaces per depth, every line of multi-line text carries the indent, and a block with no text writes no line (009-note-format: NF-10).
 - Strike-through text stays as `~~text~~` and adjacent struck runs merge into one pair, so the model does not read deleted text as fact. Bold, italic and code marks are not written (009-note-format: NF-10).
@@ -26,7 +26,7 @@ decisions: [QZ-D8]
 - `QuizFailure` — `Parse(detail)`, `Empty(detail)`, `Engine(cause)`.
 - `QuizGenerator` — `isAvailable()` and `generate(noteTitle, noteText, count)`; implemented in `ai`.
 ### Guarantees
-- The plain-text rules (new block kinds, indentation, strike marks, salvaged-text-only), the not-found and blank cases and the device-note entry are covered by `GenerateQuizUseCaseTest`.
+- The plain-text rules (new block kinds, indentation, strike marks, salvaged-text-only) and the device-note entry are covered by `GenerateQuizUseCaseTest`.
 ### Not covered
 - The prompt, output format, sampling, the engine and the lenient reading of the model reply — `ai`.
 - The question count choice, the 60-second limit, the quiz screens and the failure wording — the quiz feature module.

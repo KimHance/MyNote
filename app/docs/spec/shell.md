@@ -32,7 +32,7 @@ decisions: [RD-D3, RD-D6, BM-D2, RC-D8, FM-D7, FM-D8, FM-D11, FM-D12, FM-D14, FM
 ### Guarantees
 - `ConnectStartTest` proves the start decision over the 18 cells of connection by repository notes by device notes, the seed-pending reading, and the four cleanup cases of a confirm (007-repo-connect: RC-23).
 - `ShellViewModelTest` proves the double-back exit window and that a stacked connect screen pops while the first-screen Home gives the exit hint.
-- `HomeBodyTest`, `FeatureSignalsTest`, `NotesViewModelTest`, `ConnectViewModelTest` and `ConnectIssueTest` live here because they need the shell and a feature together: signals between features (eleven paths), one sync for many subscribers, the hero repository line for confirmed connections only, and equal token-failure branches in settings and the connect screen. `FeatureFixture` builds the shell and feature ViewModels on one navigator and one set of signal holders.
+- `HomeBodyTest`, `FeatureSignalsTest`, `NotesViewModelTest`, `ConnectViewModelTest` and `ConnectIssueTest` live here because they need the shell and a feature together: signals between features (ten paths; the permission re-read is checked by hand), one sync for many subscribers, the hero repository line for confirmed connections only, and equal token-failure branches in settings and the connect screen. `FeatureFixture` builds the shell and feature ViewModels on one navigator and one set of signal holders.
 ### Not covered
 - Note list, search, bookmarks, quiz and token state — `notes`, `quiz` and `settings` modules.
 - Stack rules, throttling and tab-switch command — `navigation` module.
@@ -69,7 +69,7 @@ decisions: [RD-D3, RD-D6, BM-D2, RC-D8, FM-D7, FM-D8, FM-D11, FM-D12, FM-D14, FM
 - A registered screen reads only its own feature's state, so another feature's change does not redraw it; the entry provider is built once for a frame and destination set, and no per-destination ViewModel decorator is used.
 - The notes registration exposes a reader-end slot with the note id; the shell fills it with the quiz card showing the quiz model status (012-feature-modules: FM-6).
 - Two-pane content needs window width minus the expanded fixed panel, minus two page paddings, minus the rail reserve to be at least 640 dp; the panel counts only in the fixed-panel form (004-bookmarks: BM-16).
-- Content reserves 92 dp at the bottom for the floating bar, or only the navigation inset with a rail; in rail form the end padding reserves the rail width plus a 12 dp gap beyond the page padding.
+- Content reserves 92 dp plus the navigation inset at the bottom for the floating bar, or only the navigation inset with a rail; in rail form the end padding reserves the rail's right margin, end inset, width and a 12 dp gap, less the page padding.
 - Screen transitions, the shared-element scope and predictive back come from `:core:navigation`; the shell passes them to `NavDisplay` unchanged (001-reader-foundation: RD-18).
 ### Public API
 - `NotesRoute()` — the Compose root that `MainActivity` calls; everything else in the shell is internal.

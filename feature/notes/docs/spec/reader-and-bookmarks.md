@@ -15,7 +15,7 @@ decisions: [BM-D6, BM-D7, BM-D13, D-22, D-24, D-25, D-26, D-27, D-30]
 - Chip, date and title carry the shared-element keys `chip-`, `date-` and `title-` plus the note id, the same keys the home card uses (001-reader-foundation: RD-13).
 - The destination draws nothing when the note id is not in the notes list, for example after the note was deleted or removed by a sync (001-reader-foundation: RD-12).
 - The scroll state and the expanded-raw state come from the shell, so the position survives a window-class change; the reader keeps no scroll state of its own.
-- A debug-only preview file draws the reader with 14 sample notes (text shapes, nested blocks, checklists, alerts, over-limit box, narrow and wide tables) at Compact, 852 dp and large text; it is not in release builds.
+- A debug-only preview file draws the reader in 14 preview states of sample notes (text shapes, nested blocks, checklists, alerts, over-limit box, narrow and wide tables) at Compact, 852 dp and large text; it is not in release builds.
 
 ### Public API
 - None — `NoteReaderScreen` is internal; the shell reaches it through `notes:destinations`.
@@ -38,7 +38,7 @@ decisions: [BM-D6, BM-D7, BM-D13, D-22, D-24, D-25, D-26, D-27, D-30]
 - Bookmarks are ordered newest added first, ties by note key; a bookmark whose note is not in the list is not shown (004-bookmarks: BM-4) (013-local-notes: LN-11).
 - The large card shows the category chip, the added time in its long form, the title and the first-sentence excerpt; the excerpt is absent when the note has none and is left out of the accessibility node (004-bookmarks: BM-9, BM-20).
 - A row shows the two-digit number, the title on one line, "category · time" in the short form, and the remove button; the number is the position and is not a key, so rows renumber after a removal (004-bookmarks: BM-9).
-- The card variant follows the window: Compact or Medium width at normal height uses a 21 sp title and a 3-line excerpt; Expanded width one pane 24 sp and 3 lines; two panes 26 sp and a 5-line excerpt; low height 18 sp, a one-line title and a 2-line excerpt with tighter padding (004-bookmarks: BM-16).
+- The card variant follows the window: Compact or Medium width at normal height uses a 21 sp title and a 3-line excerpt; Expanded width or wider in one pane 24 sp and 3 lines; two panes 26 sp and a 5-line excerpt; low height 18 sp, a one-line title and a 2-line excerpt with tighter padding (004-bookmarks: BM-16).
 - The title takes at most two lines except in the low-height variant, which takes one (004-bookmarks: BM-9).
 - Rows use 12 dp of vertical padding and 6 dp at low height, around a 44 dp minimum content height (004-bookmarks: BM-9).
 - With two panes the card column on the left does not scroll and the rows on the right scroll alone, split 1.15 to 1 with a 28 dp gap (24 dp at low height); one bookmark leaves the right column empty (004-bookmarks: BM-16).

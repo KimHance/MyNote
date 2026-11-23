@@ -6,11 +6,11 @@ decisions: [D-18, D-19]
 ## glass-nav — Glass surface and floating navigation
 ### Behaviour
 - `GlassSurface` is the only place that draws the liquid-glass effect (blur, lens refraction, highlight, shadow); the bar, rail, scroll-to-top button, status pill and the quiz setup dialog all use it, and the effect chain is never rebuilt outside it.
-- The effect needs two ends to agree: the refracted content carries `layerBackdrop` (set by the app shell) and the glass surface draws with the same `Backdrop` instance. If either is missing nothing is drawn and no error or log appears.
+- The effect needs two ends to agree: the refracted content carries `layerBackdrop` (set by the app shell) and the glass surface draws with the same `Backdrop` instance. If the content does not carry it the glass shows none of the content behind it and no error or log appears; a surface given no backdrop takes the opaque path below.
 - Trap: only the navigation display may sit inside the `layerBackdrop` box. The glass bar, rail, pill and any overlay must stay outside it, or the glass samples itself (012-feature-modules: FM-K8).
 - With `backdrop = null`, the default, the surface is an opaque fallback: clipped shape, opaque glass colour and a border. Previews take this path; every new parameter must handle both paths.
 - Degrading by SDK (refraction from API 33, blur from 31, opaque below) is decided by the effect library; callers do not branch on SDK.
-- `blurRadius` and `refractionRatio` trade against each other: blur removes the detail refraction would push, so the default blur is small. Large reading surfaces (bar, rail) keep the defaults; a small droplet (quiz segment) sets blur to 0, the droplet refraction ratio and no shadow.
+- `blurRadius` and `refractionRatio` trade against each other: blur removes the detail refraction would push, so the default blur is small. Large reading surfaces (bar, rail) keep the defaults; a small droplet (quiz segment) sets a small blur (4 dp), the droplet refraction ratio and no shadow.
 - Refraction amount is the radius times the ratio, so changing the radius changes the refraction strength too. A given `tint` replaces the glass colour (over the background colour on the opaque path).
 - `GlassSurface` calls its content exactly once; branching happens in modifiers so the content slot keeps its state.
 - `FloatingNavBar` (bottom) and `FloatingNavRail` (right) show a list of items with one selected; each item is a tab: the selected item of the bar shows its label beside the icon, other bar items are icon only with the label as description, and every rail item is icon only with the label as description (001-reader-foundation: RD-23).
@@ -18,9 +18,9 @@ decisions: [D-18, D-19]
 - `hidden = true` slides the bar down and fades it (340 ms move, 200 ms fade), or the rail to the right by its width plus the right margin; hiding changes only position and alpha and does not remove the items from composition.
 - Selecting calls `onSelect(id)` with the item id; the items, hidden flag and window-class choice (bar or rail) come from the caller (`app`).
 - `FloatingNavScrollState` turns scroll deltas into a hidden flag: movement under 6 dp is ignored as jitter, it never hides within the top 48 dp, the accumulated offset never goes below 0, scrolling down past the zone hides and scrolling up shows (001-reader-foundation: RD-14).
-- `reset()` returns the offset, the reference point and the hidden flag to the start; the shell calls it when the shown note changes.
+- `reset()` returns the offset, the reference point and the hidden flag to the start; the shell calls it when the top screen changes and when scroll-to-top is pressed.
 - Its nested-scroll connection reports every pre-scroll to the state and consumes nothing, so it can be attached above any scrolling content.
-- `ScrollToTopButton(visible, onClick)` is a 46 dp glass circle labelled "맨 위로" that scales and fades in (220 ms) and out (160 ms); whether it is visible (reader past 400 dp, list from its third item) is the caller's decision (001-reader-foundation: RD-14).
+- `ScrollToTopButton(visible, onClick)` is a 46 dp glass circle labelled "맨 위로" that scales and fades in (220 ms) and out (160 ms); whether it is visible (reader scrolled past 400 dp, list once three items have scrolled off the top) is the caller's decision (001-reader-foundation: RD-14).
 - `FloatingStatusPill` is a 40 dp glass pill with a ring or an icon, a one-line label that ellipsises and an optional mono trailing text; it is clickable (button role) only when `onClick` is given.
 - The pill ring is `StatusRing`: with a progress between 0 and 1 (clamped) it fills clockwise from the top; with null progress it is an endless spinning arc. The spinning arc has no reduced-motion check.
 ### Public API
@@ -31,7 +31,7 @@ decisions: [D-18, D-19]
 - `ScrollToTopButton(visible, onClick, modifier, backdrop)`, `ScrollToTopDefaults.Size` — scroll-to-top.
 - `FloatingStatusPill(label, tone, modifier, trailing, progress, icon, backdrop, onClick)` and `StatusRing(progress, tone, modifier, diameter)` — status pill and ring.
 ### Guarantees
-- The hide and show rules (jitter, safe zone, floor at 0, reset) hold: `FloatingNavScrollStateTest`. The class holds only two pixel values and no Compose types so that the rules are testable; keep new rules in that shape.
+- The hide and show rules (jitter, safe zone, floor at 0, reset) hold: `FloatingNavScrollStateTest`. The class holds only two pixel values and needs no density, so that the rules are testable; keep new rules in that shape.
 ### Not covered
 - Creating the `layerBackdrop` box and ordering the shell, back handling and which screens show a nav — `app`.
 - Choosing bar or rail by window class and the right margin — `app` using `design-foundation` tokens.

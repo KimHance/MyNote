@@ -13,7 +13,7 @@ decisions: [BM-D17, FM-D13]
 - A connection change or deleting the note a quiz was made from closes the quiz through this signal (007-repo-connect: RC-23) (013-local-notes: LN-11).
 - Home's `가져오기` raises the import request and the editor feature opens its import sheet; home does not depend on the editor (013-local-notes: LN-1, LN-2, LN-6).
 - Opening settings first raises the settings-entry count so settings can drop an open token edit, then pushes the Settings key (012-feature-modules: FM-6).
-- `LastSyncHolder` starts at "no result". The notes ViewModel that subscribes to sync writes it; settings and the list panel only read it, because the sync flow runs again for every subscriber and a second subscription would start a second sync (012-feature-modules: FM-K10).
+- `LastSyncHolder` starts at "no result". The notes ViewModel that subscribes to sync writes each result and the shell ViewModel resets it on a connection change (succeeded when connected, none otherwise); settings and the list panel only read it, because the sync flow runs again for every subscriber and a second subscription would start a second sync (012-feature-modules: FM-K10).
 - `SharedTextInbox` holds at most one received share, in memory only: it is never put in an intent or destination key because a 512KB text can exceed the process-transfer limit (013-local-notes: LN-8).
 - A text share carries the text and an optional subject (a name candidate). A file share carries only the file address and an empty text; reading it is left to the taker, off the main thread. A refused share (not a `content://` address, or this app's own provider) carries no address and only lets the taker report the reason (013-local-notes: LN-7, LN-8).
 - A new share replaces one that nobody has taken yet; the last share over a share wins (013-local-notes: LN-8).
@@ -28,7 +28,7 @@ decisions: [BM-D17, FM-D13]
 - `SharedTextInbox` — singleton: `pending` flow, `put(text, subject)`, `putFile(uri, subject)`, `putRefused(subject)`, `take(id)`; `SharedText` is the value (`text`, `subject`, `id`, `uri`, `refused`).
 ### Guarantees
 - The signal paths between features are fixed by `FeatureSignalsTest` in `app`, `settings` and `quiz` (names starting `FM-6`).
-- The inbox gives one share once, replaces untaken ones and refuses a stale id (`EditorViewModelTest`).
+- The inbox gives one share once and replaces untaken ones, shown through the editor ViewModel (`EditorViewModelTest`); refusing a stale id has no test of its own.
 ### Not covered
 - Tab kinds, the open-reader command and the tab-switch command — `navigation`.
 - Who opens the import sheet and reads a shared file — `editor`.

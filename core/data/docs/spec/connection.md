@@ -14,7 +14,7 @@ decisions: [SY-D10, RC-D4, RC-D5, RC-D6, RC-D9, RC-D19, RC-D20, RC-D28, RC-D29, 
 - New: another repository while connected, or a first connection with nothing to adopt; it gets a new source id and a source row marked pending, which normal sync skips (007-repo-connect: RC-15).
 - Adopt: no confirmed connection and a GitHub source without a stored connection that holds at least one note; nothing is written to its row before confirmation (007-repo-connect: RC-19).
 - Device notes are never adopted and never make a first connection an adoption (007-repo-connect: RC-19) (013-local-notes: LN-12).
-- `begin` records the attempt (target source, a fresh attempt id, the token before it, whether a candidate token came with it) before saving that candidate token; a second `begin` in the same process first runs recovery to clear a leftover attempt (007-repo-connect: RC-6).
+- `begin` records the attempt (target source, a fresh attempt id, the token before it, whether a candidate token came with it) before saving that candidate token; a `begin` that finds "attempting" still true first runs recovery to clear the leftover attempt (007-repo-connect: RC-6).
 - New source ids come from the generator; a blank id, an id with `/`, an id used before (kept across deletes), an existing source id, `s0` and `local` are skipped; after 16 rejected tries `begin` fails (013-local-notes: LN-5).
 - The first sync of an attempt reconciles an in-memory source with the target connection under the attempt's source id; for adopt and same-repository attempts it also removes the bookmarks of notes it deleted.
 - That first sync uses the same reconcile rules as ordinary sync and returns a failed result instead of throwing.

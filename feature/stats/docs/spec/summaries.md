@@ -41,7 +41,7 @@ decisions: []
 - A row with a summary toggles open and closed (chevron turns over 200 ms, height animates over 240 ms, instant with reduced motion) and then shows the full headline, the detail, the focus chip and the generated date (005-stats: ST-22).
 - A row without a summary is not a button.
 - Open rows are remembered per week in saved state while the screen lives, so rotation and folding keep them.
-- A row is read as one item: range and headline (or no summary), the opened parts, and the numbers, with the state "펼침" or "접힘".
+- A row is read as one item: range and headline (or no summary), the opened parts, and the numbers, with the state "펼침" or "접힘" on rows that have a summary.
 - Until the list arrives only the intro line shows.
 - The list keeps its scroll position in the shell's scroll state for past summaries.
 ### Public API

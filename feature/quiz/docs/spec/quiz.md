@@ -56,7 +56,7 @@ decisions: [QZ-D6, QZ-D7, D-40]
 - The overlay is drawn by the `app` shell over the content area; it is not on the back stack and moves no screen (002-quiz: QZ-18).
 - Back while the quiz is not idle closes it through the same path as the close button (002-quiz: QZ-18).
 - Loading, solving, result and failed fill the content area with the app background inside the system-bar insets; with the fixed list pane open the shell starts the overlay after the pane so the pane stays visible (002-quiz: QZ-18).
-- The setup dialog is a glass card at most 420 dp wide with a 26 dp radius, 22 dp from the sides and 40 dp above centre, over a scrim that fades in over 220 ms; the card flips in, its body rises in after 130 ms, and closing fades out over 250 ms (002-quiz: QZ-3).
+- The setup dialog is a glass card at most 420 dp wide with a 26 dp radius, 22 dp from the sides and 40 dp above centre, over a scrim that fades in over 220 ms; the card flips in, its body rises in after 130 ms, and closing fades the scrim out over 250 ms and the card over 260 ms (002-quiz: QZ-3).
 - The dialog shows "퀴즈 만들기", the note title with "· 기기 안에서 만듦" on one line, "최대 N문제", a three-way radio group "3문제 · 4문제 · 5문제", a hint that a short note may give fewer, and "취소" and "만들기" (002-quiz: QZ-3).
 - A scrim tap, "취소" or back closes the setup; "만들기" is throttled to one press per 500 ms (002-quiz: QZ-3).
 - Generating shows an orb, a phrase that advances every 900 ms through "노트를 읽는 중", "문제를 만드는 중", "계속 만드는 중", "아직 만드는 중" and stays on the last, the hint "처음 한 번은 10초쯤 걸립니다" and a stop button "그만두기" (002-quiz: QZ-11).
@@ -68,7 +68,7 @@ decisions: [QZ-D6, QZ-D7, D-40]
 - A partial quiz shows the band "N문제만 만들었습니다" above every question (002-quiz: QZ-14).
 - A new question scrolls to the top and slides in from 26 dp right with a fade over 320 ms; choice rows are keyed by question and choice number so no row flashes the previous question's colour.
 - The result shows a 186 dp gauge (132 dp on short windows) that pops in over 420 ms and sweeps to the score over 900 ms, the score over the total, a verdict, one chip per question and one button "노트로 돌아가기" (002-quiz: QZ-16).
-- Verdicts: all right "다 맞혔습니다", at least 60 percent "거의 다 맞혔습니다", below "한 번 더 읽어 보세요", each with its own body line (002-quiz: QZ-16).
+- Verdicts: all right "다 맞혔습니다", at least 60 percent "거의 다 맞혔습니다", below "한 번 더 읽어 보세요"; the all-right verdict has its own body line and the other two share one (002-quiz: QZ-16).
 - The failure screen shows "문제를 만들지 못했습니다", one fixed reason per kind (Parse, Empty, Engine, Timeout), "다시 만들기" (throttled) and, unless the kind is Empty or the ask is already 3, "최대 3문제로 줄여서 다시"; "노트로 돌아가기" and close end the quiz (002-quiz: QZ-17).
 - On short windows (height Compact) generating and result use two columns; solving only tightens its margins.
 - With reduced motion the orb stays still, the slot shimmer is off, the advance ring does not fill and the gauge appears at once (002-quiz: QZ-19).
@@ -89,7 +89,7 @@ decisions: [QZ-D6, QZ-D7, D-40]
 - Ready: subtitle "최대 5문제" (the number comes from the maximum count), a chevron, and the action opens the setup (002-quiz: QZ-2).
 - Missing: "퀴즈 모델이 필요합니다 · 2.6GB" with the chip "받기"; the action asks for confirmation first (002-quiz: QZ-2).
 - Paused: "<GB>GB 받다가 멈췄습니다" with "이어 받기"; failed: "퀴즈 모델을 받지 못했습니다" in the wrong colour with "다시 시도"; both start the download at once (002-quiz: QZ-2).
-- Any working download state: "퀴즈 모델 받는 중 · NN%" with a chevron, and the action opens settings; the percentage is the received share while downloading, retrying or paused, and 0 while waiting for Wi-Fi, preparing or verifying (003-model-download: MD-K9).
+- Any working download state: "퀴즈 모델 받는 중 · NN%" with a chevron, and the action opens settings; the percentage is the received share while downloading or retrying, and 0 while waiting for Wi-Fi, preparing or verifying (003-model-download: MD-K9).
 - The whole row is one button labelled "퀴즈 만들기", throttled to one press per 500 ms.
 - An accent ring shines around the card only when the model is ready and motion is not reduced (002-quiz: QZ-19).
 ### Public API

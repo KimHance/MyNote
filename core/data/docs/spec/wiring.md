@@ -13,7 +13,7 @@ decisions: []
 - The token repository returns and observes the stored token, not the token applied to requests (the applied one is `network:token`).
 ### Public API
 - `BookmarkRepositoryImpl` — domain `BookmarkRepository`: observe, add, remove.
-- `StudyLogRepositoryImpl` — domain `StudyLogRepository`: record sessions, attempts and bookmark events, delete a bookmark event, observe windows, note facts and first record time, wrong answers, clear and prune.
+- `StudyLogRepositoryImpl` — domain `StudyLogRepository`: record sessions, attempts and bookmark events, delete a bookmark event, observe windows, note facts and first record time, wrong answers and their count, clear, prune and prune answers.
 - `InsightRepositoryImpl` — domain `InsightRepository`: weekly summaries, quiz patterns and worker status, save, mark, bump epoch, clear, prune.
 - `SettingsRepositoryImpl` — domain `SettingsRepository`: text size and the study-log switch.
 - `TokenRepositoryImpl` — domain `TokenRepository`: current, save and observe the stored token.

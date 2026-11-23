@@ -1,7 +1,7 @@
 # Decisions
 
 ### D-44 · 2026-10 · ST-7
-- decision: Pruning runs at app start from the app module and again right after the worker saves; events are kept 365 days, quiz answer text 90 days, summaries and patterns 26 weeks.
+- decision: Pruning runs at app start from the app module, and the worker prunes summaries and patterns again right after it saves; events are kept 365 days, quiz answer text 90 days, summaries and patterns 26 weeks.
 - why: The worker does not run without a model, so leaving event pruning to it would let records of users without a model grow forever; the pattern view reads only the last 28 days of wrong answers, and answer text is the bulk of the storage.
 - rejected: Pruning only inside the worker; one 365-day limit for answer text.
 - evidence: `app/.../StudyLogMaintenance.kt`, `PruneStudyLogUseCase`, `StudyLogUseCaseTest` "문항 텍스트는 90일 넘은 것만 지우고 시도는 365일까지 남긴다".

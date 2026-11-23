@@ -7,7 +7,7 @@ decisions: [QZ-D1, QZ-D2, QZ-D3, QZ-D4, QZ-D5, D-55, DEC-30]
 ### Behaviour
 - One engine serves the whole app: the quiz and the statistics worker share it (002-quiz: QZ-6).
 - The engine is not built at app start. The first request builds it, later requests reuse it; a user who never opens a quiz never loads the 2.6GB model (002-quiz: QZ-6).
-- Building takes seconds (about 3.5 to 12 s measured, depending on file cache); the log line records the milliseconds. The build runs to the end even if the caller is cancelled, and the finished engine is kept in the slot, so leaving a quiz during the build does not waste it (002-quiz: QZ-6).
+- Building takes seconds (about 3.5 to 12 s measured, depending on file cache); the log line records the milliseconds. The build runs to the end even if the caller is cancelled, and the finished engine is kept in the slot, so leaving a quiz during the build does not waste it; a build started by the worker path is closed afterwards if its check says so (002-quiz: QZ-6).
 - A failed build leaves no engine in the slot; the next request tries again.
 - Every use goes through one lock: only one generation runs at a time, and a second request waits (quiz) or is refused at once (worker). The library does not lock a conversation, so this lock is the only protection against concurrent generation (002-quiz: QZ-6).
 - The quiz path (`use`) never closes the engine. It lives until the process ends or the model is deleted (`release`) (002-quiz: QZ-6).
@@ -25,7 +25,7 @@ decisions: [QZ-D1, QZ-D2, QZ-D3, QZ-D4, QZ-D5, D-55, DEC-30]
 - `ModelEngine` — singleton holding the one engine; `use(block)` runs a block with the engine under the lock (builds it if needed), `tryUse(shouldRelease, block)` the same without waiting, `release()` closes it, `isAvailable()` and `modelFile()` locate the model file.
 - `EngineUse` — result of `tryUse`: `Busy`, or `Done(value, initMillis, released)` where `initMillis` is null when the engine was already loaded.
 ### Guarantees
-- A quiz-built engine is never closed by the quiz path, and a build cancelled midway stays in the slot; `tryUse` closes only an engine it built, when asked, and gives busy while the lock is taken (`EngineSlotTest`).
+- A quiz-built engine is never closed by the quiz path, and a quiz build cancelled midway stays in the slot; `tryUse` closes only an engine it built, when asked, and gives busy while the lock is taken (`EngineSlotTest`).
 - Cancelling a generation cancels the native call, a timeout does the same, and a non-cancel failure is rethrown as it is (`CancellableTest`).
 ### Not covered
 - Cutting the note to 2,000 characters before it reaches the model — `domain`, the quiz use case.
@@ -46,7 +46,7 @@ decisions: [QZ-D1, QZ-D2, QZ-D3, QZ-D4, QZ-D5, D-55, DEC-30]
 - The count is a request, not a check: the result holds whatever questions survive parsing, which may be fewer (the quiz screen shows a warning band) or, if the model over-delivers, more (002-quiz: QZ-14).
 - Anything thrown while loading the engine or generating becomes an Engine failure; cancellation is rethrown as cancellation (002-quiz: QZ-8).
 - The reply is read leniently: text before and after the JSON array, code fences and unknown keys are ignored; only the text from the first `[` to the last `]` is read (002-quiz: QZ-8).
-- No array, or an array that does not decode, is a Parse failure; an array with no usable question is an Empty failure (002-quiz: QZ-8).
+- No array, an empty array, or an array that does not decode is a Parse failure; an array whose questions are all dropped is an Empty failure (002-quiz: QZ-8).
 - A broken question is dropped and the rest are kept. A question is dropped when its text is blank, it has fewer than two choices, or its answer is blank (002-quiz: QZ-8).
 - Answer number: a zero-based number inside the choices is taken as is; a number equal to the choice count is read as one-based and moved back by one; any other number drops the question. The answer is never guessed (002-quiz: QZ-9).
 - Choices are trimmed, blank ones removed, and ones equal ignoring case and runs of spaces collapse to the first one. The answer is found by its text first, then its position is looked up again in the surviving list, so removing a duplicate never moves the answer to a wrong choice (002-quiz: QZ-9).
@@ -57,7 +57,7 @@ decisions: [QZ-D1, QZ-D2, QZ-D3, QZ-D4, QZ-D5, D-55, DEC-30]
 ### Public API
 - `LiteRtLmQuizGenerator` — the `QuizGenerator` implementation: `generate(noteTitle, noteText, count)` returns the questions or a `QuizFailure` (Parse, Empty, Engine); `isAvailable()` only checks that the model file exists.
 ### Guarantees
-- The repair rules above (leniency, answer-number fix, duplicate removal order, four-choice cap, the three failure kinds) are fixed by `QuizJsonParserTest`; read it before changing the parser.
+- The repair rules above (leniency, answer-number fix, duplicate removal order, four-choice cap, failure on a missing or broken array) are fixed by `QuizJsonParserTest`; read it before changing the parser.
 ### Not covered
 - Timeout failures, the 60-second limit and cancelling on leave — `quiz:quiz` in the feature module; this unit only makes the cancel reach the native call (`ai:engine`).
 - Building the plain text of a note and cutting it to 2,000 characters — `domain`.

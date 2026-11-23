@@ -40,7 +40,7 @@ decisions: [NT-D15, FM-D15, DEC-19]
 - Java source and target are 17 and Kotlin `jvmTarget` is 17 for Android and JVM modules alike; core library desugaring, with the catalog's desugar library, is on for Android modules only.
 - No JDK toolchain is declared: code compiles with the JDK that runs Gradle and only the target is fixed at 17.
 - Unit tests in Android modules include Android resources; every `Test` task has the no-tests-found failure turned off, so a module without tests does not break the root test run on Gradle 9.
-- All Kotlin warnings become errors only when the Gradle property `warningsAsErrors` is exactly `true`; passing `-PwarningsAsErrors` with no value is false.
+- All Kotlin warnings become errors only when the Gradle property `warningsAsErrors` is `true` (letter case ignored); passing `-PwarningsAsErrors` with no value is false.
 - Compose setup turns Compose on with a single plain assignment on the common extension; it is not narrowed by extension type, because a `when` over the extension type would leave Compose off for an unexpected type and the build would then fail with a misleading "composable not found" error.
 - Compose setup adds the Compose BOM to both `implementation` and `androidTestImplementation`, then activity-compose, Material 3, UI, UI tooling preview and the immutable-collections library; UI tooling and the test manifest in debug builds; the UI test library in androidTest.
 - It adds Slack's Compose lint checks, turns off the Android Lint check `ComposeCompositionLocalUsage` (theme tokens travel by composition local on purpose), and keeps source information in Compose output.

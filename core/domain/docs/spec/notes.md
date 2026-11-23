@@ -12,7 +12,7 @@ decisions: [BM-D16, DEC-3]
 - Parsing a key cuts at the first `/`; the source part never holds a `/`, the document part may. A key with no `/`, an empty source part or an empty document part parses to nothing.
 - A note's origin comes from its key prefix: prefix `local` is Device, everything else (including an id that does not parse) is Repository. Only Device notes are editable; repository notes are read-only in the app (013-local-notes: LN-5).
 - The connect-hint band counts repository notes only while the connection is known to be absent; with a connection, or while the state is still unknown, the count is 0, and device notes are never counted (007-repo-connect: RC-1).
-- A note body is a list of blocks of ten kinds: heading, paragraph, code, quote, bullet list, ordered list, table, divider, spacer and unsupported. Inline text is spans with a style (text, bold, code) plus italic and strike flags; code spans carry strike only.
+- A note body is a list of blocks of ten kinds: heading, paragraph, code, quote, bullet list, ordered list, table, divider, spacer and unsupported. Inline text is spans with a style (text, bold, code) plus italic and strike flags; the converter gives code spans the strike flag only.
 - List items may be checkboxes (checked, unchecked or not a checkbox) and may hold child blocks; an ordered list has a start number; a table has header cells, body rows and a per-column alignment.
 - An unsupported block is an app-internal box with a reason, the salvaged text (may be absent) and the original (empty means no original). Reasons are unknown type, broken block, broken note and limit exceeded; the last two stand for the whole note, and a whole-note box is the note's only block.
 - The only place that holds note limits is the limits value: container nesting 32, original 512 KB (524,288 bytes), table cells 4,096 per note, cache column 1 MB (1,048,576 bytes). A note over a limit becomes a limit-exceeded box (009-note-format: NF-8).
@@ -44,7 +44,7 @@ decisions: [BM-D16, DEC-3]
 - An item with empty text is skipped, so its nested items are looked at before the next item (009-note-format: NF-10).
 - Spans are joined as plain text: bold, italic, strike and checkbox marks never appear, and every run of whitespace becomes one space with the ends trimmed (009-note-format: NF-10).
 - The sentence ends at the first `.`, `?`, `!` or `。` that is followed by a space or the end of the text; with no end found the whole paragraph is used.
-- A `.` is not an end inside a code span, between two digits, or after `e.g.`, `i.e.`, `etc.` or `vs.` (case ignored).
+- A sentence-end mark is not an end inside a code span; a `.` is also not an end between two digits or after `e.g.`, `i.e.`, `etc.` or `vs.` (case ignored).
 - A sentence longer than the limit (140 characters unless the caller passes another) is cut at the last space inside the limit and ends with an ellipsis; with no space it is cut at the limit and gets the ellipsis.
 - A blank result, or no candidate at all, gives none; there is no fallback to the title.
 - Available on a note and on a plain block list, with the same result for both (004-bookmarks: BM-10).

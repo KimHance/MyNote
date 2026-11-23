@@ -11,13 +11,13 @@ decisions: [RD-D1]
 - A value that `build()` reads but that is not registered does not rebuild the screen. There is no error or log; the screen just stays as it was.
 - With no registered value at all, the state is fixed at its first build forever.
 - Setting a trigger to a value equal to the current one does not rebuild. A rebuilt state equal to the current one is not emitted again, so the state type needs value equality; a new object with identity equality inside it defeats this.
-- Registration works only while the ViewModel is being constructed (property initialisers or `init`). A later registration is ignored without a message, because the list is read once when `state` is first read. (001-reader-foundation: RD-21)
+- Registration is meant only while the ViewModel is being constructed (property initialisers or `init`). The list of registered values is read each time the state starts collecting (first subscription, and again after the 5-second wait), so a later registration is not watched until then and there is no error or log. (001-reader-foundation: RD-21)
 - A `triggerIn` value starts sharing at the line where it is declared and reads its source there, so the values it depends on must be declared above it; declared below, construction fails.
 - The first `build()` runs when `state` is first read, not when the ViewModel is created. If a value changes between those two moments, the initial state holds the later value. Concurrent first readers get the same single pipeline.
-- `state` is shared while subscribed and stays alive for 5 seconds after the last subscriber leaves, so rotation does not restart it. Re-subscribing inside the 5 seconds does not rebuild; after it, the next subscription rebuilds once.
+- `state` is shared while subscribed and stays alive for 5 seconds after the last subscriber leaves, so rotation does not restart it. Re-subscribing inside the 5 seconds does not rebuild; after it, the next subscription starts the pipeline again and rebuilds.
 - Sources registered with `triggerIn` stop with the state at the same 5-second mark, however many derived steps sit between; the waits do not add up. With `SharingStarted.Lazily` a source keeps running from its first subscription until the ViewModel is cleared, which suits Room and DataStore observers and not polling or sensors.
 - On subscription each registered value emits its current value at once, so `build()` runs about once per registered value; because the results are equal, subscribers see one state. Putting sorting, filtering or mapping inside `build()` repeats it each time; do it in a `triggerIn` so it runs only when its input changes.
-- One rebuild happens per changed value, and an intermediate state is shown on screen when a handler changes several values in turn. Values that must change together belong in one trigger of one type (a single load-state type, not a loading flag plus an error).
+- One rebuild can happen per changed value, and an intermediate state can be shown on screen when a handler changes several values in turn. Values that must change together belong in one trigger of one type (a single load-state type, not a loading flag plus an error).
 - An input and its result are deliberately separate registered values (a search text and its hits): the text shows at once and the result when it arrives; two emissions are expected.
 - `build()` never overlaps itself: there is a single collector, even when the main dispatcher runs collectors inline.
 - Numeric or toggled trigger values are changed with `update { }`; a read-then-write assignment loses updates under concurrent writes.
@@ -31,7 +31,7 @@ decisions: [RD-D1]
 - `MviViewModel<S, E>` — abstract base. Public: `state` (the shared state flow) and `onIntent(event)`. For subclasses: `build()`, `handleIntent(event)`, `onFailure(cause)`, `launchSafely { }`, `trigger(initial)`, `Flow.triggerIn(initial, started)`.
 ### Guarantees
 - Registration, equality, rebuild, lifetime (5 seconds, no stacking, `Lazily`), failure boundary and stream behaviour: `MviViewModelTest`.
-- A single pipeline under many concurrent first readers (four per processor core), no lost updates under 50,000 concurrent updates, and no overlapping `build()`, both with a plain thread dispatcher and with a single-thread dispatcher that runs inline like the Android main looper: `MviViewModelConcurrencyTest` (it holds the second class, `MviViewModelMainImmediateConcurrencyTest`).
+- A single pipeline under many concurrent first readers (four per processor core), no lost updates under 50,000 concurrent updates, and no overlapping `build()`, both with a plain thread dispatcher and with a single-thread dispatcher that runs inline like the Android main looper: `MviViewModelConcurrencyTest` and `MviViewModelMainImmediateConcurrencyTest` (the second class, in the same file).
 - Tests of a ViewModel must start the collector on an unconfined test dispatcher; a collector launched without one makes `state` read late, so some of these tests fail and the others pass without checking anything.
 ### Not covered
 - What a screen's state contains and how a screen sends intents — each feature module.
