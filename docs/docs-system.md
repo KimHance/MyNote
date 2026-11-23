@@ -86,12 +86,13 @@ fields:
 | optional sections | Assumed · Copy |
 | plan bullets | why · flow · not doing |
 | item columns | ID · What · Accept |
-| item id | `^[A-Z]{2,4}-[0-9]+$` |
+| item id | `^[A-Z]{2,4}-[A-Z]?[0-9]+$` |
 
 One piece of work per file, named `<NNN>-<work>.md`: `NNN` is three digits, one more than the highest number already in the
 folder (the first plan is `001`), so the files list in the order the work was done. `<work>` is a short kebab-case name.
 `## Plan` has one bullet per plan key (`- why: …`).
 `## Items` is a table — one row per behaviour, an id of the pattern above (unique across all plans), and an Accept that a test can check.
+The optional letter after the dash keeps the ids the old feature documents and the tests already use: `K` for an invariant (`LN-K1`).
 Keep it short: one line of Accept per item — the detail belongs in the tests and in the unit's spec.
 The plan file stays after the work is done, and it says what was actually built: when the work ends up different from the
 plan (an item dropped, added or changed), correct the Items before the work is closed.
