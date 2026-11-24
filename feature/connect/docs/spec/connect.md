@@ -1,13 +1,13 @@
 ---
 units: [connect:flow, connect:issues, connect:entry, connect:confirm, connect:reading]
-plans: [007-repo-connect, 008-note-template]
+plans: [007-repo-connect, 008-note-template, 012-feature-modules]
 decisions: [RC-D53, RC-D57, RC-D59, RC-D63, NT-D31, NT-D32, DEC-21a]
 ---
 ## flow — Connect screen and flow
 ### Behaviour
-- The screen is a stacked destination only, key `Connect`, opened from home's first-run `저장소 연결`, the home hint and settings `바꾸기`; the three share one state because the ViewModel is owned by the Activity. It is never a start result (007-repo-connect: RC-1).
-- It draws its own top bar with the title and a back arrow and no refresh; the shell hides its own bar, floating navigation, drawer and pill while this screen is on top. The title is `저장소 바꾸기` when a connection exists and `저장소 연결` when none does (007-repo-connect: RC-14).
-- The registration keeps the default content key, so the wide-window check recognises it as one pane; the screen takes the shell's scene edge, the token drafts, the snackbar host and the shell back (007-repo-connect: RC-14).
+- The screen is a stacked destination only, key `Connect`, opened from home's first-run `저장소 연결`, the home hint (`notes:home`) and settings `바꾸기` (`settings:repo`); the three share one state because the ViewModel is owned by the Activity. It is never a start result (007-repo-connect: RC-1).
+- It draws its own top bar with the title and a back arrow and no refresh; the shell hides its own bar, floating navigation, drawer and pill while this screen is on top (`app:shell-state`). The title is `저장소 바꾸기` when a connection exists and `저장소 연결` when none does (007-repo-connect: RC-14).
+- The registration keeps the default content key, so the wide-window check recognises it as one pane; the screen takes the shell's scene edge, the token drafts, the snackbar host (`ui:shell`) and the shell back (007-repo-connect: RC-14) (012-feature-modules: FM-K6).
 - Content is one column centred at most 560 dp wide, scrolling, with 16 dp sides, 12 dp top, 24 dp bottom and 24 dp between blocks (16 dp when the window height is compact); the horizontal and bottom safe insets are respected. When the keyboard opens the connect button is scrolled into view.
 - The first block is an intro line, `저장소 주소` and a one-line link field with the hint `예: octo-learner/android-notes`: URI keyboard, autocorrect off, Go key. There is no paste button and no clipboard reading.
 - Every edit of the link is read at once, without network, into a result under the field: a reason (neutral grey when the field is empty, warn color with a warn border otherwise) or `저장소 <owner/repo> · 브랜치 <branch> · 노트 위치 <folder>` (`기본 브랜치` and no label when no branch is named; `/` for the root folder) (007-repo-connect: RC-2, RC-3).
@@ -23,7 +23,7 @@ decisions: [RC-D53, RC-D57, RC-D59, RC-D63, NT-D31, NT-D32, DEC-21a]
 - A failed first sync returns to editing with a token card or a notice, as read by `issues`; the connection and notes are unchanged on the screen's side (007-repo-connect: RC-6, RC-7).
 - A completed connection clears the token draft and, 1.5 seconds later, resets the screen state.
 - An unexpected exception in the flow is logged and shown as the transient notice, with the screen back in editing and any pending confirm dropped; once the connection is done only the log line is written and the state stays.
-- When the connection goes from connected to not connected (a disconnect), the screen resets: link, token card, notice, dialog cleared, a running job cancelled, a reset count up so the shell clears the token draft once. A connection that never existed does not clear what the user typed (007-repo-connect: RC-17).
+- When the connection goes from connected to not connected (a disconnect), the screen resets: link, token card, notice, dialog cleared, a running job cancelled, a reset count up so the shell clears the token draft once (`ui:token`). A connection that never existed does not clear what the user typed (007-repo-connect: RC-17).
 - The link is kept in saved state and survives process death; the token draft is not saved and survives only rotation and folding (007-repo-connect: RC-24).
 - When no browser can be opened for `토큰 만들기` or an entry button, the snackbar says `브라우저를 열지 못했습니다. 브라우저 앱이 있는지 확인하세요.` and nothing else changes.
 ### Public API
@@ -36,14 +36,14 @@ decisions: [RC-D53, RC-D57, RC-D59, RC-D63, NT-D31, NT-D32, DEC-21a]
 - Cancel while checking keeps input; input during the first sync is ignored; a 404 without token opens the token card with the link kept; a disconnect empties the screen once and a never-connected screen is left alone (`ConnectViewModelTest`) (007-repo-connect: RC-5, RC-17, RC-24).
 - The back decision is fixed by `ConnectBackTest` (007-repo-connect: RC-24).
 ### Not covered
-- Parsing a link, the check requests, the first sync, confirm and rollback — `domain` use cases, implemented in `data`.
+- Parsing a link — `domain:connect-link`; the check order, the first sync, confirm and rollback — `domain:connection`, implemented in `data:connection`; the check requests — `network:probe`.
 - Link reasons and failure mapping — `connect:issues`; the entry section — `connect:entry`; the confirm dialog — `connect:confirm`.
-- Hiding the shell's top bar, navigation and drawer while this screen is on top, and the exit hint — `app`.
-- The home hero repository line (tested in `app`'s `ConnectViewModelTest`), connect band and hint — `notes`; disconnect, token editing and the repository card — `settings`.
+- Which screens own the chrome and the exit hint — `app:shell-state`; hiding the shell's top bar, navigation and drawer while this screen is on top — `app:shell` and `app:shell-chrome`.
+- The home hero repository line, connect band and hint — `notes:home` (the hero-line test lives in `app:shell-state`, in `ConnectViewModelTest`); disconnect, token editing and the repository card — `settings:repo`.
 
 ## issues — Link checks and failure mapping
 ### Behaviour
-- `linkCheckOf(link)` reads a pasted address with the domain parser and answers either a rejection with one of seven reasons (empty, not https, not a GitHub address, Gist, GitHub Pages address, a single file, owner only or no repository) or the repository, the branch if one is named, and the folder of the notes list (007-repo-connect: RC-2, RC-3).
+- `linkCheckOf(link)` reads a pasted address with the domain parser (`domain:connect-link`) and answers either a rejection with one of seven reasons (empty, not https, not a GitHub address, Gist, GitHub Pages address, a single file, owner only or no repository) or the repository, the branch if one is named, and the folder of the notes list (007-repo-connect: RC-2, RC-3).
 - Each of the seven reasons has its own sentence, so no two reasons read the same (007-repo-connect: RC-3).
 - The found result is the first candidate of the parser: `owner/repo`, its branch only when named (else null, shown as the default branch), and the list's folder, `/` for the repository root (007-repo-connect: RC-2).
 - Only a found result can be submitted.
@@ -52,19 +52,19 @@ decisions: [RC-D53, RC-D57, RC-D59, RC-D63, NT-D31, NT-D32, DEC-21a]
 - A list that cannot be read with a token that sees the repository is the field failure `no list`. A rate limit is its own prompt (007-repo-connect: RC-7).
 - A repository without a notes list is a notice, not a token problem; a broken list file is the bad-list notice; offline and a timeout or server error are the offline and transient notices and change nothing stored (007-repo-connect: RC-9, RC-10, RC-11).
 - The first sync's failures map the same way: offline to the offline notice, token rejected to the field, access denied to the field (with a token) or the token ask (without), rate limit to the prompt, server to the transient notice, bad format to the bad-list notice (007-repo-connect: RC-6, RC-7).
-- Notice wording: no list is this module's sentence (`이 저장소에는 노트 목록이 없습니다. 이 앱은 노트 목록이 있는 저장소만 읽을 수 있습니다.`); bad list, offline and transient are shared sentences from `ui`. Wording tables are in the design note `docs/design/repo-connect.md`.
+- Notice wording: no list is this module's sentence (`이 저장소에는 노트 목록이 없습니다. 이 앱은 노트 목록이 있는 저장소만 읽을 수 있습니다.`); bad list, offline and transient are shared sentences from `ui:token`. Wording tables are in the design note `docs/design/repo-connect.md`.
 ### Public API
 - `linkCheckOf(link)` returning `LinkCheck` (`Rejected(reason)`, `Found(repoName, branch, folder)`); `LinkCheck.canConnect`; `linkReasonRes(reason)`.
 - `issueOfProbe(failure, hadToken)` and `issueOfSync(failure, hadToken)` returning `ConnectIssue` (`NeedsToken`, `Limit`, `TokenField(kind)`, `Notice(kind)`); `ConnectNotice` (`NoList`, `BadList`, `Offline`, `Transient`); `connectNoticeRes(kind)`.
 ### Guarantees
 - Different token failures give different states, the limit gives the prompt, six sync failures map as above, notices are distinct, seven reasons are distinct sentences and the found result shows repository, branch and folder (`ConnectIssueTest`) (007-repo-connect: RC-2, RC-3, RC-5, RC-6, RC-7, RC-9, RC-10, RC-11).
 ### Not covered
-- The parser itself and the probe failures — `domain`; what each HTTP answer means — `network` and `data`.
+- The parser itself — `domain:connect-link`; the probe failures — `domain:connection`; what each HTTP answer means — `network:probe` and `network:contents`.
 - Drawing the boxes — `ui:parts`; the token failure sentences — `ui:token`.
 
 ## entry — Template entry
 ### Behaviour
-- The entry is a section below the link section for a person with no notes repository. It exists only when the app was built with a template repository value; without one the screen is exactly as without the entry and no way buttons appear (007-repo-connect: RC-25, RC-K7).
+- The entry is a section below the link section for a person with no notes repository. It exists only when the app was built with a template repository value; without one the screen is exactly as without the entry and no way buttons appear (007-repo-connect: RC-25, RC-K7) (012-feature-modules: FM-K12).
 - Sections are always link first, then the entry; the link section is never rebuilt when the entry appears or goes. The entry never has a primary button (007-repo-connect: RC-25).
 - The entry shows only while input can still be connected: editing, token card closed and no notice. It hides while checking, during the first sync, with the token card open, offline, on a transient error, a broken list or the no-list box. An open confirm dialog does not change it (007-repo-connect: RC-25).
 - It reads `또는`, `처음이라면 저장소부터 만드세요`, a one-line description and a `저장소 만들기` button that opens and closes a guide (state `안내 펼침` or `안내 접힘`, remembered across rotation) (007-repo-connect: RC-25).
@@ -78,12 +78,12 @@ decisions: [RC-D53, RC-D57, RC-D59, RC-D63, NT-D31, NT-D32, DEC-21a]
 ### Guarantees
 - Visibility over the states, no entry without a template, link first, and the ways only for no-list with a template are fixed by `ConnectEntryTest`; the generate address ends in `/generate` and the introduction address is the repository address (`ConnectViewModelTest`) (007-repo-connect: RC-9, RC-25).
 ### Not covered
-- Where the template value comes from, its validation and the generated addresses — `domain` (`TemplateRepo`) and the app's build configuration (007-repo-connect: RC-26).
+- Where the template value comes from — `app:build`; its validation and the generated addresses — `domain:connect-link` (`TemplateRepo`) (007-repo-connect: RC-26).
 - The template repository and its README — outside the app (008-note-template: NT-5).
 
 ## confirm — Change and take-over dialog
 ### Behaviour
-- When the check passes and the use case says something would be erased, a dialog opens before the first sync; with nothing to erase there is no dialog (007-repo-connect: RC-15).
+- When the check passes and the use case (`domain:connection`) says something would be erased, a dialog opens before the first sync; with nothing to erase there is no dialog (007-repo-connect: RC-15).
 - Change (another repository replaces the connected one): `저장소를 바꿀까요?`, a body with the count of notes loaded from this repository and of bookmarks to remove, and that study records stay; a second sentence `저장된 토큰도 지웁니다.` when the token is dropped; the confirm is `바꾸기`, a solid destructive button (007-repo-connect: RC-15).
 - Take-over (the first connection adopts notes loaded earlier): `저장소를 연결할까요?`, a body naming only the count of earlier notes that the new repository lacks, that their bookmarks go, and that bookmarks and records of notes that remain stay; the confirm is `연결`, a primary button (007-repo-connect: RC-19).
 - The token line is shown for a change only, never for a take-over (007-repo-connect: RC-15, RC-19).
@@ -95,15 +95,15 @@ decisions: [RC-D53, RC-D57, RC-D59, RC-D63, NT-D31, NT-D32, DEC-21a]
 ### Guarantees
 - No dialog for nothing to erase, counts carried over, the token line only when switching, and the adopt kind are fixed by `ConnectConfirmTest` (007-repo-connect: RC-15, RC-19).
 ### Not covered
-- Counting what is erased, the confirm transaction and rollback — `domain` and `data`.
-- The dialog frame — `ui:parts`; the disconnect dialog — `settings`.
+- Counting what is erased, the confirm transaction and rollback — `domain:connection` and `data:connection`.
+- The dialog frame — `ui:parts`; the disconnect dialog — `settings:repo`.
 
 ## reading — Start reading screen
 ### Behaviour
 - A centred column with the app name `MyNote`, a small progress ring and the caption `연결 정보 읽는 중`, inside the safe area on the app background.
 - It is announced as one polite live region. It has no buttons and no back handling of its own.
-- The shell shows it in place of itself while the start branch is still reading, that is, while the connection or the note list is not yet known, or there is no connection and the seed is not yet consumed (007-repo-connect: RC-1).
+- The shell shows it in place of itself (`app:shell-state`) while the start branch is still reading, that is, while the connection or the note list is not yet known, or there is no connection and the seed is not yet consumed (007-repo-connect: RC-1).
 ### Public API
 - `ConnectReadingScreen(modifier)`.
 ### Not covered
-- Deciding the start branch — `app`.
+- Deciding the start branch — `app:shell-state`.

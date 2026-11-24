@@ -10,7 +10,7 @@ decisions: [RD-D4, RC-D33]
 - The scene key is the one given to the strategy, never derived from the detail entry. Choosing another note therefore does not slide the whole screen: only the body changes inside the scene, fading through — the old body fades and moves out over 160 ms, then the new one fades and moves in over 200 ms, 10 dp vertically. (001-reader-foundation: RD-7)
 - The panel opens and closes by expanding and shrinking horizontally from the start with a fade. The scene draws no widths, colours or dividers; the panel, header and expanded state come from the caller as slots.
 - The caller keeps the panel and header slot lambdas stable across compositions; a new lambda each time looks like a different strategy and rebuilds the whole scene. The expanded state is read through a function and is not part of that stability, so folding and unfolding the panel does not recreate the strategy.
-- When the top entry is the connect screen the strategy returns no scene, so the single-pane layout is used: the connect screen is full width without list panel or header even on a wide window, from the root or on top of other screens. The test compares the entry's content key with the default content key of a connect entry, so giving an entry its own content key silently breaks it. (007-repo-connect: RC-14)
+- When the top entry is the connect screen the strategy returns no scene, so the single-pane layout is used: the connect screen is full width without list panel or header even on a wide window, from the root or on top of other screens. The test compares the entry's content key with the default content key of a connect entry, so giving an entry its own content key silently breaks it. (007-repo-connect: RC-14) (012-feature-modules: FM-K6)
 - The editor and the paste screen are not special-cased: on a wide window they sit in the detail pane with the list panel kept, and the shell empties the header slot.
 - A push slides the new scene in from the right (1.05 of its width) while it scales from 0.90 to 1, and the old scene scales to 0.93 and fades to half; it takes 340 ms with an ease-out-style curve. A pop is the reverse: the old scene scales back from 0.93 and fades in, the front scene slides out and scales to 0.90. (001-reader-foundation: RD-18)
 - Predictive back drives the same pop transition by seeking it; there is no separate predictive-back handler. The predictive spec is the pop spec and ignores the swipe edge; it ends fully off screen at progress 1 because a committed gesture continues the same spec to the end, and a spec that stops short would leave the previous screen showing.
@@ -27,7 +27,7 @@ decisions: [RD-D4, RC-D33]
 - Connect is single pane on a wide window at the root, on top, and not when it is not on top; editor and paste keep the detail pane: `ListDetailSceneStrategyTest` (`RC-14` and `LN-3` tests).
 ### Not covered
 - Transition numbers and the corner effect have no test of their own.
-- The panel's width, colours and dividers, the back order and the display itself — `app`; panel content — `notes`.
+- The panel's width, colours and dividers, the back order and the display itself — `app:shell`; panel content — `notes:list-panel`.
 - Registering screens — see `registry`; the shared-element scope inside the scene — see `shared-elements`.
 
 ## registry — Destination registry
@@ -47,8 +47,8 @@ decisions: [RD-D4, RC-D33]
 ### Guarantees
 - A registered connect screen keeps the default content key and stays single pane on a wide window; a double registration stops the build; an unregistered key reaches the fallback; the frame value is passed to registrations: `DestinationsTest`.
 ### Not covered
-- What a frame contains, and drawing the shell around destinations — `ui` (frame contract) and `app`.
-- That every key has a screen: the shell test `ShellDestinationsTest` in `app`.
+- What a frame contains, and drawing the shell around destinations — `ui:shell` (frame contract) and `app:shell`.
+- That every key has a screen: the shell test `ShellDestinationsTest` in `app:shell`.
 - Shared-element behaviour itself — see `shared-elements`.
 
 ## shared-elements — Shared elements
@@ -58,12 +58,12 @@ decisions: [RD-D4, RC-D33]
 - It reads Navigation 3's scope, so it is called only inside an entry; the registry already wraps every destination. In a preview it throws.
 - `navSharedElement(key)` and `navSharedBounds(key)` are modifiers; without the shared-transition scope or the animated scope they return the modifier unchanged, so previews and screens outside the display still draw.
 - `LocalSharedTransitionScope` may be absent; the app shell sets it by wrapping the display in a shared-transition layout.
-- The meaning of the key strings (chip, date and title of a note) is the feature's; this module only wires. The chip, date and title of a card travel into the reader header and back. (001-reader-foundation: RD-13)
+- The meaning of the key strings (chip, date and title of a note) is the feature's; this module only wires. The chip, date and title of a card travel into the reader header and back. (001-reader-foundation: RD-13) (012-feature-modules: FM-K5)
 ### Public API
 - `LocalSharedTransitionScope` — the shared-transition scope, or none.
 - `ProvideNavAnimatedScope { }` — provides the animated scope to its content.
 - `Modifier.navSharedElement(key)` and `Modifier.navSharedBounds(key)`.
 ### Not covered
-- Key naming and which elements are shared — `notes`.
-- Wrapping the display in a shared-transition layout — `app`.
+- Key naming and which elements are shared — `notes:home` and `notes:reader`.
+- Wrapping the display in a shared-transition layout — `app:shell`.
 - There is no unit test of this unit; it needs a Compose host.

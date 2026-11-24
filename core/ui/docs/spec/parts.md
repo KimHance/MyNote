@@ -1,6 +1,6 @@
 ---
 units: [ui:parts, ui:bookmark-time]
-plans: [004-bookmarks, 007-repo-connect]
+plans: [004-bookmarks, 007-repo-connect, 012-feature-modules]
 decisions: [D-23, RC-D46, RC-D49, RC-D62, FM-D9, DEC-15]
 ---
 ## parts — Shared screen parts
@@ -18,8 +18,8 @@ decisions: [D-23, RC-D46, RC-D49, RC-D62, FM-D9, DEC-15]
 - `VerifyingLine` is a ring, a line of text and an optional trailing control, such as `취소` (007-repo-connect: RC-24).
 - `ActionDialog` is a title (heading), a body and two buttons, `취소` and a confirm that is solid red when destructive and primary otherwise; the buttons are right-aligned and wrap to a second line when narrow, and long text scrolls.
 - `GlassDialog` is the frame under `ActionDialog` and the device-note dialogs: inside the safe area with a 24 dp margin, a glass panel with radius 26 and width at most 420 dp, centred, with the content stacked inside padding. It does not sample a backdrop, so no glass samples itself.
-- `openExternal(context, url)` opens a browser app: the default browser, else Chrome, else the first browser found; a default that is the system chooser is skipped so apps that claim the address are not offered. If starting that browser fails it falls back to a plain view intent; it returns false when nothing could open (007-repo-connect: RC-8).
-- Finding browsers needs the `<queries>` entry in this module's manifest; without it the browser pick silently becomes a plain open.
+- `openExternal(context, url)` opens a browser app: the default browser, else Chrome, else the first browser found; a default that is the system chooser is skipped so apps that claim the address are not offered. If starting that browser fails it falls back to a plain view intent; it returns false when nothing could open (007-repo-connect: RC-8) (012-feature-modules: FM-K13).
+- Finding browsers needs the `<queries>` entry in this module's manifest; without it the browser pick silently becomes a plain open (012-feature-modules: FM-K13).
 - `TOKEN_PAGE_URL` is the GitHub new fine-grained token page.
 - `ConnectIcons` are seven hand-drawn stroke icons: folder, download, lock, external, chevron down, chevron up, alert.
 ### Public API
@@ -33,7 +33,7 @@ decisions: [D-23, RC-D46, RC-D49, RC-D62, FM-D9, DEC-15]
 ### Not covered
 - The token state, drafts and failure sentences — `ui:token`.
 - Which screen shows which box or dialog — `connect`, `settings`, `notes`, `editor`.
-- The glass material and theme tokens — `design-system`.
+- The glass material — `design-system:glass-nav`; the colour and radius tokens — `design-foundation:palette`.
 - Model card tones and the preview frame — `ui:model-status`.
 
 ## bookmark-time — Bookmark time label
@@ -49,5 +49,5 @@ decisions: [D-23, RC-D46, RC-D49, RC-D62, FM-D9, DEC-15]
 ### Guarantees
 - Today, yesterday, this year, another year, New Year's edge and time-zone dependence are fixed by `BookmarkTimeKindTest` (004-bookmarks: BM-11).
 ### Not covered
-- Storing and ordering bookmarks — `database` and `domain`.
-- The bookmarks screen that draws the label — `notes`; the stats list reuses it — `stats`.
+- Storing bookmarks — `database:bookmarks`; the repository contract — `domain:bookmarks`; ordering — `notes:bookmarks`.
+- The bookmarks screen that draws the label — `notes:bookmarks`; the stats list reuses it — `stats:screen`.

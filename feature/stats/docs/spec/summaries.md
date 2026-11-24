@@ -28,14 +28,14 @@ decisions: []
 - Calendar-date differences and the time zone decide the meta (`GeneratedAgoTest`).
 - The card keeps its line counts in the title font (`TitleFontScreensTest` in `app`) (010-brand: BR-8).
 ### Not covered
-- Writing summaries and patterns, their guards (no digits, Korean, length) and when the worker runs — `ai` and `domain`.
-- Rows from another model or output version are filtered before they reach the card — `database`.
+- Writing summaries and patterns and their guards (no digits, Korean, length) — `ai:insight-generation`; when the worker runs — `ai:insight-worker` and `domain:insights`.
+- Rows from another model or output version are filtered before they reach the card — `database:insights`.
 - The pattern card's place in the quiz section — see `screen`.
 
 ## history — Past summaries
 ### Behaviour
 - Past summaries opens from the summary card's meta button and is a back-stack screen; back pops it (005-stats: ST-22).
-- The list starts with "주마다 마지막으로 정리한 요약 하나를 남깁니다." and then one row per week as the domain gives it: from the first record to this week, at most 52, newest first (005-stats: ST-22).
+- The list starts with "주마다 마지막으로 정리한 요약 하나를 남깁니다." and then one row per week as `domain:insights` gives it: from the first record to this week, at most 52, newest first (005-stats: ST-22).
 - A row shows the week's date range, an "이번 주" chip on the current week, the headline in at most two lines or "이 주에는 요약이 없습니다.", and the week's numbers "노트 N개 · M분 · 정답률 A%" or "노트 N개 · M분 · 퀴즈 0회" when no question was asked (005-stats: ST-22).
 - The numbers are the week's own recomputed figures (this week so far), not the summary's (005-stats: ST-22).
 - A row with a summary toggles open and closed (chevron turns over 200 ms, height animates over 240 ms, instant with reduced motion) and then shows the full headline, the detail, the focus chip and the generated date (005-stats: ST-22).
@@ -47,7 +47,7 @@ decisions: []
 ### Public API
 - None — the screen is registered through `statsDestinations` in `screen`.
 ### Not covered
-- Building the week rows and their figures — `domain`.
-- The top bar with the back arrow, the title "지난 요약" and no refresh button — the `app` shell.
+- Building the week rows and their figures — `domain:insights`.
+- The top bar with the back arrow, the title "지난 요약" and no refresh button — `app:shell`.
 ### Unconfirmed
 - No automated test drives the past-summaries screen; the row rules above are read from the code.

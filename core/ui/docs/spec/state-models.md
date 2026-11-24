@@ -27,8 +27,8 @@ decisions: [SC-D5]
 ### Guarantees
 - Card actions, help text, retry wording, the notification hint, legacy failure, pill shape, busy states, gigabyte format and each call-to-action branch are fixed by `ModelStatusUiTest` and `QuizCtaUiTest` (the second class lives in the same file).
 ### Not covered
-- Downloading, verifying, notifications and the status itself — `ai` and `domain`.
-- Drawing the card and its two-line button wrap — `settings`; drawing the pill and the reader-end card — `notes` and `quiz`.
+- Downloading and verifying — `ai:download-transfer`; notifications — `ai:download-work`; the status itself — `domain:quiz-model`.
+- Drawing the card and its two-line button wrap — `settings:model`; drawing the pill — `app:shell-chrome` and `design-system:glass-nav`; drawing the reader-end card — `quiz:cta`.
 - The `최대 N문제` subtitle argument and the percent argument are supplied by the drawing screens.
 
 ## repo-card — Repository card state
@@ -45,7 +45,7 @@ decisions: [SC-D5]
 ### Guarantees
 - The state mapping, badge rule, token line and the six distinct kinds are fixed by `RepoCardTest` (007-repo-connect: RC-13) (006-sync: SY-5).
 ### Not covered
-- Drawing the card, `바꾸기` and `끊기` — `settings`.
+- Drawing the card, `바꾸기` and `끊기` — `settings:repo`.
 - Holding the last result across screens — `ui:signal` (`LastSyncHolder`).
 - Failure kinds of the connect flow — `connect:issues`.
 
@@ -65,5 +65,5 @@ decisions: [SC-D5]
 ### Guarantees
 - No token in string forms, classic warning and clearing are fixed by `TokenDraftTest`; the once-per-reset rule by `NotesDraftsTest`.
 ### Not covered
-- Drawing the field and guidance — `ui:parts`; deciding failures — `connect:issues` and `settings`.
-- Storing a token — `data` and `database`; masking a saved token — `settings`.
+- Drawing the field and guidance — `ui:parts`; deciding failures — `connect:issues` and `settings:repo`.
+- Storing a token — `data:records` and `database:prefs`; masking a saved token — `settings:repo`.

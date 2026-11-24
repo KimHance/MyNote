@@ -22,8 +22,8 @@ decisions: [BR-D4]
 - `MyNoteEasing`, `MyNoteExitEasing` — the standard and exit curves.
 - `rememberReduceMotion()` — whether animations should be skipped.
 ### Not covered
-- The palette, text style list, radius and adaptive token values (page paddings included) — `design-foundation`, described in DESIGN.md.
-- Deciding the window and height class from the container size — the app screen root.
+- The palette and radius values — `design-foundation:palette`; the text style list — `design-foundation:typography`; adaptive token values, page paddings included — `design-foundation:adaptive`; all described in DESIGN.md.
+- Deciding the window and height class from the container size — `app:shell`.
 - Choosing the title font — see `font`.
 ### Unconfirmed
 - Whether the app wraps `MyNoteTheme` in exactly one place at the screen root was not checked; the intent is a single wrap.
@@ -33,10 +33,10 @@ decisions: [BR-D4]
 - The title font is Gothic A1 weight 700, received at run time from the Google Play services font provider; no font file is in the APK (010-brand: BR-8).
 - The font is decided once per process: it is used if it arrives before the wait ends, otherwise the device font is used for the whole process; a font that arrives late is dropped (010-brand: BR-8).
 - Download and provider check start together. No provider, a failed download or an exception (other than cancellation) gives the device font at once, without waiting for the end of the wait (010-brand: BR-8).
-- The wait ends at the later of the first app frame being ready and the end of the launch lamp animation; the app passes that wait in (010-brand: BR-8).
+- The wait ends at the later of the first app frame being ready and the end of the launch lamp animation; the app (`app:launch`) passes that wait in (010-brand: BR-8).
 - The time left until the lamp ends is measured from the launch request: process start on a cold start (screen created less than 5 seconds after process start), the screen creation time otherwise. It can be negative, meaning no wait (010-brand: BR-8).
 - The family is loaded as a ready typeface, so it never changes while a screen is drawn; the provider answers on the calling thread's looper, so loading runs on a separate looper thread instead of the main thread (010-brand: BR-8).
-- A name other than Gothic A1 can be given when building the source; the app uses this for a debug build that simulates a font that cannot be received.
+- A name other than Gothic A1 can be given when building the source; `app:launch` uses this for a debug build that simulates a font that cannot be received.
 - Nothing here shows an error or blocks: every failure path ends in the device font.
 - A second `decide` call returns the first result whatever source it passes; concurrent callers wait for the first to finish.
 ### Public API
@@ -49,9 +49,9 @@ decisions: [BR-D4]
 ### Guarantees
 - Within the cap the font is Gothic A1; failure, lateness or no provider gives the device font; a decided font never changes; remaining time follows the launch request: `TitleFontGateTest`.
 ### Not covered
-- Which text styles are title styles and their line-height rules — `design-foundation` and DESIGN.md.
-- Starting the decision and handing the family to the theme — the app main activity; see `theme` for `ProvideTitleFontFamily`.
-- The splash and lamp animation themselves — the app.
+- Which text styles are title styles and their line-height rules — `design-foundation:typography` and DESIGN.md.
+- Starting the decision and handing the family to the theme — `app:launch`; see `theme` for `ProvideTitleFontFamily`.
+- The splash and lamp animation themselves — `app:launch`.
 
 ## modifiers — Press, rise, flip and fade modifiers
 ### Behaviour
@@ -80,4 +80,4 @@ decisions: [BR-D4]
 ### Not covered
 - The glass navigation press look (the `glass-nav` bar and rail draw their own pill and deliberately do not use `PressIndication`; the scroll-to-top button does).
 - When to run or skip a motion for reduced motion — callers, using `rememberReduceMotion` from `theme`.
-- The throttle clock and rule itself — `common`.
+- The throttle clock and rule itself — `common:throttle`.

@@ -16,14 +16,14 @@ decisions: [MD-D1, MD-D4, MD-D5, MD-D6, MD-D8, MD-D13, MD-D16, MD-D18, MD-D19, B
 - `discardPartial` deletes the piece and any plan file and refreshes the status.
 - `deleteModel` first cancels the statistics work, releases the engine, deletes the installed file, clears all notifications and refreshes the status (003-model-download: MD-10).
 - The status flow follows the first unfinished work, else the latest one, and emits only on change.
-- When the app goes to the background, `notifyResting` posts the notification for a resting state (waiting, retrying). The app coordinator calls `settleNotices` to remove notifications that no longer match a status (003-model-download: MD-11).
-- No retry cap here; the notification permission is asked by the screen that starts the download, not by this unit.
+- When the app goes to the background, `notifyResting` posts the notification for a resting state (waiting, retrying). The app coordinator (`app:download`) calls `settleNotices` to remove notifications that no longer match a status (003-model-download: MD-11).
+- No retry cap here; the notification permission is asked by the screen that starts the download (`app:shell`), not by this unit.
 ### Public API
 - `ModelDownloads` — the `QuizModelSource` implementation: `status()`, `start()`, `cancel()`, `discardPartial()`, `deleteModel()`; plus `settleNotices(status)` and `notifyResting()` for the app's coordinator.
 ### Guarantees
 - Mapping from work and file facts to a status is fixed by `DownloadFactsTest` (in `ai:download-decision`). There is no unit test of `ModelDownloads` itself.
 ### Not covered
-- The model card, the quiz card's download chip and the permission request — `settings`, `ui`.
+- The model card — `settings:model`; the quiz card's download chip — `ui:model-status` and `quiz:cta`; the permission request — `app:shell`.
 - Fetching and verifying — `ai:download-transfer`; the worker — `ai:download-work`.
 
 ## download-decision — Download decisions
@@ -84,10 +84,10 @@ decisions: [MD-D1, MD-D4, MD-D5, MD-D6, MD-D8, MD-D13, MD-D16, MD-D18, MD-D19, B
 - Notifications use the low-importance channel `quiz_model_download`; working ones are ongoing and silent, results are not ongoing and close on tap. A tap opens settings when the app supplied that intent, else the launcher; the cancel action needs the work's cancel intent and the retry action the app's retry intent, and an action is left out when its intent is absent (003-model-download: MD-K11).
 - The retry notification's small icon is a still Material Icons `downloading` (Apache-2.0); the platform download icon, which animates, is used for the other progress notices (waiting, preparing, downloading, verifying) (003-model-download: MD-9).
 ### Public API
-- `ModelDownloadIntents` — the app supplies `retry()` and `openSettings()` pending intents for the notification; optional (the module works without it).
+- `ModelDownloadIntents` — the app (`app:download`) supplies `retry()` and `openSettings()` pending intents for the notification; optional (the module works without it).
 ### Guarantees
 - State to notification, one at a time, no leftover notifications and the stop reasons are fixed by `DownloadNoticesTest`; failure wording by `DownloadNotificationsTest`. The worker and the notification builder are not unit-tested; they are checked on a device.
 ### Not covered
 - Deciding what to download and verifying it — `ai:download-transfer`.
-- The pill, the model card and their wording — `settings`, `ui`.
-- The notification permission request — the screen that starts a download.
+- The pill, the model card and their wording — `ui:model-status` (state to wording), `settings:model` (card) and `app:shell-chrome` (pill).
+- The notification permission request — `app:shell`.

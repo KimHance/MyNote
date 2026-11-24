@@ -10,7 +10,7 @@ decisions: [RD-D3, RD-D6, BM-D2, RC-D8, FM-D7, FM-D8, FM-D11, FM-D12, FM-D14, FM
 - Back pops the navigator. Only a pop that the navigator ignores (nothing to pop) counts toward exit: the first press raises an exit hint, a second press less than 1000 ms later raises an exit request, a press after the window raises the hint again (012-feature-modules: FM-9) (001-reader-foundation: RD-17).
 - A pop the navigator drops because a move landed less than 360 ms earlier does nothing here and is not an exit press (001-reader-foundation: RD-16).
 - A hint id that the screen has reported as shown reads 0 afterwards, so it is not shown again after recreation; the next press raises a new id (012-feature-modules: FM-9).
-- Tab switch dispatches the tab-switch command computed from the current stack through the throttled path; open settings goes through the shared open-settings helper of `:core:ui`.
+- Tab switch dispatches the tab-switch command computed from the current stack through the throttled path; open settings goes through the shared open-settings helper (`ui:signal`).
 - Text-size scale and model status are observed lazily; a read failure falls back to the normal scale and to the missing model. Connection is observed eagerly; a read failure falls back to no connection.
 - Each distinct connection value after the first is a connection change; the first value and a repeat of the same value clean nothing (007-repo-connect: RC-23).
 - On a connection change the stack is replaced by Home alone at once, also when the open reader was a device note; the quiz overlay is dismissed unless old and new are both connections to the same source; last-sync is set to succeeded for a connection and to none otherwise (007-repo-connect: RC-23, RC-17) (012-feature-modules: FM-6).
@@ -18,7 +18,7 @@ decisions: [RD-D3, RD-D6, BM-D2, RC-D8, FM-D7, FM-D8, FM-D11, FM-D12, FM-D14, FM
 - Start decision: reading while the connection is unknown or the notes are not loaded yet, and while there is no connection and the seed is still pending; every other case is the shell (007-repo-connect: RC-1).
 - The notes count that feeds the decision includes repository and device notes; zero notes without a connection is the shell with the home first-run empty state, never a connect screen (013-local-notes: LN-1) (007-repo-connect: RC-1).
 - A top screen that draws its own top bar (connect, editor, paste) is reported as owning the chrome; the shell then hides top bar, drawer gestures, floating nav and model pill (007-repo-connect: RC-14).
-- The selected tab is the last Home, Bookmarks or Stats key on the stack, Home when none.
+- The selected tab is the last Home, Bookmarks or Stats key on the stack, Home when none (004-bookmarks: BM-8) (012-feature-modules: FM-K3).
 - The reader-end card sends one of four targets: open quiz setup with note id and category, ask to confirm the model download, open settings through the shell, or start the download through settings (012-feature-modules: FM-6).
 - Scroll-to-top is allowed only when scrolled and no quiz is open, no chrome-owning screen is on top and no token is being edited.
 - An intent handler that throws is logged through the failure log and the state stays as it was (001-reader-foundation: RD-21).
@@ -34,8 +34,8 @@ decisions: [RD-D3, RD-D6, BM-D2, RC-D8, FM-D7, FM-D8, FM-D11, FM-D12, FM-D14, FM
 - `ShellViewModelTest` proves the double-back exit window and that a stacked connect screen pops while the first-screen Home gives the exit hint.
 - `HomeBodyTest`, `FeatureSignalsTest`, `NotesViewModelTest`, `ConnectViewModelTest` and `ConnectIssueTest` live here because they need the shell and a feature together: signals between features (ten paths; the permission re-read is checked by hand), one sync for many subscribers, the hero repository line for confirmed connections only, and equal token-failure branches in settings and the connect screen. `FeatureFixture` builds the shell and feature ViewModels on one navigator and one set of signal holders.
 ### Not covered
-- Note list, search, bookmarks, quiz and token state — `notes`, `quiz` and `settings` modules.
-- Stack rules, throttling and tab-switch command — `navigation` module.
+- Note list, search, bookmarks and the reading record — `notes:state`; quiz state — `quiz:session`; token state — `settings:repo`.
+- Stack rules and throttling — `navigation:navigator`; the tab-switch command — `navigation:commands`.
 - Drawing the reading screen or the shell — `app:shell`.
 
 ## shell — Shell frame and back order
@@ -51,7 +51,7 @@ decisions: [RD-D3, RD-D6, BM-D2, RC-D8, FM-D7, FM-D8, FM-D11, FM-D12, FM-D14, FM
 - The start branch shows the reading screen or the shell. The editor host (file picker launcher and dialogs) is composed above the branch, so a pick result always has a place to return to (013-local-notes: LN-6).
 - The model-download confirm dialog is composed above the branch too; its open state survives rotation; confirming starts the download through the permission step above.
 - A window-class change switches between the modal-drawer form and the fixed-panel form and rebuilds `NavDisplay`; reader scroll per note, source expansion and the token draft live above that branch and survive it (012-feature-modules: FM-4).
-- Back is taken in this order, highest first: open drawer, quiz overlay, swallow during a transition, pop, opening drawer, expanded fixed panel, root exit hint (012-feature-modules: FM-10) (001-reader-foundation: RD-17).
+- Back is taken in this order, highest first: open drawer, quiz overlay, swallow during a transition, pop, opening drawer, expanded fixed panel, root exit hint (012-feature-modules: FM-10, FM-K2) (001-reader-foundation: RD-17) (013-local-notes: LN-K5).
 - The order is the compose order inside `NotesShell.kt`; moving a handler to another file or to a multibinding set silently reorders it (012-feature-modules: FM-5).
 - While a changed editor is on top, back asks the leave confirmation instead of popping; the guard sits after `NavDisplay` so it beats the pop without a predictive preview, and before the swallow so a transition in progress still swallows (013-local-notes: LN-10).
 - The scaffold content sits in a child back dispatcher that is off while the drawer is open, so the drawer's own handler receives back; the flag is applied in the same frame, because a one-frame delay lets a pop win right after opening or leaves nobody after closing.
@@ -67,10 +67,10 @@ decisions: [RD-D3, RD-D6, BM-D2, RC-D8, FM-D7, FM-D8, FM-D11, FM-D12, FM-D14, FM
 - Five registrations cover the nine destination keys: notes (Home, Bookmarks, Reader), stats (Stats, StatsHistory), settings (Settings), connect (Connect), editor (Editor, Paste); registering a key twice stops at build time of the bundle (012-feature-modules: FM-4).
 - A registered screen gets only frame values from the shell: insets, two-pane flag, stacked-scene flag, scroll holders, token draft, snackbar host. Its own state and entry points, and screen-only values (has connection, shell back, notification settings), are separate parameters of its registration function (012-feature-modules: FM-4).
 - A registered screen reads only its own feature's state, so another feature's change does not redraw it; the entry provider is built once for a frame and destination set, and no per-destination ViewModel decorator is used.
-- The notes registration exposes a reader-end slot with the note id; the shell fills it with the quiz card showing the quiz model status (012-feature-modules: FM-6).
+- The notes registration exposes a reader-end slot with the note id; the shell fills it with the quiz card (`quiz:cta`) showing the quiz model status (012-feature-modules: FM-6).
 - Two-pane content needs window width minus the expanded fixed panel, minus two page paddings, minus the rail reserve to be at least 640 dp; the panel counts only in the fixed-panel form (004-bookmarks: BM-16).
-- Content reserves 92 dp plus the navigation inset at the bottom for the floating bar, or only the navigation inset with a rail; in rail form the end padding reserves the rail's right margin, end inset, width and a 12 dp gap, less the page padding.
-- Screen transitions, the shared-element scope and predictive back come from `:core:navigation`; the shell passes them to `NavDisplay` unchanged (001-reader-foundation: RD-18).
+- Content reserves 92 dp plus the navigation inset at the bottom for the floating bar, or only the navigation inset with a rail; in rail form the end padding reserves the rail's right margin, end inset, width and a 12 dp gap, less the page padding (004-bookmarks: BM-17).
+- Screen transitions (`navigation:scenes`) and predictive back come from `:core:navigation`; the shell wraps `NavDisplay` in a shared-transition layout and provides its scope (`navigation:shared-elements`), and passes the transitions to `NavDisplay` unchanged (001-reader-foundation: RD-18).
 ### Public API
 - `NotesRoute()` — the Compose root that `MainActivity` calls; everything else in the shell is internal.
 ### Guarantees
@@ -80,8 +80,8 @@ decisions: [RD-D3, RD-D6, BM-D2, RC-D8, FM-D7, FM-D8, FM-D11, FM-D12, FM-D14, FM
 - `NotesLayoutTest` proves two-pane at 1280 dp with the panel open, one pane with the panel open and two panes when it is folded at 852 dp and 891 by 411 dp, and one pane on a 443 dp Compact portrait phone with the panel open or folded.
 ### Not covered
 - Feature screens and their ViewModels — the six feature modules.
-- Token-edit back cancels the edit inside settings, and a dialog receives back in its own window — `settings` module and platform.
-- Stack mechanics, scenes and transitions — `navigation` module; glass components and floating bar drawing — `design-system` module.
+- Token-edit back cancels the edit inside settings, and a dialog receives back in its own window — `settings:repo` and the platform.
+- Stack mechanics — `navigation:navigator`; scenes and transitions — `navigation:scenes`; glass components and floating bar drawing — `design-system:glass-nav`.
 - Model pill, floating nav, scroll-to-top and reader effects — `app:shell-chrome`.
 
 ## shell-chrome — Floating chrome and reader effects
@@ -103,6 +103,6 @@ decisions: [RD-D3, RD-D6, BM-D2, RC-D8, FM-D7, FM-D8, FM-D11, FM-D12, FM-D14, FM
 - `ModelPillTest` proves a busy-to-ready transition raises the ready pill and a first-seen ready or non-ready status does not.
 - `ReaderScrollEffectsTest` proves the percentage: none before measurement, 100 when it fits, one viewport at the top, 100 at the end and rounded down in between.
 ### Not covered
-- The glass bar, rail, pill and button drawing — `design-system` module; which status text the pill shows — `ui` module.
-- The tab-switch rules — `navigation` module.
-- Where the progress is stored — `stats` and `notes` modules.
+- The glass bar, rail, pill and button drawing — `design-system:glass-nav`; which status text the pill shows — `ui:model-status`.
+- The tab-switch rules — `navigation:commands`.
+- What happens to the progress after it is sent — `notes:state` (feeds the tracker), `domain:study-log` (keeps the largest share) and `database:study-log` (stores it).

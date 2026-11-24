@@ -26,7 +26,7 @@ decisions: [NT-D15, FM-D15, DEC-19]
 - `hancenote.*` plugin ids — as listed above; module build files use the catalog aliases.
 - Plugin classes `AndroidApplicationConventionPlugin`, `AndroidApplicationComposeConventionPlugin`, `AndroidLibraryConventionPlugin`, `AndroidLibraryComposeConventionPlugin`, `AndroidFeatureConventionPlugin`, `HiltConventionPlugin`, `AndroidRoomConventionPlugin`, `JvmLibraryConventionPlugin` — public classes behind the ids; nothing calls them directly.
 ### Guarantees
-- The module boundary rules that read this source (no feature-to-feature dependency, no data layer in features) are checked by the Python suite in `notes-tests/test_feature_modules.py`, not by Gradle.
+- The module boundary rules that read this source (no feature-to-feature dependency, no data layer in features) are checked by the Python suite in `notes-tests/test_feature_modules.py`, not by Gradle (012-feature-modules: FM-3).
 ### Not covered
 - SDK levels, Java target, desugaring, Compose dependencies and the version catalog accessor — see `shared-config`.
 - Release signing — see `signing`. Test input folders — see `test-inputs`. Ktlint setup — see `ktlint`.
@@ -83,7 +83,7 @@ decisions: [NT-D15, FM-D15, DEC-19]
 ### Public API
 - `Project.configureRepoTestInputs()` — wires the inputs for the properties the module set; called by the library and JVM library plugins.
 ### Not covered
-- The tests that read those folders — modules `data` and `format`.
+- The tests that read those folders — `data:sync` and `format:note-format`.
 
 ## ktlint — Ktlint convention
 ### Behaviour

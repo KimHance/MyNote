@@ -27,12 +27,12 @@ decisions: [BM-D17, FM-D13]
 - `LastSyncHolder` — singleton: `value` flow of `LastSync`, `set(next)`.
 - `SharedTextInbox` — singleton: `pending` flow, `put(text, subject)`, `putFile(uri, subject)`, `putRefused(subject)`, `take(id)`; `SharedText` is the value (`text`, `subject`, `id`, `uri`, `refused`).
 ### Guarantees
-- The signal paths between features are fixed by `FeatureSignalsTest` in `app`, `settings` and `quiz` (names starting `FM-6`).
+- The signal paths between features are fixed by `FeatureSignalsTest` in `app:shell-state`, `settings:settings` and `quiz:session` (names starting `FM-6`).
 - The inbox gives one share once and replaces untaken ones, shown through the editor ViewModel (`EditorViewModelTest`); refusing a stale id has no test of its own.
 ### Not covered
-- Tab kinds, the open-reader command and the tab-switch command — `navigation`.
-- Who opens the import sheet and reads a shared file — `editor`.
-- Writing the last sync result (sync subscription) — `notes`; showing it — `repo-card` and `settings`.
+- Tab kinds, the open-reader command and the tab-switch command — `navigation:commands`.
+- Who opens the import sheet and reads a shared file — `editor:session`.
+- Writing the last sync result (sync subscription) — `notes:state`; showing it — `ui:repo-card` and `settings:repo`.
 
 ## notices — Snackbar notices and failure log
 ### Behaviour
@@ -42,7 +42,7 @@ decisions: [BM-D17, FM-D13]
 - A notice is a message, an optional undo and an id. The undo is the intent of the feature that raised it and is sent back to that feature (004-bookmarks: BM-12) (012-feature-modules: FM-16).
 - One-shot screen signals are `Error`, `Info`, `Notice`, `QuizUndo` and `ExitHint`. A screen draws a signal once: `unseen(signal, id)` gives the id when it was not shown yet and 0 when the map already holds that id for that signal; kinds are counted separately (012-feature-modules: FM-K11).
 - `FailureLog` is the seam ViewModels use to report an unexpected exception with a tag and a message; the Android implementation writes an error line to the system log, with no crash reporting and no retry.
-- The Android implementations take `Application`, not an injected context, because the graph is built by `app` without the Hilt Android plugin here.
+- The Android implementations take `Application`, not an injected context, because the graph is built by `app:di` without the Hilt Android plugin here.
 ### Public API
 - `NotesMessages` — interface of the thirteen wording functions; `AndroidNotesMessages` — resource-backed implementation.
 - `FailureLog` — functional interface `failed(tag, message, cause)`; `AndroidFailureLog` — logs with `Log.e`.
@@ -51,7 +51,7 @@ decisions: [BM-D17, FM-D13]
 ### Guarantees
 - A shown signal is not drawn again, a new id is drawn even if an older one was shown, and kinds do not interfere (`NotesSignalTest`).
 ### Not covered
-- Which snackbar a screen shows and when (home refresh, bookmark undo, quiz quit undo) — `notes`, `quiz`, `settings`.
-- Binding of the implementations — `app`.
+- Which snackbar a screen shows and when (home refresh, bookmark undo, quiz quit undo) — `notes:state`, `quiz:session`.
+- Binding of the implementations — `app:di`.
 ### Unconfirmed
-- That callers show the sync-applied notice only when something changed; that rule lives in `notes`, not here.
+- That callers show the sync-applied notice only when something changed; that rule lives in `notes:state`, not here.

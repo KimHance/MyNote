@@ -1,6 +1,6 @@
 ---
 units: [notes:home, notes:list-panel]
-plans: [001-reader-foundation, 004-bookmarks, 007-repo-connect, 010-brand, 013-local-notes]
+plans: [001-reader-foundation, 004-bookmarks, 007-repo-connect, 010-brand, 012-feature-modules, 013-local-notes]
 decisions: [RC-D44, RC-D52, BR-D3, LN-D4, LN-D8, LN-D13, DEC-16]
 ---
 ## home — Home
@@ -8,7 +8,7 @@ decisions: [RC-D44, RC-D52, BR-D3, LN-D4, LN-D8, LN-D13, DEC-16]
 ### Behaviour
 - With at least one note, home is one grid: an optional connect band, the hero, an entry row, the label "최근 노트", then one card per note, newest date first (001-reader-foundation: RD-5).
 - The grid fills the width from the card minimum width of the window class and never uses a fixed column count; from the Expanded class up it is capped at the reading width (001-reader-foundation: RD-6).
-- A card shows the category chip, the date and the title; pressing it opens the reader; chip, date and title travel to the reader as shared elements keyed by note id (001-reader-foundation: RD-13).
+- A card shows the category chip, the date and the title; pressing it opens the reader; chip, date and title travel to the reader as shared elements keyed by note id (001-reader-foundation: RD-13) (012-feature-modules: FM-K5).
 - A bookmarked note's card carries the corner ribbon; a device note's card carries the source mark; repository notes carry neither (004-bookmarks: BM-5) (013-local-notes: LN-5).
 - The hero shows the app title, the connected repository's canonical name when a connection is confirmed and no repository line otherwise, and a short hint (010-brand: BR-6).
 - The hint differs by window: Compact tells the person to open the list with the menu button, wider windows point at the fixed list on the left (001-reader-foundation: RD-5).
@@ -36,10 +36,10 @@ decisions: [RC-D44, RC-D52, BR-D3, LN-D4, LN-D8, LN-D13, DEC-16]
 - The empty-state title style is proven by `EmptyStateTitleTest` (010-brand: BR-8).
 
 ### Not covered
-- The hero art, note card, chips and ribbon drawing — `design-system`.
+- The hero art — `design-system:brand`; the note card, its chip and ribbon drawing — `design-system:widgets`.
 - Where notes, connection and sync state come from — `notes:state`.
-- The connect screens opened by the band and the quiet button — `connect`.
-- Start branch (loading, home, connect root) and the floating navigation — `app:shell-state`.
+- The connect screen opened by the band and the quiet button — `connect:flow`.
+- The start decision (reading screen or the shell; connect is never a start result) — `app:shell-state`; the floating navigation — `app:shell-chrome`.
 - No UI test in this module draws these screens; visual rules are checked by hand and by previews.
 
 ## list-panel — List panel
@@ -67,6 +67,6 @@ decisions: [RC-D44, RC-D52, BR-D3, LN-D4, LN-D8, LN-D13, DEC-16]
 
 ### Not covered
 - The drawer, fixed pane, fold button and back handling around the panel — `app:shell`.
-- Row, search field and fade widgets — `design-system`.
+- Row and search field widgets — `design-system:widgets`; the edge fade — `design-system:modifiers`.
 - Search matching and expand storage — `notes:state`.
 - Persistence: the query and the expand choices live in view-model state only and are not saved across process death.

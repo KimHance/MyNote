@@ -19,7 +19,7 @@ decisions: [LN-D9]
 - Preview returns the blocks the reader would draw after saving, parsed off the main thread by the same route and rules as a saved note (013-local-notes: LN-3).
 - A note date is shown and parsed as `YYYY.MM.DD`, the shape repository notes use. Surrounding whitespace is trimmed first; a text that is then not exactly that shape or not a real day (`2026.02.30`, `2026-10-04`, `2026.1.4`) parses to nothing (013-local-notes: LN-4).
 - Import has three entries and none of them creates a note: shared text and pasted text go through one call, a picked file through another. A result is either a prefilled draft to open in the editor, a rejection with a reason, or dismissed (013-local-notes: LN-6).
-- Text import is judged in this order: original over 512 KB (524,288 bytes accepted, 524,289 rejected) is too large, then blank is empty; otherwise the rules (in `format`) fill the draft: line ends and a byte-order mark are tidied, then front-matter title and date, then a first `# ` heading line, then the name hint, with today as the fallback date (013-local-notes: LN-6, LN-7).
+- Text import is judged in this order: original over 512 KB (524,288 bytes accepted, 524,289 rejected) is too large, then blank is empty; otherwise the rules (in `format:device-note`) fill the draft: line ends and a byte-order mark are tidied, then front-matter title and date, then a first `# ` heading line, then the name hint, with today as the fallback date (013-local-notes: LN-6, LN-7).
 - File import checks, in order: no file chosen is dismissed with no message; a display name whose extension is not `.md` or `.markdown` (case ignored) or that is missing is an unsupported type, before any read; then the read. A read that returns too large or not UTF-8 is rejected as such; any other failure while naming or reading, such as lost permission or a vanished file, is unreadable; cancellation is not swallowed (013-local-notes: LN-7).
 - The name hint of a file is its display name without the extension (`a.b.Markdown` gives `a.b`); a blank hint is passed as none. For shared text the hint is the share subject, and pasted text has none (013-local-notes: LN-6).
 - There are exactly five rejection reasons, each with its own message to the person: empty, not UTF-8, too large, unreadable, unsupported type (013-local-notes: LN-7).
@@ -28,15 +28,15 @@ decisions: [LN-D9]
 - `DeviceNoteDraft`, `DraftCheck` (`canSave`), `DeviceNoteDraft.check(text)`, `InvalidDraftException` — the editor value and its check.
 - `DeviceNoteFields` (`MAX_LENGTH`, `singleLine`, `title`, `group`) and `NoteDates` (`format`, `parse`) — the field and date rules.
 - `ImportOutcome` (`Ready`, `Rejected`, `Dismissed`), `ImportRejection`, `FileText` (`Read`, `TooLarge`, `NotUtf8`), `ImportFileTypes` (`accepts`, `stem`).
-- `DeviceNotesRepository` — `create`, `update`, `delete`, `load`, `preview`; implemented in `data`.
-- `DeviceNoteText` — `fits`, `rawFits`, `imported`; implemented in `format` and provided by `data`.
-- `NoteFileReader` — `displayName`, `read`; implemented in `data`.
+- `DeviceNotesRepository` — `create`, `update`, `delete`, `load`, `preview`; implemented in `data:device-notes`.
+- `DeviceNoteText` — `fits`, `rawFits`, `imported`; implemented in `format:device-note` and provided by `data:data`.
+- `NoteFileReader` — `displayName`, `read`; implemented in `data:device-notes`.
 - `CheckDeviceNoteDraftUseCase`, `SaveDeviceNoteUseCase`, `DeleteDeviceNoteUseCase`, `LoadDeviceNoteUseCase`, `PreviewDeviceNoteUseCase`, `ImportNoteUseCase` (`text`, `file`).
 ### Guarantees
 - The 200-character one-line rule, blank and size checks, the default group, trimming with case kept, the date shape, the origin rule and the accepted file names are covered by `DeviceNoteTest` (size rules there are a fake byte counter).
-- The import order, the five rejection reasons, the 524,288/524,289 boundary and "no note exists before saving" are covered by `NoteImportTest` in `data`, which runs the use case against the real rules; the write path by `DeviceNotesTest` in `data`.
+- The import order, the five rejection reasons, the 524,288/524,289 boundary and "no note exists before saving" are covered by `NoteImportTest` in `data:device-notes`, which runs the use case against the real rules; the write path by `DeviceNotesTest` in `data:device-notes`.
 ### Not covered
-- Front-matter reading, the first-heading rule and the byte boundary themselves — `format` (through `DeviceNoteText`).
-- Writing the note rows, the key and first-seen time, deleting bookmarks — `data` and `database`.
-- Unsaved-changes asking, the editor screen, the share sheet entry and the import sheet — the editor feature module and `app`.
+- Front-matter reading, the first-heading rule and the byte boundary themselves — `format:device-note` (through `DeviceNoteText`).
+- The key and first-seen time and deleting bookmarks — `data:device-notes`; writing the note rows — `database:notes`.
+- Unsaved-changes asking — `editor:session`; the editor screen — `editor:editor-screen`; the share sheet entry — `app:share-in`; the import sheet — `editor:host`.
 - Not touched by repository flows: sync, resume, change and disconnect never read or write device notes (013-local-notes: LN-12).

@@ -23,7 +23,7 @@ decisions: [RD-D5, BR-D15]
 ### Not covered
 - The actual colour and radius values — the root `DESIGN.md` (colour and radius sections).
 - Providing colours to the composition and reading them as `MyNoteTheme.colors` — `design-system:theme`.
-- Glass drawing — the design system's glass components.
+- Glass drawing — `design-system:glass-nav`.
 - No test in this module checks colour or radius values.
 
 ## typography — Typography
@@ -37,19 +37,19 @@ decisions: [RD-D5, BR-D15]
 - `TextStyle.resized(size)` sets the font size and scales a line height given in sp by the same ratio, so a bigger title does not get lines that touch. A line height that is missing or in em is left alone and only the size changes. (010-brand: BR-8)
 - A screen does not keep a private type scale: a screen that bypasses the system drifts and creates one value under two names.
 - Adding or removing a title-font style also means changing the style table in the brand design document; a Python test checks that table.
-- The module does not know how the title font is obtained or whether it has arrived; the design system's font gate decides and passes a font family in.
+- The module does not know how the title font is obtained or whether it has arrived; the design system's font gate (`design-system:font`) decides and passes a font family in.
 ### Public API
 - `MyNoteFontScale` — `Normal` and `Large`, each with `bodySizeSp`.
 - `MyNoteTextStyles` — immutable holder of the 19 styles.
 - `myNoteTextStyles(bodySizeSp, heightClass, titleFontFamily)` — builds the holder.
 - `TextStyle.resized(fontSize)` — the size-and-line-height helper.
 ### Guarantees
-- Only the four title styles take the title font, everything else is equal to the device-font result for every reading size and height class, and the four fix line height and line-height style: `TitleFontStylesTest`.
+- Only the four title styles take the title font, everything else is equal to the device-font result for every reading size and height class, and the four fix line height and line-height style: `TitleFontStylesTest` (010-brand: BR-K5).
 - `resized` scales sp line heights, keeps the line-height style, and leaves a missing or em line height alone: `ResizedTextStyleTest`.
 ### Not covered
 - Style values (sizes, weights, spacing) — the root `DESIGN.md`, typography section.
 - Downloading and gating Gothic A1 — `design-system:font`.
-- The reading-size setting and its storage — `settings` and `database`.
+- The reading-size setting — `settings:settings`; its storage — `database:prefs`.
 
 ## adaptive — Adaptive tokens
 ### Behaviour
@@ -60,9 +60,9 @@ decisions: [RD-D5, BR-D15]
 - The floating navigation is a right rail when the width class is Expanded or wider, or the height class is Compact (a bottom bar would eat the text on a low window); otherwise it is a bottom bar. (001-reader-foundation: RD-15)
 - Derived values are computed properties of the token holder: rail right margin (the larger of 14 dp and page padding minus 12 dp), bar bottom margin (vertical padding plus 6 dp), panel header top padding (the larger of 10 dp and vertical padding minus 4 dp), and note title size (hero title size plus 4 sp).
 - They live here, not in screens, because the rail-or-bar test is read by three places (the layout's bottom reserve, the scroll-to-top button position, the overlay choosing rail or bar); one owner cannot disagree with itself, and a body hidden behind the bar or a stray gap is avoided.
-- The window is measured once, by the app shell, from the container size of the window; screens read tokens from the theme and do not measure again with a box's constraints, which describe the parent and not the window.
+- The window is measured once, by the app shell (`app:shell`), from the container size of the window; screens read tokens from the theme and do not measure again with a box's constraints, which describe the parent and not the window.
 - Everything is a pure function of the two classes: no composable, no resources, no composition local read.
-- The navigation module does not use this module, so the scene strategy cannot read the pane width; the app shell draws the pane at its width inside the panel slot.
+- The navigation module does not use this module, so the scene strategy cannot read the pane width; the app shell (`app:shell`) draws the pane at its width inside the panel slot.
 ### Public API
 - `MyNoteWindowClass` — five width classes; `MyNoteWindowClass.fromWidth(dp)`.
 - `MyNoteHeightClass` — three height classes; `MyNoteHeightClass.fromHeight(dp)`.
@@ -72,7 +72,7 @@ decisions: [RD-D5, BR-D15]
 - Height boundaries at 480 and 900, rail or bar for narrow-tall, wide and short windows, modal drawer only at Compact width, the reading cap starting at Expanded, the 14 dp floor of the rail margin, note title four larger than hero title, and no hero logo at Compact height: `AdaptiveTokensTest`.
 ### Not covered
 - Token values per class — the root `DESIGN.md`, adaptive section.
-- Where the classes are measured and handed to the theme — `app` shell; the theme object — `design-system:theme`.
-- Laying out the card grid from the card minimum width, and drawing the rail or bar — `notes` and `app`.
+- Where the classes are measured and handed to the theme — `app:shell`; the theme object — `design-system:theme`.
+- Laying out the card grid from the card minimum width — `notes:home`; choosing the rail or bar and the content reserves — `app:shell-chrome` and `app:shell`; drawing them — `design-system:glass-nav`.
 ### Unconfirmed
 - The width limits are tested only through the height boundaries and the per-class results; the width boundaries 600, 840, 1200 and 1600 have no test of their own.

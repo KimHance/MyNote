@@ -9,25 +9,25 @@ decisions: [D-44, RC-D23, BR-D1, BR-D10, BR-D12, BR-D14, LN-D17]
 - At process start it starts four things, in this order: token sync, the model wait notice (see `download`), study-log maintenance and insight schedule sync.
 - Each of the four lives only because `MyNoteApplication` holds an injected field for it and calls `start()`; nothing else references it. Deleting a field compiles and runs but silently drops the behaviour (007-repo-connect: RC-K6).
 - Every `start()` is idempotent: a second call does nothing.
-- Token sync first runs connection recovery, which finishes an interrupted disconnect or an unconfirmed connect attempt; any failure there is swallowed, cancellation is not (007-repo-connect: RC-17).
-- Token sync then observes the stored token and pushes each distinct value into the network token holder that the auth interceptor reads on every request; an I/O failure reading storage counts as no token, any other failure ends the observation (001-reader-foundation: RD-20).
+- Token sync first runs connection recovery (`data:connection`), which finishes an interrupted disconnect or an unconfirmed connect attempt; any failure there is swallowed, cancellation is not (007-repo-connect: RC-17).
+- Token sync then observes the stored token and pushes each distinct value into the network token holder (`network:token`) that the auth interceptor reads on every request; an I/O failure reading storage counts as no token, any other failure ends the observation (001-reader-foundation: RD-20).
 - The same holder is the applied-token source whose change makes the notes ViewModel run sync again (001-reader-foundation: RD-2).
 - Token sync forwards only the stored token and has no fallback to the build-embedded one; after disconnect or token removal the build token never comes back, it is used only by the seed connection (007-repo-connect: RC-22).
-- Study-log maintenance runs the prune use case once per process start; stored events, quiz answer text and summaries are cut to their retention periods there (005-stats: ST-7).
+- Study-log maintenance runs the prune use case (`domain:study-log`) once per process start; stored events, quiz answer text and summaries are cut to their retention periods there (005-stats: ST-7).
 - Insight schedule sync watches the model status and the study-record switch together; when the model is ready and records are on it schedules the unique daily insight work, otherwise it cancels it (005-stats: ST-17).
-- Insight schedule sync reacts only to distinct values; scheduling again while unfinished work with the current spec tag exists does nothing (in `:core:ai`). If either source fails it cancels and stops observing until the next process start.
+- Insight schedule sync reacts only to distinct values; scheduling again while unfinished work with the current spec tag exists does nothing (`ai:insight-worker`). If either source fails it cancels and stops observing until the next process start.
 ### Public API
 - `MyNoteApplication` — the Hilt application class named in the manifest.
 - `TokenSync.start()` — starts the token pipeline.
 - `InsightScheduleSync.start()` — starts the schedule observer.
 - `StudyLogMaintenance.start()` — runs the prune once.
 ### Not covered
-- The schedule rule (`insightsWanted`), retention numbers and recovery steps — `domain`, `data` and `database` modules; the worker itself — `ai` module; the token holder — `network` module.
+- The schedule rule (`insightsWanted`) and the retention numbers — `domain:study-log`; recovery steps — `data:connection`; the worker itself — `ai:insight-worker`; the token holder — `network:token`.
 - No test fails when one of the injected fields is removed; the wiring is checked by reading.
 
 ## launch — Main activity and splash
 ### Behaviour
-- Before `super.onCreate` the activity turns edge-to-edge on with transparent system bars and light icons; the app has one dark theme while the XML theme's parent is a light platform theme, so this is fixed once here.
+- Before `super.onCreate` the activity turns edge-to-edge on with transparent system bars and light icons; the app has one dark theme while the XML theme's parent is a light platform theme, so this is fixed once here (010-brand: BR-K6).
 - The window background before the first frame is the app background colour, so no white frame appears after the splash (010-brand: BR-4).
 - Content is the title-font provider around `NotesRoute`; the theme itself starts inside the shell.
 - The title font is decided once per process by a holder shared by all activity instances: the first creation starts the fetch of Gothic A1 from the font provider; recreation and warm starts reuse the decision (010-brand: BR-8).
@@ -58,15 +58,15 @@ decisions: [D-44, RC-D23, BR-D1, BR-D10, BR-D12, BR-D14, LN-D17]
 - `LauncherMaskTest` (instrumented) proves the arch top of the launcher mark is not clipped by circle, rounded or device masks in colour and themed form, and saves the renders to the app's external cache (010-brand: BR-1).
 - `TitleFontScreensTest` (instrumented) proves the statistics summary sentence has the same line count in the device font and in Gothic A1, skipped without provider or network (010-brand: BR-8).
 ### Not covered
-- The font decision and its fallback rules — `design-system` module; the pixel assets of icon and splash — `app:build` resources.
-- Which screen the settings push shows — `settings` module; the stack rules — `navigation` module.
+- The font decision and its fallback rules — `design-system:font`; the pixel assets of icon and splash — `app:build` resources.
+- Which screen the settings push shows — `settings:settings`; the stack rules — `navigation:navigator`.
 
 ## share-in — Share receiver
 ### Behaviour
 - The app appears in the share sheet for text and for one file: it accepts `text/*` and `application/octet-stream` sent by SEND; several items shared at once are not accepted (013-local-notes: LN-8).
 - The trampoline has no UI, is kept out of recents and history, has no task affinity, and finishes at once after starting the main activity (013-local-notes: LN-8).
 - It starts `MainActivity` with its own action and flags new-task, clear-top, single-top; the main activity never takes a share itself, because that would start a second instance in the sender's task sharing the singleton navigator (013-local-notes: LN-8).
-- Shared text goes to the inbox in `:core:ui`, never into the intent, because a 512 KB text reaches the cross-process transfer limit (013-local-notes: LN-8).
+- Shared text goes to the inbox (`ui:signal`), never into the intent, because a 512 KB text reaches the cross-process transfer limit (013-local-notes: LN-8).
 - The subject is the subject extra, else the title extra; no text becomes an empty text, which the editor reports as nothing to import (013-local-notes: LN-8).
 - A file attached to the share wins over the text: the text sent along with it is dropped, the subject is kept (013-local-notes: LN-8).
 - A file is accepted only when its scheme is `content`, it has an authority, and the authority is not this app's own provider; a user-id prefix before `@` is ignored in that check (013-local-notes: LN-8).
@@ -79,13 +79,13 @@ decisions: [D-44, RC-D23, BR-D1, BR-D10, BR-D12, BR-D14, LN-D17]
 ### Guarantees
 - `ShareRequestTest` proves a file wins over text, text becomes empty text without a body, non-content addresses are refused, and an own authority is refused (013-local-notes: LN-8).
 ### Not covered
-- Reading, size and encoding checks, the five reject reasons and opening the editor — `editor` module; the inbox type — `ui` module.
+- Reading, size and encoding checks and the five reject reasons — `domain:device-notes` (the rules) and `data:device-notes` (the file read); opening the editor — `editor:session`; the inbox type — `ui:signal`.
 
 ## download — Model download wiring
 ### Behaviour
 - The module supplies the two pending intents the download notifications use: the body tap opens the app on Settings, the failure notification's `다시 시도` action opens Settings and restarts the download. Both are activity intents; the manifest has no receiver (003-model-download: MD-K11).
 - Request codes are 4211 for retry and 4212 for open-settings, apart from the launcher intent code 0 of `:core:ai`; both pending intents are immutable and update-current.
-- These intents fill an optional hole that `:core:ai` declares. Without the binding the retry action silently disappears and a tap opens the launcher screen instead of Settings, while the download itself still works.
+- These intents fill an optional hole that `:core:ai` declares (`ai:wiring`). Without the binding the retry action silently disappears and a tap opens the launcher screen instead of Settings, while the download itself still works.
 - Retry works because starting a download is a keep-existing unique work: a finished work takes the new request, a running one is left alone, so one start call serves first start and retry.
 - An action tap is not auto-cancelled by the system; the failure notification disappears because the start clears the result slot.
 - When the app stops, the wait notice asks the downloads to post a resting notification: waiting for Wi-Fi shows the waiting one, retrying shows the retry one, other states are left alone; coming back to the front does not remove them (003-model-download: MD-11, MD-9).
@@ -96,5 +96,5 @@ decisions: [D-44, RC-D23, BR-D1, BR-D10, BR-D12, BR-D14, LN-D17]
 - `AppModelDownloadIntents` — `retry()` and `openSettings()` pending intents.
 - `ModelWaitNotice` — `start()` begins the lifecycle and status observation.
 ### Not covered
-- Choosing which notification a status shows, the download work and its retry rules — `ai` module.
-- The model card and pill texts — `settings` and `ui` modules. No automated test covers these two classes; they are checked by hand on a device.
+- Choosing which notification a status shows, the download work and its retry rules — `ai:download-work`.
+- The model card and pill texts — `settings:model` and `ui:model-status`. No automated test covers these two classes; they are checked by hand on a device.

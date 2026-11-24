@@ -31,9 +31,9 @@ decisions: [RD-D2, BM-D1, LN-D15]
 - A move one millisecond before the window ends is blocked and one after it passes, pop during a window, no window for no-op moves, `Throttled` rather than `Ignored` for a pop in a window, immediate moves during a window, and the window restarting from the last move: `NavigatorTest`.
 - A guard blocks user moves only, leaves the window closed, is skipped by immediate moves, and an old guard's clear does not remove a newer guard: `NavigatorTest` (`LN-10` test).
 ### Not covered
-- The order of back handling (drawer, quiz, transition swallow, pop, root exit) and the exit counter — `app`.
+- The order of back handling (drawer, quiz, transition swallow, pop, root exit) — `app:shell`; the exit counter — `app:shell-state`.
 - Computing which stack a user action leads to — see `commands`.
-- What the guard asks and shows — `editor`.
+- What the guard asks and shows — `editor:session`.
 - Drawing the stack — see `scenes`.
 
 ## keys — Destination keys
@@ -62,7 +62,7 @@ decisions: [RD-D2, BM-D1, LN-D15]
 - `switchTabCommand(tab)` for the floating navigation (`NotesTab`: Home, Bookmarks, Stats): Home replaces the stack with the home key from anywhere (pressing it on home alone changes nothing). Bookmarks or Stats pushes the tab onto a stack that is exactly the home key; from anywhere else it replaces the stack with home plus the tab, so an open reader or the other tab is dropped. The same tab pressed on top gives the stack it already has and is ignored without opening a window. (001-reader-foundation: RD-15) (004-bookmarks: BM-7) (005-stats: ST-8)
 - `openEditorCommand(editor)`: removes every editor already in the stack and, if the top then is `Paste`, the paste screen too; when nothing was removed it pushes. Otherwise it replaces the stack with the rest plus the new editor (home when the rest is empty). So a cold share starts from home plus the editor, a running app pushes over the current stack, a second share replaces the first editor, and the paste screen's next step replaces paste, so back returns to where paste was opened. (013-local-notes: LN-6, LN-8)
 - `savedNoteCommand(noteId)`: removes the editors from the stack and, unless the entry now on top is already that note's reader, puts that reader on top. A new note ends on its reader in the editor's place; an edit goes back to the reader below. Back returns to the screen that opened the editor. (013-local-notes: LN-3, LN-9)
-- `withoutNoteCommand(noteId)`: removes that note's readers and the editors editing it, merges neighbours that became the same key, and falls back to home when nothing is left. It always answers `ReplaceAll`; when nothing changed the navigator ignores it. Closing the quiz overlay is the caller's job through a signal in `ui`. (013-local-notes: LN-11)
+- `withoutNoteCommand(noteId)`: removes that note's readers and the editors editing it, merges neighbours that became the same key, and falls back to home when nothing is left. It always answers `ReplaceAll`; when nothing changed the navigator ignores it. Closing the quiz overlay is the caller's job through a signal in `ui:signal`. (013-local-notes: LN-11)
 - `isEditorTop()` says whether the top is an editor; `editorKey()` gives the one editor in the stack, if any.
 ### Public API
 - `NotesTab` — `Home`, `Bookmarks`, `Stats`.
@@ -73,5 +73,5 @@ decisions: [RD-D2, BM-D1, LN-D15]
 - Share from cold and warm, share over share, paste replaced by editor, save, edit-save, delete and neighbour merging, editor-on-top test: `EditorCommandsTest`.
 ### Not covered
 - Sending the command and the throttle — see `navigator`.
-- Deleting the note itself and closing the quiz — `data`, `quiz` and `ui`.
+- Deleting the note itself — `data:device-notes`; closing the quiz — `quiz:session` and `ui:signal`.
 - The wide-window layout of editor and paste — see `scenes`.

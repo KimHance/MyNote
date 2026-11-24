@@ -44,16 +44,16 @@ decisions: [QZ-D6, QZ-D7, D-40]
 - A new view model does not replay old setup requests or closes (`FeatureSignalsTest` in this module); the covering flag pauses the reading session (`FeatureSignalsTest` in `app`).
 - The auto-advance length is one constant that the timer and the on-screen ring both read.
 ### Not covered
-- Building the prompt text, running the model, parsing its reply and sharing the engine with the stats worker — `domain` and `ai`.
-- Whether an attempt is stored when the study log is off — the record use case in `domain`.
-- Showing the undo snackbar and its action — the `app` shell; the wording "퀴즈를 그만뒀습니다" lives in `ui`.
-- Where back reaches the overlay in the back order — the `app` shell (`BackOrderTest`).
+- Building the note's plain text — `domain:quiz`; the prompt, running the model and parsing its reply — `ai:quiz`; sharing the engine with the stats worker — `ai:engine`.
+- Whether an attempt is stored when the study log is off — the record use case in `domain:study-log`.
+- Showing the undo snackbar and its action — `app:shell`; the wording "퀴즈를 그만뒀습니다" lives in `ui:notices`.
+- Where back reaches the overlay in the back order — `app:shell` (`BackOrderTest`).
 ### Unconfirmed
 - Whether choosing another note in the fixed list pane during a quiz keeps the quiz and only changes the title in the overlay was not checked on a device.
 
 ## overlay — Quiz overlay
 ### Behaviour
-- The overlay is drawn by the `app` shell over the content area; it is not on the back stack and moves no screen (002-quiz: QZ-18).
+- The overlay is drawn by `app:shell` over the content area; it is not on the back stack and moves no screen (002-quiz: QZ-18).
 - Back while the quiz is not idle closes it through the same path as the close button (002-quiz: QZ-18).
 - Loading, solving, result and failed fill the content area with the app background inside the system-bar insets; with the fixed list pane open the shell starts the overlay after the pane so the pane stays visible (002-quiz: QZ-18).
 - The setup dialog is a glass card at most 420 dp wide with a 26 dp radius, 22 dp from the sides and 40 dp above centre, over a scrim that fades in over 220 ms; the card flips in, its body rises in after 130 ms, and closing fades the scrim out over 250 ms and the card over 260 ms (002-quiz: QZ-3).
@@ -77,14 +77,14 @@ decisions: [QZ-D6, QZ-D7, D-40]
 - `QuizOverlay` — `BoxScope` composable taking the quiz state, the note title, the intent callback, a start inset and an optional glass backdrop.
 ### Not covered
 - Quiz state, grading, timers and undo — see `session`.
-- Hiding the top bar on Compact, the start inset value and the overlay's place in the back order — the `app` shell.
+- Hiding the top bar on Compact, the start inset value and the overlay's place in the back order — `app:shell`.
 - The card at the end of the reader — see `cta`.
 ### Unconfirmed
 - Sizes of the result gauge and dialog come from the code; how they look at large text sizes was not re-checked here.
 
 ## cta — Reader-end quiz card
 ### Behaviour
-- One card closes every readable note: a divider, a sparkle tile, "이 노트로 퀴즈 풀기" and one subtitle line; the `notes` reader leaves the slot empty for a note it could not read in full (002-quiz: QZ-1).
+- One card closes every readable note: a divider, a sparkle tile, "이 노트로 퀴즈 풀기" and one subtitle line; the `notes:reader` leaves the slot empty for a note it could not read in full (002-quiz: QZ-1).
 - The card is never hidden by the model state; the subtitle, the chip and the action follow the state (002-quiz: QZ-2) (003-model-download: MD-K9).
 - Ready: subtitle "최대 5문제" (the number comes from the maximum count), a chevron, and the action opens the setup (002-quiz: QZ-2).
 - Missing: "퀴즈 모델이 필요합니다 · 2.6GB" with the chip "받기"; the action asks for confirmation first (002-quiz: QZ-2).
@@ -95,7 +95,7 @@ decisions: [QZ-D6, QZ-D7, D-40]
 ### Public API
 - `QuizCtaCard` — the card for a `ModelStatus`, reporting the state's `CtaAction` on tap.
 ### Not covered
-- Mapping a model state to subtitle, chip, action, shine and warning — the shared `quizCtaUi` in `ui`.
-- Routing the action (setup, confirm dialog, start download, open settings) and the notification-permission request — the `app` shell.
-- The download confirm dialog — `settings` (`ModelConfirmDialog`).
-- Deciding whether a note is readable — `notes`.
+- Mapping a model state to subtitle, chip, action, shine and warning — the shared `quizCtaUi` in `ui:model-status`.
+- Routing the action (setup, confirm dialog, start download, open settings) — `app:shell-state`; the notification-permission request — `app:shell`.
+- The download confirm dialog — `settings:model` (`ModelConfirmDialog`).
+- Deciding whether a note is readable — `notes:state`.

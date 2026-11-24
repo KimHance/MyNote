@@ -9,7 +9,7 @@ decisions: [LN-D14]
 - Top padding is the room reserved for the model pill, bottom padding is the floating bar or navigation bar, end padding is the floating rail. The two-pane flag is measured without an open fixed panel. Scenes are stacked only on narrow windows (012-feature-modules: FM-4).
 - Frame values are read where a screen uses them, so an animated value (the pill reserve) recomposes only the screens that read it.
 - The holders (scroll states, reader source expansion, token drafts) are kept by the shell above the window-class branch, so folding, unfolding and rotation keep them (012-feature-modules: FM-4).
-- A feature's own state, its entries and values tied up by `app` (connection present, shell back) are not frame values; they are separate parameters of its registration function.
+- A feature's own state, its entries and values tied up by `app:shell` (connection present, shell back) are not frame values; they are separate parameters of its registration function.
 - `sceneEdgeModifier` draws the scene edge (corner and shadow, following the scene progress) only when scenes are stacked; otherwise it adds nothing.
 - `NotesScrollState` keeps one state each for the home grid, bookmarks list, stats list, stats side list, stats history, the reader scroll and the reader content. Which one the scroll-to-top button follows is derived: an open note wins, then bookmarks, stats, stats history, else home.
 - The scroll-to-top button shows when the reader is scrolled more than 400 dp, or when a list's first visible item is the fourth or later (index 3 and up). Scrolling to top animates; on stats it scrolls the main and the side list together.
@@ -26,11 +26,11 @@ decisions: [LN-D14]
 - `NotesScrollState` — holder with `homeGrid`, `bookmarksList`, `statsList`, `statsSide`, `statsHistory`, `reader`, `readerContent`, `showScrollToTop`, `scrollToTop()`; created only through `rememberNotesScrollState(activeNoteId, isBookmarksTop, isStatsTop, isStatsHistoryTop)`.
 - `NotesTopBar(...)` — the top bar composable with the parameters above (`title`, `showBack`, `bookmarked`, `onMenu`, `onBack`, `onRefresh`, `onToggleBookmark`, `showRefresh`, `backEnabled`, `onEdit`, `onDelete`).
 ### Guarantees
-- Every destination key has exactly one registered screen and the shell passes only frame values (`ShellDestinationsTest` in `app`, FM-4 names) (012-feature-modules: FM-4).
+- Every destination key has exactly one registered screen and the shell passes only frame values (`ShellDestinationsTest` in `app:shell`, FM-4 names) (012-feature-modules: FM-4).
 ### Not covered
-- Implementing the frame, hiding the bar and navigation on the connect screen, header content and back order — `app`.
+- Implementing the frame, hiding the bar and navigation on the connect screen, header content and back order — `app:shell` and `app:shell-state`.
 - Registering a feature's screens — each feature module's registration file, for example `connect:flow`.
-- Navigation keys, the scene strategy and the scene edge itself — `navigation`.
+- Navigation keys — `navigation:keys`; the scene strategy and the scene edge itself — `navigation:scenes`.
 
 ## mapper — Block and font-scale mappers
 ### Behaviour
@@ -49,6 +49,6 @@ decisions: [LN-D14]
 ### Guarantees
 - The mapping of reasons, salvage, order, shapes, tables, children, deep nesting and limit numbers is fixed by `NoteBlockMapperTest`.
 ### Not covered
-- Producing the domain blocks from text — `format`.
-- Drawing the reader blocks — `design-system`.
-- Where the limits are decided — `domain` and `format`.
+- Producing the domain blocks from text — `format:note-format` (which format), `format:markdown` and `format:json-format`.
+- Drawing the reader blocks — `design-system:blocks`.
+- Where the limits are decided — `domain:notes`; applying them — `format:limits`.

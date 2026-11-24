@@ -37,10 +37,10 @@ decisions: [D-36, NF-D29, DEC-2]
 - The worst-case row stays under the cursor window: `NoteRowBudgetTest`, `NoteDaoTest`.
 - Kind strings round-trip and unknown strings are dropped: `SourceKindColumnTest`.
 ### Not covered
-- Deciding what to add, update, skip or delete in a sync, and the "no write on transfer failure" rule — see `data`.
+- Deciding what to add, update, skip or delete in a sync, and the "no write on transfer failure" rule — see `data:sync`.
 - Parsing originals and the parse version number — see `format:note-format`.
 - Schema version, migrations and the file name — see `schema`.
-- Device-note fields, key and group rules — see `editor` and `domain`.
+- Device-note fields and group rules — see `domain:device-notes`; creating the key — see `data:device-notes`.
 - Bookmarks of removed notes — see `bookmarks`.
 ### Unconfirmed
 - Whether a future feature that fills the reserved columns will add them to the mapping first; today any upsert erases them.
@@ -64,5 +64,5 @@ decisions: [D-36, NF-D29, DEC-2]
 ### Guarantees
 - Each migration step, the v1→v5 path, note and record survival, the `s0` source, the epoch day conversion and the preserved same-date order are checked on a device SQLite: `NotesDatabaseMigrationTest` (instrumented; run with the module's connected test task).
 ### Not covered
-- Backup rules for the database and DataStore files, and the build version code that does not block downgrades — see `app`.
+- Backup rules for the database and DataStore files — see `app:build`; the build version code that does not block downgrades — see `app`.
 - What the tables mean and how queries behave — see `notes`, `study-log` and `insights`.

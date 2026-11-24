@@ -10,7 +10,7 @@ decisions: [BR-D13, FM-D10, FM-D16, FM-D23, DEC-18]
 - The system clock and the wall clock are provided as unscoped system implementations.
 - The navigator is a singleton on the application scope, starting at Home, so the back stack outlives the Activity and ViewModels and survives rotation; it is lost on process death, there is no save or restore (001-reader-foundation: RD-16).
 - The connection seed is null unless the owner and repository build values are both non-blank; otherwise it carries owner, repository, branch and the token, the token null when blank. Release builds always have blank values, so they carry no seed (007-repo-connect: RC-19).
-- The template repository is read from the build value by the domain parser; an empty or malformed value gives null and the connect screen shows no template entry (007-repo-connect: RC-26).
+- The template repository is read from the build value by the domain parser (`domain:connect-link`); an empty or malformed value gives null and the connect screen shows no template entry (007-repo-connect: RC-26) (012-feature-modules: FM-K12).
 - Five seams of feature modules are bound here to their Android implementations: notes messages, editor messages, failure log, quiz auto-advance policy (follows the accessibility setting) and stats trace (writes to the log in debuggable builds only).
 - The model download intents binding is in this module too; see `download`.
 - Bindings of repositories, data sources, token holder, quiz generator and insight scheduler come from the four implementation modules and are not repeated here.
@@ -22,8 +22,8 @@ decisions: [BR-D13, FM-D10, FM-D16, FM-D23, DEC-18]
 - `NotesModule` — binds the five feature seams.
 - `DownloadIntentsModule` — binds the model download intents to `AppModelDownloadIntents`.
 ### Not covered
-- The implementations that are bound — `core:ui`, `feature:editor`, `feature:quiz`, `feature:stats`, `ai` modules.
-- Parsing rules of the seed and template values — `domain` module; where the build values come from — `app:build`.
+- The implementations that are bound — notes messages and failure log `ui:notices`, editor messages `editor:session`, quiz auto-advance policy `quiz:session`, stats trace `stats:stats`; the optional download-intents hole it fills — `ai:wiring`.
+- Parsing and use rules of the template value — `domain:connect-link`, of the seed — `domain:connection`; where the build values come from — `app:build`.
 
 ## build — Build, manifest and resources
 ### Behaviour
@@ -33,11 +33,11 @@ decisions: [BR-D13, FM-D10, FM-D16, FM-D23, DEC-18]
 - The template repository comes from the committed root property `template.repo`, set once for both build types; an empty value means no entry, characters outside letters, digits, dot, underscore, slash and hyphen turn it into blank without breaking the build, and the shape check itself is in `domain` (007-repo-connect: RC-26).
 - The title font name comes from `-Ptitle.font` in debug builds only (letters, digits and spaces), to produce the not-received case; release always uses the official name (010-brand: BR-8).
 - Only arm64-v8a native libraries ship, which cuts the APK from about 85 MB to about 61 MB; an x86_64 emulator gets an APK without the engine library, so the quiz cannot run there.
-- The quiz model is not in the APK; it lives in the app's external files folder and is downloaded at run time.
+- The quiz model is not in the APK; it lives in the app's external files folder and is downloaded at run time (`ai:download`).
 - Release builds shrink and obfuscate with the default optimised rules plus `proguard-rules.pro`; keep rules are added only for what R8 reports missing, and the file keeps source and line attributes and the LiteRT-LM classes (their native code looks members up by name and aborts in release otherwise).
-- Release signing is not set in this module; the build convention signs only when all four keystore properties are present in the local properties and the keystore file exists.
+- Release signing is not set in this module; the build convention (`build-logic:signing`) signs only when all four keystore properties are present in the local properties and the keystore file exists.
 - The manifest declares the launcher `MainActivity` (no recreation on rotation, split screen or keyboard change; resize for the soft keyboard), the exported `ShareReceiverActivity`, and no receiver (013-local-notes: LN-8).
-- The manifest declares two optional native libraries, `libvndksupport.so` and `libOpenCL.so`, that the engine's GPU backend needs; without them the engine falls back to the CPU without any error.
+- The manifest declares two optional native libraries, `libvndksupport.so` and `libOpenCL.so`, that the engine's GPU backend (`ai:engine`) needs; without them the engine falls back to the CPU without any error.
 - The manifest removes WorkManager's own initializer; `MyNoteApplication` supplies the configuration.
 - Cloud backup and device transfer both exclude the two token stores, the model file with its working and plan files, and the whole external files area; nothing else is excluded, so notes, bookmarks and study records are backed up (013-local-notes: LN-15).
 - Rules use only exclusions: a single include would drop everything else, and the model in a cloud backup would pass the per-app limit and silently stop the whole backup. Renaming a token store or the model file means renaming it in the rules; the old-style rules file is a copy.
@@ -57,5 +57,5 @@ decisions: [BR-D13, FM-D10, FM-D16, FM-D23, DEC-18]
 - `notes-tests/test_feature_modules.py` proves the shell lives in `:app` with its order fixed in one file and that shell strings start with `shell_` (012-feature-modules: FM-5, FM-11).
 ### Not covered
 - The shell and its back order — `app:shell`; the splash exit and font gate — `app:launch`.
-- Signing, SDK levels and version numbers — the build convention in `build-logic` and the version catalogue.
-- Statistics generation itself — `ai` module; the harness only measures it.
+- Signing — `build-logic:signing`; SDK levels and version numbers — `build-logic:shared-config` and the version catalogue.
+- Statistics generation itself — `ai:insight-generation`; the harness only measures it.

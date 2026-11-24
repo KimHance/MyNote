@@ -27,9 +27,9 @@ decisions: []
 - The view model reads neither the clock, strings nor logging directly and runs in JVM tests; a failing disconnect is logged through the injected log (`SettingsViewModelTest`).
 - Clearing the study log before a bookmark undo leaves the records alone (`FeatureSignalsTest` in `app`).
 ### Not covered
-- Storing the text size and the study-log flag, and what clearing deletes or reschedules — `domain` and the data modules.
+- Storing the text size and the study-log flag — `domain:settings` and `database:prefs`; what clearing deletes or reschedules — `domain:study-log`.
 - The repository card and token editor — see `repo`; the model card and dialogs — see `model`.
-- The top bar, back and the snackbar host — the `app` shell.
+- The top bar, back and the snackbar host — `app:shell`.
 
 ## repo — Repository card and token
 ### Behaviour
@@ -69,9 +69,9 @@ decisions: []
 - The mask hides length and short tokens (`TokenMaskTest`); the check link per connection shape (`ConnectConfirmTest`).
 - Clear then undo restores the stored token (`SettingsViewModelTest`); back during an edit cancels the edit (`BackOrderTest` in `app`).
 ### Not covered
-- Deciding the status label, description, badge and no-token line from (connection, token, last sync) — the shared repository-card decision in `ui` (a stored token on a public connection shows no warning there).
-- The check itself, saving and applying the token, the disconnect order and resume — `domain` and the data modules.
-- The connect screen opened by change — `connect`.
+- Deciding the status label, description, badge and no-token line from (connection, token, last sync) — the shared repository-card decision in `ui:repo-card` (a stored token on a public connection shows no warning there).
+- The check itself — `domain:connection` and `network:probe`; saving the token — `domain:settings`; applying it — `app:startup` and `network:token`; the disconnect order and finishing an interrupted disconnect — `data:connection`.
+- The connect screen opened by change — `connect:flow`.
 - Token encryption, expiry display and several repositories — not done.
 
 ## model — Quiz model card
@@ -88,8 +88,8 @@ decisions: []
 - The download confirm and delete dialogs are glass cards at most 360 dp wide with a 26 dp radius; the study-log clear dialog of `settings` uses the same frame.
 - A failing model-status stream reads as missing.
 ### Public API
-- `ModelConfirmDialog(onDismiss, onConfirm, backdrop)` — the download confirm dialog, called by the `app` shell.
+- `ModelConfirmDialog(onDismiss, onConfirm, backdrop)` — the download confirm dialog, called by `app:shell`.
 ### Not covered
-- Mapping a model state to tone, label, detail, progress, actions, help and the hint flag — the shared `modelCardUi` in `ui`.
-- Downloading, verifying, notifications and the permission request — `ai` and the `app` root.
+- Mapping a model state to tone, label, detail, progress, actions, help and the hint flag — the shared `modelCardUi` in `ui:model-status`.
+- Downloading and verifying — `ai:download-transfer`; notifications — `ai:download-work`; the permission request — `app:shell`.
 - The study-log clear dialog's behaviour — see `settings`.

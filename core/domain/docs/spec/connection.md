@@ -24,8 +24,8 @@ decisions: [RC-D1, RC-D2, RC-D10, RC-D25, RC-D27, RC-D35, RC-D54]
 ### Guarantees
 - A table of more than 20 address shapes, the seven reasons, the scheme rule, the three-candidate cap and the owner rule are covered by `ConnectLinkParserTest`; the template value rules and that a valid template value is also accepted by the link parser by `TemplateRepoTest`.
 ### Not covered
-- Checking the repository and list over the network — `network` (through the probe in unit `connection`).
-- Where the template address is configured and the entry button that opens it — `app` and the connect feature module.
+- Checking the repository and list over the network — `network:probe` (through the probe in unit `connection`).
+- Where the template address is configured — `app:build`; the entry button that opens it — `connect:entry`.
 
 ## connection — Repository connection
 ### Behaviour
@@ -56,23 +56,23 @@ decisions: [RC-D1, RC-D2, RC-D10, RC-D25, RC-D27, RC-D35, RC-D54]
 - `SyncPendingConnectionUseCase`, `ObserveSyncRunsUseCase` (`(refreshes)` gives `SyncRun` values: `Idle`, `Running(announce)`, `Finished(announce, result)`).
 - `BeginConnectionUseCase`, `ConfirmConnectionUseCase`, `DiscardConnectionUseCase`, `DisconnectUseCase`, `RecoverConnectionUseCase`, `CountErasableUseCase`, `ObserveConnectionUseCase`.
 - `ConnectionState` (`None`, `Connected`), `PendingConnection` (`New`, `Adopt`, `SameRepository`), `ErasureCount`, `RepoConnection` (`fullName`, `isSameRepositoryAs`, `DEFAULT_INDEX_PATH`).
-- `ConnectionRepository`, `ConnectProbe` with `ConnectProbeResult`, `NetworkStatus`, `NetworkStatusSource` — interfaces and values implemented in `data` and `network`.
+- `ConnectionRepository` (implemented in `data:connection`), `ConnectProbe` with `ConnectProbeResult` (implemented in `network:probe`), `NetworkStatus`, `NetworkStatusSource` (implemented in `network:status`).
 ### Guarantees
 - No request on a rejected link, offline, probe failures, token handling, replacement counts, confirm-exception handling and cancel behaviour are covered by `ConnectFlowTest`.
 - Seed use, partial seed, no revival after a disconnect, the token rules and the not-applied failure are covered by `ConnectionUseCaseTest`; the sync-run rules by `SyncRunsTest` (in the same file).
 ### Not covered
-- Persisting the connection, the pending marker, the erase order, adoption itself and what disconnect removes — `data` and `database`.
-- The GitHub requests, status mapping and the probe implementation — `network`.
-- The applied-token holder and the push of the saved token into it — `app` (token sync) and `network`.
-- Connect screens, dialogs and their wording — the connect feature module.
-- The first-run decision of which screen to show — `app`.
+- Persisting the connection, the pending marker, the erase order, adoption itself and what disconnect removes — `data:connection`; the connection state files — `database:prefs`.
+- The GitHub requests of the check, status mapping and the probe implementation — `network:probe`; the requests of a sync — `network:contents`.
+- The applied-token holder — `network:token`; the push of the saved token into it — `app:startup` (token sync).
+- Connect screens — `connect:flow`; failure sentences — `connect:issues`; the change and take-over dialogs — `connect:confirm`.
+- The first-run decision of which screen to show — `app:shell-state`.
 
 ## settings — Token and settings values
 ### Behaviour
 - Two token interfaces exist and are not duplicates: the saved token is what the person stored, the applied token is what the network client is using now. The connect flow waits until they agree before its first sync.
 - There is no fallback from one to the other: a built-in debug token reaches the saved token only through the seed connection and never after a disconnect or a removal (007-repo-connect: RC-22).
 - Saving a blank token saves none, which removes the token; the saved token can be read once or observed.
-- The body text size is one of two values, normal and large, with normal as the default. The type is the domain's own and is mapped to the design system's text scale outside this module.
+- The body text size is one of two values, normal and large, with normal as the default. The type is the domain's own and is mapped to the design system's text scale outside this module (`ui:mapper`).
 - The study-log switch is read and set here; the rules it drives are in unit `study-log`.
 - Every command except saving a token (a blank token becomes none) is a one-line pass-through to the repository.
 ### Public API
@@ -81,5 +81,5 @@ decisions: [RC-D1, RC-D2, RC-D10, RC-D25, RC-D27, RC-D35, RC-D54]
 - `FontScale` (`Normal`, `Large`, `Default`).
 - `SaveTokenUseCase`, `ObserveTokenUseCase`, `ObserveAppliedTokenUseCase`, `SetFontScaleUseCase`, `ObserveFontScaleUseCase`, `SetStudyLogEnabledUseCase`, `ObserveStudyLogEnabledUseCase`.
 ### Not covered
-- Where values are stored, masking a token and the default of the study-log switch — `data`, `database` and the settings feature module.
-- Applying the saved token to requests — `network` and `app`.
+- Where values are stored and the default of the study-log switch — `database:prefs`; masking a token — `settings:repo`.
+- Applying the saved token to requests — `network:token` and `app:startup`.

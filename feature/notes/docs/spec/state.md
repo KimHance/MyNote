@@ -16,10 +16,10 @@ decisions: [BM-D5, BM-D15, DEC-36c]
 - Expand choices are a map by category name; a press flips that name only, whether or not a query is set; the map keeps names of categories that are not in the list, which have no effect (001-reader-foundation: RD-8, RD-9).
 - A note gets its excerpt from the domain first-sentence rule, a "readable" flag that is false only when a whole-note box (broken note or over a limit) exists, and a device flag from the key (009-note-format: NF-8) (013-local-notes: LN-5).
 - The home body is derived: notes present is Notes; otherwise no confirmed connection is first run; otherwise receiving while the sync runs or notes are awaited; otherwise no notes (013-local-notes: LN-1) (007-repo-connect: RC-21).
-- The hero repository line is the confirmed connection's canonical `owner/repo` and nothing without a confirmed connection (010-brand: BR-6).
+- The hero repository line is the confirmed connection's canonical `owner/repo` and nothing without a confirmed connection (010-brand: BR-6, BR-K3).
 - The connect band count is the number of repository-origin notes when the connection is known to be absent, else zero; device notes never count, and the band shows only when the count is above zero (007-repo-connect: RC-1).
 - A sync success that changed notes after a user refresh raises one info message with the counts; the start run, a refresh with nothing new and a run that `domain:connection` does not mark as announced raise none (a run after a connection or token change is announced only once a refresh has been tapped in this process); a failed run or a failing sync flow raises one generic failure message and the list stays (001-reader-foundation: RD-3) (006-sync: SY-6).
-- When a run finishes, the last-sync value is written for settings; if the note being read was deleted by the run, the reader is popped at once, even inside a transition; bookmarks of deleted notes are removed, and a failed clean-up is only logged (001-reader-foundation: RD-4) (004-bookmarks: BM-18).
+- When a run finishes, the last-sync value is written for settings; if the note being read was deleted by the run, the reader is popped at once, even inside a transition; bookmarks of deleted notes are removed, and a failed clean-up is only logged (001-reader-foundation: RD-4) (004-bookmarks: BM-18) (006-sync: SY-K7).
 - Refresh starts a new run and cancels the older one (001-reader-foundation: RD-2).
 - Choosing a note opens the reader on top (taking settings' place when settings is on top); new note opens an empty editor on top of the current stack (an editor already in the stack is replaced); Import only raises a request for the import sheet and leaves the stack alone (001-reader-foundation: RD-11) (013-local-notes: LN-2).
 - Connect is pushed unless the settings token check has locked repository actions, in which case nothing happens (012-feature-modules: FM-6).
@@ -50,12 +50,12 @@ decisions: [BM-D5, BM-D15, DEC-36c]
 - Only this class takes the sync use case: python test `FM-7 동기화 UseCase 를 받는 클래스는 NotesViewModel 하나다` in `notes-tests/test_feature_modules.py` (012-feature-modules: FM-7).
 
 ### Not covered
-- How sync fetches and applies notes, and what counts as a change — `data`.
-- The reading-session rules (30 seconds minimum, 60 minutes cap) — `domain`; this unit only feeds the tracker.
+- How sync fetches and applies notes, and what counts as a change — `data:sync`.
+- The reading-session rules (30 seconds minimum, 60 minutes cap) — `domain:study-log`; this unit only feeds the tracker.
 - Reader scroll percentage measurement and the foreground observer — `app:shell-chrome` and `app:shell`.
-- The snackbar host, the exit hint and the start decision — `app:shell-state`.
-- Backstack ownership and the throttle — `navigation`; study-log and bookmark storage — `data` and `database`.
-- Bookmark file corruption handling — `database`; here a failing flow only reads as empty.
+- The snackbar host — `app:shell`; the exit hint and the start decision — `app:shell-state`.
+- Backstack ownership and the throttle — `navigation:navigator`; study-log and bookmark storage — `data:records`, `database:study-log` and `database:bookmarks`.
+- Bookmark file corruption handling — `database:bookmarks`; here a failing flow only reads as empty.
 
 ### Unconfirmed
 - Whether the reader scroll position survives going back to an earlier note was not confirmed; the scroll state is created per last opened note id and is not saved across process death.
@@ -74,6 +74,6 @@ decisions: [BM-D5, BM-D15, DEC-36c]
 - `notesDestinations(state, onIntent, readerEndCta)` — the registration the shell calls; `readerEndCta(noteId)` is the slot the shell fills with the quiz card.
 
 ### Not covered
-- The quiz card and its model — `quiz`; this module never depends on it (012-feature-modules: FM-2).
-- Scene strategy, transitions and keys — `navigation`.
+- The quiz card and its view model — `quiz:cta` and `quiz:session`; this module never depends on them (012-feature-modules: FM-2).
+- Scene strategy and transitions — `navigation:scenes`; keys — `navigation:keys`.
 - Editor and paste registrations — `editor:editor-screen`.

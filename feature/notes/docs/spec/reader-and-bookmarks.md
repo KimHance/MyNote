@@ -8,7 +8,7 @@ decisions: [BM-D6, BM-D7, BM-D13, D-22, D-24, D-25, D-26, D-27, D-30]
 ### Behaviour
 - The reader body is one scrolling column: a header row (category chip, date, and the source mark for a device note), the note title as a heading, the note blocks, then the reader-end slot (001-reader-foundation: RD-12) (013-local-notes: LN-5).
 - The reader-end slot is drawn only for a readable note; a note that could not be read as a whole (broken or over a limit) gets no slot at all, because there is no plain text to build a quiz from (009-note-format: NF-8).
-- A note whose blocks are only partly unreadable still gets the slot and draws the unreadable blocks as boxes; the box rendering belongs to `design-system` and the mapping to `ui` (009-note-format: NF-8).
+- A note whose blocks are only partly unreadable still gets the slot and draws the unreadable blocks as boxes; the box rendering belongs to `design-system:blocks` and the mapping to `ui:mapper` (009-note-format: NF-8).
 - From the Expanded class up the column is capped at the reading width and centred; narrower windows use the full width with the page padding (001-reader-foundation: RD-6).
 - The right-hand rail reserve is taken off the end of the whole column, so a wide window keeps its reading width; the bottom padding is 24 dp plus the floating-bar reserve.
 - The note title grows with the window's note-title size and its line height follows at 1.25 times the size (010-brand: BR-8).
@@ -24,9 +24,9 @@ decisions: [BM-D6, BM-D7, BM-D13, D-22, D-24, D-25, D-26, D-27, D-30]
 - The title size and line height rule is proven by `ReaderTitleTest` (010-brand: BR-8).
 
 ### Not covered
-- The reader top bar (bookmark toggle, refresh, edit, delete) — drawn by `ui` and placed by `app:shell`; edit and delete exist only for device notes.
-- Quiz card and quiz overlay — `quiz`; this unit only gives the slot.
-- Block drawing, code scrolling, table layout — `design-system`; block mapping — `ui`.
+- The reader top bar (bookmark toggle, refresh, edit, delete) — drawn by `ui:shell` and placed by `app:shell`; edit and delete exist only for device notes.
+- Quiz card and quiz overlay — `quiz:cta` and `quiz:overlay`; this unit only gives the slot.
+- Block drawing, code scrolling, table layout — `design-system:blocks`; block mapping — `ui:mapper`.
 - Recording the read session and the scroll percentage — `notes:state` and `app:shell-chrome`.
 - No UI test in this module draws the reader; `app` instrumented tests cover back order and title fonts.
 
@@ -61,9 +61,9 @@ decisions: [BM-D6, BM-D7, BM-D13, D-22, D-24, D-25, D-26, D-27, D-30]
 
 ### Not covered
 - Adding and removing bookmarks, undo, and the study-log events — `notes:state`.
-- The bookmark toggle in the reader — `ui` top bar, handled by `notes:state`.
-- Time label wording (today, yesterday, this year, other year) — `ui`.
-- Bookmark storage and clean-up when notes are deleted — `data` and `database`.
+- The bookmark toggle in the reader — `ui:shell` top bar, handled by `notes:state`.
+- Time label wording (today, yesterday, this year, other year) — `ui:bookmark-time`.
+- Bookmark storage — `database:bookmarks`; removing bookmarks of a deleted device note — `data:device-notes`; of a replaced or disconnected source — `data:connection`; of notes a sync deleted — `notes:state`.
 - No UI test covers this screen; it was checked by hand on the folding emulator.
 
 ### Unconfirmed

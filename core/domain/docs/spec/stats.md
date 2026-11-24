@@ -35,9 +35,9 @@ decisions: [D-45, D-46, D-47]
 - Period and comparison boundaries (Monday starts, month borders, leap February, year-crossing weeks, 13 versus 14 days, 13 months cut to 12, daylight-saving days, other zones) are covered by `StatsPeriodRangeTest`.
 - Totals, rounding, lists, ordering, caps, the axis and the stale-bookmark reasons are covered by `StudyStatsCalculatorTest`, including that deleted notes leave the lists.
 ### Not covered
-- Reading records from storage — `data` and `database`.
-- How numbers, changes and wording are shown, the "first week" label and the short-history wording — the stats feature module.
-- Keeping the aggregation attached only while the screen is on top — the stats feature module and `app`.
+- Reading records from storage — `data:records` and `database:study-log`.
+- How numbers, changes and wording are shown, the "first week" label and the short-history wording — `stats:stats`.
+- Keeping the aggregation attached only while the screen is on top — `stats:stats`.
 
 ## insights — Weekly summaries and patterns
 ### Behaviour
@@ -62,10 +62,10 @@ decisions: [D-45, D-46, D-47]
 - `WeeklyHistory` (`firstWeek`, `of`, `mondayOf`) and `HistoryWeek`.
 - `ObserveInsightsUseCase`, `ObserveWeeklyHistoryUseCase`.
 - `InsightStamp`, `WeeklySummary`, `QuizPattern`, `InsightResult`, `InsightFailureKind`, `InsightStatus`, `InsightWorkState`, `InsightSnapshot`, `WrongAnswer`, `InsightFailure` (`Parse`, `TooLong`, `HasDigits`, `MissingField`, `Engine`, `Timeout`).
-- `InsightRepository` — summaries, pattern and status reads and writes, epoch, clear, prune; implemented in `data`. `InsightScheduler` — stamp, schedule, cancel, state; implemented in `ai`.
+- `InsightRepository` — summaries, pattern and status reads and writes, epoch, clear, prune; implemented in `data:records`. `InsightScheduler` — stamp, schedule, cancel, state; implemented in `ai:insight-worker`.
 ### Guarantees
 - Thresholds, refresh conditions, the last-week finalising rule and the three-target order are covered by `InsightPlanTest`; digest figures and the end-of-week and no-comparison cases by `WeeklyDigestTest`; row order, the 52-week cut and a full run of weeks by `WeeklyHistoryTest`.
 ### Not covered
-- Generating the text, the prompt, the output guards, retries and the worker — `ai`.
-- Storing summaries, patterns and status — `data` and `database`; clearing and pruning — unit `study-log`.
-- The summary card and the past-weeks screen — the stats feature module.
+- Generating the text, the prompt, the output guards and retries — `ai:insight-generation`; the worker — `ai:insight-worker`.
+- Storing summaries, patterns and status — `database:insights`; clearing and pruning — unit `study-log`.
+- The summary card — `stats:summary`; the past-weeks screen — `stats:history`.

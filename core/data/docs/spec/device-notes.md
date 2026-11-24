@@ -32,7 +32,7 @@ decisions: [LN-D2, LN-D3]
 - Save, size boundary, `---` first line, grouping, keys, edit keeping key, date and bookmarks, overlap with re-derive, delete, untouched by sync and connection flows, same reading features, previous-version data read as before: `DeviceNotesTest`.
 - Import routes share one rule, five distinct rejection reasons, 512 KB boundary (524,288 accepted, 524,289 rejected), reading stops at 524,289 bytes, nothing exists before Save: `NoteImportTest` (013-local-notes: LN-6, LN-7).
 ### Not covered
-- The import rule (front matter, heading, name hint, rejection order) — domain `ImportNoteUseCase` and `format`.
-- The save check, field normalising and default group wording — domain and `editor`.
-- Edit and delete buttons, confirmations and closing the reader — `editor`, `notes`.
+- The import rule (front matter, heading, name hint, rejection order) — `domain:device-notes` (`ImportNoteUseCase`) and `format:device-note`.
+- The save check and field normalising — `domain:device-notes`; the default group wording — `editor:session`.
+- Edit and delete buttons — `ui:shell`; confirmations and closing the reader — `editor:host` and `editor:session`.
 - No export, no upload to a repository, no turning a repository note into a device note.

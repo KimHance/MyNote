@@ -22,7 +22,7 @@ decisions: [D-33, D-59, D-62]
 - Chart buckets are days on week, Monday-based weeks on month and months on all; buckets before the first record and in the future are drawn as pending (005-stats: ST-10).
 - The category total beside the reading charts is the sum of the legend minutes and can differ by a minute from the minutes number.
 - A retried-quiz row is marked improved when the latest accuracy is above the first.
-- Opening a note from a list opens the reader by destination key; the reader-opened signal then carries the resume point (stalled notes: the stopped percentage) or the quiz request (retried quizzes) to `notes`; a move dropped by the navigation throttle sends nothing (005-stats: ST-11, ST-12) (012-feature-modules: FM-6).
+- Opening a note from a list opens the reader by destination key; the reader-opened signal then carries the resume point (stalled notes: the stopped percentage) or the quiz request (retried quizzes) to `notes:state`; a move dropped by the navigation throttle sends nothing (005-stats: ST-11, ST-12) (012-feature-modules: FM-6).
 - The summary card's meta button pushes past summaries (005-stats: ST-21).
 - An exception while handling an intent is logged through the trace.
 ### Public API
@@ -39,8 +39,8 @@ decisions: [D-33, D-59, D-62]
 - Aggregation time is measured with the injected clock and "today" comes from the injected wall clock (`StatsViewModelTest`).
 - Opening a note or retrying a quiz from Stats opens the reader and, for a retry, the quiz setup (`FeatureSignalsTest` in `app`).
 ### Not covered
-- Period ranges, totals, the stalled, accuracy, retry and stale-bookmark lists, the 14-day and 90-percent thresholds and the exclusion of deleted notes from lists — `domain`.
-- Turning the setup request into an open quiz only when the model is ready — `notes` and `quiz`.
+- Period ranges, totals, the stalled, accuracy, retry and stale-bookmark lists, the 14-day and 90-percent thresholds and the exclusion of deleted notes from lists — `domain:stats`.
+- Turning the setup request into an open quiz only when the model is ready — `notes:state` and `quiz:session`.
 - Keeping aggregation alive after leaving Stats is deliberately not done; a lazily shared stream would keep querying until the app ends.
 ### Unconfirmed
 - Whether figures resume updating after an aggregation error without recreating the view model was not traced; as read, the error ends the observed stream.
@@ -75,6 +75,6 @@ decisions: [D-33, D-59, D-62]
 - The header number is not drawn in a title style (`StatsHeaderValueTest`).
 - No automated UI test drives the Stats screen; `TitleFontScreensTest` in `app` only draws the summary card.
 ### Not covered
-- The top bar title, refresh and back, the floating navigation and the two-column decision — the `app` shell and `ui`.
-- The chart drawings and their progress animation (jump to the end with reduced motion) — `design-system`.
+- The top bar title, refresh and back and the two-column decision — `app:shell`; the floating navigation — `app:shell-chrome`; drawing the top bar — `ui:shell`.
+- The chart drawings and their progress animation (jump to the end with reduced motion) — `design-system:charts`.
 - Figures, deltas and captions — see `stats`; the summary card and pattern rules — see `summary`; past summaries — see `history`.

@@ -41,17 +41,17 @@ decisions: [SY-D10, RC-D4, RC-D5, RC-D6, RC-D9, RC-D19, RC-D20, RC-D28, RC-D29, 
 ### Public API
 - `ConnectionRepositoryImpl` — domain `ConnectionRepository`: `observeConnection`, `observeAttempting`, `countErasable`, `countAdoptionErasable`, `isSeedEligible`, `begin`, `syncPending`, `confirm`, `discard`, `disconnect`, `recover`.
 - `ConnectionRecovery` — singleton start recovery: `ensure()` (once per process) and `run()` (one pass).
-- `ConnectionConfigCodec` — `encode(connection, pending, attemptId)`, `decode(json)` giving `DecodedConfig` or null, and `PENDING_MARKER`, the exact pending text that the `database` note list query matches to hide a pending source's notes.
+- `ConnectionConfigCodec` — `encode(connection, pending, attemptId)`, `decode(json)` giving `DecodedConfig` or null, and `PENDING_MARKER`, the exact pending text that the note list query of `database:notes` matches to hide a pending source's notes.
 - `DecodedConfig` — decoded connection, pending flag and attempt id.
 ### Guarantees
 - Restart keeps the connection and sync uses it over the seed; canonical name stored; same-repository change deletes nothing; failed or aborted change keeps the old state; confirm after promotion survives cancellation; recovery restores tokens and finishes a disconnect; seed not revived after disconnect; confirm or rollback does not restart sync: `ConnectionRepositoryTest`.
 - Round trip of the stored value, unreadable value as no connection, the pending marker matching the encoding, case-insensitive same repository: `ConnectionConfigCodecTest`.
 - Device notes survive change, disconnect, a crashed disconnect and seed connection, and are not counted: `DeviceNotesTest`.
 ### Not covered
-- Reading a link and checking the repository before `begin` — domain use cases and `network:probe`.
-- The order begin, token apply, first sync, confirm or discard, the seed consumption and turning an unexpected exception into a kind — domain use cases.
-- Applying the token to HTTP requests — `network:token` and the app's token sync.
-- Dialog wording, the start screen choice and closing the reader on confirm — `connect`, `app`.
+- Reading a link and checking the repository before `begin` — `domain:connect-link`, `domain:connection` and `network:probe`.
+- The order begin, token apply, first sync, confirm or discard, the seed consumption and turning an unexpected exception into a kind — `domain:connection`.
+- Applying the token to HTTP requests — `network:token` and the app's token sync (`app:startup`).
+- Dialog wording — `connect:confirm`; the start screen choice and the screen clean-up (closing the reader) on a connection change — `app:shell-state`.
 - No several repositories at once, no token encryption or expiry, no keeping the last failure kind across restarts, no re-attaching old bookmarks after reconnecting the same repository.
 ### Unconfirmed
 - If the process dies after promotion and before the old token is removed, the old private token stays; this narrow gap has no test.

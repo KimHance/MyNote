@@ -16,7 +16,7 @@ decisions: [BM-D16, DEC-3]
 - List items may be checkboxes (checked, unchecked or not a checkbox) and may hold child blocks; an ordered list has a start number; a table has header cells, body rows and a per-column alignment.
 - An unsupported block is an app-internal box with a reason, the salvaged text (may be absent) and the original (empty means no original). Reasons are unknown type, broken block, broken note and limit exceeded; the last two stand for the whole note, and a whole-note box is the note's only block.
 - The only place that holds note limits is the limits value: container nesting 32, original 512 KB (524,288 bytes), table cells 4,096 per note, cache column 1 MB (1,048,576 bytes). A note over a limit becomes a limit-exceeded box (009-note-format: NF-8).
-- Changing a limit does not re-judge notes already cached; they keep the old verdict until the next re-conversion in `format`.
+- Changing a limit does not re-judge notes already cached; they keep the old verdict until the next re-conversion (run by `data:sync`, with the parse version of `format:note-format`).
 - A sync outcome tells how many notes were added and updated, and lists the keys (not a count) of deleted notes; it has changes when any of the three is non-empty. Deleted keys let screens close a deleted note and drop its bookmarks.
 - Sync failures are six distinct types: offline, token rejected, access denied, rate limited, server and list format. Their messages are English diagnostics, not screen text, and screens branch on the type (006-sync: SY-5).
 - Reading the categories and running a sync are one-line pass-throughs: no ordering, filtering, retry or scheduling is added here.
@@ -26,16 +26,16 @@ decisions: [BM-D16, DEC-3]
 - `NoteKey` (`value`, `parse`), `SourceId` (`Legacy`, `Device`, `DEVICE_ID`), `SourceKind` (GitHub, Link, Local) — keys and sources.
 - `NoteLimits` (`Default`, `maxBytes`, `maxCacheBytes`) — the limit values.
 - `SyncOutcome` (`changed`, `hasChanges`) and `SyncFailure` with `Offline`, `TokenRejected`, `AccessDenied`, `RateLimited`, `Server`, `Format`.
-- `NotesRepository` — `observeCategories()` and `sync()`; implemented in `data`.
+- `NotesRepository` — `observeCategories()` and `sync()`; implemented in `data:sync`.
 - `GetCategoriesUseCase`, `SyncNotesUseCase` — the two pass-throughs.
 ### Guarantees
 - Key parsing and the device source id are covered by `NoteKeyTest`; the limit values and which reasons stand for a whole note by `NoteLimitsTest`; the origin rule by `DeviceNoteTest`.
 - The six failure kinds are distinct types (`ConnectionUseCaseTest`).
 ### Not covered
-- Reading or writing the note cache, the sync algorithm and the diff rules (which notes change or are deleted) — `data` and `database`.
-- Turning Markdown or JSON into blocks, and the parse version — `format`.
+- Reading the note list, the sync algorithm and the diff rules (which notes change or are deleted) — `data:sync`; writing the note cache — `database:notes`.
+- Turning Markdown into blocks — `format:markdown`; JSON into blocks — `format:json-format`; the parse version — `format:note-format`.
 - When a sync runs and what it announces — unit `connection` (sync runs).
-- Drawing blocks, the box wording and the limit text — `design-system`, the notes feature module.
+- Drawing blocks, the box wording and the limit text — `design-system:blocks`; mapping domain blocks to what is drawn — `ui:mapper`.
 
 ## excerpt — First sentence
 ### Behaviour
@@ -54,7 +54,7 @@ decisions: [BM-D16, DEC-3]
 ### Guarantees
 - Candidate order, the sentence-end rules, the 140-character cut and the nested-item order are covered by `NoteExcerptTest`.
 ### Not covered
-- Where the sentence shows (bookmark card, list rows) and storing it on cached rows — the notes feature module and `data`.
+- Where the sentence shows (the large bookmark card) — `notes:bookmarks`, and taking it onto the note model — `notes:state`; storing it on cached rows — `data:sync` and `database:notes`.
 - The plain text built for quiz prompts, which keeps strike marks — unit `quiz`.
 
 ## bookmarks — Bookmarks
@@ -67,10 +67,10 @@ decisions: [BM-D16, DEC-3]
 - No study-log event is written here; the caller records added and removed events through unit `study-log`.
 ### Public API
 - `Bookmark` — note id and addedAt.
-- `BookmarkRepository` — `observeBookmarks()`, `add`, `remove`; implemented in `data`.
+- `BookmarkRepository` — `observeBookmarks()`, `add`, `remove`; implemented in `data:records`.
 - `AddBookmarkUseCase`, `RemoveBookmarksUseCase`, `ObserveBookmarksUseCase`.
 ### Guarantees
 - The clock default, caller-supplied time, overwrite and multi-key removal are covered by `BookmarkUseCaseTest` (against a fake repository, so the overwrite itself is the repository's contract).
 ### Not covered
-- Storing bookmarks and removing them with a deleted note or a disconnected source — `data` and `database`.
-- The bookmarks screen, undo and ribbons — the notes feature module.
+- Storing bookmarks — `data:records` and `database:bookmarks`; removing them with a deleted note — `notes:state`; with a deleted device note — `data:device-notes`; with a disconnected source — `data:connection`.
+- The bookmarks screen — `notes:bookmarks`; undo — `notes:state`; the ribbon — `design-system:widgets`.

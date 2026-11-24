@@ -9,7 +9,7 @@ decisions: [NF-D16, NF-D17, NF-D19, NF-D37, DEC-26, DEC-28]
 - Every place that turns an original into blocks goes through this entry: a freshly fetched note, the start-up re-parse, the first sync of a connection, the replacement of a damaged cache, and the save, edit and preview of a device note. Format choice is not repeated anywhere else (009-note-format: NF-2).
 - The entry never throws. An exception or a stack overflow gives one whole-note box of kind `broken_note`; running out of memory gives one whole-note box of kind `limit_exceeded`. Only that note is affected (009-note-format: NF-2, NF-8).
 - Three calls exist: `parse` returns the blocks for drawing, `derive` returns what the cache stores (blocks JSON and the first sentence), and `read` rebuilds blocks from the stored cache.
-- `derive` stores the first sentence as the excerpt, computed by the domain rule; the failure boxes from an exception or memory exhaustion have no excerpt (009-note-format: NF-10).
+- `derive` stores the first sentence as the excerpt, computed by the domain rule (`domain:excerpt`); the failure boxes from an exception or memory exhaustion have no excerpt (009-note-format: NF-10).
 - The block cache is one JSON array. Each block is an object with a `type` and default-valued fields left out: a span is `text` plus `style` (`bold`, `code`, absent for plain), `italic` and `strike` only when true; a list item is `spans`, `checked` and `children` (empty children left out); an ordered list carries `start` only when it is not 1; a table has `header`, `rows` and `align`.
 - Field names and the block type names are the storage format. Changing them needs a new parse version so cached rows are rebuilt (009-note-format: NF-9).
 - The bytes cached for the eight blocks of format 1 are fixed: a JSON note and a Markdown note that give the same blocks give the same bytes (009-note-format: NF-12).
@@ -39,10 +39,10 @@ decisions: [NF-D16, NF-D17, NF-D19, NF-D37, DEC-26, DEC-28]
 - Engine release equals the one the parse version was made for: `EngineVersionTest`.
 - Fixed parity of 22 notes and the repository notes: `ParityTest`; equivalence of re-parsing with decoding straight into the cache: `ReparseEquivalenceTest`.
 ### Not covered
-- The block model, first-sentence rule and limit values — see `domain`.
+- The block model and limit values — see `domain:notes`; the first-sentence rule — see `domain:excerpt`.
 - Turning Markdown text into blocks — see `markdown`; reading JSON — see `json-format`; the screening limits — see `limits`.
-- Storing the cache, the original and the parse version in a row — see `database:notes`; deciding to re-parse after an upgrade — see `data`.
-- Drawing a box and its wording — see the design system and `notes`.
+- Storing the cache, the original and the parse version in a row — see `database:notes`; deciding to re-parse after an upgrade — see `data:sync`.
+- Drawing a box and its wording — see `design-system:blocks`; mapping box kinds and limit numbers — see `ui:mapper`.
 - There is no parse time limit and no partial display of an over-limit note; an over-limit note is one box (009-note-format: NF-8).
 
 ## json-format — JSON format 1 reader

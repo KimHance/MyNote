@@ -34,14 +34,14 @@ decisions: [NF-D6, NF-D7, NF-D8, NF-D9, NF-D10, NF-D11, NF-D12, NF-D22, NF-D26, 
 ### Not covered
 - Screening before the engine runs — see `limits`.
 - Cache bytes, the first sentence and the choice of Markdown over JSON — see `note-format`.
-- Drawing: link opening, images, code colouring, column widths, strike-through announcements, indent depth — see the design system and `notes`.
+- Drawing: code colouring, column widths, strike-through announcements, indent depth — see `design-system:blocks`; there is no link opening or image drawing to point to, because a link becomes its text and an image its alt text here.
 - Writing rules for authors (no setext, no `---` right after a paragraph, escaping `<` `~` `*` `_` `$` `==` `|`) — see the notes schema document, not code here.
 ### Unconfirmed
 - The 93 two-code-point entity names are a fixed table; no test lists all 93 (only three are asserted).
 
 ## limits — Limits
 ### Behaviour
-- All limit values come from the domain limit set: original 512 KB, container nesting 32, block depth 32, table cells 4,096 per note, cache row 1 MB. The module holds no limit numbers of its own beyond the doubled line-prefix cap below, and the box wording takes its numbers from the same set (009-note-format: NF-8).
+- All limit values come from the domain limit set (`domain:notes`): original 512 KB, container nesting 32, block depth 32, table cells 4,096 per note, cache row 1 MB. The module holds no limit numbers of its own beyond the doubled line-prefix cap below, and the box wording takes its numbers from the same set (009-note-format: NF-8).
 - Screening runs on the raw text before front matter is cut and before the engine is called, for Markdown originals only. A note that fails it becomes one `limit_exceeded` box holding the original; the engine is never called for it (009-note-format: NF-8).
 - Size: more than 524,288 UTF-8 bytes is over; exactly 524,288 passes. It is counted without building a byte array, and a text with more characters than the limit is over at once (009-note-format: NF-8).
 - Nesting: containers at the start of each line (`>` quote marks and list markers) are counted across lines the way CommonMark keeps containers open. More than 32 is over; 32 mixed quote and list levels pass and 33 do not (009-note-format: NF-8).
@@ -63,7 +63,7 @@ decisions: [NF-D6, NF-D7, NF-D8, NF-D9, NF-D10, NF-D11, NF-D12, NF-D22, NF-D26, 
 - Wide-table growth, table cells counted per note, cache cap boundary and worst-case cache size for in-limit inputs: `ResultLimitsTest`.
 - Over-limit inputs never reach the converter: `NoteFormatTest`.
 ### Not covered
-- How the reader words the box and hides the quiz card for such notes — see `notes`.
+- How the box is worded — see `design-system:blocks` (the numbers pass through `ui:mapper`); hiding the quiz card for such notes — see `notes:reader`.
 - Reader cost of long lists and big tables inside the limits — drawing is not limited here; the table-cell limit is the only guard.
 - Storing the box row and the cursor window — see `database:notes`.
 
@@ -78,14 +78,14 @@ decisions: [NF-D6, NF-D7, NF-D8, NF-D9, NF-D10, NF-D11, NF-D12, NF-D22, NF-D26, 
 - A front-matter value is what follows the first colon, trimmed, with one pair of matching quotes removed; the first of a repeated key wins; keys other than `title` and `date` are ignored (013-local-notes: LN-6).
 - Body: after a heading title, the text after that line without leading blank lines; after front matter, the text after the closing line without leading blank lines; otherwise the whole text. A heading that follows a front-matter title stays in the body (013-local-notes: LN-6).
 - Date: the front-matter `date` when it is a real day in `YYYY.MM.DD`; any other shape (`2026-10-14`) or impossible day (`2026.02.30`) gives the day the import happens (013-local-notes: LN-6).
-- The title is cut to 200 characters by the domain title rule. Text with no front matter and no heading is accepted as it is; foreign Markdown never fails the import (013-local-notes: LN-6).
+- The title is cut to 200 characters by the domain title rule (`domain:device-notes`). Text with no front matter and no heading is accepted as it is; foreign Markdown never fails the import (013-local-notes: LN-6).
 ### Public API
-- `DeviceNoteMarkdown` — implements the domain device-note text rules: `fits(body)`, `rawFits(text)` and `imported(text, nameHint, today)` giving a draft; takes the limit set (default limits).
+- `DeviceNoteMarkdown` — implements the domain device-note text rules (`domain:device-notes`): `fits(body)`, `rawFits(text)` and `imported(text, nameHint, today)` giving a draft; takes the limit set (default limits).
 - `deviceNotePath(docId)` — the stored path, `<docId>.md`.
 - `deviceNoteRaw(body)` — the stored original: empty front matter plus body.
 - `deviceNoteBody(raw)` — the body of a stored original.
 ### Guarantees
 - The import table (22 cases), CRLF, CR and BOM equivalence, the boundary folder, the 524,280 and 524,288 byte bounds, `---` bodies and round trips: `DeviceNoteMarkdownTest`.
 ### Not covered
-- Picking a file, decoding it as UTF-8 and the five rejection reasons — see `editor`; the editor's title and group length rules — see `domain`.
-- Writing or reading the row — see `database:notes`; creating the key, group and date of a new note — see `data`.
+- Picking a file — see `editor:host`; decoding it as UTF-8 — see `data:device-notes`; the five rejection reasons — see `domain:device-notes`; the title and group length rules — see `domain:device-notes`.
+- Writing or reading the row — see `database:notes`; creating the key, group and date of a new note — see `data:device-notes`.

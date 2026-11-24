@@ -42,10 +42,10 @@ decisions: []
 - Column width rules: `TableColumnWidthsTest`; bullet glyph by depth and the indent stop at level 3: `NoteListMarkerTest`; strike-through reading and upright italic or code in quotes: `NoteSpansTest`.
 - Heading, checkbox state, table row and column information and the strike-through spoken text reach the semantics tree: `NoteContentSemanticsTest` (instrumented).
 ### Not covered
-- Turning raw notes into blocks, limits and format-version rules — `format`; mapping domain blocks to this model (a nested box becomes plain text there, empty `salvaged` or `raw` become null) — `notes`.
-- Where limit numbers come from — `format`; they are carried in `LimitExceeded` and never repeated in this module.
+- Turning raw notes into blocks and the format-version rules — `format:note-format` and `format:markdown`; the limit screening — `format:limits`; mapping domain blocks to this model (a nested box becomes plain text there, empty `salvaged` or `raw` become null) — `ui:mapper`.
+- Where limit numbers come from — the domain limit set, `domain:notes`; `ui:mapper` passes them into `LimitExceeded`, and they are never repeated in this module.
 - Adding a block kind: the Markdown converter, cache model, domain, mapper, this sealed set and the `when` in `NoteContent` move together (see the `format` module guide); the JSON format 1 set is not extended.
-- Reader chrome, reading width and scroll position — `notes` and `app`.
+- Reader chrome and scroll position — `ui:shell` and `app:shell`; reading width — `notes:reader`.
 
 ## charts — Statistics charts
 ### Behaviour
@@ -66,7 +66,7 @@ decisions: []
 - `HBarRow(title, subtitle, value, fraction, highlighted, progress, contentDescription, modifier, index)`.
 - `DivergingBar(label, up, down, kind)`, `DivergingBars(bars, progress, contentDescription, modifier)`.
 ### Not covered
-- What the numbers mean, periods, bucket labels and the text of each description — `stats`.
+- What the numbers mean, periods and bucket labels — `stats:stats`; the text of each description — `stats:screen`.
 - Section labels and numbered rows around the charts — `widgets`.
-- The chart colour tokens — `design-foundation`; layout of the stats screen — `stats`.
+- The chart colour tokens — `design-foundation:palette`; layout of the stats screen — `stats:screen`.
 - Unit tests: none exist for the charts; they are checked on the stats screen.

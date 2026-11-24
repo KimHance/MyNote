@@ -17,13 +17,13 @@ decisions: [D-37, D-39, D-41, D-42, D-43]
 - A quiz attempt with no answers is not written. An answer is correct when the picked index equals the answer index; an attempt counts asked and correct from its answers (005-stats: ST-3).
 - Recording a bookmark event returns the stored row id, or none when the switch is off. Cancelling by id deletes that row whether or not the switch is on; this is how undoing a bookmark removal deletes the removal event instead of adding one (005-stats: ST-4).
 - Clearing records runs in this order: cancel the weekly worker, raise the epoch, delete all records and cached summaries and patterns, clear the worker status, and only then reschedule when the model is ready and the switch is on. The raised epoch is what stops a run in flight from saving its result (005-stats: ST-6).
-- The rule "build summaries only when the model is ready and the switch is on" is one function used for rescheduling after a clear and by the app's schedule sync that schedules or cancels the worker (005-stats: ST-17).
+- The rule "build summaries only when the model is ready and the switch is on" is one function used for rescheduling after a clear and by the app's schedule sync (`app:startup`) that schedules or cancels the worker (005-stats: ST-17).
 - Pruning removes events older than 365 days, quiz question text older than 90 days (the attempts stay up to 365 days), and summaries and patterns of weeks older than the last 26, this week included. It uses the call-time clock and the device zone (005-stats: ST-7).
-- This unit never calls pruning itself: the callers run it at app start and after the worker saves (005-stats: ST-7).
+- This unit never calls pruning itself: the callers run it at app start (`app:startup`) and after the worker saves (`ai:insight-worker`) (005-stats: ST-7).
 ### Public API
 - `ReadSessionTracker` (`onTop`, `onVisible`, `onCovered`, `onProgress`; `MIN_ACTIVE_MILLIS`, `MAX_ACTIVE_MILLIS`) and `Moment`.
 - `ReadSession`, `QuizAnswer` (`correct`), `QuizAttempt` (`asked`, `correct`), `QuizAttemptSummary`, `BookmarkEvent`, `BookmarkEventKind`, `StudyWindow`, `NoteFacts`.
-- `StudyLogRepository` — record, `deleteBookmarkEvent`, observe a window, note facts and first-record time, wrong answers, count, clear, prune and prune answers; implemented in `data`.
+- `StudyLogRepository` — record, `deleteBookmarkEvent`, observe a window, note facts and first-record time, wrong answers, count, clear, prune and prune answers; implemented in `data:records`.
 - `RecordReadSessionUseCase`, `RecordQuizAttemptUseCase`, `RecordBookmarkEventUseCase` (`cancel(eventId)`).
 - `ClearStudyLogUseCase` and `insightsWanted(status, studyLogEnabled)`.
 - `PruneStudyLogUseCase` with `RETENTION_DAYS`, `ANSWER_RETENTION_DAYS` and `insightCutoff(at, zone)`.
@@ -31,7 +31,7 @@ decisions: [D-37, D-39, D-41, D-42, D-43]
 - Every duration, drop and cap rule, pausing, progress memory and the clock-back case are covered by `ReadSessionTrackerTest`.
 - The switch gating, the empty attempt, the clear order and rescheduling conditions and the three retention cutoffs are covered by `StudyLogUseCaseTest`.
 ### Not covered
-- Storing records, summaries and the worker status, and what the epoch does to a worker run — `data`, `database` and `ai`.
-- Deciding what a screen sends to the tracker (top, visible, covered, progress) and writing sessions when they close — the notes feature module and `app`.
+- Storing records — `database:study-log`; storing summaries and the worker status — `database:insights`; what the epoch does to a worker run — `ai:insight-worker`.
+- Deciding what a screen sends to the tracker (top, visible, covered, progress) and writing sessions when they close — `notes:state`; forwarding the app's start and stop — `app:shell`; the reader progress — `app:shell-chrome`.
 - Numbers and lists computed from the records — unit `stats`; weekly summaries — unit `insights`.
 - The "keep study records" setting itself — unit `settings`.

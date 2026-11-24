@@ -14,7 +14,7 @@ decisions: [QZ-D1, QZ-D2, QZ-D3, QZ-D4, QZ-D5, D-55, DEC-30]
 - The worker path (`tryUse`) returns busy at once when the lock is taken, and does not queue. When it had to build the engine itself, it closes it when the work ends if the caller's check says so (the worker asks "is the app in the background"); if the app came forward meanwhile the engine stays for the next quiz. An engine that was already loaded is reused and never closed by this path (005-stats: ST-18).
 - `release` waits for a running generation, then closes the engine; it is how model deletion frees the 2.6GB.
 - Speculative decoding is switched on before the engine is built, because the setting is read at build time; reordering silently turns it off. The benchmark flag is on only in a debuggable build and is for logs only: no decision reads it.
-- The engine asks for the GPU backend; the code cannot tell whether the GPU was really used. It falls back to the CPU without error or log unless the `:app` manifest declares the two native libraries (`libvndksupport.so`, `libOpenCL.so`, not required). The log guesses the backend from the first-token time: under 3 s counts as GPU. Measured on a Galaxy S25: first token 0.6 to 0.9 s on GPU, 6 to 7 s on CPU.
+- The engine asks for the GPU backend; the code cannot tell whether the GPU was really used. It falls back to the CPU without error or log unless the `:app` manifest (`app:build`) declares the two native libraries (`libvndksupport.so`, `libOpenCL.so`, not required). The log guesses the backend from the first-token time: under 3 s counts as GPU. Measured on a Galaxy S25: first token 0.6 to 0.9 s on GPU, 6 to 7 s on CPU.
 - The shader cache lives in the app cache folder; clearing it makes the next build slow again. The context length is the library default (not set here).
 - Every generation is sent through one cancellable call: when the waiting coroutine is cancelled or times out, the native decode is cancelled too, so the lock is released within about a second instead of after the whole generation (002-quiz: QZ-10).
 - A native failure that follows such a cancel is rethrown as the cancellation, never recorded as an engine failure (002-quiz: QZ-10).
@@ -28,8 +28,8 @@ decisions: [QZ-D1, QZ-D2, QZ-D3, QZ-D4, QZ-D5, D-55, DEC-30]
 - A quiz-built engine is never closed by the quiz path, and a quiz build cancelled midway stays in the slot; `tryUse` closes only an engine it built, when asked, and gives busy while the lock is taken (`EngineSlotTest`).
 - Cancelling a generation cancels the native call, a timeout does the same, and a non-cancel failure is rethrown as it is (`CancellableTest`).
 ### Not covered
-- Cutting the note to 2,000 characters before it reaches the model — `domain`, the quiz use case.
-- The 60-second quiz timeout and what the screen shows for each failure — `quiz:quiz` in the feature module.
+- Cutting the note to 2,000 characters before it reaches the model — `domain:quiz`.
+- The 60-second quiz timeout and what the screen shows for each failure — `quiz:session` and `quiz:overlay`.
 - Prompts and generation settings — `ai:quiz` and `ai:insight-generation`.
 - Downloading or deleting the file — `ai:download`.
 ### Unconfirmed
@@ -59,6 +59,6 @@ decisions: [QZ-D1, QZ-D2, QZ-D3, QZ-D4, QZ-D5, D-55, DEC-30]
 ### Guarantees
 - The repair rules above (leniency, answer-number fix, duplicate removal order, four-choice cap, failure on a missing or broken array) are fixed by `QuizJsonParserTest`; read it before changing the parser.
 ### Not covered
-- Timeout failures, the 60-second limit and cancelling on leave — `quiz:quiz` in the feature module; this unit only makes the cancel reach the native call (`ai:engine`).
-- Building the plain text of a note and cutting it to 2,000 characters — `domain`.
+- Timeout failures, the 60-second limit and cancelling on leave — `quiz:session`; this unit only makes the cancel reach the native call (`ai:engine`).
+- Building the plain text of a note and cutting it to 2,000 characters — `domain:quiz`.
 - Whether the model file is present or downloading — `ai:download`.
