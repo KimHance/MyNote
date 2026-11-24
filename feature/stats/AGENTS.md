@@ -59,3 +59,7 @@ Hilt 모듈 `StatsDispatcherModule` 하나). 리더 · 퀴즈 진입은
 ./gradlew :feature:stats:testDebugUnitTest   # 통계 VM · 매퍼 · 요약 규칙 · 머리 값
 ./gradlew :app:compileDebugKotlin            # 이 모듈 변경 검증은 :app 컴파일로
 ```
+
+<!-- docs-system:start -->
+This module has documents, for when you need them: docs/overview.md (units) · docs/spec/ · docs/decisions/
+<!-- docs-system:end -->

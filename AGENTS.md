@@ -3,7 +3,7 @@
 이 파일은 이 레포에서 작업하는 에이전트를 위한 안내다.
 
 마크다운 학습 노트를 읽는 안드로이드 앱. 노트는 두 곳에서 온다 — 연결한 GitHub 저장소에서 받아 캐시하는 **저장소 노트**(옛 JSON 도)와
-앱에서 쓰거나 가져와(공유 · `.md` 파일 · 붙여넣기) 앱 DB 가 원본인 **기기 노트**(기능 문서 `local-notes`). 저장소 노트는 앱에서
+앱에서 쓰거나 가져와(공유 · `.md` 파일 · 붙여넣기) 앱 DB 가 원본인 **기기 노트**(기획 `docs/plan/013-local-notes.md`). 저장소 노트는 앱에서
 고치지 않고(읽기 전용 그대로), 쓰기 · 고치기 · 지우기는 기기 노트만이다. 저장소 연결은 선택이고 첫 실행은 홈 빈 상태다.
 온디바이스 LLM(LiteRT-LM)으로 노트에서 4지선다 퀴즈를 만드는 기능이 붙어 있다.
 퀴즈 모델(2.6GB)은 APK 에 없고 **앱에서 런타임에 내려받는다**(WorkManager + 포그라운드 알림).
@@ -158,9 +158,9 @@ feature 에서는 안 보인다. (`feature/notes/AGENTS.md`)
 
 ## 전 모듈 공통 규약
 
-**언어** — 대화 응답·코드 주석·문서 전부 한국어.
+**언어** — 대화 응답·코드 주석·문서 전부 한국어. 예외는 문서 체계 문서(`docs/overview.md` · `docs/plan/` · 모듈 `docs/` 의 지도 · 스펙 · 결정)로, `docs/docs-system.md` 규칙대로 영어로 쓴다(한글은 `aliases` 와 화면 문구 인용에만).
 
-**문서 위생** — 레포 문서(AGENTS.md · 기능 문서 · 디자인 문서 · DECISIONS · README · labs README)와 커밋 본문에 로컬 절대 경로 · 개인 경로 · 대화 인용 · 시크릿 · 이메일을 넣지 않고, 근거는 `사용자 결정` · 결정 번호로 적는다. 꼴을 설명할 때도 글자 대신 말로 적는다. 문서는 `notes-tests/test_hygiene.py`(BR-9)가 보고, 커밋 본문은 `git log -1 --format=%B | python3 notes-tests/test_hygiene.py -` 로 본다.
+**문서 위생** — 레포 문서(AGENTS.md · 문서 체계 문서(지도 · 기획 · 스펙 · 결정) · 디자인 문서 · README · labs README)와 커밋 본문에 로컬 절대 경로 · 개인 경로 · 대화 인용 · 시크릿 · 이메일을 넣지 않고, 근거는 `사용자 결정` · 결정 번호로 적는다. 꼴을 설명할 때도 글자 대신 말로 적는다. 문서는 `notes-tests/test_hygiene.py`(BR-9)가 보고, 커밋 본문은 `git log -1 --format=%B | python3 notes-tests/test_hygiene.py -` 로 본다.
 
 **화면 문구는 `strings.xml`.** 코드에 한글 리터럴을 두지 않는다(프리뷰 더미와 개발자용 `error()`·예외
 메시지는 예외). 모듈별 `resourcePrefix` 가 걸려 있다 — design-system `ds_` · `:core:ui` `ui_` · `:core:ai` `ai_` ·
@@ -177,6 +177,30 @@ feature 에서는 안 보인다. (`feature/notes/AGENTS.md`)
 
 **컨벤션 플러그인** — 모듈은 `hancenote.*` 플러그인만 적용하고 수동 설정을 하지 않는다.
 ktlint·Compose 의존·Hilt 는 컨벤션이 자동으로 넣는다. (`build-logic/AGENTS.md`)
+
+---
+
+## 문서
+
+문서는 맨 아래 「Documents」 블록대로 찾는다 — 프로젝트 지도 `docs/overview.md` → 모듈 지도 `<모듈>/docs/overview.md` →
+건드릴 단위의 스펙 `<모듈>/docs/spec/`. 일마다 왜 했고 무엇을 만들었는지는 `docs/plan/`, 안을 견줘 고른 결정은 스펙과
+이름이 같은 `<모듈>/docs/decisions/` 파일(어느 단위에도 안 속하면 `docs/decisions.md`)에 있다. 쓰는 법은 `docs/docs-system.md`.
+
+- 모듈 `AGENTS.md` 는 그 모듈의 작업 규칙 · 함정이고, 동작의 기준은 단위 스펙이다. 코드를 고쳐 동작이 바뀌면 같은 변경에서 스펙 문장을 고친다.
+- 검사는 hance 플러그인의 `docsys.py check`(오피스 모드가 돌린다) — 스펙 머리말은 `docsys.py sync` 가 채운다. 손으로 쓰지 않는다.
+- 아직 안 정한 것(옛 문서의 열린 질문 · 실기기 확인 거리)은 `docs/open-questions.md` 에 모아 두었다. 문서 체계 밖 문서다.
+- 디자인 문서(`DESIGN.md` · `docs/design/`) · `labs/` · `notes/SCHEMA.md` · `README.md` 도 문서 체계 밖이고 한국어 그대로다.
+
+코드 주석 · 시험 이름 · 디자인 문서에 남은 옛 가리킴은 이렇게 읽는다(2026-11-24 에 문서 체계를 옮겼다):
+
+| 옛 가리킴 | 지금 |
+|---|---|
+| 기능 문서 `<기능>` | 기획 `docs/plan/` — model-download 003 · sync 006 · repo-connect 007 · note-template 008 · note-format 009 · brand 010 · screen-copy 011 · feature-modules 012 · local-notes 013 — 과 그 모듈의 단위 스펙 |
+| `<기능>` 결정 N · 시험 이름의 `D<N>` | 결정 id `<접두사>-D<N>`(MD · SY · RC · NT · NF · BR · SC · FM · LN). 결정 파일에 없으면 견준 안이 없어 옮기지 않은 것이다 — 동작은 스펙에 있다 |
+| 옛 결정 기록 N번 | 결정 id `DEC-<N>`. 열린 것은 `docs/open-questions.md` |
+| 옛 PRD 의 `D<N>`(북마크 · 통계) | 결정 id `D-<N>` |
+| `plan D<N>` | 그 작업의 계획 번호다. 남기지 않았다 |
+| 옛 문서 원문 | git 내력 — `git show c8c54350:docs/spec/<기능>.md` |
 
 ---
 
@@ -201,7 +225,7 @@ ktlint·Compose 의존·Hilt 는 컨벤션이 자동으로 넣는다. (`build-lo
 ## 공개 자산 (`public-repos/`)
 
 남이 쓸 템플릿 저장소(`notes-template/`)와 그 정본인 규격 · 도구 · 플러그인(`notes-kit/`)의 **원본**이다.
-공개하는 것은 템플릿 하나다 — 템플릿이 도구 · 규격 사본을 들고 workflow 가 그 도구를 직접 실행한다(사용자 결정 · 기능 문서 note-template 결정 31). 아직 공개하지 않았다(`DECISIONS-TO-REVISIT.md` 17).
+공개하는 것은 템플릿 하나다 — 템플릿이 도구 · 규격 사본을 들고 workflow 가 그 도구를 직접 실행한다(사용자 결정 · 결정 `NT-D31`). 아직 공개하지 않았다(`docs/open-questions.md` 의 DEC-17).
 
 - **폴더만 떼어 내도 서 있어야 한다.** 상위 경로 참조 · 이 레포 소유자 · 비공개 저장소 주소 · 토큰을 넣지 않는다.
   `public-repos/tests/` 가 누출과 단독성을 검사한다(공개본에는 안 들어간다).
@@ -234,3 +258,20 @@ ktlint·Compose 의존·Hilt 는 컨벤션이 자동으로 넣는다. (`build-lo
 
 `adb uninstall` 은 기기 파일을 지운다. `installDebug` 재설치로는 안 지워진다.
 없으면 퀴즈 기능이 조용히 비활성화되고(크래시 아님) 안내 문구가 뜬다.
+
+<!-- docs-system:start -->
+# Documents
+
+This project keeps documents. Do not read them all — go to the one you need.
+
+## What is where
+- `docs/overview.md` — what this project is and which modules it has
+- `<module>/docs/overview.md` — a module's units and where each unit's code is
+- `<module>/docs/spec/` — per unit: how it behaves now, what other code relies on, what it deliberately does not do
+- `docs/plan/` — per piece of work: why it was done and what it built
+- `<module>/docs/decisions/` — per spec file, same name: choices made after comparing alternatives, and why (project-wide: `docs/decisions.md`)
+
+## The full guide
+`docs/docs-system.md` says how to read, write and change these documents.
+Read it first when you are new to these documents, and before you write or change one.
+<!-- docs-system:end -->

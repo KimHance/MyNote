@@ -60,4 +60,4 @@ Kotlin · Jetpack Compose · Navigation 3 · Hilt · Room 3 · DataStore · Retr
 
 ## 개발자용 문서
 
-에이전트와 개발자를 위한 안내는 [`AGENTS.md`](AGENTS.md)(모듈마다 따로 있습니다), 디자인 기준은 [`DESIGN.md`](DESIGN.md), 기능 문서는 [`docs/`](docs/) 에 있습니다.
+에이전트와 개발자를 위한 안내는 [`AGENTS.md`](AGENTS.md)(모듈마다 따로 있습니다), 디자인 기준은 [`DESIGN.md`](DESIGN.md), 문서 지도는 [`docs/overview.md`](docs/overview.md) 에 있습니다(일마다의 기획은 `docs/plan/`, 모듈별 스펙은 각 모듈의 `docs/`).

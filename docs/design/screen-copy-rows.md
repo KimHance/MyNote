@@ -105,9 +105,9 @@ copy-apply 가 `strings.xml` 과 한 묶음으로 고친다. 인용 글자가 `s
 | ① | 템플릿 README | `public-repos/notes-template/README.md` 앱 용어 일곱 · 문제 해결의 연결 실패 문장 | 바뀌는 값 없음 — 일곱(`connect_entry_create` · `connect_link_label` · `connect_action` · `connect_token_title` · `ui_token_howto_*` 셋)과 `connect_err_no_list` 는 그대로. 확인만 | copy-apply |
 | ② | DESIGN.md | 9.2 `ds_unsupported_*` 다섯 · 9.3 권유 끝말 · 9.4 옮긴 문구 표의 ☰ 줄 · 확인 다이얼로그 예 · 실패 예 · 쓰지 않는 표현 머리 | 이 문서와 같은 커밋에서 고쳤다 | 디자인(끝남) |
 | ③ | 공개 규격 | `public-repos/notes-kit/SPEC.md` 와 플러그인 사본 | 인용 낱말(`원문 보기` · `노트 목록` · `노트 저장소`)이 그대로라 고칠 것 없음. 확인만 | copy-apply |
-| ④ | 기능 문서 | `docs/spec/sync.md` SY-6 `노트 변경 반영 — …` → `노트를 불러왔습니다 · …` | 인용 글자만 · 바뀐 기록 `인용 문구만` | copy-spec |
-| ④ | 기능 문서 | `docs/spec/model-download.md` 열린 질문 1 `내려받기를 취소했습니다` → `받기를 취소했습니다` | 같음 | copy-spec |
-| ④ | 기능 문서 | `docs/spec/repo-connect.md` 결정 30 "저장된 토큰이 지워집니다" 한 줄 → `저장된 토큰도 지웁니다` | 같음. RC-15 · RC-17 은 인용이 아니라 풀어 쓴 말이라 그대로 | copy-spec |
+| ④ | 기능 문서 | `docs/plan/006-sync.md` SY-6 `노트 변경 반영 — …` → `노트를 불러왔습니다 · …` | 인용 글자만 · 바뀐 기록 `인용 문구만` | copy-spec |
+| ④ | 기능 문서 | `docs/plan/003-model-download.md` 열린 질문 1 `내려받기를 취소했습니다` → `받기를 취소했습니다` | 같음 | copy-spec |
+| ④ | 기능 문서 | `docs/plan/007-repo-connect.md` 결정 30 "저장된 토큰이 지워집니다" 한 줄 → `저장된 토큰도 지웁니다` | 같음. RC-15 · RC-17 은 인용이 아니라 풀어 쓴 말이라 그대로 | copy-spec |
 | ⑤ | 디자인 문서 | `docs/design/repo-connect.md` 입구 제목 · 단계 ① | 이 문서와 같은 커밋에서 고쳤다 | 디자인(끝남) |
 | ⑤ | 디자인 문서 | `docs/design/model-download.md` 용어 줄(스낵바도 `받`) · 알림 표 받지 못함 본문 | 이 문서와 같은 커밋에서 고쳤다 | 디자인(끝남) |
 | ⑤ | 디자인 문서 | `docs/design/note-format.md` · `docs/design/brand.md` | 문구표의 값이 바뀌지 않는다(낭독 낱말 · 한도 상자 · 제목) | 없음 |

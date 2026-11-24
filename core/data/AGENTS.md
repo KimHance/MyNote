@@ -159,3 +159,7 @@ M0 에 쓰는 코드가 없어 여기에 없다 — 쓰는 단계에서 더한�
 - `TemplateNotesTest` — 템플릿 마크다운 예시(`public-repos/notes-template` 의 `.md` 둘)가 `NoteFormat` 에서 강등 0 · 앞머리가 블록으로 새지 않음 · 동기화로 전부 받아짐 · 앱이 그리는 모양을 다 씀 · 글자로만 보이는 문법 흔적 없음(NT-6). 템플릿 폴더가 시험 입력이라 한 글자만 바뀌어도 다시 돈다.
 - `ConnectionRepositoryTest` · `ConnectionConfigCodecTest` · `SyncFailureKindTest` · `BookmarkRepositoryImplTest`.
 - `DeviceNotesTest` · `NoteImportTest` — 기기 노트(위 "기기 노트" 절).
+
+<!-- docs-system:start -->
+This module has documents, for when you need them: docs/overview.md (units) · docs/spec/ · docs/decisions/
+<!-- docs-system:end -->

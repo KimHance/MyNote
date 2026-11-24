@@ -205,7 +205,7 @@ DataStore(DataStoreTokenStore) → TokenRepository → ObserveTokenUseCase
 
 - **`TEMPLATE_REPO` 는 `local.properties` 가 아니라 커밋되는 루트 `gradle.properties` 의 `template.repo` 에서 온다**(결정 54).
   `defaultConfig` 에서 한 번만 넣는다 — `debug{}`·`release{}` 에 쓰지 않으므로 둘이 같은 값이고 release 의 시드 비우기와 겹치지 않는다.
-  빈 값이면 입구가 없다. 지금은 템플릿 주소가 들어 있다(템플릿은 아직 비공개 — `DECISIONS-TO-REVISIT.md` 18). 허용 문자 `[A-Za-z0-9._/-]` 밖(따옴표·역슬래시·공백·개행)이 든 값은 빌드가 깨지지 않고 빈 값으로
+  빈 값이면 입구가 없다. 지금은 템플릿 주소가 들어 있다(템플릿은 아직 비공개 — `docs/open-questions.md` 의 DEC-18). 허용 문자 `[A-Za-z0-9._/-]` 밖(따옴표·역슬래시·공백·개행)이 든 값은 빌드가 깨지지 않고 빈 값으로
   내려간다 — 이건 `BuildConfig` 문자열을 깨지 않게 하는 안전판일 뿐이고 모양 판정은 `:core:domain` 의 `parseTemplateRepo` 한 곳이다.
   `-Ptemplate.repo=…` 로 한 번만 덮어 쓸 수도 있다.
 
@@ -447,3 +447,7 @@ APK 85.4MB → 60.6MB. **되돌릴 조건은 하나다: 인텔 맥에서 x86_64 
   ≤ 20초)을 못 넘으면 테스트가 실패한다(JSON 은 그 전에 쓴다). 앱 프로세스 안에서 돌므로 시작할 때 `study-insights` 를
   취소한다 — 같은 프로세스에서 워커가 두 번째 엔진을 올리는 것을 막으려는 것이고, 앱을 다시 켜면 `InsightScheduleSync` 가 되살린다.
 - application 컨벤션이 `testInstrumentationRunner = AndroidJUnitRunner` 를 넣는다(라이브러리 컨벤션과 같다).
+
+<!-- docs-system:start -->
+This module has documents, for when you need them: docs/overview.md (units) · docs/spec/ · docs/decisions/
+<!-- docs-system:end -->

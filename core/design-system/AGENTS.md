@@ -303,3 +303,7 @@ draw 안에서 크기에 따라 다시 만들어야 하는 것은 **`size` 를 �
 ANDROID_SERIAL=<기기 serial> ./gradlew :core:design-system:connectedDebugAndroidTest   # 기기 필요 — 테스트 절
 ./gradlew ktlintFormat --continue && ./gradlew ktlintCheck && ./gradlew lintDebug
 ```
+
+<!-- docs-system:start -->
+This module has documents, for when you need them: docs/overview.md (units) · docs/spec/ · docs/decisions/
+<!-- docs-system:end -->

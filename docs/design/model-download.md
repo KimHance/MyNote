@@ -3,7 +3,7 @@
 | 항목 | 값 |
 |---|---|
 | 기능 | model-download |
-| 기능 문서 | docs/spec/model-download.md (기준 3b73a58 · 구현 babe07d) |
+| 기능 문서 | docs/plan/003-model-download.md (기준 3b73a58 · 구현 babe07d) |
 | 등급 | 화면 |
 | 마지막 변경 | 2026-10-12 · 리소스 이름만 — 알림 꺼짐 안내 문구 이름 `settings_` 접두사(feature-modules move-settings) |
 

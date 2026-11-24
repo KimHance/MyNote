@@ -202,13 +202,14 @@ class HygieneTest(unittest.TestCase):
         docs = tracked_docs(REPO_ROOT)
         for rel in (
             "AGENTS.md",
-            "DECISIONS-TO-REVISIT.md",
+            "docs/overview.md",
+            "docs/open-questions.md",
             "README.md",
             "labs/brand-design/README.md",
             "notes/SCHEMA.md",
         ):
             self.assertIn(rel, docs)
-        for folder in ("docs/spec/", "docs/design/", "core/data/", "public-repos/"):
+        for folder in ("docs/plan/", "docs/design/", "core/data/docs/spec/", "public-repos/"):
             self.assertTrue(any(rel.startswith(folder) for rel in docs), folder)
         self.assertTrue(any(rel.startswith("labs/") and rel.endswith(".html") for rel in docs))
         self.assertFalse([rel for rel in docs if rel.startswith(FIXTURE_DIRS)])

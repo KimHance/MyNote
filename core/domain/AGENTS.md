@@ -184,3 +184,7 @@ debug 내장 토큰은 시드 연결(`ConsumeSeedUseCase`)이 저장 칸에 쓰�
   (`hasChanges`)와 문구(`added`/`updated`/`deleted`)를 같은 자리에서 못 세면 "변경 없음"인데 안내가 뜬다.
   `deleted` 는 개수가 아니라 **`NoteKey` 문자열 목록**이다 — 삭제된 노트를 보고 있으면 화면을 옮기고 그 노트의 북마크를 지워야 해서
   호출부가 키를 쓴다. 업데이트 직후 원문을 채우려고 다시 받은 노트는 `updated` 에 세지 않는다(`:core:data`).
+
+<!-- docs-system:start -->
+This module has documents, for when you need them: docs/overview.md (units) · docs/spec/ · docs/decisions/
+<!-- docs-system:end -->
