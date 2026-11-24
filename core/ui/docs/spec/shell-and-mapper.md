@@ -1,6 +1,6 @@
 ---
 units: [ui:shell, ui:mapper]
-plans: [004-bookmarks, 007-repo-connect, 009-note-format, 012-feature-modules, 013-local-notes]
+plans: [004-bookmarks, 007-repo-connect, 009-note-format, 010-brand, 011-screen-copy, 012-feature-modules, 013-local-notes]
 decisions: [LN-D14]
 ---
 ## shell — Shell frame and top bar
@@ -27,6 +27,7 @@ decisions: [LN-D14]
 - `NotesTopBar(...)` — the top bar composable with the parameters above (`title`, `showBack`, `bookmarked`, `onMenu`, `onBack`, `onRefresh`, `onToggleBookmark`, `showRefresh`, `backEnabled`, `onEdit`, `onDelete`).
 ### Guarantees
 - Every destination key has exactly one registered screen and the shell passes only frame values (`ShellDestinationsTest` in `app:shell`, FM-4 names) (012-feature-modules: FM-4).
+- `ui_app_title` reads `MyNote` and is the title that the home top bar (`NotesShell.kt`) and the connect reading screen (`ConnectReading.kt`) use; across the strings and sources of every module the temporary name `공부 기록` appears nowhere and no string holds lower-case `mynote`; and the other screen titles stay `ui_settings` `설정`, `shell_nav_bookmark` `북마크`, `shell_nav_stats` `통계`, `shell_stats_history_title` `지난 요약`, with the launcher label `app_name` `MyNote`: `notes-tests/test_brand_title.py` (010-brand: BR-7) (011-screen-copy: SC-K2).
 ### Not covered
 - Implementing the frame, hiding the bar and navigation on the connect screen, header content and back order — `app:shell` and `app:shell-state`.
 - Registering a feature's screens — each feature module's registration file, for example `connect:flow`.

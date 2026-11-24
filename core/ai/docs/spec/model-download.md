@@ -1,6 +1,6 @@
 ---
 units: [ai:download, ai:download-decision, ai:download-transfer, ai:download-work]
-plans: [003-model-download]
+plans: [003-model-download, 010-brand]
 decisions: [MD-D1, MD-D4, MD-D5, MD-D6, MD-D8, MD-D13, MD-D16, MD-D18, MD-D19, BR-D9, DEC-22, DEC-23, DEC-24a, DEC-36d]
 ---
 ## download — Model download
@@ -82,7 +82,7 @@ decisions: [MD-D1, MD-D4, MD-D5, MD-D6, MD-D8, MD-D13, MD-D16, MD-D18, MD-D19, B
 - When the work is stopped for any reason other than the app's own cancel (network lost, system), the retry notification stays; an app cancel leaves nothing (003-model-download: MD-11).
 - Waiting and retry notifications are posted when the app goes to the background and stay when it comes forward; the app removes notifications only when the status says there is nothing to show (missing or paused) (003-model-download: MD-9, MD-11).
 - Notifications use the low-importance channel `quiz_model_download`; working ones are ongoing and silent, results are not ongoing and close on tap. A tap opens settings when the app supplied that intent, else the launcher; the cancel action needs the work's cancel intent and the retry action the app's retry intent, and an action is left out when its intent is absent (003-model-download: MD-K11).
-- The retry notification's small icon is a still Material Icons `downloading` (Apache-2.0); the platform download icon, which animates, is used for the other progress notices (waiting, preparing, downloading, verifying) (003-model-download: MD-9).
+- The retry notification's small icon is a still Material Icons `downloading` (Apache-2.0); the platform download icon, which animates, is used for the other progress notices (waiting, preparing, downloading, verifying) (003-model-download: MD-9) (010-brand: BR-K8).
 ### Public API
 - `ModelDownloadIntents` — the app (`app:download`) supplies `retry()` and `openSettings()` pending intents for the notification; optional (the module works without it).
 ### Guarantees

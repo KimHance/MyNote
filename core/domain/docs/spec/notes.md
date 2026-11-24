@@ -1,6 +1,6 @@
 ---
 units: [domain:notes, domain:excerpt, domain:bookmarks]
-plans: [004-bookmarks, 006-sync, 007-repo-connect, 009-note-format, 013-local-notes]
+plans: [004-bookmarks, 006-sync, 007-repo-connect, 008-note-template, 009-note-format, 013-local-notes]
 decisions: [BM-D16, DEC-3]
 ---
 ## notes — Notes and sync
@@ -30,6 +30,7 @@ decisions: [BM-D16, DEC-3]
 - `GetCategoriesUseCase`, `SyncNotesUseCase` — the two pass-throughs.
 ### Guarantees
 - Key parsing and the device source id are covered by `NoteKeyTest`; the limit values and which reasons stand for a whole note by `NoteLimitsTest`; the origin rule by `DeviceNoteTest`.
+- The limit numbers (512 KB = 524,288 bytes, nesting 32, line-prefix 64 and 130 columns, block depth 32, table cells 4,096, cache 1 MB = 1,048,576 bytes) are also published in `notes/SCHEMA.md` section 4 and in the public `SPEC.md` limits section (with its byte-equal copies under `public-repos/`); `public-repos/tests/test_schema_parity.py` requires the two sections to carry the same numbers and 524288 and 130 to be among them, so a change to a limit here is a change to all of these texts (008-note-template: NT-1).
 - The six failure kinds are distinct types (`ConnectionUseCaseTest`).
 ### Not covered
 - Reading the note list, the sync algorithm and the diff rules (which notes change or are deleted) — `data:sync`; writing the note cache — `database:notes`.

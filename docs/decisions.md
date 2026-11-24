@@ -1,11 +1,5 @@
 # Decisions
 
-### NT-D4 · 2026-10 · NT-1
-- decision: The format spec's source of truth is `public-repos/notes-kit/SPEC.md`. The template README and the plugin skills point to it and never copy it. The project's own internal spec, generator and hook stay untouched by this work; tests compare the closed sets between the two instead.
-- why: Only tracked documents are the app feature documents, and a spec that outsiders read must live in the public repository. Changing the internal scripts at the same time would disturb writing this project's own notes.
-- rejected: Copying the spec into the README and skills; replacing the internal spec, generator and hook with the public ones (merging is left for after publication).
-- evidence: `public-repos/notes-kit/SPEC.md`; `public-repos/tests/test_schema_parity.py` (`NT-1 규격의 닫힌 집합이 gen_index.py 와 같다`, `NT-1 규격의 문법 표와 한도와 쓰기 규칙이 SCHEMA.md 와 같다`)
-
 ### NT-D8 · 2026-10 · NT-2
 - decision: The format version is a one-line file `.mynote-format` at the repository root (absent means 1). The tool fails when the file names a version above what it supports and then leaves `index.json` as it was. `index.json` carries no version field.
 - why: `index.json` uses group names as its top-level keys, so the app would read a new field as a group.
@@ -53,12 +47,6 @@
 - why: The app reads any body (undrawn syntax shows as text, over-limit notes become a box). A tool wider or narrower than the generator would make the same repository list differently depending on the tool.
 - rejected: A tool that is stricter or looser than the generator on Markdown notes.
 - evidence: `public-repos/tests/test_notes_parity.py` (`NT-3 합성 노트 집합에서 gen_index.py 와 출력이 같다`, `NT-3 깨진 노트에서 gen_index.py 와 함께 실패한다`)
-
-### NT-D22 · 2026-10 · NT-1
-- decision: The public `SPEC.md` describes Markdown notes as the source of truth (front matter, syntax mapping, text shapes, text-only syntax, limits, writing rules, `index.json`, format version) and keeps old JSON notes as a format-1 section with the closed-set tables. Against the internal `notes/SCHEMA.md` the test compares not sentences but the first column of the tables, the limit numbers and the number of writing rules.
-- why: The public spec is in polite Korean and the internal one in plain Korean, so they cannot be byte-equal; the cells and numbers must match whatever the tone, and a change on either side breaks the test.
-- rejected: Byte-equal copies; merging the two documents into one (still an open question).
-- evidence: `public-repos/tests/test_schema_parity.py` (`NT-1 규격의 문법 표와 한도와 쓰기 규칙이 SCHEMA.md 와 같다`)
 
 ### NT-D25 · 2026-10 · NT-7
 - decision: Publishing the template and filling the app's `template.repo` value come after the app version that reads Markdown is released. The publish order in `public-repos/README.md` says so first. Publishing itself stays a human act.
@@ -113,18 +101,6 @@
 - why: Both could not keep zero ellipsis at 1.3x even before the wording change, and wording cannot fix it; owner decision.
 - rejected: Holding the absolute zero-ellipsis rule for those two places, or changing their screen shape (ellipsize only the title, allow two lines) inside this work.
 - evidence: `docs/design/screen-copy.md` (overflow section); quiz module strings `quiz_*`.
-
-### FM-D3 · 2026-10 · FM-1, ui
-- decision: Screen pieces, screen models and cross-feature signal contracts that two or more features use go into a new `:core:ui` module (owner decision).
-- why: The design system stays a place that does not know feature meaning such as model state or token input.
-- rejected: Putting them into `:core:design-system`.
-- evidence: `core/ui/` (`signal/FeatureSignals.kt`, `frame/ShellFrame.kt`, `mapper/NoteBlockMapper.kt`), `notes-tests/test_feature_modules.py` (`FM-1 공용 조각은 core:ui 와 core:navigation 에 산다`).
-
-### FM-D21 · 2026-10 · FM-1, ui
-- decision: Five strings used by two or more features and the shared pieces created by the ViewModel split (snackbar wording, failure log, snackbar notice, font-size mapping) move to `:core:ui` in the shared-pieces step; the disconnect dialog model, used only by settings, goes with the settings extraction.
-- why: The shared-pieces table was counted at the base commit and missed them; leaving them would make later feature extractions depend on notes (an FM-2 violation).
-- rejected: Leaving them in `:feature:notes`.
-- evidence: `core/ui/src/main/java/com/hancekim/mynote/core/ui/NotesMessages.kt`, `FailureLog.kt`, `notes-tests/test_feature_modules.py` (`PLACED_AHEAD` now empty).
 
 ### DEC-20 · 2026-10 · NT-8
 - decision: The plugin folder carries its own copies of SPEC.md and note_tool.py and the skills read them through the plugin root; the canonical copies are notes-kit/SPEC.md and notes-kit/tools/note_tool.py. A test pins the copies byte-for-byte to the canonical ones, so editing the canonical file without the copy fails the build.

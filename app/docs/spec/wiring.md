@@ -41,7 +41,7 @@ decisions: [BR-D13, FM-D10, FM-D16, FM-D23, DEC-18]
 - The manifest removes WorkManager's own initializer; `MyNoteApplication` supplies the configuration.
 - Cloud backup and device transfer both exclude the two token stores, the model file with its working and plan files, and the whole external files area; nothing else is excluded, so notes, bookmarks and study records are backed up (013-local-notes: LN-15).
 - Rules use only exclusions: a single include would drop everything else, and the model in a cloud backup would pass the per-app limit and silently stop the whole backup. Renaming a token store or the model file means renaming it in the rules; the old-style rules file is a copy.
-- The launcher icon is adaptive only, three layers (background, foreground, a separate monochrome silhouette), the same for round; there are no per-density bitmaps and no default robot icon (010-brand: BR-1, BR-2).
+- The launcher icon is adaptive only, three layers (background, foreground, a separate monochrome silhouette), the same for round; there are no per-density bitmaps and no default robot icon (010-brand: BR-1, BR-2, BR-3).
 - The splash icon is an animated drawing whose default state is its end picture; the first 166 ms hold the dark window with same-value keyframes, then the light-up takes 450 ms, 616 ms in all, equal to the theme's declared length; the animators are linear, with the brand easing on the light-up segment (010-brand: BR-5).
 - The window background colour equals the background token, so the first frame after the splash has no white frame (010-brand: BR-4).
 - This module sets no resource prefix; its own strings start with `shell_`, because a prefix would rename launcher, theme and backup resources (012-feature-modules: FM-11).
@@ -55,6 +55,7 @@ decisions: [BR-D13, FM-D10, FM-D16, FM-D23, DEC-18]
 - `notes-tests/test_backup_rules.py` proves the notes database is not excluded and the token files and model file stay excluded (013-local-notes: LN-15).
 - `notes-tests/test_brand_resources.py` proves the launcher layers, the missing default icon, the window background colour and the splash length against the brand drawings and tokens (010-brand: BR-1, BR-2, BR-4, BR-5).
 - `notes-tests/test_feature_modules.py` proves the shell lives in `:app` with its order fixed in one file and that shell strings start with `shell_` (012-feature-modules: FM-5, FM-11).
+- The launcher label string `app_name` reads `MyNote`: `notes-tests/test_brand_title.py` (010-brand: BR-7, BR-K9).
 ### Not covered
 - The shell and its back order — `app:shell`; the splash exit and font gate — `app:launch`.
 - Signing — `build-logic:signing`; SDK levels and version numbers — `build-logic:shared-config` and the version catalogue.

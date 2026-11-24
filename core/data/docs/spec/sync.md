@@ -16,7 +16,7 @@ decisions: [SY-D1, SY-D2, SY-D4, SY-D6, NT-D28, DEC-1, DEC-25, DEC-36b]
 - It deletes notes whose source row is missing, and promotes a pending source while deleting the replaced sources' notes and rows in one transaction (007-repo-connect: RC-15).
 - Device-note writes, edits, deletes and edit reads touch only rows of the device source; inserting a device note creates the device source row in the same transaction when it is missing (013-local-notes: LN-12).
 - The bookmark store maps note keys to added time and can count and remove by key prefix (`<source id>/`); the connection state store keeps used source ids, the attempt record, the disconnect marker, the seed block and the bookmark sweep list.
-- `IndexNoteDto` is the list file's item shape: id, title, date, path, hash, all strings and all required.
+- `IndexNoteDto` is the list file's item shape: id, title, date, path, hash, all strings and all required (009-note-format: NF-K2).
 - `NotesJson` ignores unknown keys and coerces invalid values to defaults.
 ### Public API
 - `NoteSourceAdapter`, `SourceRecord`, `SourceEntry` — the remote note source seam and its types.
@@ -38,7 +38,7 @@ decisions: [SY-D1, SY-D2, SY-D4, SY-D6, NT-D28, DEC-1, DEC-25, DEC-36b]
 - The list never reads originals; an original is read one row at a time only for a whole-note box or an unreadable block cache, and only when it is within 1 MB, else the box has no original (009-note-format: NF-8).
 - An unreadable block cache falls back to parsing the stored original by the row's path; with no original the note stays listed as a broken note.
 - A sync first waits for connection start recovery, then re-derives stale rows, then reconciles each syncable source in turn and sums the outcomes.
-- Re-deriving takes rows whose parse version is below the current one and whose original is within 1 MB, parses original and path again and rewrites only the derived columns, with no network request (009-note-format: NF-9).
+- Re-deriving takes rows whose parse version is below the current one and whose original is within 1 MB, parses original and path again and rewrites only the derived columns, with no network request (009-note-format: NF-9, NF-K7).
 - Re-deriving is committed on its own before any request, so it applies offline and even when the later reconcile fails; a row that fails to parse is stored as a box at the new version (009-note-format: NF-9).
 - Re-deriving covers every source, device notes included (013-local-notes: LN-14).
 - A GitHub source is synced only when its stored connection decodes and is not pending; another kind is synced only when an adapter of that kind exists, so device (`local`) and link sources are neither synced nor deleted (006-sync: SY-K6) (013-local-notes: LN-12).
@@ -47,8 +47,8 @@ decisions: [SY-D1, SY-D2, SY-D4, SY-D6, NT-D28, DEC-1, DEC-25, DEC-36b]
 - An empty list while that source still has local notes fails the sync and deletes nothing; an empty list with no local notes of that source succeeds (006-sync: SY-K3).
 - A body is fetched when the entry is new, its revision (the list hash) differs, or the cached row has no stored original; an equal revision with an original is not fetched (006-sync: SY-K4, SY-K5).
 - The app compares hashes only; it never computes them.
-- Bodies are fetched concurrently (up to 16 at once) and any single failed transfer fails the whole source with nothing written (006-sync: SY-K2).
-- Each fetched original becomes blocks and an excerpt through the format entry point (`format:note-format`) with the entry's path; parsing never throws, so a broken note is stored as a box and the rest are applied (006-sync: SY-K1) (009-note-format: NF-2).
+- Bodies are fetched concurrently (up to 16 at once) and any single failed transfer fails the whole source with nothing written (006-sync: SY-K2) (009-note-format: NF-K1).
+- Each fetched original becomes blocks and an excerpt through the format entry point (`format:note-format`) with the entry's path; parsing never throws, so a broken note is stored as a box and the rest are applied (006-sync: SY-K1) (009-note-format: NF-2, NF-K1) (013-local-notes: LN-K3).
 - A stored row keeps the original, the path, the revision, the fetch time, the current parse version, the title (the doc id when the list has none) and the date with its epoch day.
 - The epoch day is read from a date starting with `YYYY.MM.DD` or `YYYY-MM-DD` that is a real day; anything else gives none.
 - The first-seen time is one clock reading per source sync shared by all new notes, and is never changed by an update or an original refill.
@@ -65,7 +65,7 @@ decisions: [SY-D1, SY-D2, SY-D4, SY-D6, NT-D28, DEC-1, DEC-25, DEC-36b]
 - Format chosen by path in every place an original becomes blocks, over-limit and failed parses boxing one note only, JSON rows unchanged by re-deriving: `NoteFormatSyncTest`.
 - With the real Markdown engine, a large in-limit note does not stop sync, an old boxed Markdown row is rebuilt offline, and moving the 22 repository notes to `.md` syncs as 0 added, 0 deleted, 22 updated with bookmarks kept: `MarkdownSyncTest` (009-note-format: NF-16).
 - Adapter failure kinds pass through unchanged: `SyncFailureKindTest`.
-- The template's example notes are received in full by this sync and read with no demoted block, no box, every drawn shape used and no text-only syntax: `TemplateNotesTest`, which reads the template folder as a test input, so a change there reruns it (008-note-template: NT-6).
+- The template's example notes are received in full by this sync and read with no demoted block, no box, every drawn shape used and no text-only syntax: `TemplateNotesTest`, which reads the template folder as a test input, so a change there reruns it (008-note-template: NT-6) (009-note-format: NF-K5).
 ### Not covered
 - When sync runs (app start, refresh, applied-token change) and cancelling the older run — `notes:state` (its view model) and `domain:connection` (the sync runs).
 - The connect flow's first sync and confirmation — `connection`.

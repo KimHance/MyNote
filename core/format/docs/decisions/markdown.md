@@ -71,3 +71,15 @@
 - why: Picked from two design candidates (grid and horizontal rules); no further reason is recorded; the known weakness is that inline code in a header cell blends into the header colour.
 - rejected: Horizontal rules only (candidate B).
 - evidence: NoteBlockMapper handles tables in core/ui; docs/design/note-format.md section on the table lists the grid values and records B as not chosen.
+
+### NT-D4 · 2026-10 · NT-1
+- decision: The format spec's source of truth is `public-repos/notes-kit/SPEC.md`. The template README and the plugin skills point to it and never copy it. The project's own internal spec, generator and hook stay untouched by this work; tests compare the closed sets between the two instead.
+- why: Only tracked documents are the app feature documents, and a spec that outsiders read must live in the public repository. Changing the internal scripts at the same time would disturb writing this project's own notes.
+- rejected: Copying the spec into the README and skills; replacing the internal spec, generator and hook with the public ones (merging is left for after publication).
+- evidence: `public-repos/notes-kit/SPEC.md`; `public-repos/tests/test_schema_parity.py` (`NT-1 규격의 닫힌 집합이 gen_index.py 와 같다`, `NT-1 규격의 문법 표와 한도와 쓰기 규칙이 SCHEMA.md 와 같다`)
+
+### NT-D22 · 2026-10 · NT-1
+- decision: The public `SPEC.md` describes Markdown notes as the source of truth (front matter, syntax mapping, text shapes, text-only syntax, limits, writing rules, `index.json`, format version) and keeps old JSON notes as a format-1 section with the closed-set tables. Against the internal `notes/SCHEMA.md` the test compares not sentences but the first column of the tables, the limit numbers and the number of writing rules.
+- why: The public spec is in polite Korean and the internal one in plain Korean, so they cannot be byte-equal; the cells and numbers must match whatever the tone, and a change on either side breaks the test.
+- rejected: Byte-equal copies; merging the two documents into one (still an open question).
+- evidence: `public-repos/tests/test_schema_parity.py` (`NT-1 규격의 문법 표와 한도와 쓰기 규칙이 SCHEMA.md 와 같다`)

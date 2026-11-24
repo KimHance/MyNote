@@ -45,10 +45,10 @@ screen lives only in `app`. `domain` and `format` are pure JVM, so an Android im
 
 ## Outside the modules
 
-- `AGENTS.md` (root and one per module, Korean) — working rules, commands and traps; read the module's file before changing it.
+- `AGENTS.md` (root and one per module, Korean) — working rules, commands and traps of the project and of each module.
 - `DESIGN.md` and `docs/design/` — the design system and per-feature design notes (Korean); `labs/` holds design drafts.
-- `notes/` — the note content the app reads from GitHub (format: `notes/SCHEMA.md`); `notes-tests/` tests the generator, the commit hook, document hygiene and module boundaries.
-- `public-repos/` — originals of the public notes template and its kit (spec, tool, plugin).
+- `notes/` — the note content the app reads from GitHub (format: `notes/SCHEMA.md`); `notes-tests/` holds Python tests that pin rules no single module owns: screen wording (plan 011), module boundaries and resource prefixes (012), document hygiene and brand resources (010), backup rules (013), the generator and hook (009).
+- `public-repos/` — originals of the public notes template and its kit (spec, tool, plugin); its tests pin the public spec copies to `notes/SCHEMA.md`, limit numbers included (plan 008).
 - `gradle/libs.versions.toml` and `settings.gradle.kts` — the source of truth for versions and modules.
 - Source comments and test names cite plan items by id (`LN-13`, `FM-10`); the plan that holds an id is found with `docsys.py cites <id>`.
 

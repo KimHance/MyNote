@@ -19,7 +19,7 @@ decisions: [D-37, D-39, D-41, D-42, D-43]
 - Clearing records runs in this order: cancel the weekly worker, raise the epoch, delete all records and cached summaries and patterns, clear the worker status, and only then reschedule when the model is ready and the switch is on. The raised epoch is what stops a run in flight from saving its result (005-stats: ST-6).
 - The rule "build summaries only when the model is ready and the switch is on" is one function used for rescheduling after a clear and by the app's schedule sync (`app:startup`) that schedules or cancels the worker (005-stats: ST-17).
 - Pruning removes events older than 365 days, quiz question text older than 90 days (the attempts stay up to 365 days), and summaries and patterns of weeks older than the last 26, this week included. It uses the call-time clock and the device zone (005-stats: ST-7).
-- This unit never calls pruning itself: the callers run it at app start (`app:startup`) and after the worker saves (`ai:insight-worker`) (005-stats: ST-7).
+- This unit never calls pruning itself: the full prune (events, answer text, summaries and patterns) runs at app start (`app:startup`); after a save the worker (`ai:insight-worker`) prunes only summaries and patterns with the cutoff this unit gives (005-stats: ST-7).
 ### Public API
 - `ReadSessionTracker` (`onTop`, `onVisible`, `onCovered`, `onProgress`; `MIN_ACTIVE_MILLIS`, `MAX_ACTIVE_MILLIS`) and `Moment`.
 - `ReadSession`, `QuizAnswer` (`correct`), `QuizAttempt` (`asked`, `correct`), `QuizAttemptSummary`, `BookmarkEvent`, `BookmarkEventKind`, `StudyWindow`, `NoteFacts`.

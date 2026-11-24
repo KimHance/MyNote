@@ -64,7 +64,7 @@ decisions: []
 - `tokenFailureOfProbe(failure)` — the token failure kind for a connect-check failure.
 - `DisconnectDialogUi` — note and bookmark counts for the disconnect dialog.
 ### Guarantees
-- The transition table, including the lock while checking and cancel keeping the input, is proven without a screen (`TokenEditTest`).
+- The transition table, including the lock while checking and cancel keeping the input, is proven without a screen (`TokenEditTest`) (007-repo-connect: RC-K4).
 - All nine check failures map to a token failure kind and the seven kinds have distinct texts (`ConnectIssueTest` in this module); the settings mapping and the connect screen's mapping stay the same (`ConnectIssueTest` in `app`).
 - The mask hides length and short tokens (`TokenMaskTest`); the check link per connection shape (`ConnectConfirmTest`).
 - Clear then undo restores the stored token (`SettingsViewModelTest`); back during an edit cancels the edit (`BackOrderTest` in `app`).

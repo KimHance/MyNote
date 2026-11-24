@@ -1,7 +1,7 @@
 ---
 units: [format:markdown, format:limits, format:device-note]
-plans: [009-note-format, 013-local-notes]
-decisions: [NF-D6, NF-D7, NF-D8, NF-D9, NF-D10, NF-D11, NF-D12, NF-D22, NF-D26, NF-D27, LN-D12, DEC-33a]
+plans: [008-note-template, 009-note-format, 013-local-notes]
+decisions: [NF-D6, NF-D7, NF-D8, NF-D9, NF-D10, NF-D11, NF-D12, NF-D22, NF-D26, NF-D27, LN-D12, DEC-33a, NT-D4, NT-D22]
 ---
 ## markdown — Markdown converter
 ### Behaviour
@@ -62,6 +62,7 @@ decisions: [NF-D6, NF-D7, NF-D8, NF-D9, NF-D10, NF-D11, NF-D12, NF-D22, NF-D26, 
 - A 512 KB single line of markers is screened in time proportional to its length: `MarkdownLimitsTest`.
 - Wide-table growth, table cells counted per note, cache cap boundary and worst-case cache size for in-limit inputs: `ResultLimitsTest`.
 - Over-limit inputs never reach the converter: `NoteFormatTest`.
+- The limit numbers screened here are the ones published in `notes/SCHEMA.md` section 4 and the public `SPEC.md` limits section (512 KB = 524,288 bytes, nesting 32, 33 or more `>` marks, 130-column indent, block depth 32, table cells 4,096, cache 1 MB); `public-repos/tests/test_schema_parity.py` requires the two sections to carry the same numbers, so changing a limit or a screening cap means editing both texts and their public copies (008-note-template: NT-1).
 ### Not covered
 - How the box is worded — see `design-system:blocks` (the numbers pass through `ui:mapper`); hiding the quiz card for such notes — see `notes:reader`.
 - Reader cost of long lists and big tables inside the limits — drawing is not limited here; the table-cell limit is the only guard.

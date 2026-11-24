@@ -4,7 +4,7 @@ name: Build logic
 aliases: [빌드 로직, 컨벤션 플러그인, hancenote 플러그인, convention plugins]
 uses: []
 units:
-  - {id: plugins, name: Convention plugins, aliases: [컨벤션 플러그인, hancenote.android.library, hancenote.android.feature], code: [convention/src/main/java/]}
+  - {id: plugins, name: Convention plugins, aliases: [컨벤션 플러그인, hancenote.android.library, hancenote.android.feature, feature 모듈 의존, 모듈 의존 자동 추가, 새 모듈 만들기], code: [convention/src/main/java/]}
   - {id: shared-config, name: Shared module setup, aliases: [공통 설정, 컴파일 SDK, Compose 설정, 버전 카탈로그 접근자], code: [convention/src/main/java/com/hancenote/convention/KotlinAndroid.kt, convention/src/main/java/com/hancenote/convention/AndroidCompose.kt, convention/src/main/java/com/hancenote/convention/ProjectExtensions.kt]}
   - {id: signing, name: Release signing, aliases: [릴리스 서명, 키스토어], code: [convention/src/main/java/com/hancenote/convention/SigningConfig.kt]}
   - {id: test-inputs, name: Repo folders as test inputs, aliases: [레포 폴더 시험 입력, 시험 입력], code: [convention/src/main/java/com/hancenote/convention/RepoTestInputs.kt]}

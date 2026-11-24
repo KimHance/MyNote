@@ -27,6 +27,9 @@ decisions: [NT-D15, FM-D15, DEC-19]
 - Plugin classes `AndroidApplicationConventionPlugin`, `AndroidApplicationComposeConventionPlugin`, `AndroidLibraryConventionPlugin`, `AndroidLibraryComposeConventionPlugin`, `AndroidFeatureConventionPlugin`, `HiltConventionPlugin`, `AndroidRoomConventionPlugin`, `JvmLibraryConventionPlugin` — public classes behind the ids; nothing calls them directly.
 ### Guarantees
 - The module boundary rules that read this source (no feature-to-feature dependency, no data layer in features) are checked by the Python suite in `notes-tests/test_feature_modules.py`, not by Gradle (012-feature-modules: FM-3).
+- `settings.gradle.kts` registers exactly six feature modules (notes, connect, settings, quiz, stats, editor) plus `:core:ui`; each feature module applies the feature convention, `:core:ui` applies the library convention and not the feature one and reaches `:core:common`, `:core:design-system`, `:core:domain` and `:core:navigation`: `notes-tests/test_feature_modules.py` reads settings, every module build file, the catalogue and this source (012-feature-modules: FM-1).
+- Each screen, ViewModel and destination file of the module map lives only in its own feature module, and `:feature:notes` holds no file named for connect, settings, quiz, stats or editor except `ConnectBand.kt`: `notes-tests/test_feature_modules.py` (012-feature-modules: FM-1).
+- Every module in `settings.gradle.kts` (at least 18) has its own `AGENTS.md` and its folder appears in the module-map code block of the root `AGENTS.md`; this applies to every module, so adding a module without both turns `notes-tests/test_feature_modules.py` red (012-feature-modules: FM-15).
 ### Not covered
 - SDK levels, Java target, desugaring, Compose dependencies and the version catalog accessor — see `shared-config`.
 - Release signing — see `signing`. Test input folders — see `test-inputs`. Ktlint setup — see `ktlint`.

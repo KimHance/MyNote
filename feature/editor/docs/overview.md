@@ -5,9 +5,9 @@ aliases: [편집기, 기기 노트 편집기, 가져오기, 노트 쓰기, devic
 uses: [common, design-system, domain, navigation, ui]
 units:
   - {id: editor-screen, name: Editor screen, aliases: [편집기, 새 노트, 노트 고치기, 쓰기 미리보기, 이유 줄, editor, preview], code: [src/main/java/com/hancekim/mynote/feature/editor/screen/EditorScreen.kt, src/main/java/com/hancekim/mynote/feature/editor/screen/EditorParts.kt, src/main/java/com/hancekim/mynote/feature/editor/EditorDestinations.kt]}
-  - {id: paste-screen, name: Paste screen, aliases: [붙여넣기, 가져올 글, 다음 버튼, paste], code: [src/main/java/com/hancekim/mynote/feature/editor/screen/PasteScreen.kt]}
+  - {id: paste-screen, name: Paste screen, aliases: [붙여넣기, 가져올 글, 다음 버튼, paste, 글 붙여넣기, 붙여넣어 노트 만들기, paste text], code: [src/main/java/com/hancekim/mynote/feature/editor/screen/PasteScreen.kt]}
   - {id: host, name: Import sheet and confirmations, aliases: [가져오기 그릇, 파일 열기, 나가기 확인, 지우기 확인, 대화상자, import sheet, discard dialog, delete dialog], code: [src/main/java/com/hancekim/mynote/feature/editor/EditorHost.kt]}
-  - {id: session, name: Editor session, aliases: [편집 세션, 공유 받기, 저장, 떠나기 지킴, 지우기, share-in, save, leave guard, editor view model], code: [src/main/java/com/hancekim/mynote/feature/editor/EditorViewModel.kt, src/main/java/com/hancekim/mynote/feature/editor/EditorUiState.kt, src/main/java/com/hancekim/mynote/feature/editor/EditorMessages.kt, src/main/java/com/hancekim/mynote/feature/editor/Utf8Size.kt, src/test/java/com/hancekim/mynote/feature/editor/]}
+  - {id: session, name: Editor session, aliases: [편집 세션, 공유 받기, 저장, 떠나기 지킴, 지우기, share-in, save, leave guard, editor view model, 공유받은 글 저장, 공유받은 글 노트로 저장, share-in save], code: [src/main/java/com/hancekim/mynote/feature/editor/EditorViewModel.kt, src/main/java/com/hancekim/mynote/feature/editor/EditorUiState.kt, src/main/java/com/hancekim/mynote/feature/editor/EditorMessages.kt, src/main/java/com/hancekim/mynote/feature/editor/Utf8Size.kt, src/test/java/com/hancekim/mynote/feature/editor/]}
 ---
 ## Overview
 Editor owns writing and bringing in device notes: the new-note and edit screen with a Markdown preview, the paste screen, the import sheet (open a file or paste), the leave and delete confirmations, and the one view model that holds the editing session, the pasted text and the text shared in from other apps.

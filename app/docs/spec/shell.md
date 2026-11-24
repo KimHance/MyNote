@@ -1,6 +1,6 @@
 ---
 units: [app:shell-state, app:shell, app:shell-chrome]
-plans: [001-reader-foundation, 003-model-download, 004-bookmarks, 005-stats, 007-repo-connect, 012-feature-modules, 013-local-notes]
+plans: [001-reader-foundation, 003-model-download, 004-bookmarks, 005-stats, 007-repo-connect, 010-brand, 012-feature-modules, 013-local-notes]
 decisions: [RD-D3, RD-D6, BM-D2, RC-D8, FM-D7, FM-D8, FM-D11, FM-D12, FM-D14, FM-D17, FM-D19, FM-D20, DEC-37a]
 ---
 ## shell-state — Shell state and start decision
@@ -15,7 +15,7 @@ decisions: [RD-D3, RD-D6, BM-D2, RC-D8, FM-D7, FM-D8, FM-D11, FM-D12, FM-D14, FM
 - Each distinct connection value after the first is a connection change; the first value and a repeat of the same value clean nothing (007-repo-connect: RC-23).
 - On a connection change the stack is replaced by Home alone at once, also when the open reader was a device note; the quiz overlay is dismissed unless old and new are both connections to the same source; last-sync is set to succeeded for a connection and to none otherwise (007-repo-connect: RC-23, RC-17) (012-feature-modules: FM-6).
 - At creation the ViewModel consumes the debug seed once; the seed-pending flag turns false when the call ends, whether it succeeded or failed (007-repo-connect: RC-19).
-- Start decision: reading while the connection is unknown or the notes are not loaded yet, and while there is no connection and the seed is still pending; every other case is the shell (007-repo-connect: RC-1).
+- Start decision: reading while the connection is unknown or the notes are not loaded yet, and while there is no connection and the seed is still pending; every other case is the shell (007-repo-connect: RC-1) (010-brand: BR-K1).
 - The notes count that feeds the decision includes repository and device notes; zero notes without a connection is the shell with the home first-run empty state, never a connect screen (013-local-notes: LN-1) (007-repo-connect: RC-1).
 - A top screen that draws its own top bar (connect, editor, paste) is reported as owning the chrome; the shell then hides top bar, drawer gestures, floating nav and model pill (007-repo-connect: RC-14).
 - The selected tab is the last Home, Bookmarks or Stats key on the stack, Home when none (004-bookmarks: BM-8) (012-feature-modules: FM-K3).

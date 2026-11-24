@@ -4,8 +4,8 @@ name: Common
 aliases: [공통, MVI 베이스, 쓰로틀, core common]
 uses: []
 units:
-  - {id: mvi, name: MVI base, aliases: [MviViewModel, 전체 재조립, 상태 조립, trigger], code: [src/main/java/com/hancekim/mynote/core/common/mvi/, src/test/java/com/hancekim/mynote/core/common/mvi/]}
-  - {id: throttle, name: Throttler and clocks, aliases: [쓰로틀, 연타 막기, Clock, WallClock], code: [src/main/java/com/hancekim/mynote/core/common/throttle/, src/test/java/com/hancekim/mynote/core/common/throttle/]}
+  - {id: mvi, name: MVI base, aliases: [MviViewModel, 전체 재조립, 상태 조립, trigger, 뷰모델 상태, 상태 다시 만들기, triggerIn, 상태 갱신 안 됨], code: [src/main/java/com/hancekim/mynote/core/common/mvi/, src/test/java/com/hancekim/mynote/core/common/mvi/]}
+  - {id: throttle, name: Throttler and clocks, aliases: [쓰로틀, 연타 막기, Clock, WallClock, 중복 클릭 방지, 시계 주입, Throttler], code: [src/main/java/com/hancekim/mynote/core/common/throttle/, src/test/java/com/hancekim/mynote/core/common/throttle/]}
   - {id: result, name: Cancellation-safe Result, aliases: [runCatchingCancellable, 취소 안 삼키는 runCatching], code: [src/main/java/com/hancekim/mynote/core/common/result/, src/test/java/com/hancekim/mynote/core/common/result/]}
 ---
 ## Overview

@@ -32,7 +32,7 @@ decisions: [RC-D44, RC-D52, BR-D3, LN-D4, LN-D8, LN-D13, DEC-16]
 - `HomeAction`, `EntryWeight`, `HomeEntry`, `homeEntriesOf(body)` — the entry buttons per state with their weight (primary, secondary, quiet).
 
 ### Guarantees
-- The decision table and the one-primary-button rule are proven by `HomeBodyTest` (013-local-notes: LN-1, LN-2) (007-repo-connect: RC-21).
+- The decision table and the one-primary-button rule are proven by `HomeBodyTest` (013-local-notes: LN-1, LN-2) (007-repo-connect: RC-21) (010-brand: BR-K2).
 - The empty-state title style is proven by `EmptyStateTitleTest` (010-brand: BR-8).
 
 ### Not covered

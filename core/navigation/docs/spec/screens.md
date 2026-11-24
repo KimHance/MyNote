@@ -27,7 +27,7 @@ decisions: [RD-D4, RC-D33]
 - Connect is single pane on a wide window at the root, on top, and not when it is not on top; editor and paste keep the detail pane: `ListDetailSceneStrategyTest` (`RC-14` and `LN-3` tests).
 ### Not covered
 - Transition numbers and the corner effect have no test of their own.
-- The panel's width, colours and dividers, the back order and the display itself — `app:shell`; panel content — `notes:list-panel`.
+- The panel's width value — `design-foundation:adaptive`; drawing the pane at that width (its divider and colours are in the shell code), the back order and the display itself — `app:shell`; panel content — `notes:list-panel`.
 - Registering screens — see `registry`; the shared-element scope inside the scene — see `shared-elements`.
 
 ## registry — Destination registry

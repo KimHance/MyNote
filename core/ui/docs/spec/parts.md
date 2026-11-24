@@ -1,7 +1,7 @@
 ---
 units: [ui:parts, ui:bookmark-time]
 plans: [004-bookmarks, 007-repo-connect, 012-feature-modules]
-decisions: [D-23, RC-D46, RC-D49, RC-D62, FM-D9, DEC-15]
+decisions: [D-23, RC-D46, RC-D49, RC-D62, FM-D9, DEC-15, FM-D3, FM-D21]
 ---
 ## parts — Shared screen parts
 ### Behaviour
@@ -30,6 +30,7 @@ decisions: [D-23, RC-D46, RC-D49, RC-D62, FM-D9, DEC-15]
 ### Guarantees
 - Joiners only between Hangul syllables, plain accessibility text, and exact mono ranges are fixed by `KeepWordsTest`.
 - The browser order (default, Chrome, first found, none) is fixed by `ExternalLinkTest` (007-repo-connect: RC-8).
+- The shared pieces named in the module map (token field and guide, notice box, buttons, dialogs, signals, state models, the shell frame and the message and failure seams, among others) are declared at top level only in `:core:ui`, and the tab kinds and the open-reader and tab-switch commands only in `:core:navigation`; the `<queries>` browser entry exists in this module's manifest and in no other: `notes-tests/test_feature_modules.py` finds each name by its declaration in every module's main sources, so moving or duplicating one turns it red (012-feature-modules: FM-1).
 ### Not covered
 - The token state, drafts and failure sentences — `ui:token`.
 - Which screen shows which box or dialog — `connect`, `settings`, `notes`, `editor`.

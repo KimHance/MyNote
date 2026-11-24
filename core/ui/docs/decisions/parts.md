@@ -35,3 +35,15 @@
 - why: Compose LineBreak.WordBreak.Phrase had no effect on Hangul in measurements, and breaking mid-word read badly in design review.
 - rejected: The Compose Phrase word-break setting; applying the joiner app-wide or in a design-system text style (left open).
 - evidence: KeepWords.kt in core/ui screen/connect (WORD_JOINER) with KeepWordsTest.
+
+### FM-D3 · 2026-10 · FM-1, ui
+- decision: Screen pieces, screen models and cross-feature signal contracts that two or more features use go into a new `:core:ui` module (owner decision).
+- why: The design system stays a place that does not know feature meaning such as model state or token input.
+- rejected: Putting them into `:core:design-system`.
+- evidence: `core/ui/` (`signal/FeatureSignals.kt`, `frame/ShellFrame.kt`, `mapper/NoteBlockMapper.kt`), `notes-tests/test_feature_modules.py` (`FM-1 공용 조각은 core:ui 와 core:navigation 에 산다`).
+
+### FM-D21 · 2026-10 · FM-1, ui
+- decision: Five strings used by two or more features and the shared pieces created by the ViewModel split (snackbar wording, failure log, snackbar notice, font-size mapping) move to `:core:ui` in the shared-pieces step; the disconnect dialog model, used only by settings, goes with the settings extraction.
+- why: The shared-pieces table was counted at the base commit and missed them; leaving them would make later feature extractions depend on notes (an FM-2 violation).
+- rejected: Leaving them in `:feature:notes`.
+- evidence: `core/ui/src/main/java/com/hancekim/mynote/core/ui/NotesMessages.kt`, `FailureLog.kt`, `notes-tests/test_feature_modules.py` (`PLACED_AHEAD` now empty).

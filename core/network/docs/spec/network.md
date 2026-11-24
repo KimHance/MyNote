@@ -12,7 +12,7 @@ decisions: [SY-D7, SY-D8, DEC-11]
 - Both requests ask for the raw file with `Accept: application/vnd.github.raw+json`; without it GitHub answers with a metadata envelope holding base64 content, which the list decoding and the original text would both get wrong (007-repo-connect: RC-K1).
 - Paths are sent unencoded, so the slashes of `notes/<group>/<id>.md` stay slashes (007-repo-connect: RC-K1).
 - The list file is an object whose keys are group names and whose values are item arrays (id, title, date, path, hash); listing flattens it into entries with doc id = item id, revision = item hash, group = key (008-note-template: NT-K5).
-- An item's path is used as given, relative to the repository root, not to the list location (006-sync: SY-2).
+- An item's path is used as given, relative to the repository root, not to the list location (006-sync: SY-2) (009-note-format: NF-K2).
 - The list is decoded strictly as a whole: a list that is not JSON or has the wrong shape fails the source as a format failure; items are never skipped one by one, since a skipped item would delete its note.
 - A note body is returned as the unparsed original string, even when it is broken JSON or Markdown; parsing happens later per note in `data:sync`, so one broken note cannot become a transfer failure.
 - Every changed note is one request; there are no conditional requests, no batching and no app-level retry.

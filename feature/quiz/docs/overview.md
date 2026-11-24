@@ -4,7 +4,7 @@ name: Quiz
 aliases: [퀴즈, 퀴즈 오버레이, 퀴즈 풀기, quiz overlay]
 uses: [common, design-system, domain, navigation, ui]
 units:
-  - {id: session, name: Quiz session, aliases: [퀴즈 진행, 채점, 자동 진행, 그만두기 되돌리기, 퀴즈 기록, QuizViewModel], code: [src/]}
+  - {id: session, name: Quiz session, aliases: [퀴즈 진행, 채점, 자동 진행, 그만두기 되돌리기, 퀴즈 기록, QuizViewModel, quiz view model, quiz scoring, 퀴즈 채점], code: [src/]}
   - {id: overlay, name: Quiz overlay, aliases: [퀴즈 화면, 퀴즈 만들기 대화상자, 생성 중 화면, 풀기 화면, 결과 화면, 실패 화면], code: [src/main/java/com/hancekim/mynote/feature/quiz/QuizOverlay.kt, src/main/java/com/hancekim/mynote/feature/quiz/screen/, src/main/java/com/hancekim/mynote/feature/quiz/component/]}
   - {id: cta, name: Reader-end quiz card, aliases: [퀴즈 카드, 이 노트로 퀴즈 풀기, 리더 끝 CTA, quiz call-to-action], code: [src/main/java/com/hancekim/mynote/feature/quiz/component/QuizCtaCard.kt]}
 ---
