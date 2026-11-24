@@ -17,3 +17,9 @@
 - why: The repository has no CI and Gradle should not gain a Python dependency; if every module took the template folder as input, one template character would rerun every test.
 - rejected: Wiring the Python suites into ./gradlew test; giving all modules the template folder as input.
 - evidence: Root AGENTS.md verification command; core/data TemplateNotesTest ("NT-6 ..."); no .github directory in the repository.
+
+### FM-D23 · 2026-10 · FM-11
+- decision: The common action strings `ds_action_confirm` and `ds_action_retry`, not yet used by any screen, are not deleted; they are the only exception to "no unused string" and are named with the reason in the test's kept list.
+- why: `DESIGN.md`'s common wording table defines them as the common action vocabulary; when a screen starts to use one, the test tells to remove it from the list.
+- rejected: Deleting the unused strings.
+- evidence: `notes-tests/test_feature_modules.py` (`UNUSED_KEPT`), `DESIGN.md`.

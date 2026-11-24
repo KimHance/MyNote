@@ -1,7 +1,7 @@
 ---
 units: [ui:shell, ui:mapper]
 plans: [004-bookmarks, 007-repo-connect, 009-note-format, 010-brand, 011-screen-copy, 012-feature-modules, 013-local-notes]
-decisions: [LN-D14]
+decisions: [LN-D14, BM-D13, D-25]
 ---
 ## shell — Shell frame and top bar
 ### Behaviour
@@ -13,7 +13,7 @@ decisions: [LN-D14]
 - `sceneEdgeModifier` draws the scene edge (corner and shadow, following the scene progress) only when scenes are stacked; otherwise it adds nothing.
 - `NotesScrollState` keeps one state each for the home grid, bookmarks list, stats list, stats side list, stats history, the reader scroll and the reader content. Which one the scroll-to-top button follows is derived: an open note wins, then bookmarks, stats, stats history, else home.
 - The scroll-to-top button shows when the reader is scrolled more than 400 dp, or when a list's first visible item is the fourth or later (index 3 and up). Scrolling to top animates; on stats it scrolls the main and the side list together.
-- Reader scroll and content state are created per note id, and the last id is kept while no note is open, so the state of the note left a moment ago is not replaced by an empty one.
+- There is one reader scroll state and one content state, keyed by the id of the note opened last: the last id is kept while no note is open, so the state of the note left a moment ago is not replaced by an empty one, and opening a different note discards the earlier note's position — there is no per-note memory of scroll.
 - The top bar has a one-line title (ellipsis), height from the adaptive header height, and a leading control: a back arrow when `showBack`, else a `☰` menu named `노트 목록` (the glyph itself is hidden from accessibility).
 - A disabled back arrow stays visible at 40% opacity; the connect screen disables it during the first sync (007-repo-connect: RC-24).
 - Actions, left to right: bookmark toggle (only when the bookmarked value is not null), edit (`고치기`) and delete (`지우기`) when their callbacks are given, refresh (`새로고침`, shown by default).

@@ -1,7 +1,7 @@
 ---
 units: [connect:flow, connect:issues, connect:entry, connect:confirm, connect:reading]
 plans: [007-repo-connect, 008-note-template, 012-feature-modules]
-decisions: [RC-D53, RC-D57, RC-D59, RC-D63, NT-D31, NT-D32, DEC-21a]
+decisions: [RC-D53, RC-D57, RC-D59, RC-D63, DEC-21a]
 ---
 ## flow — Connect screen and flow
 ### Behaviour

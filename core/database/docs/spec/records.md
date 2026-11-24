@@ -1,7 +1,7 @@
 ---
 units: [database:study-log, database:insights, database:bookmarks, database:prefs]
 plans: [001-reader-foundation, 004-bookmarks, 005-stats, 007-repo-connect]
-decisions: [BM-D4, D-34, D-35, D-51, D-58, D-65]
+decisions: [BM-D4, D-34, D-35, D-58]
 ---
 ## study-log — Study records
 ### Behaviour

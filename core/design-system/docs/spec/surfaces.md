@@ -1,7 +1,7 @@
 ---
 units: [design-system:glass-nav, design-system:widgets, design-system:brand]
 plans: [001-reader-foundation, 004-bookmarks, 010-brand, 012-feature-modules, 013-local-notes]
-decisions: [D-18, D-19]
+decisions: [D-18, D-19, RD-D6]
 ---
 ## glass-nav — Glass surface and floating navigation
 ### Behaviour

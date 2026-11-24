@@ -62,7 +62,7 @@ decisions: [QZ-D6, QZ-D7, D-40]
 - Generating shows an orb, a phrase that advances every 900 ms through "노트를 읽는 중", "문제를 만드는 중", "계속 만드는 중", "아직 만드는 중" and stays on the last, the hint "처음 한 번은 10초쯤 걸립니다" and a stop button "그만두기" (002-quiz: QZ-11).
 - Generating shows one slot per asked question; one more slot turns done every 2.4 s and the last slot never fills; phrases and slots are decoration not tied to the real progress (002-quiz: QZ-11).
 - Stop and close while generating end the quiz with no undo (002-quiz: QZ-11).
-- Solving shows a top bar with one progress cell per question (right, wrong, current, pending), "M / N" and a close button, then "문제 N", the question and four choice rows at least 56 dp high; content is at most 560 dp wide (002-quiz: QZ-12).
+- Solving shows a top bar with one progress cell per question (right, wrong, current, pending), "M / N" and a close button, then "문제 N", the question and one row per choice (normally four; a question left with two or three choices shows that many), each at least 56 dp high; content is at most 560 dp wide (002-quiz: QZ-12).
 - After a pick the right choice turns green with a check, a wrong pick red with a cross, the rest dim, and the explanation appears under a "정답" or "오답" line; the view scrolls down to show it (002-quiz: QZ-12).
 - While auto advancing the explanation line shows a filling ring and "다음 문제로"; otherwise a 52 dp button "다음 문제" or, on the last question, "결과 보기" appears, throttled to one press per 500 ms (002-quiz: QZ-12).
 - A partial quiz shows the band "N문제만 만들었습니다" above every question (002-quiz: QZ-14).

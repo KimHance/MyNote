@@ -24,18 +24,6 @@
 - rejected: Same-weight link and entry sections (decisions 55, 58 and 60 of the old document) and a two-column layout.
 - evidence: `ConnectEntryTest` (`RC-25 연결 화면의 세 길은 모두 링크 첫째이고 두 단이 없다`).
 
-### NT-D31 · 2026-10 · NT-5
-- decision: One template does everything. It holds a copy of the tool (`tools/note_tool.py`) and of the spec (`SPEC.md`), and its workflow runs `python3 tools/note_tool.py publish` right after checkout. It calls no action from a separate repository. The source of truth stays `public-repos/notes-kit/` and a test keeps both copies byte-equal. Repositories already made from the template do not follow tool fixes by themselves; the two files are overwritten.
-- why: Owner decision. Publishing only the template should be enough, and a second repository confuses people.
-- rejected: A template whose workflow calls the action of a separate kit repository.
-- evidence: `public-repos/notes-template/.github/workflows/update-index.yml`; `public-repos/tests/test_template.py` (`NT-5 템플릿의 도구 · 규격 사본이 정본과 같다`, `NT-5 workflow 줄 구조`)
-
-### NT-D32 · 2026-10 · NT-5
-- decision: The template carries a note-writing guide `skills/write-note/SKILL.md`, one file not tied to any AI tool, whose paths are relative to the repository root (`SPEC.md`, `tools/note_tool.py`). The README's add-a-note section has one line for the "AI agent" way.
-- why: Owner decision. The person may not use Claude Code (Codex and others), so the repository alone must be enough without installing a plugin.
-- rejected: Relying on the Claude Code plugin for the writing guide.
-- evidence: `public-repos/notes-template/skills/write-note/SKILL.md`; `public-repos/tests/test_template.py` (`NT-5 노트 쓰기 스킬은 저장소 안 규격과 도구를 가리킨다`)
-
 ### DEC-21a · 2026-10 · RC-25
 - decision: The entry button that opens the template is named "저장소 만들기" (and the guide button "형식 안내 보기").
 - why: "새로 만들기" read as "create a note".

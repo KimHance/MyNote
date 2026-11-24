@@ -63,6 +63,7 @@ decisions: [NF-D6, NF-D7, NF-D8, NF-D9, NF-D10, NF-D11, NF-D12, NF-D22, NF-D26, 
 - Wide-table growth, table cells counted per note, cache cap boundary and worst-case cache size for in-limit inputs: `ResultLimitsTest`.
 - Over-limit inputs never reach the converter: `NoteFormatTest`.
 - The limit numbers screened here are the ones published in `notes/SCHEMA.md` section 4 and the public `SPEC.md` limits section (512 KB = 524,288 bytes, nesting 32, 33 or more `>` marks, 130-column indent, block depth 32, table cells 4,096, cache 1 MB); `public-repos/tests/test_schema_parity.py` requires the two sections to carry the same numbers, so changing a limit or a screening cap means editing both texts and their public copies (008-note-template: NT-1).
+- Which syntax is drawn and which shows only as text is also published: the same test requires the first column of three tables (body syntax and blocks, text shapes, text-only syntax) to be equal in `notes/SCHEMA.md` and the public `SPEC.md`, and `TemplateNotesTest` in `data` looks for traces of text-only syntax in the template notes; moving a syntax from text-only to drawn (footnotes, for example) means editing both tables, the public copies and that trace list (008-note-template: NT-1).
 ### Not covered
 - How the box is worded — see `design-system:blocks` (the numbers pass through `ui:mapper`); hiding the quiz card for such notes — see `notes:reader`.
 - Reader cost of long lists and big tables inside the limits — drawing is not limited here; the table-cell limit is the only guard.

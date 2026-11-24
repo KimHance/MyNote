@@ -1,7 +1,7 @@
 ---
 units: [design-system:blocks, design-system:charts]
 plans: [001-reader-foundation, 005-stats, 006-sync, 009-note-format, 011-screen-copy, 012-feature-modules]
-decisions: []
+decisions: [D-65]
 ---
 ## blocks — Note body blocks
 ### Behaviour

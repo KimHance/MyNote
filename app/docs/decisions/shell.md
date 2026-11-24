@@ -6,12 +6,6 @@
 - rejected: Swallowing a back during a transition inside `onBack`; deciding the drawer by `isOpen`; counting presses as state; moving handlers into other files or multibindings (the order would no longer be visible in one place).
 - evidence: `app` `shell/NotesShell.kt`, `ShellViewModel`, `BackOrderTest` (`FM-10 …`), `ShellViewModelTest` (`FM-9 루트에서 창 안에 두 번 누르면 종료한다`).
 
-### RD-D6 · 2026-09 · RD-15, design-system
-- decision: The floating navigation and scroll-to-top button draw a glass surface with the backdrop library (refraction), with the backdrop layer applied only to a box that holds the `NavDisplay`, the surface reading the same backdrop instance, and no drop shadow on the selected pill.
-- why: Refraction bends the background near the edges like a lens, which a flat blur cannot; if the backdrop layer sits on a box that also holds the overlays the glass samples itself, and with a shadow the pill flashes dark while its alpha is still near zero. A strong blur erases the detail refraction would move, so the blur is lowered.
-- rejected: A frosted-blur library (no refraction); the backdrop layer on the shared-transition layout (the layer ends up empty and the glass vanishes); a drop shadow under the selected pill.
-- evidence: `core/design-system` `FloatingNav`, `GlassSurface`; the rule in `core/design-system/AGENTS.md` that only `NavDisplay` sits inside the backdrop box.
-
 ### BM-D2 · 2026-10 · app:shell-state, BM-8
 - decision: The floating nav selection is derived from the back stack (nearest Home, Bookmarks or Stats under any reader or settings); no ViewModel stores a selected tab.
 - why: State held in two places drifts apart; the earlier local remembered selection could disagree with the screen.
@@ -29,12 +23,6 @@
 - why: A window-class change rebuilds the whole `NavDisplay`; with destination scope the ViewModel would be created anew then, and the shell and the destination would get different instances of the same ViewModel.
 - rejected: Per-destination scoped ViewModels through a destination decorator.
 - evidence: `app/src/main/java/com/hancekim/mynote/shell/NotesRoute.kt` (`hiltViewModel(viewModelStoreOwner = LocalActivity…)`), `notes-tests/test_feature_modules.py` (`FM-7 기능 ViewModel 은 Activity 를 owner 로 받는다`).
-
-### FM-D8 · 2026-10 · FM-7, ui
-- decision: The last sync value is an app-wide single holder in `:core:ui`: the notes ViewModel writes it from the sync result, the shell ViewModel clears it on a connection change in the same tick, settings reads it, and the list-panel badge follows from the settings state.
-- why: It keeps the single sync-causing subscription (SY-1) while the settings repository card and the list-panel badge see the same value.
-- rejected: Moving the last-sync value into the domain layer.
-- evidence: `core/ui/src/main/java/com/hancekim/mynote/core/ui/signal/LastSyncHolder.kt`, `app/src/test/java/com/hancekim/mynote/shell/NotesViewModelTest.kt`.
 
 ### FM-D11 · 2026-10 · FM-10
 - decision: The back-order instrumented test draws a stateless shell with fake state; the two-press time window of step seven is checked by the FM-9 JVM test; no Hilt instrumentation dependency is added.
@@ -77,3 +65,9 @@
 - why: The order lives in one shell file and can be proven without the real graph.
 - rejected: A Hilt-based instrumented test of the real graph.
 - evidence: app androidTest BackOrderTest; shell/NotesShell.kt fixes the order.
+
+### D-24 · 2026-10 · app:shell, BM-16
+- decision: The shell decides two columns from window width minus open fixed panel, page margins and rail reserve being at least 640dp and passes a flag to the screen.
+- why: The shell already knows the window, panel and rail; screens do not re-measure.
+- rejected: Measuring inside the screen with a constraints box, or choosing by width class.
+- evidence: `app/.../shell/NotesLayout.kt` (`contentTwoPane`), `NotesLayoutTest`.

@@ -1,7 +1,7 @@
 ---
 units: [app:shell-state, app:shell, app:shell-chrome]
 plans: [001-reader-foundation, 003-model-download, 004-bookmarks, 005-stats, 007-repo-connect, 010-brand, 012-feature-modules, 013-local-notes]
-decisions: [RD-D3, RD-D6, BM-D2, RC-D8, FM-D7, FM-D8, FM-D11, FM-D12, FM-D14, FM-D17, FM-D19, FM-D20, DEC-37a]
+decisions: [RD-D3, BM-D2, RC-D8, FM-D7, FM-D11, FM-D12, FM-D14, FM-D17, FM-D19, FM-D20, DEC-37a, D-24]
 ---
 ## shell-state — Shell state and start decision
 ### Behaviour
@@ -50,7 +50,7 @@ decisions: [RD-D3, RD-D6, BM-D2, RC-D8, FM-D7, FM-D8, FM-D11, FM-D12, FM-D14, FM
 - The quit undo shows a short snackbar; pressing its action sends the quiz undo-exit intent.
 - The start branch shows the reading screen or the shell. The editor host (file picker launcher and dialogs) is composed above the branch, so a pick result always has a place to return to (013-local-notes: LN-6).
 - The model-download confirm dialog is composed above the branch too; its open state survives rotation; confirming starts the download through the permission step above.
-- A window-class change switches between the modal-drawer form and the fixed-panel form and rebuilds `NavDisplay`; reader scroll per note, source expansion and the token draft live above that branch and survive it (012-feature-modules: FM-4).
+- A window-class change switches between the modal-drawer form and the fixed-panel form and rebuilds `NavDisplay`; the open note's reader scroll, source expansion and the token draft live above that branch and survive it (012-feature-modules: FM-4).
 - Back is taken in this order, highest first: open drawer, quiz overlay, swallow during a transition, pop, opening drawer, expanded fixed panel, root exit hint (012-feature-modules: FM-10, FM-K2) (001-reader-foundation: RD-17) (013-local-notes: LN-K5).
 - The order is the compose order inside `NotesShell.kt`; moving a handler to another file or to a multibinding set silently reorders it (012-feature-modules: FM-5).
 - While a changed editor is on top, back asks the leave confirmation instead of popping; the guard sits after `NavDisplay` so it beats the pop without a predictive preview, and before the swallow so a transition in progress still swallows (013-local-notes: LN-10).

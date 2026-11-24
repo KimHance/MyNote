@@ -1,7 +1,7 @@
 ---
 units: [notes:reader, notes:bookmarks]
 plans: [001-reader-foundation, 004-bookmarks, 009-note-format, 010-brand, 013-local-notes]
-decisions: [BM-D6, BM-D7, BM-D13, D-22, D-24, D-25, D-26, D-27, D-30]
+decisions: [BM-D6, BM-D7, D-22, D-26, D-27, D-30]
 ---
 ## reader — Reader
 

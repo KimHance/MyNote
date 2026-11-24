@@ -17,3 +17,9 @@
 - why: Table name and primary key change and data has to be converted, which an automatic migration cannot express.
 - rejected: An automatic migration (it cannot rename the table and convert the rows).
 - evidence: core/database migration/Migration4To5.kt; androidTest NotesDatabaseMigrationTest runs runMigrationsAndValidate(5, MIGRATION_4_5) from v1 and v4; the database is still at version 5 and schemas 1 to 5 exist.
+
+### DEC-9 · 2026-10 · database:notes, RC-12, RC-23
+- decision: The connected repository (owner, repo, branch, list location, public flag, canonical name) and the "not yet confirmed" marker with its attempt id live in one JSON column, sources.config_json, not in new Room columns. The notes query hides unconfirmed sources with a LIKE test on the marker.
+- why: A schema bump to v6 raises the downgrade risk and needs another manual migration. Hiding unconfirmed notes in exactly one query guarantees old and new notes never show together at the moment of confirmation.
+- rejected: Real columns for pending and attempt id (schema v6).
+- evidence: ConnectionConfigCodec.PENDING_MARKER used by NoteDao.observeNotes; confirmation is one Room transaction (promote); NoteDaoTest checks the filter.

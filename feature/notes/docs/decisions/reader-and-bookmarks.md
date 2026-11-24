@@ -12,29 +12,11 @@
 - rejected: A separate 3.2 second timer.
 - evidence: `NotesViewModel` (`UndoRemoveBookmark`), `NotesViewModelTest` "FM-9 해제한 북마크를 되돌린다".
 
-### BM-D13 · 2026-10 · BM-21
-- decision: The shell keeps Bookmarks scroll state like Home, so switching tabs does not reset it to the top.
-- why: The shell already owns per-destination scroll state; a different rule for one screen has no reason.
-- rejected: Resetting to the top on each tab switch.
-- evidence: `core/ui/.../shell/NotesScrollState.kt` (`bookmarksList`).
-
 ### D-22 · 2026-10 · BM-9
 - decision: The bookmark list in the UI state is a list of `BookmarkUi` (note, category name, added time); the screen reads the first as the large card and the rest as rows.
 - why: The card and rows must show the added time, and keeping a precomputed "earlier" list would copy the list on every emission.
 - rejected: Separate `featured` and `earlier` fields in the state.
 - evidence: `BookmarkMapper.kt`, `BookmarkMapperTest`.
-
-### D-24 · 2026-10 · BM-16
-- decision: The shell decides two columns from window width minus open fixed panel, page margins and rail reserve being at least 640dp and passes a flag to the screen.
-- why: The shell already knows the window, panel and rail; screens do not re-measure.
-- rejected: Measuring inside the screen with a constraints box, or choosing by width class.
-- evidence: `app/.../shell/NotesLayout.kt` (`contentTwoPane`), `NotesLayoutTest`.
-
-### D-25 · 2026-10 · BM-21
-- decision: One list state is shared by the one-column list and the right column of the two-column layout.
-- why: Two states would split the "scroll to top" decision; the grid state of the first round is gone.
-- rejected: A grid state plus a separate list state.
-- evidence: `NotesScrollState.bookmarksList`.
 
 ### D-26 · 2026-10 · BM-16
 - decision: The compact large-card variant (tighter padding, one-line title, two-line excerpt) is chosen by a low-height window, whatever the column count.

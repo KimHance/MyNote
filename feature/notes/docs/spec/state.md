@@ -58,7 +58,7 @@ decisions: [BM-D5, BM-D15, DEC-36c]
 - Bookmark file corruption handling — `database:bookmarks`; here a failing flow only reads as empty.
 
 ### Unconfirmed
-- Whether the reader scroll position survives going back to an earlier note was not confirmed; the scroll state is created per last opened note id and is not saved across process death.
+- The reader scroll state is not saved across process death (not exercised on a device); that a note's position is dropped when another note is opened is stated in `ui:shell`.
 
 ## destinations — Notes destinations
 

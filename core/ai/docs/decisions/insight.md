@@ -17,3 +17,9 @@
 - why: A truncated sentence on a card is worse than the previous good summary; the retry changes the instruction because decoding is greedy.
 - rejected: Cutting long text; asking for extra fields (mood, advice, note ids).
 - evidence: `InsightJsonParser.kt`, `InsightJsonParserTest`.
+
+### D-59 · 2026-10 · ai:insight-worker, ST-21
+- decision: "Generating" is shown only when the unique work is running and has reported the generating phase just before taking the engine.
+- why: The daily check also runs and ends within milliseconds; flashing "regenerating" for it would be false.
+- rejected: Treating any running state as generating.
+- evidence: `StudyInsightWork.state`, `InsightWork.PHASE_GENERATING`.

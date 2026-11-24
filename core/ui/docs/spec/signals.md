@@ -1,7 +1,7 @@
 ---
 units: [ui:signal, ui:notices]
 plans: [001-reader-foundation, 004-bookmarks, 005-stats, 006-sync, 007-repo-connect, 008-note-template, 011-screen-copy, 012-feature-modules, 013-local-notes]
-decisions: [BM-D17, FM-D13]
+decisions: [BM-D17, FM-D13, D-51, FM-D8]
 ---
 ## signal — Feature signals
 ### Behaviour
@@ -50,7 +50,7 @@ decisions: [BM-D17, FM-D13]
 - `NotesSignal` — the five signal kinds; `unseen` — the extension on `PersistentMap<NotesSignal, Int>`.
 ### Guarantees
 - A shown signal is not drawn again, a new id is drawn even if an older one was shown, and kinds do not interfere (`NotesSignalTest`).
-- Every screen string of every module (the `strings.xml` of `:app`, all `core` and `feature` modules, not only the snackbar wording here) ends its sentences with an allowed ending, uses no forbidden expression and none of the dropped terms of the term table except the named frozen names: `notes-tests/test_screen_copy.py` reads all modules' `strings.xml` against the tables of `docs/design/screen-copy.md`, requires at least 390 strings to be found, and fails when an exception name no longer exists, so rewording any string in any unit can turn it red (011-screen-copy: SC-1, SC-2, SC-3) (012-feature-modules: FM-12) (013-local-notes: LN-K6).
+- Every screen string of every module (the `strings.xml` of `:app`, all `core` and `feature` modules, not only the snackbar wording here) has no sentence that ends in a blocked ending without also matching an allowed one (a label or noun phrase that matches neither list passes), uses no forbidden expression and none of the dropped terms of the term table except the named frozen names: `notes-tests/test_screen_copy.py` reads all modules' `strings.xml` against the tables of `docs/design/screen-copy.md`, requires at least 390 strings to be found, and fails when an exception name no longer exists, so rewording any string in any unit can turn it red (011-screen-copy: SC-1, SC-2, SC-3) (012-feature-modules: FM-12) (013-local-notes: LN-K6).
 - The 56 strings listed in `docs/design/screen-copy-rows.md` must equal that table's after text, and the table must keep the same format slots in before and after and a length column equal to the real change, with no growth in button, label, one-line or tab places; rewording one of them means editing its row in the same change: `notes-tests/test_screen_copy.py` (011-screen-copy: SC-4, SC-5, SC-6).
 - The seven app terms the template README quotes (`connect_entry_create`, `connect_link_label`, `connect_action`, `connect_token_title`, `ui_token_howto_kind`, `ui_token_howto_scope`, `ui_token_howto_perm`) must appear verbatim in `public-repos/notes-template/README.md`, and every sentence it quotes as the app's text must occur in some string of any module: `public-repos/tests/test_template.py` and `notes-tests/test_screen_copy.py` find them by name in every module's `strings.xml`, so changing or moving such a string breaks them until the README follows (008-note-template: NT-5) (011-screen-copy: SC-8, SC-K3) (012-feature-modules: FM-12).
 ### Not covered

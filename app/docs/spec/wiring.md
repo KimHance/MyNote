@@ -1,7 +1,7 @@
 ---
 units: [app:di, app:build]
 plans: [001-reader-foundation, 007-repo-connect, 010-brand, 012-feature-modules, 013-local-notes]
-decisions: [BR-D13, FM-D10, FM-D16, FM-D23, DEC-18]
+decisions: [BR-D13, FM-D10, FM-D16, DEC-18]
 ---
 ## di — Hilt wiring
 ### Behaviour

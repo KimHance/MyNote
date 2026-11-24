@@ -1,7 +1,7 @@
 ---
 units: [stats:stats, stats:screen]
 plans: [005-stats, 010-brand, 012-feature-modules]
-decisions: [D-33, D-59, D-62]
+decisions: [D-33, D-62]
 ---
 ## stats — Stats state and figures
 ### Behaviour

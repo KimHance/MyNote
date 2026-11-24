@@ -10,7 +10,7 @@ Source: old feature document `docs/spec/screen-copy.md` (v3) as of commit c8c543
 ## Items
 | ID | What | Accept |
 |---|---|---|
-| SC-1 | One speaking register: the polite formal style; every sentence ending of the in-scope strings is on the design document's allowed-endings list | Python `test_screen_copy.py`: `SC-1 화면 문구의 끝말은 허용 목록에 있다`; no ending outside the list except named exceptions |
+| SC-1 | One speaking register: the polite formal style; no sentence of the in-scope strings ends in an ending the design document blocks unless it also matches an allowed one (labels and noun phrases that match neither pass) | Python `test_screen_copy.py`: `SC-1 화면 문구의 끝말은 허용 목록에 있다`; no blocked ending except in the named exceptions |
 | SC-2 | No forbidden expression (exclamation marks, emoji, "click", internal terms, vague error sentences, added translationese, passive, habits) appears in any in-scope string | Python: `SC-2 화면 문구에 쓰지 않는 표현이 없다`; date-range dashes between format slots are not counted |
 | SC-3 | The same concept has the same word: no "dropped word" of the design document's term table appears; fetching notes and getting the model use different words | Python: `SC-3 용어 표에서 버린 말이 화면 문구에 없다`; frozen exceptions are named in the term table |
 | SC-4 | Translationese, noun stacks and machine-sounding habits are removed; every changed row has before, after, place and reason, and the after text passes SC-1 to SC-3 | Python: `SC-4 바꾼 문구 표의 값이 화면 문구에 있다`; strings not in the table equal the base commit (one-off diff at the time, no test) |

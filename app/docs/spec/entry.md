@@ -1,7 +1,7 @@
 ---
 units: [app:startup, app:launch, app:share-in, app:download]
 plans: [001-reader-foundation, 003-model-download, 005-stats, 007-repo-connect, 010-brand, 013-local-notes]
-decisions: [D-44, RC-D23, BR-D1, BR-D10, BR-D12, BR-D14, LN-D17]
+decisions: [D-44, BR-D1, BR-D10, BR-D12, BR-D14, LN-D17]
 ---
 ## startup — Startup tasks
 ### Behaviour

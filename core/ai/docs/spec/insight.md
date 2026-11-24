@@ -1,7 +1,7 @@
 ---
 units: [ai:insight-generation, ai:insight-worker]
 plans: [005-stats]
-decisions: [D-53, D-56, D-57]
+decisions: [D-53, D-56, D-57, D-59]
 ---
 ## insight-generation — Insight generation
 ### Behaviour

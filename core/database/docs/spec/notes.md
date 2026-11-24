@@ -1,7 +1,7 @@
 ---
 units: [database:notes, database:schema]
 plans: [001-reader-foundation, 006-sync, 007-repo-connect, 009-note-format, 013-local-notes]
-decisions: [D-36, NF-D29, DEC-2]
+decisions: [D-36, NF-D29, DEC-2, DEC-9]
 ---
 ## notes — Notes table
 ### Behaviour

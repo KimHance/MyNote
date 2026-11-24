@@ -6,14 +6,8 @@
 - rejected: Extending the notes ViewModel; sharing the aggregate with an eager "lazily" policy (it would run until the app ends).
 - evidence: `feature/stats/.../StatsViewModel.kt`, `feature/stats/AGENTS.md` ("집계는 통계가 맨 위일 때만 돈다"), `StatsViewModelTest`.
 
-### D-59 · 2026-10 · ST-21
-- decision: "Generating" is shown only when the unique work is running and has reported the generating phase just before taking the engine.
-- why: The daily check also runs and ends within milliseconds; flashing "regenerating" for it would be false.
-- rejected: Treating any running state as generating.
-- evidence: `StudyInsightWork.state`, `InsightWork.PHASE_GENERATING`.
-
 ### D-62 · 2026-10 · ST-14
 - decision: The screen has a loading state before the first aggregate and a log-off state with a notice; nothing is drawn while loading.
 - why: Drawing empty values first flashes the "no data" hint; without a notice the owner cannot tell why nothing accumulates after switching off.
 - rejected: Drawing empty values until data arrives.
-- evidence: `StatsUiMapper`, `StatsUiMapperTest`.
+- evidence: `StatsUiState.content` stays null until the first aggregate and `StatsScreen` draws nothing then; the log-off notice is `StatsNotice` in `StatsHeader.kt`. No test covers either state.

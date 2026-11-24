@@ -60,12 +60,6 @@
 - rejected: Showing deleted notes in the statistics list with a marker.
 - evidence: `ConnectionRepositoryTest`, `NoteDaoTest` (record rows survive removal).
 
-### DEC-9 · 2026-10 · RC-12, RC-23
-- decision: The connected repository (owner, repo, branch, list location, public flag, canonical name) and the "not yet confirmed" marker with its attempt id live in one JSON column, sources.config_json, not in new Room columns. The notes query hides unconfirmed sources with a LIKE test on the marker.
-- why: A schema bump to v6 raises the downgrade risk and needs another manual migration. Hiding unconfirmed notes in exactly one query guarantees old and new notes never show together at the moment of confirmation.
-- rejected: Real columns for pending and attempt id (schema v6).
-- evidence: ConnectionConfigCodec.PENDING_MARKER used by NoteDao.observeNotes; confirmation is one Room transaction (promote); NoteDaoTest checks the filter.
-
 ### DEC-10 · 2026-10 · RC-6, RC-17
 - decision: The rest of the connection state (token before the attempt, disconnect marker, used connection ids, bookmark clean-up list) lives in the DataStore connection_state, not in Room. Disconnect runs in a fixed order (marker, notes in Room, bookmark prefix, token) and ConnectionRecovery finishes the remaining steps at start-up.
 - why: Tokens and bookmarks already live in DataStore and two stores cannot share one transaction, so order plus resume stands in for atomicity.
@@ -77,3 +71,9 @@
 - why: Used connection ids must survive a restore so an id is never reused (RC decision 17).
 - rejected: Excluding all of connection_state from backup.
 - evidence: backup_rules.xml and data_extraction_rules.xml exclude datastore/connection_attempt_token.preferences_pb; notes-tests test_backup_rules.py; DataStoreConnectionStateStore uses a separate attemptTokenDataStore.
+
+### RC-D23 · 2026-10 · data:connection, RC-22
+- decision: On a seed connection the debug build's embedded token is written to the token store and applied before the sync, and a token that is already stored is not overwritten; the fallback path that read the embedded token directly is removed.
+- why: A fallback would revive the token after a disconnect, and loading it into the holder without writing it would let the stored value overwrite it right away and break a private seed.
+- rejected: A fallback read of the embedded token, and placing it only in the in-memory holder.
+- evidence: `ConnectionUseCaseTest` (`RC-22 내장 토큰은 시드 연결에만 쓴다`, `RC-22 시드 연결은 토큰이 적용된 뒤에 동기화한다`, `RC-22 이미 저장된 토큰을 시드가 덮어쓰지 않는다`).

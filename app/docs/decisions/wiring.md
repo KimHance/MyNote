@@ -18,12 +18,6 @@
 - rejected: A `resourcePrefix` on `:app`.
 - evidence: `notes-tests/test_feature_modules.py` (`FM-11 셸 문구는 shell_ 로 시작한다`), `app/build.gradle.kts`.
 
-### FM-D23 · 2026-10 · FM-11
-- decision: The common action strings `ds_action_confirm` and `ds_action_retry`, not yet used by any screen, are not deleted; they are the only exception to "no unused string" and are named with the reason in the test's kept list.
-- why: `DESIGN.md`'s common wording table defines them as the common action vocabulary; when a screen starts to use one, the test tells to remove it from the list.
-- rejected: Deleting the unused strings.
-- evidence: `notes-tests/test_feature_modules.py` (`UNUSED_KEPT`), `DESIGN.md`.
-
 ### DEC-18 · 2026-10 · RC-26
 - decision: The template repository address is one build value, template.repo, read from the committed root gradle.properties (also overridable with -P or a user gradle.properties). Empty means no entry to create a repository is shown.
 - why: local.properties differs per clone and does not reach release builds; the entry must not exist before the template repository is public.
