@@ -22,3 +22,12 @@
 | DM-7 | The old documents are gone and nothing points at them; the root `AGENTS.md` says how to read the old references left in comments and design notes | the root `docs/spec/` folder and `DECISIONS-TO-REVISIT.md` do not exist; a search for an old feature-document path or the old record's file name in tracked files outside `docs/plan/` finds nothing |
 | DM-8 | What the owner still has to decide is not lost | the open entries of the old decision record and the open questions of the old feature documents are listed per plan in `docs/open-questions.md` (Korean, outside the system), which the root `AGENTS.md` points to |
 | DM-9 | The repository's own checks still pass | the `test` command of `docs/docs-system.md` and `./gradlew ktlintCheck` pass; no file under any `src/` folder differs from the base commit |
+
+## Assumed
+- Document language — English for the documents of the system, as its rules say; `AGENTS.md`, `README.md`, `DESIGN.md` and `docs/design/` stay Korean and the root `AGENTS.md` language rule names the exception.
+- Module `AGENTS.md` files — left as they are (only references changed and the documents line added); trimming them to working rules is left to the owner.
+- Work without an old feature document (first app, quiz, bookmarks, statistics) — rebuilt as plans 001, 002, 004 and 005 from the git log and the earlier planning notes, with new item ids (RD, QZ, BM, ST).
+- Sources — `.kt` only (`build.gradle.kts` is outside the units); `ui-test` names the existing instrumented test commands and no new UI test was written.
+- `ktlintCheck` — red only for the `:app` androidTest source set because of two untracked local experiment files that are not part of this work; green without that task.
+- Instrumented tests were not run: no file under `src/` changed and no device was used.
+- Verification — six rounds; the four rows of the last round were fixed and accepted by the owner without a further round.
