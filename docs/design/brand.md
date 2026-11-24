@@ -3,7 +3,7 @@
 | 항목 | 값 |
 |---|---|
 | 기능 | brand |
-| 기능 문서 | docs/spec/brand.md — BR-1 ~ BR-8 |
+| 기능 문서 | docs/plan/010-brand.md — BR-1 ~ BR-8 |
 | 등급 | 화면 |
 | 마지막 변경 | 2026-10-12 · 리소스 이름만 — 제목 문구 이름 `ui_app_title`(feature-modules move-core-ui) |
 

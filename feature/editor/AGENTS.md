@@ -60,3 +60,7 @@
 - **아이콘은 디자인 시스템 손그림 한 벌**(`MyNoteIcons.Import` · `Paste` · `Device` · `Edit` · `Delete` — C2). Material 세트를 쓰지 않는다
   (붙여넣기 화면의 뒤로 화살표는 셸 상단 바와 같은 것).
 - 가져오기 읽는 중에 `취소` 하면 읽던 일을 끊고 결과를 버린다(편집기 · 거절 스낵바 없음).
+
+<!-- docs-system:start -->
+This module has documents, for when you need them: docs/overview.md (units) · docs/spec/ · docs/decisions/
+<!-- docs-system:end -->

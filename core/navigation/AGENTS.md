@@ -242,3 +242,7 @@ nav3 의 `LocalNavAnimatedContentScope` 는 미설정 시 **예외를 던진다*
 3. Compose 의존은 foundation 까지. material3 를 끌어오지 않는다.
 4. 화면 조립·슬롯·테마는 feature 가 한다. 이 모듈은 "어디로 갈 수 있는가"와 "어떻게 전환되는가"만 안다.
 5. 화면은 그 기능의 등록 파일에서 `destination<키> { }` 로 등록한다(위 등록 틀).
+
+<!-- docs-system:start -->
+This module has documents, for when you need them: docs/overview.md (units) · docs/spec/ · docs/decisions/
+<!-- docs-system:end -->

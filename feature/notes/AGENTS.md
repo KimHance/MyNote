@@ -313,3 +313,7 @@ Column(fillMaxSize) {
   VM 의 `sync` 는 `triggerIn(…, started = SharingStarted.Lazily)` 다. 기본값(`WhileSubscribed(0)`)이면 `state` 구독이 5초 넘게
   끊겼다 돌아올 때 상류가 새로 시작해 동기화가 다시 돈다. SY-1 위반이고, 오프라인이면 돌아올 때마다 실패 스낵바가 뜬다.
   `Lazily` 라서 동기화 중에 화면을 떠나도 동기화는 마저 돌고 뒤처리(`afterSyncRun`)도 한다.
+
+<!-- docs-system:start -->
+This module has documents, for when you need them: docs/overview.md (units) · docs/spec/ · docs/decisions/
+<!-- docs-system:end -->

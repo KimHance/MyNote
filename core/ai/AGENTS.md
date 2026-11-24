@@ -152,7 +152,7 @@ NPU 는 예전 실측에서 `Backend.NPU` 가 예외 없이 CPU 로 폴백했다
 
 ## 내려받기 알림 — `download/work/`
 
-떠 있는 내려받기 알림은 상태로 정해지고 한 번에 하나다(기능 문서 `docs/spec/model-download.md` MD-9 ~ MD-11,
+떠 있는 내려받기 알림은 상태로 정해지고 한 번에 하나다(기능 문서 `docs/plan/003-model-download.md` MD-9 ~ MD-11,
 글 · 막대 · 아이콘은 `docs/design/model-download.md` `## 알림`). 판단은 전부 `DownloadNotices.kt` 의 순수 함수이고
 `DownloadNotificationsTest`·`DownloadNoticesTest` 가 JVM 에서 본다(이 모듈에 Robolectric 이 없다).
 
@@ -272,3 +272,7 @@ NPU 는 예전 실측에서 `Backend.NPU` 가 예외 없이 CPU 로 폴백했다
   "executed before schedule" 로 미뤄진다. 새로 돌리려면 설정 `학습 기록 남기기` 를 껐다 켜서(취소 + 새 enqueue) 첫 실행을
   만든 뒤 `run -f -n androidx.work.systemjobscheduler com.hancekim.mynote <jobId>`. S25 는 `dumpsys battery set ac 1`
   로 JobScheduler 의 CHARGING 을 만족시키지 못했다(USB 저전류라 `Considered charging: false`) — 그래서 `-f`.
+
+<!-- docs-system:start -->
+This module has documents, for when you need them: docs/overview.md (units) · docs/spec/ · docs/decisions/
+<!-- docs-system:end -->

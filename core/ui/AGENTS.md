@@ -40,3 +40,7 @@
 | 의존은 `:core:{common, design-system, domain, navigation}` 뿐 — 기능 모듈 · 데이터 층 · 모델 구현을 모른다 | `notes-tests/test_feature_modules.py` FM-2 · FM-3 |
 | 문구 접두사는 `ui_`(`build.gradle.kts` 의 `resourcePrefix`) — 이 모듈만 참조하는 문구와 둘 이상의 모듈이 참조하는 문구를 둔다(결정 15). 다른 모듈은 `import com.hancekim.mynote.core.ui.R as UiR` 로 읽는다 | `lintDebug` · FM-11 파이썬 시험 |
 | 기능 컨벤션(`hancenote.android.feature`)을 쓰지 않는다 — 그 컨벤션이 이 모듈을 넣으므로 쓰면 자기를 의존한다. Hilt 플러그인도 없다(`javax.inject` 애너테이션만) | FM-1 파이썬 시험 |
+
+<!-- docs-system:start -->
+This module has documents, for when you need them: docs/overview.md (units) · docs/spec/ · docs/decisions/
+<!-- docs-system:end -->

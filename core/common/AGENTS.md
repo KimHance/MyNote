@@ -295,3 +295,7 @@ backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.state.colle
 
 `kotlin("test")` 는 쓰지 않는다(AGP 9 빌트인 Kotlin 에서 버전 해석 실패). `libs.junit` +
 `org.junit.Assert.*`, 코루틴은 `libs.kotlinx.coroutines.test`. 테스트명은 한국어 backtick.
+
+<!-- docs-system:start -->
+This module has documents, for when you need them: docs/overview.md (units) · docs/spec/ · docs/decisions/
+<!-- docs-system:end -->

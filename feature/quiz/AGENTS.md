@@ -84,3 +84,7 @@
 ./gradlew :app:compileDebugKotlin           # 이 모듈 변경 검증은 :app 컴파일로
 # 오버레이 뒤로가기(FM-10 ②)를 그리는 계측 BackOrderTest 는 셸과 같이 :app 에 있다 — app/AGENTS.md
 ```
+
+<!-- docs-system:start -->
+This module has documents, for when you need them: docs/overview.md (units) · docs/spec/ · docs/decisions/
+<!-- docs-system:end -->

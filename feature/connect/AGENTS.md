@@ -45,3 +45,7 @@
 ./gradlew :feature:connect:testDebugUnitTest   # 연결 판정 · 연결 VM
 ./gradlew :app:compileDebugKotlin              # 이 모듈 변경 검증은 :app 컴파일로
 ```
+
+<!-- docs-system:start -->
+This module has documents, for when you need them: docs/overview.md (units) · docs/spec/ · docs/decisions/
+<!-- docs-system:end -->
