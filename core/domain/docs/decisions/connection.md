@@ -41,3 +41,9 @@
 - why: The template is not public yet; a committed value does not reach other clones through the ignored local properties file, and the name can be changed without code and without a private repository name in the public APK.
 - rejected: Reading it from `local.properties`, and a constant in code.
 - evidence: `core/domain/.../connect/TemplateRepo.kt`, `TemplateRepoTest`, `app/build.gradle.kts` (`TEMPLATE_REPO`).
+
+### RC-D23 · 2026-10 · domain:connection, RC-22
+- decision: On a seed connection the debug build's embedded token is written to the token store and applied before the sync, and a token that is already stored is not overwritten; the fallback path that read the embedded token directly is removed.
+- why: A fallback would revive the token after a disconnect, and loading it into the holder without writing it would let the stored value overwrite it right away and break a private seed.
+- rejected: A fallback read of the embedded token, and placing it only in the in-memory holder.
+- evidence: `ConnectionUseCaseTest` (`RC-22 내장 토큰은 시드 연결에만 쓴다`, `RC-22 시드 연결은 토큰이 적용된 뒤에 동기화한다`, `RC-22 이미 저장된 토큰을 시드가 덮어쓰지 않는다`).

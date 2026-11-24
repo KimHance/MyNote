@@ -71,9 +71,3 @@
 - why: Used connection ids must survive a restore so an id is never reused (RC decision 17).
 - rejected: Excluding all of connection_state from backup.
 - evidence: backup_rules.xml and data_extraction_rules.xml exclude datastore/connection_attempt_token.preferences_pb; notes-tests test_backup_rules.py; DataStoreConnectionStateStore uses a separate attemptTokenDataStore.
-
-### RC-D23 · 2026-10 · data:connection, RC-22
-- decision: On a seed connection the debug build's embedded token is written to the token store and applied before the sync, and a token that is already stored is not overwritten; the fallback path that read the embedded token directly is removed.
-- why: A fallback would revive the token after a disconnect, and loading it into the holder without writing it would let the stored value overwrite it right away and break a private seed.
-- rejected: A fallback read of the embedded token, and placing it only in the in-memory holder.
-- evidence: `ConnectionUseCaseTest` (`RC-22 내장 토큰은 시드 연결에만 쓴다`, `RC-22 시드 연결은 토큰이 적용된 뒤에 동기화한다`, `RC-22 이미 저장된 토큰을 시드가 덮어쓰지 않는다`).

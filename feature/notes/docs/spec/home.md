@@ -56,14 +56,14 @@ decisions: [RC-D44, RC-D52, BR-D3, LN-D4, LN-D8, LN-D13, DEC-16]
 - The settings row is fixed below the list and never scrolls away; the list scrolls in the space between.
 - The list fades at the top (16 dp) once it can scroll back and at the bottom (52 dp) while more follows, animated over 200 ms; no divider is drawn above the settings row.
 - The settings row is highlighted only in a fixed pane while settings is open.
-- The settings row shows model state: a ring (with a percent when known, in the warning tone while retrying) while the model is busy; otherwise "모델 오류" after a failure, nothing when ready, "모델 없음" otherwise; "토큰 확인" is added only when the shell reports a token check and the model is not busy.
+- The settings row shows model state: a ring (with a percent when known, in the warning tone while retrying) while the model is busy; otherwise "모델 오류" after a failure, nothing when ready, "모델 없음" otherwise; "토큰 확인" is added only when the repository card is in its token-needs-check state (the badge of `ui:repo-card`, which the shell passes in — not the in-progress check that locks repository actions) and the model is not busy.
 - The connect band is the first list item only in the fixed pane and only with the same condition as on home; the drawer never shows it.
 - Keyboard focus is released by any intent except typing, by the start of a list scroll and by a press on an empty part of the panel; the query is kept (001-reader-foundation: RD-10).
 - The fixed pane pads itself for the status bar; inside the drawer the sheet already does, and the settings row pads for the navigation bar only in the drawer.
 
 ### Public API
 - `ListPanelScreen(uiState, chrome, onIntent, modifier, inFixedPanel)` — the panel the shell puts in the drawer or fixed pane.
-- `ListPanelChrome` — values from other features that the shell hands in: active note id, settings open, token check, model status.
+- `ListPanelChrome` — values from other features that the shell hands in: active note id, settings open, the token-needs-check badge of the repository card, model status.
 
 ### Not covered
 - The drawer, fixed pane, fold button and back handling around the panel — `app:shell`.

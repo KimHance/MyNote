@@ -1,7 +1,7 @@
 ---
 units: [data:connection]
 plans: [006-sync, 007-repo-connect, 013-local-notes]
-decisions: [SY-D10, RC-D4, RC-D5, RC-D6, RC-D9, RC-D19, RC-D20, RC-D28, RC-D29, RC-D34, DEC-10, DEC-36a, RC-D23]
+decisions: [SY-D10, RC-D4, RC-D5, RC-D6, RC-D9, RC-D19, RC-D20, RC-D28, RC-D29, RC-D34, DEC-10, DEC-36a]
 ---
 ## connection — Repository connection
 ### Behaviour

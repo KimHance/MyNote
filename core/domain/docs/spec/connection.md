@@ -1,7 +1,7 @@
 ---
 units: [domain:connect-link, domain:connection, domain:settings]
 plans: [001-reader-foundation, 006-sync, 007-repo-connect, 013-local-notes]
-decisions: [RC-D1, RC-D2, RC-D10, RC-D25, RC-D27, RC-D35, RC-D54]
+decisions: [RC-D1, RC-D2, RC-D10, RC-D25, RC-D27, RC-D35, RC-D54, RC-D23]
 ---
 ## connect-link — Connect link
 ### Behaviour
